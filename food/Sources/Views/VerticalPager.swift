@@ -66,15 +66,22 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
 
             var next = current
             if velocity.y > 0 {
-                if fraction > 0.7 { next = min(current + 1, hosts.count - 1) }      // <30% visible ⇒ siguiente
+                if fraction > 0.7 { next = min(current + 1, hosts.count - 1) }
             } else if velocity.y < 0 {
-                if fraction < 0.3 { next = max(current - 1, 0) }                    // ≥70% visible ⇒ volver arriba
+                if fraction < 0.3 { next = max(current - 1, 0) }
             } else {
                 next = fraction > 0.5 ? min(current + 1, hosts.count - 1) : current
             }
 
-            targetContentOffset.pointee = CGPoint(x: 0, y: CGFloat(next) * h)
-            DispatchQueue.main.async { self.parent.index = next }
+            let target = CGPoint(x: 0, y: CGFloat(next) * h)
+            targetContentOffset.pointee = scrollView.contentOffset
+            isAnimating = true
+            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]) {
+                scrollView.setContentOffset(target, animated: false)
+            } completion: { _ in
+                self.isAnimating = false
+                DispatchQueue.main.async { self.parent.index = next }
+            }
         }
 
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {

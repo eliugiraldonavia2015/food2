@@ -61,7 +61,7 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
-    @State private var currentIndex: Int = 0
+    @StateObject private var feedVM = FeedViewModel()
 
     @State private var isFollowing = false
     @State private var liked = false
@@ -75,7 +75,7 @@ struct FeedView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                VerticalPager(count: sampleItems.count, index: $currentIndex) { size, idx in
+                VerticalPager(count: sampleItems.count, index: $feedVM.currentIndex) { size, idx in
                     GeometryReader { pageGeo in
                         let item = sampleItems[idx]
                         ZStack {
