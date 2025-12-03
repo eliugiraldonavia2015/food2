@@ -81,7 +81,6 @@ struct FeedView: View {
                         let item = sampleItems[idx]
                         ZStack {
                                 WebImage(url: URL(string: item.backgroundUrl))
-                                    .placeholder(Image(systemName: "photo"))
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: geo.size.width, height: geo.size.height)
@@ -125,7 +124,6 @@ struct FeedView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
                         WebImage(url: URL(string: item.avatarUrl))
-                            .placeholder(Image(systemName: "person.crop.circle.fill"))
                             .resizable()
                             .scaledToFill()
                             .frame(width: 44, height: 44)
