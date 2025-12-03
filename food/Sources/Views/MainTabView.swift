@@ -8,7 +8,6 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
-    @Environment(\.safeAreaInsets) private var safeAreaInsets
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -46,7 +45,7 @@ struct MainTabView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .overlay(bottomBar, alignment: .bottom)
+        .safeAreaInset(edge: .bottom) { bottomBar }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
@@ -66,7 +65,6 @@ struct MainTabView: View {
             .padding(.top, 8)
             .padding(.bottom, 18)
         }
-        .padding(.bottom, safeAreaInsets.bottom)
         .background(.ultraThinMaterial)
         .overlay(
             Rectangle()
