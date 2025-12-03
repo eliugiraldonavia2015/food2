@@ -3,7 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayBottomGap: CGFloat = 10
+    private let overlayBottomGap: CGFloat = 12
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -227,10 +227,18 @@ struct FeedView: View {
                         )
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Button(action: { showRestaurantProfile = true }) {
-                                Text(item.username)
-                                    .foregroundColor(.white)
-                                    .font(.headline.bold())
+                            HStack(spacing: 8) {
+                                Button(action: { showRestaurantProfile = true }) {
+                                    Text(item.username)
+                                        .foregroundColor(.white)
+                                        .font(.headline.bold())
+                                }
+                                Button(action: { isFollowing.toggle() }) {
+                                    Capsule()
+                                        .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                        .frame(width: 90, height: 32)
+                                        .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                                }
                             }
                             if let labelText = labelText {
                                 Text(labelText)
@@ -260,16 +268,10 @@ struct FeedView: View {
                     }
                     
                     HStack(spacing: 10) {
-                        Button(action: { isFollowing.toggle() }) {
-                            Capsule()
-                                .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                .frame(width: 90, height: 32)
-                                .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
-                        }
                         Button(action: { showMenu = true }) {
                             Capsule()
                                 .fill(Color.green)
-                                .frame(width: 160, height: 36)
+                                .frame(width: 180, height: 40)
                                 .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
                         }
                     }
