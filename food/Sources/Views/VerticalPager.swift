@@ -41,7 +41,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
         let upThreshold: CGFloat = 0.15
-        let downThreshold: CGFloat = 0.30
+        let downThreshold: CGFloat = 0.15
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
