@@ -41,8 +41,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var isAnimating = false
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
-        let upThreshold: CGFloat = 0.15
-        let downThreshold: CGFloat = 0.15
+        let upThreshold: CGFloat = 0.5
+        let downThreshold: CGFloat = 0.5
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -86,30 +86,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
             let h = max(scrollView.bounds.height, 1)
             let y = scrollView.contentOffset.y
-            let current = Int(floor(y / h))
-            let remainder = y - CGFloat(current) * h
-            let fraction = remainder / h
-
-            var next = current
-            let topVisible = 1 - fraction
-            if velocity.y > 0 {
-                if fraction >= downThreshold { next = min(current + 1, hosts.count - 1) } else { next = current }
-            } else if velocity.y < 0 {
-                if topVisible >= upThreshold { next = current } else { next = min(current + 1, hosts.count - 1) }
-            } else {
-                let canUp = topVisible >= upThreshold
-                let canDown = fraction >= downThreshold
-                if canUp && canDown {
-                    next = fraction >= topVisible ? min(current + 1, hosts.count - 1) : current
-                } else if canDown {
-                    next = min(current + 1, hosts.count - 1)
-                } else if canUp {
-                    next = current
-                } else {
-                    next = current
-                }
-            }
-
+            let next = Int(round(y / h))
             let target = CGPoint(x: 0, y: CGFloat(next) * h)
             targetContentOffset.pointee = target
             isAnimating = true
