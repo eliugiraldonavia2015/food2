@@ -181,5 +181,6 @@ struct FeedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .background(Color.black.opacity(0.6).ignoresSafeArea())
         .transition(.move(edge: .bottom).combined(with: .opacity))
+        .padding(.bottom, bottomInset)
     }
 }

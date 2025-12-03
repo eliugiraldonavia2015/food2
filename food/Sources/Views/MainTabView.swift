@@ -39,14 +39,16 @@ struct MainTabView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .shadow(color: .black.opacity(0.3), radius: 12)
                 .transition(.opacity)
+                .zIndex(3)
             }
 
             if showShop {
                 ShopOverlay(onClose: { withAnimation { showShop = false } })
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(2)
             }
         }
-        .overlay(bottomBar.padding(.bottom, 2), alignment: .bottom)
+        .safeAreaInset(edge: .bottom) { bottomBar }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
