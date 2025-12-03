@@ -3,7 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayTopGap: CGFloat = 12
+    private let overlayBottomGap: CGFloat = 12
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -213,7 +213,7 @@ struct FeedView: View {
         let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
         
         return VStack {
-            Spacer(minLength: overlayTopGap)
+            Spacer()
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
@@ -311,7 +311,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 4)
+            .padding(.bottom, bottomInset + overlayBottomGap)
         }
     }
 
