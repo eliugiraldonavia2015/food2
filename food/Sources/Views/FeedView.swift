@@ -162,14 +162,11 @@ struct FeedView: View {
                         let item = currentItems[idx]
                         ZStack {
                                 ZStack {
-                                    Rectangle()
-                                        .fill(Color.black.opacity(0.2))
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
-                                        .offset(y: -geo.safeAreaInsets.top)
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: pageGeo.size.width, height: pageGeo.size.height)
+                                        .ignoresSafeArea(.container, edges: .top)
                                         .clipped()
                                 }
 
