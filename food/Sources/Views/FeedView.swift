@@ -62,16 +62,47 @@ struct FeedView: View {
         VStack {
             Spacer()
             HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Button(action: { showRestaurantProfile = true }) {
-                        Text("Restaurante La Plaza")
-                            .foregroundColor(.white)
-                            .font(.headline.bold())
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .center, spacing: 12) {
+                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg")) { img in
+                            img.resizable().scaledToFill()
+                        } placeholder: {
+                            Color.gray.opacity(0.2)
+                        }
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.green, lineWidth: 2))
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Button(action: { showRestaurantProfile = true }) {
+                                Text("Restaurante La Plaza")
+                                    .foregroundColor(.white)
+                                    .font(.headline.bold())
+                            }
+                            Text("SPONSORED")
+                                .foregroundColor(.gray)
+                                .font(.caption2.bold())
+                        }
                     }
+                    
+                    Text("The Volcano Burger")
+                        .foregroundColor(.white)
+                        .font(.title2.bold())
+                    
                     Text("Descubre el nuevo combo especial con sabores auténticos.")
                         .foregroundColor(.white.opacity(0.9))
                         .font(.footnote)
                         .lineLimit(2)
+                    
+                    HStack(spacing: 8) {
+                        Image(systemName: "music.note")
+                            .foregroundColor(.white)
+                        Text("Chef Beats Original • Burger BGM")
+                            .foregroundColor(.white)
+                            .font(.caption)
+                            .lineLimit(1)
+                    }
+                    
                     HStack(spacing: 10) {
                         Button(action: { isFollowing.toggle() }) {
                             Capsule()
@@ -82,7 +113,7 @@ struct FeedView: View {
                         Button(action: { showMenu = true }) {
                             Capsule()
                                 .fill(Color.green)
-                                .frame(width: 140, height: 36)
+                                .frame(width: 160, height: 36)
                                 .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
                         }
                     }
