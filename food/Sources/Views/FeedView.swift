@@ -81,13 +81,12 @@ struct FeedView: View {
                         let item = sampleItems[idx]
                         ZStack {
                                 WebImage(url: URL(string: item.backgroundUrl))
-                                    .placeholder { Color.black.opacity(0.2) }
+                                    .placeholder(Image(systemName: "photo"))
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: geo.size.width, height: geo.size.height)
                                     .clipped()
-                                    .transition(.fade(duration: 0.25))
-                                    .indicator(.activity)
+                                    .transition(SDWebImageTransition.fade)
 
                                 LinearGradient(
                                     colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
@@ -126,7 +125,7 @@ struct FeedView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
                         WebImage(url: URL(string: item.avatarUrl))
-                            .placeholder { Color.gray.opacity(0.2) }
+                            .placeholder(Image(systemName: "person.crop.circle.fill"))
                             .resizable()
                             .scaledToFill()
                             .frame(width: 44, height: 44)
