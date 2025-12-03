@@ -322,7 +322,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap)
+            .padding(.bottom, overlayBottomGap + bottomInset)
         }
     }
 
