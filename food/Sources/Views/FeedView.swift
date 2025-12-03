@@ -85,7 +85,7 @@ struct FeedView: View {
                                     .scaledToFill()
                                     .frame(width: geo.size.width, height: geo.size.height)
                                     .clipped()
-                                    .transition(SDWebImageTransition.fade)
+
 
                                 LinearGradient(
                                     colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
