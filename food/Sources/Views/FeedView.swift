@@ -166,7 +166,8 @@ struct FeedView: View {
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height)
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + pageGeo.safeAreaInsets.top)
+                                        .offset(y: -pageGeo.safeAreaInsets.top)
                                         .clipped()
                                 }
 
@@ -175,6 +176,8 @@ struct FeedView: View {
                                     colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
                                     startPoint: .bottom, endPoint: .top
                                 )
+                                .frame(width: pageGeo.size.width, height: pageGeo.size.height + pageGeo.safeAreaInsets.top)
+                                .offset(y: -pageGeo.safeAreaInsets.top)
 
                                 overlayContent(pageGeo, item)
                             }
