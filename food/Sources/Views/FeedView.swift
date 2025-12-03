@@ -51,14 +51,14 @@ struct FeedView: View {
             soundTitle: "Kitchen Beats • Ravioli Jam"
         ),
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/1435893/pexels-photo-1435893.jpeg",
-            username: "Sushi House",
+            backgroundUrl: "https://images.pexels.com/photos/262959/pexels-photo-262959.jpeg",
+            username: "BBQ Masters",
             label: .foodieReview,
             hasStories: false,
-            avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
-            title: "Rainbow Roll",
-            description: "Fresh sashimi layered with vibrant veggies — a rainbow on your plate.",
-            soundTitle: "Ocean Lo-Fi • Sushi Beat"
+            avatarUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
+            title: "Smoked Brisket",
+            description: "Low and slow smoked brisket with a peppery bark.",
+            soundTitle: "Grill Grooves • Pit Jam"
         )
     ]
     

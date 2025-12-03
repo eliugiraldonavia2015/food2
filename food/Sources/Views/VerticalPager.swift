@@ -23,7 +23,10 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         context.coordinator.update(count: count, builder: content)
         context.coordinator.layout(in: scroll)
         let pageHeight = scroll.bounds.height
-        if pageHeight == 0 { return }
+        if pageHeight == 0 {
+            DispatchQueue.main.async { context.coordinator.layout(in: scroll) }
+            return
+        }
         let targetY = CGFloat(index) * pageHeight
         if !context.coordinator.isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
             scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
@@ -35,8 +38,6 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var hosts: [UIHostingController<AnyView>] = []
         var builder: ((CGSize, Int) -> Content)?
         var isAnimating = false
-        var lastSize: CGSize = .zero
-        var lastCount: Int = 0
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
 
