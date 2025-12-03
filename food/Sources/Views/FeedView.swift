@@ -88,26 +88,38 @@ struct FeedView: View {
                     }
                 }
                 Spacer()
-                VStack(spacing: 18) {
+                VStack(spacing: 20) {
                     Button(action: { liked.toggle() }) {
-                        Image(systemName: liked ? "heart.fill" : "heart")
+                        Image(systemName: "heart.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 32, height: 32)
                             .foregroundColor(liked ? .red : .white)
-                            .font(.title3)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
                     Button(action: { showComments = true }) {
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                        Image(systemName: "ellipsis.bubble.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 32, height: 32)
                             .foregroundColor(.white)
-                            .font(.title3)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
                     Button(action: { showMusic = true }) {
-                        Image(systemName: "music.note")
+                        Image(systemName: "bookmark.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 32)
                             .foregroundColor(.white)
-                            .font(.title3)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
                     Button(action: { showShare = true }) {
-                        Image(systemName: "square.and.arrow.up")
+                        Image(systemName: "arrowshape.turn.up.right.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 32, height: 32)
                             .foregroundColor(.white)
-                            .font(.title3)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
                 }
             }
@@ -153,7 +165,7 @@ struct FeedView: View {
             if showMenu { modalCard(title: "Menú", onClose: { showMenu = false }) }
             if showComments { modalCard(title: "Comentarios", onClose: { showComments = false }) }
             if showShare { modalCard(title: "Compartir", onClose: { showShare = false }) }
-            if showMusic { modalCard(title: "Música", onClose: { showMusic = false }) }
+            if showMusic { modalCard(title: "Guardados", onClose: { showMusic = false }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
     }
@@ -181,6 +193,5 @@ struct FeedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .background(Color.black.opacity(0.6).ignoresSafeArea())
         .transition(.move(edge: .bottom).combined(with: .opacity))
-        .padding(.bottom, bottomInset)
     }
 }
