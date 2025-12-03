@@ -162,18 +162,20 @@ struct FeedView: View {
                         let item = currentItems[idx]
                         ZStack {
                                 ZStack {
+                                    Rectangle()
+                                        .fill(Color.black.opacity(0.2))
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
+                                        .offset(y: -geo.safeAreaInsets.top)
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
-                                        .ignoresSafeArea(.container, edges: .top)
-                                        .offset(y: -geo.safeAreaInsets.top)
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height)
                                         .clipped()
                                 }
 
 
                                 LinearGradient(
-                                    colors: [.black.opacity(0.65), .clear],
+                                    colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
                                     startPoint: .bottom, endPoint: .top
                                 )
 
