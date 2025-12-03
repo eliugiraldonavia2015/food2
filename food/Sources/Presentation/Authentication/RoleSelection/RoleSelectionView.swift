@@ -20,69 +20,64 @@ public struct RoleSelectionView: View {
     }
     
     public var body: some View {
-        NavigationStack {
-            VStack(spacing: 32) {
-                Text("Selecciona tu rol")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+        VStack(spacing: 32) {
+            Text("Selecciona tu rol")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("¿Cómo quieres usar la plataforma?")
+                .font(.title3)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            VStack(spacing: 24) {
+                RoleOptionView(
+                    title: "Cliente",
+                    description: "Disfruta tu comida favorita",
+                    features: [
+                        "Miles de restaurantes",
+                        "Entregas rápidas",
+                        "Ofertas exclusivas"
+                    ],
+                    icon: "person.crop.circle",
+                    isSelected: viewModel.selectedRole == .client,
+                    action: { viewModel.selectRole(.client) }
+                )
                 
-                Text("¿Cómo quieres usar la plataforma?")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                RoleOptionView(
+                    title: "Repartidor",
+                    description: "Gana dinero flexiblemente",
+                    features: [
+                        "Horarios flexibles",
+                        "Ganancias inmediatas",
+                        "Seguro incluido"
+                    ],
+                    icon: "scooter",
+                    isSelected: viewModel.selectedRole == .rider,
+                    action: { viewModel.selectRole(.rider) }
+                )
                 
-                // Opciones de rol
-                VStack(spacing: 24) {
-                    RoleOptionView(
-                        title: "Cliente",
-                        description: "Disfruta tu comida favorita",
-                        features: [
-                            "Miles de restaurantes",
-                            "Entregas rápidas",
-                            "Ofertas exclusivas"
-                        ],
-                        icon: "person.crop.circle",
-                        isSelected: viewModel.selectedRole == .client,
-                        action: { viewModel.selectRole(.client) }
-                    )
-                    
-                    RoleOptionView(
-                        title: "Repartidor",
-                        description: "Gana dinero flexiblemente",
-                        features: [
-                            "Horarios flexibles",
-                            "Ganancias inmediatas",
-                            "Seguro incluido"
-                        ],
-                        icon: "scooter",
-                        isSelected: viewModel.selectedRole == .rider,
-                        action: { viewModel.selectRole(.rider) }
-                    )
-                    
-                    RoleOptionView(
-                        title: "Restaurante",
-                        description: "Aumenta tus ventas",
-                        features: [
-                            "Sin costo inicial",
-                            "Miles de clientes",
-                            "Soporte 24/7"
-                        ],
-                        icon: "building.2.crop.circle",
-                        isSelected: viewModel.selectedRole == .restaurant,
-                        action: { viewModel.selectRole(.restaurant) }
-                    )
-                }
-                
-                Button("Continuar", action: { viewModel.confirmSelection(onSuccess: onCompletion) })
-                    .buttonStyle(PrimaryButtonStyle())
-                    .disabled(viewModel.selectedRole == nil)
-                    .padding(.top, 16)
+                RoleOptionView(
+                    title: "Restaurante",
+                    description: "Aumenta tus ventas",
+                    features: [
+                        "Sin costo inicial",
+                        "Miles de clientes",
+                        "Soporte 24/7"
+                    ],
+                    icon: "building.2.crop.circle",
+                    isSelected: viewModel.selectedRole == .restaurant,
+                    action: { viewModel.selectRole(.restaurant) }
+                )
             }
-            .padding()
-            .navigationTitle("Selecciona tu rol")
-            .navigationBarTitleDisplayMode(.inline)
+            
+            Button("Continuar", action: { viewModel.confirmSelection(onSuccess: onCompletion) })
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(viewModel.selectedRole == nil)
+                .padding(.top, 16)
         }
+        .padding()
         .onAppear {
             viewModel.loadUser()
         }
