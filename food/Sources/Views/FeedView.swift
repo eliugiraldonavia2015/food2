@@ -16,7 +16,7 @@ struct FeedView: View {
         let soundTitle: String
     }
 
-    private let sampleItems: [FeedItem] = [
+    private let forYouItems: [FeedItem] = [
         .init(
             backgroundUrl: "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
             username: "The Burger Joint",
@@ -36,28 +36,33 @@ struct FeedView: View {
             title: "Truffle Alfredo",
             description: "A creamy truffle alfredo with fresh herbs and parmesan.",
             soundTitle: "Foodie Groove • Pasta Jam"
+        )
+    ]
+    
+    private let followingItems: [FeedItem] = [
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
+            username: "Chef Anna",
+            label: .none,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
+            title: "Homemade Ravioli",
+            description: "Hand-crafted pasta pockets with ricotta and spinach.",
+            soundTitle: "Kitchen Beats • Ravioli Jam"
         ),
         .init(
             backgroundUrl: "https://images.pexels.com/photos/1435893/pexels-photo-1435893.jpeg",
             username: "Sushi House",
-            label: .none,
-            hasStories: true,
+            label: .foodieReview,
+            hasStories: false,
             avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
             title: "Rainbow Roll",
             description: "Fresh sashimi layered with vibrant veggies — a rainbow on your plate.",
             soundTitle: "Ocean Lo-Fi • Sushi Beat"
-        ),
-        .init(
-            backgroundUrl: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg",
-            username: "Vegan Vibes",
-            label: .foodieReview,
-            hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/247878/pexels-photo-247878.jpeg",
-            title: "Green Goddess Bowl",
-            description: "A wholesome bowl with grains, greens, and tangy dressings.",
-            soundTitle: "Plant Power • Greens Flow"
-        ),
+        )
     ]
+    
+    private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : followingItems }
 
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
@@ -76,15 +81,18 @@ struct FeedView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                VerticalPager(count: sampleItems.count, index: $feedVM.currentIndex) { size, idx in
+                VerticalPager(count: currentItems.count, index: $feedVM.currentIndex) { size, idx in
                     GeometryReader { pageGeo in
-                        let item = sampleItems[idx]
+                        let item = currentItems[idx]
                         ZStack {
-                                WebImage(url: URL(string: item.backgroundUrl))
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: geo.size.width, height: geo.size.height)
-                                    .clipped()
+                                ZStack {
+                                    Rectangle().fill(Color.black.opacity(0.2))
+                                    WebImage(url: URL(string: item.backgroundUrl))
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: geo.size.width, height: geo.size.height)
+                                        .clipped()
+                                }
 
 
                                 LinearGradient(
@@ -102,8 +110,12 @@ struct FeedView: View {
         .background(Color.black.ignoresSafeArea())
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
-        .onAppear { feedVM.prefetch(urls: sampleItems.map { $0.backgroundUrl }) }
+        .onAppear { feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl }) }
         .onDisappear { feedVM.cancelPrefetch() }
+        .onChange(of: activeTab) { _, _ in
+            feedVM.currentIndex = 0
+            feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
+        }
     }
 
     private func overlayContent(_ geo: GeometryProxy, _ item: FeedItem) -> some View {

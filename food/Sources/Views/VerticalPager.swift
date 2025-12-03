@@ -12,7 +12,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.showsVerticalScrollIndicator = false
         scroll.alwaysBounceVertical = true
         scroll.isPagingEnabled = false
-        scroll.decelerationRate = .normal
+        scroll.decelerationRate = .fast
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.delegate = context.coordinator
         context.coordinator.install(in: scroll)
@@ -35,6 +35,10 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var hosts: [UIHostingController<AnyView>] = []
         var builder: ((CGSize, Int) -> Content)?
         var isAnimating = false
+        var lastSize: CGSize = .zero
+        var lastCount: Int = 0
+        var lastSize: CGSize = .zero
+        var lastCount: Int = 0
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -53,13 +57,17 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             let size = scroll.bounds.size
             guard let builder = builder else { return }
             if size.height <= 0 { return }
-            for (i, host) in hosts.enumerated() {
-                host.rootView = AnyView(builder(size, i))
-                let view = host.view!
-                if view.superview == nil { scroll.addSubview(view) }
-                view.frame = CGRect(x: 0, y: CGFloat(i) * size.height, width: size.width, height: size.height)
+            if lastSize != size || lastCount != hosts.count {
+                for (i, host) in hosts.enumerated() {
+                    host.rootView = AnyView(builder(size, i))
+                    let view = host.view!
+                    if view.superview == nil { scroll.addSubview(view) }
+                    view.frame = CGRect(x: 0, y: CGFloat(i) * size.height, width: size.width, height: size.height)
+                }
+                scroll.contentSize = CGSize(width: size.width, height: size.height * CGFloat(hosts.count))
+                lastSize = size
+                lastCount = hosts.count
             }
-            scroll.contentSize = CGSize(width: size.width, height: size.height * CGFloat(hosts.count))
             let targetY = CGFloat(parent.index) * size.height
             if !isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
                 scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
@@ -83,19 +91,14 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             }
 
             let target = CGPoint(x: 0, y: CGFloat(next) * h)
-            targetContentOffset.pointee = scrollView.contentOffset
+            targetContentOffset.pointee = target
             isAnimating = true
-            UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState, .allowUserInteraction]) {
-                scrollView.contentOffset = target
-            } completion: { _ in
-                self.isAnimating = false
-                DispatchQueue.main.async { self.parent.index = next }
-            }
         }
 
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let h = max(scrollView.bounds.height, 1)
             let idx = Int(round(scrollView.contentOffset.y / h))
+            isAnimating = false
             DispatchQueue.main.async { self.parent.index = idx }
         }
     }
