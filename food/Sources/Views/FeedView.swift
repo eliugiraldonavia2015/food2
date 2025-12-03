@@ -165,8 +165,11 @@ struct FeedView: View {
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top + 8)
-                                        .ignoresSafeArea(.container, edges: .top)
+                                        .frame(
+                                            width: pageGeo.size.width,
+                                            height: pageGeo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom + 8
+                                        )
+                                        .ignoresSafeArea(.container, edges: .vertical)
                                         .offset(y: -geo.safeAreaInsets.top - 8)
                                         .clipped()
                                 }
@@ -179,15 +182,14 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
-                            .ignoresSafeArea(edges: .top)
+                            .ignoresSafeArea(edges: .vertical)
                         }
                 }
             }
-            .ignoresSafeArea(edges: .top)
+            .ignoresSafeArea(edges: .vertical)
         }
         .overlay(topTabs.padding(.top, 8), alignment: .top)
         .background(Color.black.ignoresSafeArea())
-        .safeAreaPadding(.bottom, bottomInset)
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
         .onAppear {
@@ -324,7 +326,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap)
+            .padding(.bottom, bottomInset + overlayBottomGap)
         }
     }
 

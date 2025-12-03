@@ -81,28 +81,28 @@ struct MainTabView: View {
         )
     }
 
-    private var cartButton: some View {
-        VStack(spacing: 4) {
-            Button {
-                withAnimation { showShopLoading = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    withAnimation {
-                        showShopLoading = false
-                        showShop = true
+        private var cartButton: some View {
+            VStack(spacing: 4) {
+                Button {
+                    withAnimation { showShopLoading = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        withAnimation {
+                            showShopLoading = false
+                            showShop = true
+                        }
                     }
+                } label: {
+                    Image(systemName: "cart.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.green)
                 }
-            } label: {
-                Image(systemName: "cart.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                Text("Carrito")
+                    .font(.caption2)
                     .foregroundColor(.green)
             }
-            Text("Carrito")
-                .font(.caption2)
-                .foregroundColor(.green)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
         }
-        .padding(.vertical, 6)
-        .frame(maxWidth: .infinity)
-    }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
         let isSelected = selected == tab
