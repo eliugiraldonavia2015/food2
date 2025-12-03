@@ -92,10 +92,10 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             if velocity.y > 0 {
                 if fraction >= 0.35 { next = min(current + 1, hosts.count - 1) } else { next = current }
             } else if velocity.y < 0 {
-                if topVisible >= 0.15 { next = max(current - 1, 0) } else { next = current }
+                if topVisible >= 0.15 { next = current } else { next = min(current + 1, hosts.count - 1) }
             } else {
                 if topVisible >= 0.15 {
-                    next = max(current - 1, 0)
+                    next = current
                 } else if fraction >= 0.35 {
                     next = min(current + 1, hosts.count - 1)
                 } else {
