@@ -74,7 +74,7 @@ public struct RoleSelectionView: View {
                     )
                 }
                 
-                Button("Continuar", action: viewModel.confirmSelection)
+                Button("Continuar", action: { viewModel.confirmSelection(onSuccess: onCompletion) })
                     .buttonStyle(PrimaryButtonStyle())
                     .disabled(viewModel.selectedRole == nil)
                     .padding(.top, 16)
@@ -85,13 +85,6 @@ public struct RoleSelectionView: View {
         }
         .onAppear {
             viewModel.loadUser()
-        }
-        .onChange(of: viewModel.isRoleSelected) { _, isRoleSelected in
-            if isRoleSelected {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    onCompletion()
-                }
-            }
         }
     }
 }

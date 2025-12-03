@@ -49,7 +49,7 @@ public final class RoleSelectionViewModel: ObservableObject {
         selectedRole = role
     }
     
-    public func confirmSelection() {
+    public func confirmSelection(onSuccess: @escaping () -> Void) {
         guard let role = selectedRole else { return }
         
         isLoading = true
@@ -63,10 +63,14 @@ public final class RoleSelectionViewModel: ObservableObject {
                     return
                 }
                 
-                // Actualizar estado local con el nuevo rol
                 self.updateAuthStateWithRole(role)
+                onSuccess()
             }
         }
+    }
+    
+    public func confirmSelection() {
+        confirmSelection(onSuccess: {})
     }
     
     private func saveUserRole(_ role: Role, completion: @escaping (Error?) -> Void) {
