@@ -40,6 +40,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var isAnimating = false
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
+        let upThreshold: CGFloat = 0.15
+        let downThreshold: CGFloat = 0.30
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -90,13 +92,13 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             var next = current
             let topVisible = 1 - fraction
             if velocity.y > 0 {
-                if fraction >= 0.35 { next = min(current + 1, hosts.count - 1) } else { next = current }
+                if fraction >= downThreshold { next = min(current + 1, hosts.count - 1) } else { next = current }
             } else if velocity.y < 0 {
-                if topVisible >= 0.15 { next = current } else { next = min(current + 1, hosts.count - 1) }
+                if topVisible >= upThreshold { next = current } else { next = min(current + 1, hosts.count - 1) }
             } else {
-                if topVisible >= 0.15 {
+                if topVisible >= upThreshold {
                     next = current
-                } else if fraction >= 0.35 {
+                } else if fraction >= downThreshold {
                     next = min(current + 1, hosts.count - 1)
                 } else {
                     next = current
