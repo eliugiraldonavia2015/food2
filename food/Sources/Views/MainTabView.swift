@@ -8,12 +8,13 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
+    @State private var bottomBarHeight: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selected {
-                case .feed: FeedView()
+                case .feed: FeedView(bottomInset: bottomBarHeight)
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesScreen()
@@ -49,6 +50,7 @@ struct MainTabView: View {
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
+        .onPreferenceChange(BottomBarHeightKey.self) { bottomBarHeight = $0 }
     }
 
     private var bottomBar: some View {
@@ -61,14 +63,19 @@ struct MainTabView: View {
                 navButton(icon: "person.fill", title: "Perfil", tab: .profile)
             }
             .padding(.horizontal, 12)
-            .padding(.top, 4)
-            .padding(.bottom, 10)
+            .padding(.top, 3)
+            .padding(.bottom, 8)
         }
         .background(Color.black)
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: BottomBarHeightKey.self, value: geo.size.height)
+            }
+        )
         .overlay(
             Rectangle()
                 .fill(Color.white.opacity(0.1))
-                .frame(height: 1), alignment: .top
+                .frame(height: 0.1), alignment: .top
         )
     }
 
@@ -161,6 +168,13 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .background(Color.black.opacity(0.6).ignoresSafeArea())
         }
+    }
+}
+
+private struct BottomBarHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
