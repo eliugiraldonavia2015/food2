@@ -8,81 +8,127 @@ struct FeedView: View {
         "https://images.pexels.com/photos/1435893/pexels-photo-1435893.jpeg"
     ]
 
+    @State private var activeTab: ActiveTab = .foryou
+    private enum ActiveTab { case following, foryou }
+
     var body: some View {
-        GeometryReader { geo in
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 20) {
-                    ForEach(sampleImages, id: \.self) { url in
-                        ZStack {
-                            AsyncImage(url: URL(string: url)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: geo.size.width - 24, height: geo.size.height * 0.72)
-                                    .clipped()
-                            } placeholder: {
-                                Color.black.opacity(0.4)
-                            }
-                            .cornerRadius(20)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            GeometryReader { geo in
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        ForEach(sampleImages, id: \.self) { url in
+                            ZStack {
+                                AsyncImage(url: URL(string: url)) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: geo.size.width, height: geo.size.height)
+                                        .clipped()
+                                } placeholder: {
+                                    Color.black.opacity(0.4)
+                                }
 
-                            LinearGradient(
-                                colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
-                                startPoint: .bottom, endPoint: .top
-                            )
-                            .cornerRadius(20)
+                                LinearGradient(
+                                    colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
+                                    startPoint: .bottom, endPoint: .top
+                                )
 
-                            // Overlay UI estilo TikTok
-                            VStack {
-                                HStack {
-                                    Text("FoodTook")
-                                        .font(.headline.bold())
-                                        .foregroundColor(.white)
+                                VStack {
                                     Spacer()
-                                    HStack(spacing: 18) {
-                                        Image(systemName: "heart.fill").foregroundColor(.white)
-                                        Image(systemName: "bubble.left.and.bubble.right.fill").foregroundColor(.white)
-                                        Image(systemName: "arrowshape.turn.up.right.fill").foregroundColor(.white)
+                                    HStack(alignment: .bottom) {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Button(action: { showRestaurantProfile = true }) {
+                                                Text("Restaurante La Plaza")
+                                                    .foregroundColor(.white)
+                                                    .font(.headline.bold())
+                                            }
+                                            Text("Descubre el nuevo combo especial con sabores auténticos.")
+                                                .foregroundColor(.white.opacity(0.9))
+                                                .font(.footnote)
+                                                .lineLimit(2)
+                                            HStack(spacing: 10) {
+                                                Button(action: { isFollowing.toggle() }) {
+                                                    Capsule()
+                                                        .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                                        .frame(width: 90, height: 32)
+                                                        .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                                                }
+                                                Button(action: { showMenu = true }) {
+                                                    Capsule()
+                                                        .fill(Color.green)
+                                                        .frame(width: 140, height: 36)
+                                                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
+                                                }
+                                            }
+                                        }
+                                        Spacer()
+                                        VStack(spacing: 18) {
+                                            Button(action: { liked.toggle() }) {
+                                                Image(systemName: liked ? "heart.fill" : "heart")
+                                                    .foregroundColor(liked ? .red : .white)
+                                                    .font(.title3)
+                                            }
+                                            Button(action: { showComments = true }) {
+                                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                                    .foregroundColor(.white)
+                                                    .font(.title3)
+                                            }
+                                            Button(action: { showMusic = true }) {
+                                                Image(systemName: "music.note")
+                                                    .foregroundColor(.white)
+                                                    .font(.title3)
+                                            }
+                                            Button(action: { showShare = true }) {
+                                                Image(systemName: "square.and.arrow.up")
+                                                    .foregroundColor(.white)
+                                                    .font(.title3)
+                                            }
+                                        }
                                     }
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 90)
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.top, 14)
-
-                                Spacer()
-
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("Restaurante La Plaza")
-                                        .foregroundColor(.white)
-                                        .font(.headline.bold())
-                                    Text("Descubre el nuevo combo especial con sabores auténticos.")
-                                        .foregroundColor(.white.opacity(0.9))
-                                        .font(.footnote)
-                                        .lineLimit(2)
-                                    HStack(spacing: 12) {
-                                        Capsule()
-                                            .fill(Color.green.opacity(0.25))
-                                            .frame(width: 80, height: 26)
-                                            .overlay(Text("Combo").foregroundColor(.green).font(.caption.bold()))
-                                        Capsule()
-                                            .fill(Color.orange.opacity(0.25))
-                                            .frame(width: 90, height: 26)
-                                            .overlay(Text("Oferta").foregroundColor(.orange).font(.caption.bold()))
-                                    }
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 16)
                             }
+                            .frame(width: geo.size.width, height: geo.size.height)
                         }
-                        .frame(height: geo.size.height * 0.72)
-                        .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 12)
-                        .padding(.horizontal, 12)
                     }
                 }
-                .padding(.top, 12)
-                .padding(.bottom, 20)
             }
         }
+        .overlay(topTabs.padding(.top, 8), alignment: .top)
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
+    }
+
+    private var topTabs: some View {
+        HStack(spacing: 16) {
+            tabButton(title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
+                activeTab = .following
+            }
+            tabButton(title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
+                activeTab = .foryou
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.clear)
+    }
+
+    private func tabButton(title: String, isActive: Bool, indicatorColor: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Text(title)
+                    .foregroundColor(isActive ? .white : .secondary)
+                    .font(.subheadline.bold())
+                if isActive {
+                    Capsule()
+                        .fill(indicatorColor)
+                        .frame(width: 60, height: 3)
+                        .shadow(color: indicatorColor.opacity(0.6), radius: 6)
+                }
+            }
+            .padding(.horizontal, 6)
+        }
     }
 }

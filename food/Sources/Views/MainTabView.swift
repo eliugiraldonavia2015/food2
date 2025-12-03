@@ -6,6 +6,8 @@ struct MainTabView: View {
     }
 
     @State private var selected: Tab = .feed
+    @State private var showShopLoading = false
+    @State private var showShop = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -22,28 +24,80 @@ struct MainTabView: View {
             .background(Color.black.ignoresSafeArea())
 
             bottomBar
+
+            if showShopLoading {
+                VStack(spacing: 10) {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(.green)
+                        .scaleEffect(1.2)
+                    Text("Abriendo Tienda")
+                        .foregroundColor(.white)
+                        .font(.footnote)
+                }
+                .padding()
+                .background(Color.black.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.3), radius: 12)
+                .transition(.opacity)
+            }
+
+            if showShop {
+                ShopOverlay(onClose: { withAnimation { showShop = false } })
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
+        .animation(.easeInOut, value: showShopLoading)
+        .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
     }
 
     private var bottomBar: some View {
-        HStack(spacing: 0) {
-            navButton(icon: "house.fill", title: "Home", tab: .feed)
-            navButton(icon: "bell.fill", title: "Notifications", tab: .notifications)
-            navButton(icon: "bag.fill", title: "Store", tab: .store)
-            navButton(icon: "message.fill", title: "Messages", tab: .messages)
-            navButton(icon: "person.fill", title: "Profile", tab: .profile)
+        ZStack(alignment: .top) {
+            Color.black.opacity(0.9)
+            HStack(spacing: 0) {
+                navButton(icon: "house.fill", title: "Inicio", tab: .feed)
+                navButton(icon: "bell.fill", title: "Notif", tab: .notifications)
+                cartButton
+                navButton(icon: "message.fill", title: "Mensajes", tab: .messages)
+                navButton(icon: "person.fill", title: "Perfil", tab: .profile)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 18)
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 18)
         .background(.ultraThinMaterial)
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.06))
-                .frame(height: 1)
-                .frame(maxHeight: .infinity, alignment: .top)
+                .fill(Color.white.opacity(0.1))
+                .frame(height: 1), alignment: .top
         )
+    }
+
+    private var cartButton: some View {
+        VStack(spacing: 4) {
+            Button {
+                withAnimation { showShopLoading = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    withAnimation {
+                        showShopLoading = false
+                        showShop = true
+                    }
+                }
+            } label: {
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.green)
+                    .padding(10)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(Circle())
+                    .offset(y: -6)
+            }
+            Text("Carrito")
+                .font(.caption2)
+                .foregroundColor(.green)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
@@ -63,6 +117,51 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
+        }
+    }
+
+    private struct ShopOverlay: View {
+        let onClose: () -> Void
+        var body: some View {
+            VStack(spacing: 12) {
+                Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
+                Text("Tienda").foregroundColor(.white).font(.headline.bold())
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(0..<8) { _ in
+                            HStack(spacing: 12) {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.green.opacity(0.2))
+                                    .frame(width: 64, height: 64)
+                                    .overlay(Image(systemName: "bag.fill").foregroundColor(.green))
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Combo del Día").foregroundColor(.white).font(.subheadline.bold())
+                                    Text("Delicioso y económico").foregroundColor(.secondary).font(.caption)
+                                }
+                                Spacer()
+                                Text("$9.99").foregroundColor(.green).font(.subheadline.bold())
+                            }
+                            .padding()
+                            .background(Color.white.opacity(0.06))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                    .padding()
+                }
+                Button(action: onClose) {
+                    Text("Cerrar")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 12)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .background(Color.black.opacity(0.6).ignoresSafeArea())
         }
     }
 }
