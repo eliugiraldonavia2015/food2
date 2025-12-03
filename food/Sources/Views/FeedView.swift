@@ -11,6 +11,7 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
+    @Environment(\.safeAreaInsets) private var safeAreaInsets
     @State private var isFollowing = false
     @State private var liked = false
     @State private var showRestaurantProfile = false
@@ -95,7 +96,7 @@ struct FeedView: View {
                                         }
                                     }
                                     .padding(.horizontal, 16)
-                                    .padding(.bottom, 140)
+                                    .padding(.bottom, safeAreaInsets.bottom + 96)
                                 }
                             }
                             .frame(width: geo.size.width, height: geo.size.height)
