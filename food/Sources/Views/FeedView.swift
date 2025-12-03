@@ -3,7 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayBottomGap: CGFloat = 6
+    private let overlayBottomGap: CGFloat = 10
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
