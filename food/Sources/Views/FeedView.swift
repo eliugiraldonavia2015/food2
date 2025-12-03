@@ -96,7 +96,7 @@ struct FeedView: View {
                                         }
                                     }
                                     .padding(.horizontal, 16)
-                                    .padding(.bottom, geo.safeAreaInsets.bottom + 96)
+                                    .padding(.bottom, geo.safeAreaInsets.bottom + 16)
                                 }
                             }
                             .frame(width: geo.size.width, height: geo.size.height)

@@ -13,11 +13,11 @@ struct MainTabView: View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selected {
-                case .feed: FeedView().padding(.bottom, 80)
-                case .notifications: NotificationsScreen().padding(.bottom, 80)
-                case .store: StoreScreen().padding(.bottom, 80)
-                case .messages: MessagesScreen().padding(.bottom, 80)
-                case .profile: ProfileScreen().padding(.bottom, 80)
+                case .feed: FeedView()
+                case .notifications: NotificationsScreen()
+                case .store: StoreScreen()
+                case .messages: MessagesScreen()
+                case .profile: ProfileScreen()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
