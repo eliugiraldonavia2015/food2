@@ -67,7 +67,9 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
-    @StateObject private var feedVM = FeedViewModel()
+    @StateObject private var forYouVM = FeedViewModel(storageKey: "feed.forYou.index")
+    @StateObject private var followingVM = FeedViewModel(storageKey: "feed.following.index")
+    private var selectedVM: FeedViewModel { activeTab == .foryou ? forYouVM : followingVM }
 
     @State private var isFollowing = false
     @State private var liked = false
@@ -81,7 +83,7 @@ struct FeedView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                VerticalPager(count: currentItems.count, index: $feedVM.currentIndex) { size, idx in
+                VerticalPager(count: currentItems.count, index: $selectedVM.currentIndex) { size, idx in
                     GeometryReader { pageGeo in
                         let item = currentItems[idx]
                         ZStack {
@@ -111,13 +113,18 @@ struct FeedView: View {
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
         .onAppear {
-            feedVM.currentIndex = min(feedVM.currentIndex, max(currentItems.count - 1, 0))
-            feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
+            selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
+            selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
         }
-        .onDisappear { feedVM.cancelPrefetch() }
+        .onDisappear {
+            forYouVM.cancelPrefetch()
+            followingVM.cancelPrefetch()
+        }
         .onChange(of: activeTab) { _, _ in
-            feedVM.currentIndex = 0
-            feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedVM.currentIndex = 0
+            }
+            selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
         }
     }
 
@@ -239,10 +246,10 @@ struct FeedView: View {
     private var topTabs: some View {
         HStack(spacing: 16) {
             tabButton(title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
-                activeTab = .following
+                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .following }
             }
             tabButton(title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
-                activeTab = .foryou
+                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .foryou }
             }
         }
         .padding(.horizontal, 16)

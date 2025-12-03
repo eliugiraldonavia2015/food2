@@ -1,16 +1,16 @@
 import SwiftUI
 import Combine
 import SDWebImage
-import SDWebImage
 
 final class FeedViewModel: ObservableObject {
-    @AppStorage("feed.currentIndex") private var storedIndex: Int = 0
-    @Published var currentIndex: Int = 0 {
-        didSet { storedIndex = currentIndex }
+    private let storageKey: String
+    @Published var currentIndex: Int {
+        didSet { UserDefaults.standard.set(currentIndex, forKey: storageKey) }
     }
 
-    init() {
-        currentIndex = storedIndex
+    init(storageKey: String) {
+        self.storageKey = storageKey
+        self.currentIndex = UserDefaults.standard.object(forKey: storageKey) as? Int ?? 0
     }
 
     func prefetch(urls: [String]) {
