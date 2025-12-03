@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FeedView: View {
+    let bottomInset: CGFloat
     private let sampleImages: [String] = [
         "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg",
         "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
@@ -111,7 +112,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 2)
+            .padding(.bottom, bottomInset + 2)
         }
     }
 
