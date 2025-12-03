@@ -151,6 +151,7 @@ struct FeedView: View {
     @State private var showComments = false
     @State private var showShare = false
     @State private var showMusic = false
+    @State private var expandedDescriptions: Set<UUID> = []
 
     var body: some View {
         ZStack {
@@ -211,6 +212,7 @@ struct FeedView: View {
             }
         }()
         let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
+        let isExpanded = expandedDescriptions.contains(item.id)
         
         return VStack {
             Spacer()
@@ -256,9 +258,12 @@ struct FeedView: View {
                     Text(item.description)
                         .foregroundColor(.white.opacity(0.9))
                         .font(.footnote)
-                        .lineLimit(2)
+                        .lineLimit(isExpanded ? nil : 2)
                         .truncationMode(.tail)
                         .frame(maxWidth: geo.size.width * 0.5, alignment: .leading)
+                        .onTapGesture {
+                            if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
+                        }
                     
                     HStack(spacing: 8) {
                         Image(systemName: "music.note")
