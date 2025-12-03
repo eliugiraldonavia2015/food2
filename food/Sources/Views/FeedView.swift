@@ -179,6 +179,7 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
+                            .ignoresSafeArea(edges: .top)
                         }
                 }
             }
@@ -322,7 +323,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap + bottomInset)
+            .padding(.bottom, overlayBottomGap + max(bottomInset - 6, 0))
         }
     }
 
