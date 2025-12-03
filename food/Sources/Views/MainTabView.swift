@@ -53,7 +53,6 @@ struct MainTabView: View {
 
     private var bottomBar: some View {
         ZStack(alignment: .top) {
-            Color.black.opacity(0.9)
             HStack(spacing: 0) {
                 navButton(icon: "house.fill", title: "Inicio", tab: .feed)
                 navButton(icon: "bell.fill", title: "Notif", tab: .notifications)
