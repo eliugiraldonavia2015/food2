@@ -25,7 +25,7 @@ struct FeedView: View {
             hasStories: true,
             avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
             title: "The Volcano Burger",
-            description: "Experience the explosive flavor of our Volcano Burger! Fiery, juicy, and irresistible.",
+            description: "Experience the explosive flavor of our Volcano Burger! Fiery, juicy, and irresistible. Double-stacked patties with melted cheddar, jalapeño relish, and our signature smoky sauce — crafted for heat lovers.",
             soundTitle: "Chef Beats Original • Burger BGM"
         ),
         .init(
@@ -45,7 +45,7 @@ struct FeedView: View {
             hasStories: true,
             avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
             title: "Dragon Roll",
-            description: "Crispy tempura with avocado and spicy mayo.",
+            description: "Crispy tempura with avocado and spicy mayo. Finished with eel sauce and toasted sesame for a perfect bite in every roll.",
             soundTitle: "Tokyo Beat • Sushi Wave"
         ),
         .init(
@@ -78,7 +78,7 @@ struct FeedView: View {
             hasStories: false,
             avatarUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
             title: "Smoked Brisket",
-            description: "Low and slow smoked brisket with a peppery bark.",
+            description: "Low and slow smoked brisket with a peppery bark. 14-hour cook, juicy slices, and house-made pickles — a true pitmaster staple.",
             soundTitle: "Grill Grooves • Pit Jam"
         ),
         .init(
@@ -88,7 +88,7 @@ struct FeedView: View {
             hasStories: true,
             avatarUrl: "https://images.pexels.com/photos/247878/pexels-photo-247878.jpeg",
             title: "Superfood Salad",
-            description: "Quinoa, kale, avocado, nuts and seeds.",
+            description: "Quinoa, kale, avocado, nuts and seeds. Citrus vinaigrette, roasted chickpeas, and microgreens for crunch and balance.",
             soundTitle: "Fresh Beats • Green Flow"
         ),
         .init(
@@ -258,7 +258,7 @@ struct FeedView: View {
                         .font(.footnote)
                         .lineLimit(2)
                         .truncationMode(.tail)
-                        .frame(maxWidth: geo.size.width * 0.75, alignment: .leading)
+                        .frame(maxWidth: geo.size.width * 0.5, alignment: .leading)
                     
                     HStack(spacing: 8) {
                         Image(systemName: "music.note")
