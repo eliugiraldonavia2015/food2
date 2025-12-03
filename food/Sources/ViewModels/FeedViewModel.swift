@@ -1,4 +1,5 @@
 import SwiftUI
+import SDWebImage
 
 final class FeedViewModel: ObservableObject {
     @AppStorage("feed.currentIndex") private var storedIndex: Int = 0
@@ -8,5 +9,13 @@ final class FeedViewModel: ObservableObject {
 
     init() {
         currentIndex = storedIndex
+    }
+
+    func prefetch(urls: [String]) {
+        let u = urls.compactMap { URL(string: $0) }
+        SDWebImagePrefetcher.shared.prefetchURLs(u)
+    }
+    func cancelPrefetch() {
+        SDWebImagePrefetcher.shared.cancelPrefetching()
     }
 }

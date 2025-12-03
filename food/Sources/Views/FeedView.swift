@@ -1,4 +1,5 @@
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
@@ -79,15 +80,14 @@ struct FeedView: View {
                     GeometryReader { pageGeo in
                         let item = sampleItems[idx]
                         ZStack {
-                                AsyncImage(url: URL(string: item.backgroundUrl)) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: geo.size.width, height: geo.size.height)
-                                        .clipped()
-                                } placeholder: {
-                                    Color.black.opacity(0.4)
-                                }
+                                WebImage(url: URL(string: item.backgroundUrl))
+                                    .placeholder { Color.black.opacity(0.2) }
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: geo.size.width, height: geo.size.height)
+                                    .clipped()
+                                    .transition(.fade(duration: 0.25))
+                                    .indicator(.activity)
 
                                 LinearGradient(
                                     colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
@@ -104,6 +104,8 @@ struct FeedView: View {
         .background(Color.black.ignoresSafeArea())
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
+        .onAppear { feedVM.prefetch(urls: sampleItems.map { $0.backgroundUrl }) }
+        .onDisappear { feedVM.cancelPrefetch() }
     }
 
     private func overlayContent(_ geo: GeometryProxy, _ item: FeedItem) -> some View {
@@ -123,13 +125,12 @@ struct FeedView: View {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
-                        AsyncImage(url: URL(string: item.avatarUrl)) { img in
-                            img.resizable().scaledToFill()
-                        } placeholder: {
-                            Color.gray.opacity(0.2)
-                        }
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
+                        WebImage(url: URL(string: item.avatarUrl))
+                            .placeholder { Color.gray.opacity(0.2) }
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
                         .overlay(
                             Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
                         )
