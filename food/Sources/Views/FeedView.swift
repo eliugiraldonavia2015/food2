@@ -2,11 +2,60 @@ import SwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let sampleImages: [String] = [
-        "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg",
-        "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
-        "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
-        "https://images.pexels.com/photos/1435893/pexels-photo-1435893.jpeg"
+    private struct FeedItem: Identifiable {
+        enum Label { case sponsored, foodieReview, none }
+        let id = UUID()
+        let backgroundUrl: String
+        let username: String
+        let label: Label
+        let hasStories: Bool
+        let avatarUrl: String
+        let title: String
+        let description: String
+        let soundTitle: String
+    }
+
+    private let sampleItems: [FeedItem] = [
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
+            username: "The Burger Joint",
+            label: .sponsored,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+            title: "The Volcano Burger",
+            description: "Experience the explosive flavor of our Volcano Burger! Fiery, juicy, and irresistible.",
+            soundTitle: "Chef Beats Original • Burger BGM"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
+            username: "Pasta Lovers",
+            label: .foodieReview,
+            hasStories: false,
+            avatarUrl: "https://images.pexels.com/photos/3184192/pexels-photo-3184192.jpeg",
+            title: "Truffle Alfredo",
+            description: "A creamy truffle alfredo with fresh herbs and parmesan.",
+            soundTitle: "Foodie Groove • Pasta Jam"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/1435893/pexels-photo-1435893.jpeg",
+            username: "Sushi House",
+            label: .none,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
+            title: "Rainbow Roll",
+            description: "Fresh sashimi layered with vibrant veggies — a rainbow on your plate.",
+            soundTitle: "Ocean Lo-Fi • Sushi Beat"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg",
+            username: "Vegan Vibes",
+            label: .foodieReview,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/247878/pexels-photo-247878.jpeg",
+            title: "Green Goddess Bowl",
+            description: "A wholesome bowl with grains, greens, and tangy dressings.",
+            soundTitle: "Plant Power • Greens Flow"
+        ),
     ]
 
     @State private var activeTab: ActiveTab = .foryou
@@ -27,9 +76,9 @@ struct FeedView: View {
             GeometryReader { geo in
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
-                        ForEach(sampleImages, id: \.self) { url in
+                        ForEach(sampleItems) { item in
                             ZStack {
-                                AsyncImage(url: URL(string: url)) { image in
+                                AsyncImage(url: URL(string: item.backgroundUrl)) { image in
                                     image
                                         .resizable()
                                         .scaledToFill()
@@ -44,7 +93,7 @@ struct FeedView: View {
                                     startPoint: .bottom, endPoint: .top
                                 )
 
-                                overlayContent(geo)
+                                overlayContent(geo, item)
                             }
                             .frame(width: geo.size.width, height: geo.size.height)
                         }
@@ -58,38 +107,54 @@ struct FeedView: View {
         .preferredColorScheme(.dark)
     }
 
-    private func overlayContent(_ geo: GeometryProxy) -> some View {
-        VStack {
+    private func overlayContent(_ geo: GeometryProxy, _ item: FeedItem) -> some View {
+        let hasRing = item.label == .foodieReview || item.hasStories
+        let ringColor: Color = item.label == .foodieReview ? .yellow : .green
+        let labelText: String? = {
+            switch item.label {
+            case .sponsored: return "SPONSORED"
+            case .foodieReview: return "FOODIE REVIEW"
+            case .none: return nil
+            }
+        }()
+        let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
+        
+        return VStack {
             Spacer()
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
-                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg")) { img in
+                        AsyncImage(url: URL(string: item.avatarUrl)) { img in
                             img.resizable().scaledToFill()
                         } placeholder: {
                             Color.gray.opacity(0.2)
                         }
                         .frame(width: 44, height: 44)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.green, lineWidth: 2))
+                        .overlay(
+                            Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
+                        )
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Button(action: { showRestaurantProfile = true }) {
-                                Text("Restaurante La Plaza")
+                                Text(item.username)
                                     .foregroundColor(.white)
                                     .font(.headline.bold())
                             }
-                            Text("SPONSORED")
-                                .foregroundColor(.gray)
-                                .font(.caption2.bold())
+                            if let labelText = labelText {
+                                Text(labelText)
+                                    .foregroundColor(labelColor)
+                                    .font(.caption2)
+                                    .fontWeight(.heavy)
+                            }
                         }
                     }
                     
-                    Text("The Volcano Burger")
+                    Text(item.title)
                         .foregroundColor(.white)
                         .font(.title2.bold())
                     
-                    Text("Descubre el nuevo combo especial con sabores auténticos.")
+                    Text(item.description)
                         .foregroundColor(.white.opacity(0.9))
                         .font(.footnote)
                         .lineLimit(2)
@@ -97,7 +162,7 @@ struct FeedView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "music.note")
                             .foregroundColor(.white)
-                        Text("Chef Beats Original • Burger BGM")
+                        Text(item.soundTitle)
                             .foregroundColor(.white)
                             .font(.caption)
                             .lineLimit(1)
