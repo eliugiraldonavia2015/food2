@@ -96,10 +96,14 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             } else if velocity.y < 0 {
                 if topVisible >= upThreshold { next = current } else { next = min(current + 1, hosts.count - 1) }
             } else {
-                if topVisible >= upThreshold {
-                    next = current
-                } else if fraction >= downThreshold {
+                let canUp = topVisible >= upThreshold
+                let canDown = fraction >= downThreshold
+                if canUp && canDown {
+                    next = fraction >= topVisible ? min(current + 1, hosts.count - 1) : current
+                } else if canDown {
                     next = min(current + 1, hosts.count - 1)
+                } else if canUp {
+                    next = current
                 } else {
                     next = current
                 }
