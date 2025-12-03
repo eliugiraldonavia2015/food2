@@ -61,8 +61,8 @@ struct MainTabView: View {
                 navButton(icon: "person.fill", title: "Perfil", tab: .profile)
             }
             .padding(.horizontal, 12)
-            .padding(.top, 3)
-            .padding(.bottom, 8)
+            .padding(.top, 2)
+            .padding(.bottom, 6)
         }
         .background(Color.black)
 
