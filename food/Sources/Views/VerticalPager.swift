@@ -13,6 +13,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.alwaysBounceVertical = true
         scroll.isPagingEnabled = false
         scroll.decelerationRate = .fast
+        scroll.delaysContentTouches = false
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.delegate = context.coordinator
         context.coordinator.install(in: scroll)
@@ -65,13 +66,13 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             let size = scroll.bounds.size
             guard let builder = builder else { return }
             if size.height <= 0 { return }
+            for (i, host) in hosts.enumerated() {
+                host.rootView = AnyView(builder(size, i))
+                let view = host.view!
+                if view.superview == nil { scroll.addSubview(view) }
+                view.frame = CGRect(x: 0, y: CGFloat(i) * size.height, width: size.width, height: size.height)
+            }
             if lastSize != size || lastCount != hosts.count {
-                for (i, host) in hosts.enumerated() {
-                    host.rootView = AnyView(builder(size, i))
-                    let view = host.view!
-                    if view.superview == nil { scroll.addSubview(view) }
-                    view.frame = CGRect(x: 0, y: CGFloat(i) * size.height, width: size.width, height: size.height)
-                }
                 scroll.contentSize = CGSize(width: size.width, height: size.height * CGFloat(hosts.count))
                 lastSize = size
                 lastCount = hosts.count
