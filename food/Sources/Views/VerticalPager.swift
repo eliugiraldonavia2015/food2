@@ -88,12 +88,13 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             let fraction = remainder / h
 
             var next = current
+            let topVisible = 1 - fraction
             if velocity.y > 0 {
-                if fraction > 0.7 { next = min(current + 1, hosts.count - 1) }
+                if fraction >= 0.6 { next = min(current + 1, hosts.count - 1) } else { next = current }
             } else if velocity.y < 0 {
-                if fraction < 0.8 { next = max(current - 1, 0) }
+                if topVisible >= 0.2 { next = current } else { next = min(current + 1, hosts.count - 1) }
             } else {
-                next = fraction > 0.5 ? min(current + 1, hosts.count - 1) : current
+                next = fraction >= 0.6 ? min(current + 1, hosts.count - 1) : current
             }
 
             let target = CGPoint(x: 0, y: CGFloat(next) * h)
