@@ -93,17 +93,14 @@ struct MainTabView: View {
                 }
             } label: {
                 Image(systemName: "cart.fill")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.green)
-                    .padding(10)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(Circle())
-                    .offset(y: -6)
             }
             Text("Carrito")
                 .font(.caption2)
                 .foregroundColor(.green)
         }
+        .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
     }
 
