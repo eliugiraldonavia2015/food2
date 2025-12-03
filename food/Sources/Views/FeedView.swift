@@ -61,6 +61,7 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
+    @State private var currentIndex: Int = 0
 
     @State private var isFollowing = false
     @State private var liked = false
@@ -74,10 +75,10 @@ struct FeedView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        ForEach(sampleItems) { item in
-                            ZStack {
+                VerticalPager(count: sampleItems.count, index: $currentIndex) { size, idx in
+                    GeometryReader { pageGeo in
+                        let item = sampleItems[idx]
+                        ZStack {
                                 AsyncImage(url: URL(string: item.backgroundUrl)) { image in
                                     image
                                         .resizable()
@@ -93,11 +94,9 @@ struct FeedView: View {
                                     startPoint: .bottom, endPoint: .top
                                 )
 
-                                overlayContent(geo, item)
+                                overlayContent(pageGeo, item)
                             }
-                            .frame(width: geo.size.width, height: geo.size.height)
                         }
-                    }
                 }
             }
         }
