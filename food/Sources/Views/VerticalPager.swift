@@ -90,11 +90,11 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             var next = current
             let topVisible = 1 - fraction
             if velocity.y > 0 {
-                if fraction >= 0.6 { next = min(current + 1, hosts.count - 1) } else { next = current }
+                if fraction >= 0.4 { next = min(current + 1, hosts.count - 1) } else { next = current }
             } else if velocity.y < 0 {
-                if topVisible >= 0.2 { next = current } else { next = min(current + 1, hosts.count - 1) }
+                if topVisible >= 0.15 { next = max(current - 1, 0) } else { next = current }
             } else {
-                next = fraction >= 0.6 ? min(current + 1, hosts.count - 1) : current
+                next = fraction >= 0.4 ? min(current + 1, hosts.count - 1) : current
             }
 
             let target = CGPoint(x: 0, y: CGFloat(next) * h)
