@@ -257,6 +257,8 @@ struct FeedView: View {
                         .foregroundColor(.white.opacity(0.9))
                         .font(.footnote)
                         .lineLimit(2)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: geo.size.width * 0.75, alignment: .leading)
                     
                     HStack(spacing: 8) {
                         Image(systemName: "music.note")
