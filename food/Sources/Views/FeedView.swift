@@ -165,8 +165,8 @@ struct FeedView: View {
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
-                                        .offset(y: -geo.safeAreaInsets.top)
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height)
+                                        .ignoresSafeArea(.all)
                                         .clipped()
                                 }
 
