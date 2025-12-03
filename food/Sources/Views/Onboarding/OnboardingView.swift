@@ -13,20 +13,89 @@ struct OnboardingView: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                switch viewModel.currentStep {
-                case .welcome:
-                    welcomeView
-                case .photo:
-                    ProfilePictureSetupView(viewModel: viewModel)
-                case .interests:
-                    InterestSelectionView(viewModel: viewModel)
-                case .role:
-                    RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
-                case .done:
-                    doneView
+            ZStack {
+                GeometryReader { geometry in
+                    ZStack {
+                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg")) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .scaleEffect(1.2)
+                        } placeholder: {
+                            Color.black
+                        }
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .ignoresSafeArea(.container, edges: .all)
+                        .clipped()
+                        .opacity(0.8)
+                        
+                        LinearGradient(
+                            colors: [
+                                .black.opacity(0.3),
+                                .clear,
+                                .black
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                }
+                .ignoresSafeArea(.container, edges: .all)
+                
+                VStack {
+                    Spacer()
+                    
+                    VStack(spacing: 8) {
+                        Text("Food")
+                            .font(.system(size: 48, weight: .black))
+                            .foregroundColor(.white) +
+                        Text("Took")
+                            .font(.system(size: 48, weight: .black))
+                            .foregroundColor(.green)
+                        
+                        Text("Taste the trend.")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(.black.opacity(0.3))
+                            .clipShape(Capsule())
+                    }
+                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+                    
+                    Spacer()
+                    
+                    VStack {
+                        switch viewModel.currentStep {
+                        case .welcome:
+                            welcomeView
+                        case .photo:
+                            ProfilePictureSetupView(viewModel: viewModel)
+                        case .interests:
+                            InterestSelectionView(viewModel: viewModel)
+                        case .role:
+                            RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
+                        case .done:
+                            doneView
+                        }
+                    }
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            colors: [Color(.systemGray6).opacity(0.95), .black],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                    .shadow(color: .green.opacity(0.2), radius: 40, x: 0, y: -10)
                 }
             }
+            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStep != .done {
