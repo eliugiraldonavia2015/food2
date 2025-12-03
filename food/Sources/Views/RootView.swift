@@ -39,7 +39,7 @@ struct RootView: View {
                         )
                     } else {
                         // 🏠 Pantalla principal
-                        HomeView()
+                        MainTabView()
                             .transition(.opacity)
                     }
                 } else {
@@ -86,7 +86,7 @@ struct RootView: View {
         DatabaseService.shared.db.collection("users").document(uid).getDocument { snapshot, error in
             DispatchQueue.main.async {
                 if let data = snapshot?.data(), let role = data["role"] as? String, !role.isEmpty {
-                    // Usuario tiene rol, ir directamente a Home
+                    // Usuario tiene rol, ir directamente al Feed
                     withAnimation(.easeInOut(duration: 0.4)) {
                         self.showRoleSelection = false
                         self.showOnboarding = false
