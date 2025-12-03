@@ -36,20 +36,40 @@ struct FeedView: View {
             title: "Truffle Alfredo",
             description: "A creamy truffle alfredo with fresh herbs and parmesan.",
             soundTitle: "Foodie Groove • Pasta Jam"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/357756/pexels-photo-357756.jpeg",
+            username: "Sushi Time",
+            label: .none,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
+            title: "Dragon Roll",
+            description: "Crispy tempura with avocado and spicy mayo.",
+            soundTitle: "Tokyo Beat • Sushi Wave"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg",
+            username: "Pizza Planet",
+            label: .foodieReview,
+            hasStories: false,
+            avatarUrl: "https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg",
+            title: "Pepperoni Supreme",
+            description: "Thin crust, double pepperoni, extra cheese.",
+            soundTitle: "Slice Anthem • Pizza Jam"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/302680/pexels-photo-302680.jpeg",
+            username: "Dessert Dreams",
+            label: .sponsored,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/360680/pexels-photo-360680.jpeg",
+            title: "Chocolate Lava Cake",
+            description: "Warm molten center with vanilla ice cream.",
+            soundTitle: "Sweet Lo-Fi • Dessert Flow"
         )
     ]
     
     private let followingItems: [FeedItem] = [
-        .init(
-            backgroundUrl: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
-            username: "Chef Anna",
-            label: .none,
-            hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
-            title: "Homemade Ravioli",
-            description: "Hand-crafted pasta pockets with ricotta and spinach.",
-            soundTitle: "Kitchen Beats • Ravioli Jam"
-        ),
         .init(
             backgroundUrl: "https://images.pexels.com/photos/262959/pexels-photo-262959.jpeg",
             username: "BBQ Masters",
@@ -59,6 +79,46 @@ struct FeedView: View {
             title: "Smoked Brisket",
             description: "Low and slow smoked brisket with a peppery bark.",
             soundTitle: "Grill Grooves • Pit Jam"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg",
+            username: "Green Bowl",
+            label: .none,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/247878/pexels-photo-247878.jpeg",
+            title: "Superfood Salad",
+            description: "Quinoa, kale, avocado, nuts and seeds.",
+            soundTitle: "Fresh Beats • Green Flow"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/2271099/pexels-photo-2271099.jpeg",
+            username: "Taco Truck",
+            label: .foodieReview,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
+            title: "Street Tacos",
+            description: "Carnitas with cilantro, onion and lime.",
+            soundTitle: "Fiesta Mix • Taco Jam"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg",
+            username: "Sandwich Hub",
+            label: .none,
+            hasStories: false,
+            avatarUrl: "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg",
+            title: "Club Sandwich",
+            description: "Triple stack with turkey, bacon and tomato.",
+            soundTitle: "Cafe Vibes • Lunch Groove"
+        ),
+        .init(
+            backgroundUrl: "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg",
+            username: "Coffee & Donuts",
+            label: .sponsored,
+            hasStories: true,
+            avatarUrl: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg",
+            title: "Glazed Donuts",
+            description: "Freshly made, soft and sweet glaze.",
+            soundTitle: "Morning Swing • Donut Beat"
         )
     ]
     
@@ -133,9 +193,8 @@ struct FeedView: View {
             followingVM.cancelPrefetch()
         }
         .onChange(of: activeTab) { _, _ in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedVM.currentIndex = 0
-            }
+            withAnimation(.easeInOut(duration: 0.2)) { }
+            selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
         }
     }
