@@ -155,7 +155,13 @@ struct FeedView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            if currentItems.indices.contains(selectedVM.currentIndex) {
+                WebImage(url: URL(string: currentItems[selectedVM.currentIndex].backgroundUrl))
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+            }
             GeometryReader { geo in
                 VerticalPager(count: currentItems.count, index: selectedIndexBinding) { size, idx in
                     GeometryReader { pageGeo in
@@ -187,6 +193,8 @@ struct FeedView: View {
         .background(Color.black.ignoresSafeArea())
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
