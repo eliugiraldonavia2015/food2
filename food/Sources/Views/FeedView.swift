@@ -110,7 +110,10 @@ struct FeedView: View {
         .background(Color.black.ignoresSafeArea())
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
-        .onAppear { feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl }) }
+        .onAppear {
+            feedVM.currentIndex = min(feedVM.currentIndex, max(currentItems.count - 1, 0))
+            feedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
+        }
         .onDisappear { feedVM.cancelPrefetch() }
         .onChange(of: activeTab) { _, _ in
             feedVM.currentIndex = 0

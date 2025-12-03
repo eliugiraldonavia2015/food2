@@ -52,6 +52,11 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             if hosts.count != count {
                 hosts = (0..<count).map { _ in UIHostingController(rootView: AnyView(EmptyView())) }
             }
+            if count > 0 {
+                if parent.index >= count { DispatchQueue.main.async { self.parent.index = count - 1 } }
+            } else {
+                if parent.index != 0 { DispatchQueue.main.async { self.parent.index = 0 } }
+            }
         }
 
         func layout(in scroll: UIScrollView) {
