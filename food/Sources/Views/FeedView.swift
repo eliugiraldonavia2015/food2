@@ -166,7 +166,7 @@ struct FeedView: View {
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: geo.size.width, height: geo.size.height)
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height)
                                         .clipped()
                                 }
 
@@ -178,6 +178,7 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
+                            .ignoresSafeArea(edges: .top)
                         }
                 }
             }
