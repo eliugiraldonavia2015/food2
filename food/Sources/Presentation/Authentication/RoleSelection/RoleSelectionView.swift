@@ -83,28 +83,28 @@ public struct RoleSelectionView: View {
         .onAppear {
             viewModel.loadUser()
         }
-    }
-}
-
-private var finalizeBar: some View {
-    let isEnabled = viewModel.selectedRole != nil
-    return VStack {
-        Button(action: { if isEnabled { viewModel.confirmSelection(onSuccess: onCompletion) } }) {
-            Text("Finalizar")
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding()
+        
+        private var finalizeBar: some View {
+            let isEnabled = viewModel.selectedRole != nil
+            return VStack {
+                Button(action: { if isEnabled { viewModel.confirmSelection(onSuccess: onCompletion) } }) {
+                    Text("Finalizar")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .background(isEnabled ? Color.green : Color.green.opacity(0.4))
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .green.opacity(isEnabled ? 0.25 : 0.0), radius: 10, x: 0, y: 4)
+                .disabled(!isEnabled)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+            }
+            .frame(maxWidth: .infinity)
+            .background(.ultraThinMaterial)
         }
-        .background(isEnabled ? Color.green : Color.green.opacity(0.4))
-        .foregroundColor(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .green.opacity(isEnabled ? 0.25 : 0.0), radius: 10, x: 0, y: 4)
-        .disabled(!isEnabled)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 12)
     }
-    .frame(maxWidth: .infinity)
-    .background(.ultraThinMaterial)
 }
 
 // MARK: - RoleOptionView
