@@ -11,6 +11,14 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
+    @State private var isFollowing = false
+    @State private var liked = false
+    @State private var showRestaurantProfile = false
+    @State private var showMenu = false
+    @State private var showComments = false
+    @State private var showShare = false
+    @State private var showMusic = false
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -98,6 +106,7 @@ struct FeedView: View {
         }
         .overlay(topTabs.padding(.top, 8), alignment: .top)
         .background(Color.black.ignoresSafeArea())
+        .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
     }
 
@@ -130,5 +139,41 @@ struct FeedView: View {
             }
             .padding(.horizontal, 6)
         }
+    }
+
+    private var overlays: some View {
+        ZStack {
+            if showRestaurantProfile { modalCard(title: "Perfil del Restaurante", onClose: { showRestaurantProfile = false }) }
+            if showMenu { modalCard(title: "Menú", onClose: { showMenu = false }) }
+            if showComments { modalCard(title: "Comentarios", onClose: { showComments = false }) }
+            if showShare { modalCard(title: "Compartir", onClose: { showShare = false }) }
+            if showMusic { modalCard(title: "Música", onClose: { showMusic = false }) }
+        }
+        .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
+    }
+
+    private func modalCard(title: String, onClose: @escaping () -> Void) -> some View {
+        VStack(spacing: 12) {
+            Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
+            Text(title).foregroundColor(.white).font(.headline.bold())
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 200)
+                .overlay(Text("Contenido visual").foregroundColor(.secondary))
+            Button(action: onClose) {
+                Text("Cerrar")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red)
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .background(Color.black.opacity(0.6).ignoresSafeArea())
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
