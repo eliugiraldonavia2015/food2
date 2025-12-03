@@ -166,6 +166,7 @@ struct FeedView: View {
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
+                                        .ignoresSafeArea(.container, edges: .top)
                                         .offset(y: -geo.safeAreaInsets.top)
                                         .clipped()
                                 }
@@ -321,7 +322,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap + bottomInset)
+            .padding(.bottom, overlayBottomGap)
         }
     }
 
