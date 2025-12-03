@@ -23,8 +23,6 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black.ignoresSafeArea())
 
-            bottomBar
-
             if showShopLoading {
                 VStack(spacing: 10) {
                     ProgressView()
@@ -47,6 +45,7 @@ struct MainTabView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .safeAreaInset(edge: .bottom) { bottomBar }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
@@ -286,6 +285,15 @@ private struct ProfileScreen: View {
                     statCard("Pedidos", "124")
                     statCard("Favoritos", "32")
                     statCard("Reseñas", "18")
+                }
+                Button(action: { AuthService.shared.signOut() }) {
+                    Text("Cerrar sesión")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
             .padding()
