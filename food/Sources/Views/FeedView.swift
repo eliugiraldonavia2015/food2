@@ -165,14 +165,14 @@ struct FeedView: View {
                                     WebImage(url: URL(string: item.backgroundUrl))
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height)
-                                        .ignoresSafeArea(.container, edges: .top)
+                                        .frame(width: pageGeo.size.width, height: pageGeo.size.height + geo.safeAreaInsets.top)
+                                        .offset(y: -geo.safeAreaInsets.top)
                                         .clipped()
                                 }
 
 
                                 LinearGradient(
-                                    colors: [.black.opacity(0.55), .clear, .black.opacity(0.8)],
+                                    colors: [.black.opacity(0.65), .clear],
                                     startPoint: .bottom, endPoint: .top
                                 )
 
@@ -321,7 +321,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap)
+            .padding(.bottom, overlayBottomGap + bottomInset)
         }
     }
 
