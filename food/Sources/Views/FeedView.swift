@@ -70,6 +70,18 @@ struct FeedView: View {
     @StateObject private var forYouVM = FeedViewModel(storageKey: "feed.forYou.index")
     @StateObject private var followingVM = FeedViewModel(storageKey: "feed.following.index")
     private var selectedVM: FeedViewModel { activeTab == .foryou ? forYouVM : followingVM }
+    private var selectedIndexBinding: Binding<Int> {
+        Binding(
+            get: { activeTab == .foryou ? forYouVM.currentIndex : followingVM.currentIndex },
+            set: { newValue in
+                if activeTab == .foryou {
+                    forYouVM.currentIndex = newValue
+                } else {
+                    followingVM.currentIndex = newValue
+                }
+            }
+        )
+    }
 
     @State private var isFollowing = false
     @State private var liked = false
@@ -83,7 +95,7 @@ struct FeedView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geo in
-                VerticalPager(count: currentItems.count, index: $selectedVM.currentIndex) { size, idx in
+                VerticalPager(count: currentItems.count, index: selectedIndexBinding) { size, idx in
                     GeometryReader { pageGeo in
                         let item = currentItems[idx]
                         ZStack {
