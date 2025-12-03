@@ -8,13 +8,12 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
-    @State private var bottomBarHeight: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selected {
-                case .feed: FeedView(bottomInset: bottomBarHeight)
+                case .feed: FeedView()
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesScreen()
@@ -50,7 +49,6 @@ struct MainTabView: View {
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
-        .onPreferenceChange(BottomBarHeightKey.self) { bottomBarHeight = $0 }
     }
 
     private var bottomBar: some View {
@@ -67,11 +65,7 @@ struct MainTabView: View {
             .padding(.bottom, 8)
         }
         .background(Color.black)
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: BottomBarHeightKey.self, value: geo.size.height)
-            }
-        )
+
         .overlay(
             Rectangle()
                 .fill(Color.white.opacity(0.1))
@@ -171,12 +165,6 @@ struct MainTabView: View {
     }
 }
 
-private struct BottomBarHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
 
 // MARK: - Placeholder Screens (sin lógica por ahora)
 private struct NotificationsScreen: View {

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct FeedView: View {
-    let bottomInset: CGFloat
     private let sampleImages: [String] = [
         "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg",
         "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
@@ -44,61 +43,7 @@ struct FeedView: View {
                                     startPoint: .bottom, endPoint: .top
                                 )
 
-                                VStack {
-                                    Spacer()
-                                    HStack(alignment: .bottom) {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Button(action: { showRestaurantProfile = true }) {
-                                                Text("Restaurante La Plaza")
-                                                    .foregroundColor(.white)
-                                                    .font(.headline.bold())
-                                            }
-                                            Text("Descubre el nuevo combo especial con sabores auténticos.")
-                                                .foregroundColor(.white.opacity(0.9))
-                                                .font(.footnote)
-                                                .lineLimit(2)
-                                            HStack(spacing: 10) {
-                                                Button(action: { isFollowing.toggle() }) {
-                                                    Capsule()
-                                                        .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                                        .frame(width: 90, height: 32)
-                                                        .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
-                                                }
-                                                Button(action: { showMenu = true }) {
-                                                    Capsule()
-                                                        .fill(Color.green)
-                                                        .frame(width: 140, height: 36)
-                                                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
-                                                }
-                                            }
-                                        }
-                                        Spacer()
-                                        VStack(spacing: 18) {
-                                            Button(action: { liked.toggle() }) {
-                                                Image(systemName: liked ? "heart.fill" : "heart")
-                                                    .foregroundColor(liked ? .red : .white)
-                                                    .font(.title3)
-                                            }
-                                            Button(action: { showComments = true }) {
-                                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                                    .foregroundColor(.white)
-                                                    .font(.title3)
-                                            }
-                                            Button(action: { showMusic = true }) {
-                                                Image(systemName: "music.note")
-                                                    .foregroundColor(.white)
-                                                    .font(.title3)
-                                            }
-                                            Button(action: { showShare = true }) {
-                                                Image(systemName: "square.and.arrow.up")
-                                                    .foregroundColor(.white)
-                                                    .font(.title3)
-                                            }
-                                        }
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.bottom, bottomInset + 8)
-                                }
+                                overlayContent(geo)
                             }
                             .frame(width: geo.size.width, height: geo.size.height)
                         }
@@ -110,6 +55,64 @@ struct FeedView: View {
         .background(Color.black.ignoresSafeArea())
         .overlay(overlays, alignment: .center)
         .preferredColorScheme(.dark)
+    }
+
+    private func overlayContent(_ geo: GeometryProxy) -> some View {
+        VStack {
+            Spacer()
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button(action: { showRestaurantProfile = true }) {
+                        Text("Restaurante La Plaza")
+                            .foregroundColor(.white)
+                            .font(.headline.bold())
+                    }
+                    Text("Descubre el nuevo combo especial con sabores auténticos.")
+                        .foregroundColor(.white.opacity(0.9))
+                        .font(.footnote)
+                        .lineLimit(2)
+                    HStack(spacing: 10) {
+                        Button(action: { isFollowing.toggle() }) {
+                            Capsule()
+                                .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                .frame(width: 90, height: 32)
+                                .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                        }
+                        Button(action: { showMenu = true }) {
+                            Capsule()
+                                .fill(Color.green)
+                                .frame(width: 140, height: 36)
+                                .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
+                        }
+                    }
+                }
+                Spacer()
+                VStack(spacing: 18) {
+                    Button(action: { liked.toggle() }) {
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .foregroundColor(liked ? .red : .white)
+                            .font(.title3)
+                    }
+                    Button(action: { showComments = true }) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .foregroundColor(.white)
+                            .font(.title3)
+                    }
+                    Button(action: { showMusic = true }) {
+                        Image(systemName: "music.note")
+                            .foregroundColor(.white)
+                            .font(.title3)
+                    }
+                    Button(action: { showShare = true }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.white)
+                            .font(.title3)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, geo.safeAreaInsets.bottom + 8)
+        }
     }
 
     private var topTabs: some View {
