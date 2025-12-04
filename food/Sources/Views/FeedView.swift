@@ -187,7 +187,7 @@ struct FeedView: View {
                 
                 // TABS SUPERIORES
                 topTabs
-                    .padding(.top, geo.safeAreaInsets.top - 20)
+                    .padding(.top, geo.safeAreaInsets.top + 8)
                     .frame(maxWidth: .infinity, alignment: .top)
                 
                 // OVERLAYS MODALES
