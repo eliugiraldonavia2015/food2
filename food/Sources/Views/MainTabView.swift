@@ -93,18 +93,24 @@ struct MainTabView: View {
                     }
                 }
             } label: {
-                Image(systemName: "cart")
+                Image(systemName: "cart.fill")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
                     .scaleEffect(1.0)
             }
             Text("Carrito")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.gray)
+                .foregroundColor(.white)
         }
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
-        .background(Color.clear)
+        .background(
+            LinearGradient(
+                colors: [.red, .orange, .green],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(8)
     }
 
