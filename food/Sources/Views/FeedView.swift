@@ -245,7 +245,7 @@ struct FeedView: View {
                 // COLUMNA DERECHA DE BOTONES - Fuera del overlay para libre posicionamiento
                 VStack(spacing: 24) {
                     // Like button with count
-                    VStack(spacing: 4) {
+                    VStack(spacing: 6) {
                         Button(action: { 
                             liked.toggle()
                             likesCount += liked ? 1 : -1
@@ -263,7 +263,7 @@ struct FeedView: View {
                     }
                     
                     // Comment button with count
-                    VStack(spacing: 4) {
+                    VStack(spacing: 6) {
                         Button(action: { showComments = true }) {
                             Image(systemName: "bubble.left")
                                 .resizable()
@@ -288,7 +288,7 @@ struct FeedView: View {
                     }
                     
                     // Share button with count
-                    VStack(spacing: 4) {
+                    VStack(spacing: 6) {
                         Button(action: { showShare = true }) {
                             Image(systemName: "paperplane")
                                 .resizable()
