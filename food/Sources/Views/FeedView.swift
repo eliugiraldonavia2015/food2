@@ -218,17 +218,17 @@ struct FeedView: View {
                 ZStack {
                     // IMAGEN que cubre TODA la pantalla
                     WebImage(url: URL(string: item.backgroundUrl))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: size.width, height: size.height)
-                        .clipped()
-                        .contentShape(Rectangle())
                         .placeholder {
                             Color.black.opacity(0.3)
                         }
                         .onFailure { _ in
                             // Log error or handle failed image loading
                         }
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+                        .contentShape(Rectangle())
                     
                     // Gradiente opcional
                     LinearGradient(
@@ -289,10 +289,6 @@ struct FeedView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
                         WebImage(url: URL(string: item.avatarUrl))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 53, height: 53)
-                            .clipShape(Circle())
                             .placeholder {
                                 Circle()
                                     .fill(Color.gray.opacity(0.3))
@@ -301,6 +297,10 @@ struct FeedView: View {
                             .onFailure { _ in
                                 // Log error or handle failed avatar loading
                             }
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 53, height: 53)
+                            .clipShape(Circle())
                         .overlay(
                             Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
                         )
