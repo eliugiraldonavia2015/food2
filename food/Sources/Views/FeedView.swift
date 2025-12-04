@@ -139,7 +139,6 @@ struct FeedView: View {
                 } else {
                     followingVM.currentIndex = newValue
                 }
-            }
         )
     }
 
