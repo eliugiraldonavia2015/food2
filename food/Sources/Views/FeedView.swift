@@ -180,9 +180,9 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
-                            .ignoresSafeArea(edges: .top)
                        }
                 }
+                .ignoresSafeArea(edges: .vertical)
             }
             
         }
