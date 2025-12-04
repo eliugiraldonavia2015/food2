@@ -279,74 +279,79 @@ struct FeedView: View {
         
         return VStack {
             Spacer()
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .center, spacing: 12) {
-                        WebImage(url: URL(string: item.avatarUrl))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 53, height: 53)
-                            .clipShape(Circle())
-                        .overlay(
-                            Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
-                        )
+            ZStack(alignment: .bottom) {
+                // Columna izquierda - se mantiene alineada al fondo
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .center, spacing: 12) {
+                            WebImage(url: URL(string: item.avatarUrl))
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 53, height: 53)
+                                .clipShape(Circle())
+                            .overlay(
+                                Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
+                            )
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 8) {
+                                    Button(action: { showRestaurantProfile = true }) {
+                                        Text(item.username)
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 20, weight: .bold))
+                                    }
+                                    Button(action: { isFollowing.toggle() }) {
+                                        Capsule()
+                                            .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                            .frame(width: 90, height: 32)
+                                            .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                                    }
+                                }
+                                if let labelText = labelText {
+                                    Text(labelText)
+                                        .foregroundColor(labelColor)
+                                        .font(.caption2)
+                                        .fontWeight(.heavy)
+                                }
+                            }
+                        }
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 8) {
-                                Button(action: { showRestaurantProfile = true }) {
-                                    Text(item.username)
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20, weight: .bold))
-                                }
-                                Button(action: { isFollowing.toggle() }) {
-                                    Capsule()
-                                        .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                        .frame(width: 90, height: 32)
-                                        .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
-                                }
-                            }
-                            if let labelText = labelText {
-                                Text(labelText)
-                                    .foregroundColor(labelColor)
-                                    .font(.caption2)
-                                    .fontWeight(.heavy)
-                            }
-                        }
-                    }
-                    
-                    Text(item.title)
-                        .foregroundColor(.white)
-                        .font(.system(size: 24, weight: .bold))
-                    
-                    Text(item.description)
-                        .foregroundColor(.white.opacity(0.9))
-                        .font(.system(size: 14))
-                        .lineLimit(isExpanded ? nil : 2)
-                        .truncationMode(.tail)
-                        .frame(maxWidth: size.width * 0.5, alignment: .leading)
-                        .onTapGesture {
-                            if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
-                        }
-                    
-                    HStack(spacing: 8) {
-                        Image(systemName: "music.note")
+                        Text(item.title)
                             .foregroundColor(.white)
-                        Text(item.soundTitle)
-                            .foregroundColor(.white)
+                            .font(.system(size: 24, weight: .bold))
+                        
+                        Text(item.description)
+                            .foregroundColor(.white.opacity(0.9))
                             .font(.system(size: 14))
-                            .lineLimit(1)
-                    }
-                    
-                    HStack(spacing: 10) {
-                        Button(action: { showMenu = true }) {
-                            Capsule()
-                                .fill(Color.green)
-                                .frame(width: 216, height: 48)
-                                .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                            .lineLimit(isExpanded ? nil : 2)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: size.width * 0.5, alignment: .leading)
+                            .onTapGesture {
+                                if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
+                            }
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "music.note")
+                                .foregroundColor(.white)
+                            Text(item.soundTitle)
+                                .foregroundColor(.white)
+                                .font(.system(size: 14))
+                                .lineLimit(1)
+                        }
+                        
+                        HStack(spacing: 10) {
+                            Button(action: { showMenu = true }) {
+                                Capsule()
+                                    .fill(Color.green)
+                                    .frame(width: 216, height: 48)
+                                    .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                            }
                         }
                     }
+                    Spacer()
                 }
-                Spacer()
+                
+                // Columna derecha - posicionada libremente más arriba
                 VStack(spacing: 28) {
                     // Like button
                     Button(action: { liked.toggle() }) {
@@ -388,7 +393,9 @@ struct FeedView: View {
                             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.top, 80)
+                .padding(.trailing, 16)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, bottomInset)
