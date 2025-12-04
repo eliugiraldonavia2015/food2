@@ -17,108 +17,162 @@ struct FeedView: View {
     }
 
     private let forYouItems: [FeedItem] = [
+        // 1. Foodie Review con historias (círculo verde)
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/704569/pexels-photo-704569.jpeg",
-            username: "The Burger Joint",
-            label: .sponsored,
-            hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-            title: "The Volcano Burger",
-            description: "Experience the explosive flavor of our Volcano Burger! Fiery, juicy, and irresistible. Double-stacked patties with melted cheddar, jalapeño relish, and our signature smoky sauce — crafted for heat lovers.",
-            soundTitle: "Chef Beats Original • Burger BGM"
-        ),
-        .init(
-            backgroundUrl: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
-            username: "Pasta Lovers",
+            backgroundUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
+            username: "Burger Master",
             label: .foodieReview,
-            hasStories: false,
-            avatarUrl: "https://images.pexels.com/photos/3184192/pexels-photo-3184192.jpeg",
-            title: "Truffle Alfredo",
-            description: "A creamy truffle alfredo with fresh herbs and parmesan.",
-            soundTitle: "Foodie Groove • Pasta Jam"
+            hasStories: true,
+            avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+            title: "🔥 Smash Burger Deluxe",
+            description: "Juicy double patty with special sauce, crispy onions, and melted cheese. The perfect burger experience!",
+            soundTitle: "Grill Beats • Burger Jam"
         ),
+        // 2. Sponsored sin historias
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/357756/pexels-photo-357756.jpeg",
-            username: "Sushi Time",
+            backgroundUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+            username: "Pizza Palace",
+            label: .sponsored,
+            hasStories: false,
+            avatarUrl: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5",
+            title: "🍕 Pepperoni Feast",
+            description: "Loaded with extra pepperoni, mozzarella, and our signature tomato sauce. Order now!",
+            soundTitle: "Pizza Groove • Delivery Beat"
+        ),
+        // 3. Normal con historias (círculo verde)
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445",
+            username: "Sushi Sensation",
             label: .none,
             hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
-            title: "Dragon Roll",
-            description: "Crispy tempura with avocado and spicy mayo. Finished with eel sauce and toasted sesame for a perfect bite in every roll.",
-            soundTitle: "Tokyo Beat • Sushi Wave"
+            avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+            title: "🎌 Dragon Roll Supreme",
+            description: "Fresh salmon, avocado, and cucumber wrapped in nori. Topped with eel sauce and sesame seeds.",
+            soundTitle: "Tokyo Vibes • Sushi Flow"
         ),
+        // 4. Foodie Review sin historias
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg",
-            username: "Pizza Planet",
+            backgroundUrl: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47",
+            username: "Pasta Paradise",
             label: .foodieReview,
             hasStories: false,
-            avatarUrl: "https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg",
-            title: "Pepperoni Supreme",
-            description: "Thin crust, double pepperoni, extra cheese.",
-            soundTitle: "Slice Anthem • Pizza Jam"
+            avatarUrl: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c",
+            title: "🍝 Truffle Mushroom Pasta",
+            description: "Creamy truffle sauce with wild mushrooms and parmesan. A gourmet experience!",
+            soundTitle: "Italian Beats • Pasta Jam"
         ),
+        // 5. Sponsored con historias (círculo verde)
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/302680/pexels-photo-302680.jpeg",
-            username: "Dessert Dreams",
+            backgroundUrl: "https://images.unsplash.com/photo-1559715745-e1b33a271c8f",
+            username: "Dessert Heaven",
             label: .sponsored,
             hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/360680/pexels-photo-360680.jpeg",
-            title: "Chocolate Lava Cake",
-            description: "Warm molten center with vanilla ice cream.",
-            soundTitle: "Sweet Lo-Fi • Dessert Flow"
+            avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+            title: "🍰 Chocolate Lava Cake",
+            description: "Warm chocolate cake with molten center. Served with vanilla ice cream.",
+            soundTitle: "Sweet Melody • Dessert Mix"
+        ),
+        // 6. Normal sin historias
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1565958011703-44f9829ba187",
+            username: "Salad Bar",
+            label: .none,
+            hasStories: false,
+            avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+            title: "🥗 Superfood Bowl",
+            description: "Quinoa, kale, avocado, nuts, and seeds with citrus vinaigrette. Healthy and delicious!",
+            soundTitle: "Fresh Beats • Green Mix"
+        ),
+        // 7. Foodie Review con historias (círculo verde) - Mix completo
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1565299507177-b0ac66763828",
+            username: "Taco Fiesta",
+            label: .foodieReview,
+            hasStories: true,
+            avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+            title: "🌮 Street Tacos Pack",
+            description: "Authentic street-style tacos with your choice of meat, cilantro, onions, and lime.",
+            soundTitle: "Fiesta Rhythm • Taco Beat"
         )
     ]
     
     private let followingItems: [FeedItem] = [
+        // 1. Restaurante con historias (círculo verde)
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/262959/pexels-photo-262959.jpeg",
-            username: "BBQ Masters",
-            label: .foodieReview,
-            hasStories: false,
-            avatarUrl: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg",
-            title: "Smoked Brisket",
-            description: "Low and slow smoked brisket with a peppery bark. 14-hour cook, juicy slices, and house-made pickles — a true pitmaster staple.",
-            soundTitle: "Grill Grooves • Pit Jam"
-        ),
-        .init(
-            backgroundUrl: "https://images.pexels.com/photos/1099680/pexels-photo-1099680.jpeg",
-            username: "Green Bowl",
-            label: .none,
-            hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/247878/pexels-photo-247878.jpeg",
-            title: "Superfood Salad",
-            description: "Quinoa, kale, avocado, nuts and seeds. Citrus vinaigrette, roasted chickpeas, and microgreens for crunch and balance.",
-            soundTitle: "Fresh Beats • Green Flow"
-        ),
-        .init(
-            backgroundUrl: "https://images.pexels.com/photos/2271099/pexels-photo-2271099.jpeg",
-            username: "Taco Truck",
+            backgroundUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+            username: "BBQ Kingdom",
             label: .foodieReview,
             hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg",
-            title: "Street Tacos",
-            description: "Carnitas with cilantro, onion and lime.",
-            soundTitle: "Fiesta Mix • Taco Jam"
+            avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a",
+            title: "🔥 Smoked Brisket Plate",
+            description: "14-hour smoked brisket with peppery bark, house pickles, and cornbread. Authentic Texas style!",
+            soundTitle: "Smokehouse Beats • BBQ Jam"
         ),
+        // 2. Sponsored sin historias
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg",
-            username: "Sandwich Hub",
-            label: .none,
+            backgroundUrl: "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9",
+            username: "Green Delight",
+            label: .sponsored,
             hasStories: false,
-            avatarUrl: "https://images.pexels.com/photos/376464/pexels-photo-376464.jpeg",
-            title: "Club Sandwich",
-            description: "Triple stack with turkey, bacon and tomato.",
-            soundTitle: "Cafe Vibes • Lunch Groove"
+            avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61",
+            title: "🥗 Power Bowl",
+            description: "Superfood salad with quinoa, roasted vegetables, and tahini dressing. Fuel your day!",
+            soundTitle: "Healthy Vibes • Green Mix"
         ),
+        // 3. Normal con historias (círculo verde)
         .init(
-            backgroundUrl: "https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg",
-            username: "Coffee & Donuts",
+            backgroundUrl: "https://images.unsplash.com/photo-1551504734-b464e32a163a",
+            username: "Taco Express",
+            label: .none,
+            hasStories: true,
+            avatarUrl: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5",
+            title: "🌮 Street Taco Box",
+            description: "Authentic street tacos with your choice of meat, fresh cilantro, onions, and lime wedges.",
+            soundTitle: "Street Beats • Taco Flow"
+        ),
+        // 4. Foodie Review sin historias
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1542838132-92c53300491e",
+            username: "Sandwich Artisans",
+            label: .foodieReview,
+            hasStories: false,
+            avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+            title: "🥪 Ultimate Club",
+            description: "Triple-decker with turkey, bacon, avocado, tomato, and special sauce. Served with chips.",
+            soundTitle: "Delicious Beats • Sandwich Jam"
+        ),
+        // 5. Sponsored con historias (círculo verde)
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1559715745-e1b33a271c8f",
+            username: "Sweet Corner",
             label: .sponsored,
             hasStories: true,
-            avatarUrl: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg",
-            title: "Glazed Donuts",
-            description: "Freshly made, soft and sweet glaze.",
-            soundTitle: "Morning Swing • Donut Beat"
+            avatarUrl: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e",
+            title: "🍩 Donut Variety",
+            description: "Freshly baked donuts with various glazes and toppings. Perfect with coffee!",
+            soundTitle: "Sweet Melody • Donut Mix"
+        ),
+        // 6. Normal sin historias
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591",
+            username: "Pizza Corner",
+            label: .none,
+            hasStories: false,
+            avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
+            title: "🍕 Margherita Classic",
+            description: "Traditional pizza with fresh mozzarella, tomato sauce, and basil. Simple and delicious!",
+            soundTitle: "Italian Beats • Pizza Flow"
+        ),
+        // 7. Foodie Review con historias (círculo verde) - Mix completo
+        .init(
+            backgroundUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+            username: "Gourmet Burgers",
+            label: .foodieReview,
+            hasStories: true,
+            avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+            title: "🍔 Signature Burger",
+            description: "Gourmet beef patty with aged cheddar, caramelized onions, and truffle aioli. Served with fries.",
+            soundTitle: "Gourmet Beats • Burger Mix"
         )
     ]
     
@@ -169,6 +223,12 @@ struct FeedView: View {
                         .frame(width: size.width, height: size.height)
                         .clipped()
                         .contentShape(Rectangle())
+                        .placeholder {
+                            Color.black.opacity(0.3)
+                        }
+                        .onFailure { _ in
+                            // Log error or handle failed image loading
+                        }
                     
                     // Gradiente opcional
                     LinearGradient(
@@ -233,6 +293,14 @@ struct FeedView: View {
                             .scaledToFill()
                             .frame(width: 53, height: 53)
                             .clipShape(Circle())
+                            .placeholder {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 53, height: 53)
+                            }
+                            .onFailure { _ in
+                                // Log error or handle failed avatar loading
+                            }
                         .overlay(
                             Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
                         )
