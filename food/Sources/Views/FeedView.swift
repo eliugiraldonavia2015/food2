@@ -184,11 +184,11 @@ struct FeedView: View {
                 }
                 .frame(height: usableHeight) // ← Pager usa altura USABLE
             }
-            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top + 20), alignment: .top)
+            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top), alignment: .top)
             .background(Color.black.ignoresSafeArea())
             .overlay(overlays, alignment: .center)
         }
-        .ignoresSafeArea(edges: .top) // ← Solo ignora safe area arriba
+        .ignoresSafeArea() // ← Ignora todas las safe areas
         .preferredColorScheme(.dark)
         .onAppear {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
