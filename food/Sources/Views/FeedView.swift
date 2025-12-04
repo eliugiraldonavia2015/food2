@@ -425,39 +425,44 @@ struct FeedView: View {
     }
 
     private var topTabs: some View {
-        HStack(spacing: 32) {
-            tabButton(title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
+        HStack(spacing: 12) {
+            tabButton(icon: "person.2", title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
                 withAnimation(.easeInOut(duration: 0.2)) { activeTab = .following }
             }
-            tabButton(title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
+            tabButton(icon: "flame", title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
                 withAnimation(.easeInOut(duration: 0.2)) { activeTab = .foryou }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(Color.clear)
     }
 
-    private func tabButton(title: String, isActive: Bool, indicatorColor: Color, action: @escaping () -> Void) -> some View {
+    private func tabButton(icon: String, title: String, isActive: Bool, indicatorColor: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isActive ? .white : .white.opacity(0.6))
+                
                 Text(title)
                     .foregroundColor(isActive ? .white : .white.opacity(0.7))
-                    .font(.system(size: 16, weight: .semibold))
-                    .scaleEffect(isActive ? 1.05 : 1.0)
+                    .font(.system(size: 14, weight: .semibold))
+                    .scaleEffect(isActive ? 1.08 : 1.0)
+                
                 if isActive {
                     Capsule()
                         .fill(indicatorColor)
-                        .frame(width: 28, height: 4)
-                        .shadow(color: indicatorColor.opacity(0.8), radius: 8, x: 0, y: 2)
+                        .frame(width: 24, height: 3)
+                        .shadow(color: indicatorColor.opacity(0.9), radius: 6, x: 0, y: 1)
                 } else {
                     Capsule()
                         .fill(Color.clear)
-                        .frame(width: 28, height: 4)
+                        .frame(width: 24, height: 3)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
             .contentShape(Rectangle())
         }
     }
