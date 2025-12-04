@@ -282,7 +282,7 @@ struct FeedView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, geo.size.height * 0.4)
+                .padding(.top, geo.size.height * 0.55)
                 .padding(.trailing, 16)
                 
                 // OVERLAYS MODALES
