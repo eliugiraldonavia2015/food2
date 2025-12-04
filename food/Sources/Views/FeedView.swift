@@ -161,26 +161,27 @@ struct FeedView: View {
                 VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: totalHeight) { size, idx in
                     let item = currentItems[idx]
                     
-                    ZStack {
-                        // IMAGEN que cubre TODA la pantalla
-                        WebImage(url: URL(string: item.backgroundUrl))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: size.width, height: size.height)
-                            .clipped()
-                            .contentShape(Rectangle())
-                        
-                        // Gradiente opcional
-                        LinearGradient(
-                            colors: [.black.opacity(0.2), .clear],
-                            startPoint: .bottom, endPoint: .top
-                        )
-                        
-                        // CONTENIDO OVERLAY
-                        overlayContent(size, item)
-                    }
-                    .frame(width: size.width, height: size.height)
+                ZStack {
+                    // IMAGEN que cubre TODA la pantalla
+                    WebImage(url: URL(string: item.backgroundUrl))
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+                        .contentShape(Rectangle())
+                    
+                    // Gradiente opcional
+                    LinearGradient(
+                        colors: [.black.opacity(0.2), .clear],
+                        startPoint: .bottom, endPoint: .top
+                    )
+                    
+                    // CONTENIDO OVERLAY
+                    overlayContent(size, item)
                 }
+                .frame(width: size.width, height: size.height)
+                .ignoresSafeArea()
+            }
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
                 
