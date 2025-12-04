@@ -231,7 +231,7 @@ struct FeedView: View {
                         WebImage(url: URL(string: item.avatarUrl))
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 44, height: 44)
+                            .frame(width: 53, height: 53)
                             .clipShape(Circle())
                         .overlay(
                             Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
@@ -242,7 +242,7 @@ struct FeedView: View {
                                 Button(action: { showRestaurantProfile = true }) {
                                     Text(item.username)
                                         .foregroundColor(.white)
-                                        .font(.headline.bold())
+                                        .font(.system(size: 20, weight: .bold))
                                 }
                                 Button(action: { isFollowing.toggle() }) {
                                     Capsule()
@@ -262,11 +262,11 @@ struct FeedView: View {
                     
                     Text(item.title)
                         .foregroundColor(.white)
-                        .font(.title2.bold())
+                        .font(.system(size: 24, weight: .bold))
                     
                     Text(item.description)
                         .foregroundColor(.white.opacity(0.9))
-                        .font(.footnote)
+                        .font(.system(size: 14))
                         .lineLimit(isExpanded ? nil : 2)
                         .truncationMode(.tail)
                         .frame(maxWidth: size.width * 0.5, alignment: .leading)
@@ -279,7 +279,7 @@ struct FeedView: View {
                             .foregroundColor(.white)
                         Text(item.soundTitle)
                             .foregroundColor(.white)
-                            .font(.caption)
+                            .font(.system(size: 14))
                             .lineLimit(1)
                     }
                     
@@ -287,8 +287,8 @@ struct FeedView: View {
                         Button(action: { showMenu = true }) {
                             Capsule()
                                 .fill(Color.green)
-                                .frame(width: 180, height: 40)
-                                .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.footnote.bold()))
+                                .frame(width: 216, height: 48)
+                                .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                         }
                     }
                 }
