@@ -239,6 +239,52 @@ struct FeedView: View {
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
                 
+                // COLUMNA DERECHA DE BOTONES - Fuera del overlay para libre posicionamiento
+                VStack(spacing: 28) {
+                    // Like button
+                    Button(action: { liked.toggle() }) {
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(liked ? .red : .white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    
+                    // Comment button
+                    Button(action: { showComments = true }) {
+                        Image(systemName: "bubble.left")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    
+                    // Bookmark button
+                    Button(action: { showMusic = true }) {
+                        Image(systemName: "bookmark")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    
+                    // Share button
+                    Button(action: { showShare = true }) {
+                        Image(systemName: "paperplane")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(.top, 120)
+                .padding(.trailing, 16)
+                
                 // OVERLAYS MODALES
                 overlays
                 topTabs
@@ -279,9 +325,9 @@ struct FeedView: View {
         
         return VStack {
             Spacer()
-            ZStack(alignment: .bottom) {
-                // Columna izquierda - se mantiene alineada al fondo
-                HStack(alignment: .bottom) {
+            ZStack {
+                    // Columna izquierda - se mantiene alineada al fondo
+                    HStack {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .center, spacing: 12) {
                             WebImage(url: URL(string: item.avatarUrl))
