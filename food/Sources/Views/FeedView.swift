@@ -3,7 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayBottomGap: CGFloat = 12
+    private let overlayBottomGap: CGFloat = 4
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -180,6 +180,7 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
+                            .ignoresSafeArea(edges: .top)
                        }
                 }
             }
