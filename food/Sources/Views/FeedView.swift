@@ -155,7 +155,7 @@ struct FeedView: View {
     var body: some View {
         GeometryReader { geo in
             let totalHeight = geo.size.height
-            let usableHeight = totalHeight
+            let usableHeight = totalHeight - bottomInset
             
             ZStack {
                 Color.black.ignoresSafeArea()
@@ -184,7 +184,7 @@ struct FeedView: View {
                 }
                 .frame(height: usableHeight) // ← Pager usa altura USABLE
             }
-            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top + 8), alignment: .top)
+            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top + 20), alignment: .top)
             .background(Color.black.ignoresSafeArea())
             .overlay(overlays, alignment: .center)
         }
@@ -324,7 +324,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 0)
+            .padding(.bottom, bottomInset)
             // El padding top ya se maneja en el overlay de topTabs
         }
     }
