@@ -281,8 +281,8 @@ struct FeedView: View {
                             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .padding(.top, geo.size.height * 0.6)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(.top, geo.size.height * 0.4)
                 .padding(.trailing, 16)
                 
                 // OVERLAYS MODALES
