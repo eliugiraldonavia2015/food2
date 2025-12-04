@@ -63,21 +63,21 @@ struct MainTabView: View {
     private var bottomBar: some View {
         ZStack(alignment: .top) {
             HStack(spacing: 0) {
-                navButton(icon: "house.fill", title: "Inicio", tab: .feed)
-                navButton(icon: "bell.fill", title: "Notif", tab: .notifications)
+                navButton(icon: "house", title: "Inicio", tab: .feed)
+                navButton(icon: "bell", title: "Notif", tab: .notifications)
                 cartButton
-                navButton(icon: "message.fill", title: "Mensajes", tab: .messages)
-                navButton(icon: "person.fill", title: "Perfil", tab: .profile)
+                navButton(icon: "message", title: "Mensajes", tab: .messages)
+                navButton(icon: "person", title: "Perfil", tab: .profile)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 4)
+            .padding(.horizontal, 8)
+            .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.black)
+        .background(Color.black.opacity(0.95))
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.1))
-                .frame(height: 0.1), alignment: .top
+                .fill(Color.white.opacity(0.15))
+                .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
     }
@@ -112,16 +112,21 @@ struct MainTabView: View {
                 selected = tab
             }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(isSelected ? .green : .gray)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .gray)
+                    .symbolVariant(isSelected ? .fill : .none)
+                    .scaleEffect(isSelected ? 1.15 : 1.0)
+                
                 Text(title)
-                    .font(.caption2)
-                    .foregroundColor(isSelected ? .green : .gray)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .gray)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+            .cornerRadius(8)
         }
     }
 
