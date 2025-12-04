@@ -347,66 +347,45 @@ struct FeedView: View {
                     }
                 }
                 Spacer()
-                VStack(spacing: 24) {
+                VStack(spacing: 28) {
                     // Like button
                     Button(action: { liked.toggle() }) {
-                        ZStack {
-                            Circle()
-                                .stroke(liked ? Color.red : Color.white.opacity(0.8), lineWidth: 2)
-                                .frame(width: 52, height: 52)
-                                .background(Circle().fill(liked ? Color.red.opacity(0.2) : Color.clear))
-                            
-                            Image(systemName: liked ? "heart.fill" : "heart")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(liked ? .red : .white)
-                        }
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(liked ? .red : .white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                     
                     // Comment button
                     Button(action: { showComments = true }) {
-                        ZStack {
-                            Circle()
-                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
-                                .frame(width: 52, height: 52)
-                            
-                            Image(systemName: "bubble.left")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "bubble.left")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                     
                     // Bookmark button
                     Button(action: { showMusic = true }) {
-                        ZStack {
-                            Circle()
-                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
-                                .frame(width: 52, height: 52)
-                            
-                            Image(systemName: "bookmark")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 24)
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "bookmark")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                     
                     // Share button
                     Button(action: { showShare = true }) {
-                        ZStack {
-                            Circle()
-                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
-                                .frame(width: 52, height: 52)
-                            
-                            Image(systemName: "paperplane")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "paperplane")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                 }
                 .padding(.top, 40)
