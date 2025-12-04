@@ -94,21 +94,15 @@ struct MainTabView: View {
                 }
             } label: {
                 Image(systemName: "cart.fill")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.red, .orange, .green],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.green)
                     .scaleEffect(1.0)
             }
             Text("Carrito")
                 .font(.system(size: 9, weight: .medium))
-                .foregroundColor(.gray)
+                .foregroundColor(.green)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
         .background(Color.clear)
         .cornerRadius(8)
@@ -123,17 +117,17 @@ struct MainTabView: View {
         } label: {
             VStack(spacing: 2) {
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(isSelected ? .white : .gray)
                     .symbolVariant(isSelected ? .fill : .none)
-                    .scaleEffect(isSelected ? 1.15 : 1.0)
+                    .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 9, weight: .medium))
                     .foregroundColor(isSelected ? .white : .gray)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
             .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
             .cornerRadius(8)
         }
