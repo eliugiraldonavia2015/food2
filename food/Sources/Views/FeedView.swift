@@ -205,6 +205,9 @@ struct FeedView: View {
     @State private var showShare = false
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
+    @State private var likesCount = 2487
+    @State private var commentsCount = 132
+    @State private var sharesCount = 89
 
     var body: some View {
         GeometryReader { geo in
@@ -240,25 +243,38 @@ struct FeedView: View {
                 .ignoresSafeArea()
                 
                 // COLUMNA DERECHA DE BOTONES - Fuera del overlay para libre posicionamiento
-                VStack(spacing: 28) {
-                    // Like button
-                    Button(action: { liked.toggle() }) {
-                        Image(systemName: liked ? "heart.fill" : "heart")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(liked ? .red : .white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                VStack(spacing: 24) {
+                    // Like button with count
+                    VStack(spacing: 4) {
+                        Button(action: { 
+                            liked.toggle()
+                            likesCount += liked ? 1 : -1
+                        }) {
+                            Image(systemName: liked ? "heart.fill" : "heart")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(liked ? .red : .white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Text(formatCount(likesCount))
+                            .foregroundColor(.white)
+                            .font(.system(size: 12, weight: .medium))
                     }
                     
-                    // Comment button
-                    Button(action: { showComments = true }) {
-                        Image(systemName: "bubble.left")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
+                    // Comment button with count
+                    VStack(spacing: 4) {
+                        Button(action: { showComments = true }) {
+                            Image(systemName: "bubble.left")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Text(formatCount(commentsCount))
                             .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                            .font(.system(size: 12, weight: .medium))
                     }
                     
                     // Bookmark button
@@ -271,18 +287,23 @@ struct FeedView: View {
                             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                     
-                    // Share button
-                    Button(action: { showShare = true }) {
-                        Image(systemName: "paperplane")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
+                    // Share button with count
+                    VStack(spacing: 4) {
+                        Button(action: { showShare = true }) {
+                            Image(systemName: "paperplane")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Text(formatCount(sharesCount))
                             .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                            .font(.system(size: 12, weight: .medium))
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, geo.size.height * 0.65)
+                .padding(.top, geo.size.height * 0.59)
                 .padding(.trailing, 16)
                 
                 // OVERLAYS MODALES
@@ -467,5 +488,15 @@ struct FeedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .background(Color.black.opacity(0.6).ignoresSafeArea())
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+    
+    private func formatCount(_ count: Int) -> String {
+        if count >= 1_000_000 {
+            return String(format: "%.1fM", Double(count) / 1_000_000)
+        } else if count >= 1_000 {
+            return String(format: "%.1fK", Double(count) / 1_000)
+        } else {
+            return "\(count)"
+        }
     }
 }
