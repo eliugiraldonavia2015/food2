@@ -157,33 +157,30 @@ struct FeedView: View {
             let totalHeight = geo.size.height
             let usableHeight = totalHeight - bottomInset
             
-            ZStack {
-                Color.black.ignoresSafeArea()
+            VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: usableHeight) { size, idx in
+                let item = currentItems[idx]
                 
-                VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: usableHeight) { size, idx in
-                    let item = currentItems[idx]
+                ZStack {
+                    // IMAGEN que cubre el área USABLE (no incluye tab bar)
+                    WebImage(url: URL(string: item.backgroundUrl))
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+                        .contentShape(Rectangle())
                     
-                    ZStack {
-                        // IMAGEN que cubre el área USABLE (no incluye tab bar)
-                        WebImage(url: URL(string: item.backgroundUrl))
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: size.width, height: size.height)
-                            .clipped()
-                            .contentShape(Rectangle())
-                        
-                        // Gradiente opcional
-                        LinearGradient(
-                            colors: [.black.opacity(0.2), .clear],
-                            startPoint: .bottom, endPoint: .top
-                        )
-                        
-                        // CONTENIDO OVERLAY
-                        overlayContent(size, item)
-                    }
+                    // Gradiente opcional
+                    LinearGradient(
+                        colors: [.black.opacity(0.2), .clear],
+                        startPoint: .bottom, endPoint: .top
+                    )
+                    
+                    // CONTENIDO OVERLAY
+                    overlayContent(size, item)
                 }
-                .frame(height: usableHeight) // ← Pager usa altura USABLE
+                .frame(width: size.width, height: size.height)
             }
+            .frame(height: usableHeight) // ← Pager usa altura USABLE
             .overlay(topTabs.padding(.top, geo.safeAreaInsets.top), alignment: .top)
             .background(Color.black.ignoresSafeArea())
             .overlay(overlays, alignment: .center)
