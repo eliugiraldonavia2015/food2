@@ -3,7 +3,6 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayBottomGap: CGFloat = 60
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -156,8 +155,7 @@ struct FeedView: View {
     var body: some View {
         GeometryReader { geo in
             let totalHeight = geo.size.height
-            let tabBarHeight: CGFloat = 60 // ← MISMA altura que en MainTabView
-            let usableHeight = totalHeight - tabBarHeight // ← Altura para el video
+            let usableHeight = totalHeight
             
             ZStack {
                 Color.black.ignoresSafeArea()
@@ -326,7 +324,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, overlayBottomGap) // ← Solo el gap, NO bottomInset
+            .padding(.bottom, 0)
             // El padding top ya se maneja en el overlay de topTabs
         }
     }

@@ -8,13 +8,14 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
+    private let tabBarHeight: CGFloat = 44
 
     var body: some View {
         ZStack(alignment: .bottom) {
             // CONTENIDO PRINCIPAL
             Group {
                 switch selected {
-                case .feed: FeedView(bottomInset: 0) // ← Ya no necesitamos bottomInset
+                case .feed: FeedView(bottomInset: tabBarHeight)
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesScreen()
@@ -23,7 +24,7 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black.ignoresSafeArea())
-            .padding(.bottom, 60) // ← ESPACIO FIJO para el tab bar
+            .padding(.bottom, tabBarHeight) // ← ESPACIO FIJO para el tab bar
 
             // TAB BAR FIJO (siempre visible)
             bottomBar
@@ -78,10 +79,11 @@ struct MainTabView: View {
                 .fill(Color.white.opacity(0.1))
                 .frame(height: 0.1), alignment: .top
         )
+        .frame(height: tabBarHeight)
     }
 
     private var cartButton: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
             Button {
                 withAnimation { showShopLoading = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
@@ -92,14 +94,14 @@ struct MainTabView: View {
                 }
             } label: {
                 Image(systemName: "cart.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.green)
             }
             Text("Carrito")
                 .font(.caption2)
                 .foregroundColor(.green)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
     }
 
@@ -112,14 +114,14 @@ struct MainTabView: View {
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(isSelected ? .green : .gray)
                 Text(title)
                     .font(.caption2)
                     .foregroundColor(isSelected ? .green : .gray)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 4)
         }
     }
 
