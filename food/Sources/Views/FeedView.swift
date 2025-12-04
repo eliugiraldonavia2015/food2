@@ -218,12 +218,6 @@ struct FeedView: View {
                 ZStack {
                     // IMAGEN que cubre TODA la pantalla
                     WebImage(url: URL(string: item.backgroundUrl))
-                        .placeholder {
-                            Color.black.opacity(0.3)
-                        }
-                        .onFailure { _ in
-                            // Log error or handle failed image loading
-                        }
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: size.width, height: size.height)
@@ -289,14 +283,6 @@ struct FeedView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center, spacing: 12) {
                         WebImage(url: URL(string: item.avatarUrl))
-                            .placeholder {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 53, height: 53)
-                            }
-                            .onFailure { _ in
-                                // Log error or handle failed avatar loading
-                            }
                             .resizable()
                             .scaledToFill()
                             .frame(width: 53, height: 53)
