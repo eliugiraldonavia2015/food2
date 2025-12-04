@@ -139,6 +139,7 @@ struct FeedView: View {
                 } else {
                     followingVM.currentIndex = newValue
                 }
+            }
         )
     }
 
@@ -191,7 +192,6 @@ struct FeedView: View {
                 topTabs
                     .padding(.top, geo.safeAreaInsets.top)
                     .frame(maxWidth: .infinity)
-            }
             }
             .background(Color.black.ignoresSafeArea())
         }
@@ -346,7 +346,6 @@ struct FeedView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
         .background(Color.clear)
     }
 
