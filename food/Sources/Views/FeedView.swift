@@ -155,37 +155,46 @@ struct FeedView: View {
     var body: some View {
         GeometryReader { geo in
             let totalHeight = geo.size.height
-            let usableHeight = totalHeight - bottomInset
             
-            VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: usableHeight) { size, idx in
-                let item = currentItems[idx]
-                
-                ZStack {
-                    // IMAGEN que cubre el área USABLE (no incluye tab bar)
-                    WebImage(url: URL(string: item.backgroundUrl))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: size.width, height: size.height)
-                        .clipped()
-                        .contentShape(Rectangle())
+            ZStack {
+                // PAGER PRINCIPAL - OCUPA TODA LA PANTALLA
+                VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: totalHeight) { size, idx in
+                    let item = currentItems[idx]
                     
-                    // Gradiente opcional
-                    LinearGradient(
-                        colors: [.black.opacity(0.2), .clear],
-                        startPoint: .bottom, endPoint: .top
-                    )
-                    
-                    // CONTENIDO OVERLAY
-                    overlayContent(size, item)
+                    ZStack {
+                        // IMAGEN que cubre TODA la pantalla
+                        WebImage(url: URL(string: item.backgroundUrl))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: size.width, height: size.height)
+                            .clipped()
+                            .contentShape(Rectangle())
+                        
+                        // Gradiente opcional
+                        LinearGradient(
+                            colors: [.black.opacity(0.2), .clear],
+                            startPoint: .bottom, endPoint: .top
+                        )
+                        
+                        // CONTENIDO OVERLAY
+                        overlayContent(size, item)
+                    }
+                    .frame(width: size.width, height: size.height)
                 }
-                .frame(width: size.width, height: size.height)
+                .frame(height: totalHeight)
+                .ignoresSafeArea()
+                
+                // TABS SUPERIORES
+                topTabs
+                    .padding(.top, geo.safeAreaInsets.top)
+                    .frame(maxWidth: .infinity, alignment: .top)
+                
+                // OVERLAYS MODALES
+                overlays
             }
-            .frame(height: usableHeight) // ← Pager usa altura USABLE
-            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top), alignment: .top)
             .background(Color.black.ignoresSafeArea())
-            .overlay(overlays, alignment: .center)
         }
-        .ignoresSafeArea() // ← Ignora todas las safe areas
+        .ignoresSafeArea()
         .preferredColorScheme(.dark)
         .onAppear {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
