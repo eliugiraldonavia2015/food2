@@ -41,17 +41,6 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
     }
 
     func updateUIView(_ scroll: UIScrollView, context: Context) {
-        // Obtener la altura de página (específica o del scroll view)
-        let height = pageHeight ?? scroll.bounds.height
-        
-        // Si la altura es 0, posponer el layout
-        if height == 0 {
-            DispatchQueue.main.async {
-                context.coordinator.layout(in: scroll)
-            }
-            return
-        }
-        
         // Asegurar que no hay insets (estilo TikTok)
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.contentInset = .zero
@@ -60,19 +49,31 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         // Actualizar contenido
         context.coordinator.update(count: count, builder: content)
         
-        // Si tenemos altura específica, usar tamaño personalizado
+        // Usar siempre la altura específica si está disponible
         if let pageHeight = pageHeight {
             let size = CGSize(width: scroll.bounds.width, height: pageHeight)
             context.coordinator.layout(in: scroll, size: size)
         } else {
-            // Comportamiento original: usar altura del scroll view
-            context.coordinator.layout(in: scroll)
+            // Si no hay altura específica, usar altura del scroll view
+            let height = scroll.bounds.height
+            if height > 0 {
+                context.coordinator.layout(in: scroll)
+            } else {
+                // Si la altura es 0, posponer el layout
+                DispatchQueue.main.async {
+                    context.coordinator.layout(in: scroll)
+                }
+                return
+            }
         }
         
         // Posicionar en la página correcta
-        let targetY = CGFloat(index) * height
-        if !context.coordinator.isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
-            scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
+        let height = pageHeight ?? scroll.bounds.height
+        if height > 0 {
+            let targetY = CGFloat(index) * height
+            if !context.coordinator.isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
+                scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
+            }
         }
     }
 
