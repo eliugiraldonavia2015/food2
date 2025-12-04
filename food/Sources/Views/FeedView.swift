@@ -347,40 +347,69 @@ struct FeedView: View {
                     }
                 }
                 Spacer()
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
+                    // Like button
                     Button(action: { liked.toggle() }) {
-                        Image(systemName: "heart.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 32, height: 32)
-                            .foregroundColor(liked ? .red : .white)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        ZStack {
+                            Circle()
+                                .stroke(liked ? Color.red : Color.white.opacity(0.8), lineWidth: 2)
+                                .frame(width: 52, height: 52)
+                                .background(Circle().fill(liked ? Color.red.opacity(0.2) : Color.clear))
+                            
+                            Image(systemName: liked ? "heart.fill" : "heart")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(liked ? .red : .white)
+                        }
                     }
+                    
+                    // Comment button
                     Button(action: { showComments = true }) {
-                        Image(systemName: "ellipsis.bubble.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 32, height: 32)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                                .frame(width: 52, height: 52)
+                            
+                            Image(systemName: "bubble.left")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                        }
                     }
+                    
+                    // Bookmark button
                     Button(action: { showMusic = true }) {
-                        Image(systemName: "bookmark.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 32)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                                .frame(width: 52, height: 52)
+                            
+                            Image(systemName: "bookmark")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 24)
+                                .foregroundColor(.white)
+                        }
                     }
+                    
+                    // Share button
                     Button(action: { showShare = true }) {
-                        Image(systemName: "arrowshape.turn.up.right.fill")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 32, height: 32)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        ZStack {
+                            Circle()
+                                .stroke(Color.white.opacity(0.8), lineWidth: 2)
+                                .frame(width: 52, height: 52)
+                            
+                            Image(systemName: "paperplane")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                        }
                     }
                 }
+                .padding(.top, 40)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, bottomInset)
