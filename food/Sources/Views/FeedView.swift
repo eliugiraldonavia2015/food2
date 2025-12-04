@@ -345,7 +345,7 @@ struct FeedView: View {
         let isExpanded = expandedDescriptions.contains(item.id)
         
         return VStack {
-            Spacer(minLength: size.height * 0.7)
+            Spacer(minLength: size.height * 0.75)
             ZStack {
                     // Columna izquierda - se mantiene alineada al fondo
                     HStack {
