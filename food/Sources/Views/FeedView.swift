@@ -167,10 +167,8 @@ struct FeedView: View {
                                         .scaledToFill()
                                         .frame(
                                             width: pageGeo.size.width,
-                                            height: pageGeo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom + 8
+                                            height: pageGeo.size.height
                                         )
-                                        .ignoresSafeArea(.container, edges: .vertical)
-                                        .offset(y: -geo.safeAreaInsets.top - 8)
                                         .clipped()
                                 }
 
@@ -182,11 +180,10 @@ struct FeedView: View {
 
                                 overlayContent(pageGeo, item)
                             }
-                            .ignoresSafeArea(edges: .vertical)
-                        }
+                       }
                 }
             }
-            .ignoresSafeArea(edges: .vertical)
+            
         }
         .overlay(topTabs.padding(.top, 8), alignment: .top)
         .background(Color.black.ignoresSafeArea())

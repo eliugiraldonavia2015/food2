@@ -52,6 +52,7 @@ struct MainTabView: View {
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .navigationBar)
         .onPreferenceChange(BottomBarHeightKey.self) { bottomBarHeight = $0 }
     }
 

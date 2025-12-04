@@ -10,8 +10,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
     func makeUIView(context: Context) -> UIScrollView {
         let scroll = UIScrollView()
         scroll.showsVerticalScrollIndicator = false
-        scroll.alwaysBounceVertical = true
-        scroll.isPagingEnabled = false
+        scroll.alwaysBounceVertical = false
+        scroll.isPagingEnabled = true
         scroll.decelerationRate = .fast
         scroll.delaysContentTouches = false
         scroll.contentInsetAdjustmentBehavior = .never
