@@ -189,7 +189,7 @@ struct FeedView: View {
                 overlays
                 topTabs
                     .frame(maxWidth: .infinity)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.7)
+                    .position(x: geo.size.width / 2, y: geo.size.height * 0.3)
             }
             .background(Color.black.ignoresSafeArea())
         }
