@@ -8,13 +8,13 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
-    @State private var bottomBarHeight: CGFloat = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            // CONTENIDO PRINCIPAL
             Group {
                 switch selected {
-                case .feed: FeedView(bottomInset: bottomBarHeight)
+                case .feed: FeedView(bottomInset: 0) // ← Ya no necesitamos bottomInset
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesScreen()
@@ -23,6 +23,11 @@ struct MainTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black.ignoresSafeArea())
+            .padding(.bottom, 60) // ← ESPACIO FIJO para el tab bar
+
+            // TAB BAR FIJO (siempre visible)
+            bottomBar
+                .background(Color.black.opacity(0.9))
 
             if showShopLoading {
                 VStack(spacing: 10) {
@@ -48,12 +53,10 @@ struct MainTabView: View {
                     .zIndex(2)
             }
         }
-        .safeAreaInset(edge: .bottom) { bottomBar }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
-        .onPreferenceChange(BottomBarHeightKey.self) { bottomBarHeight = $0 }
     }
 
     private var bottomBar: some View {
@@ -70,11 +73,6 @@ struct MainTabView: View {
             .padding(.bottom, 0)
         }
         .background(Color.black)
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: BottomBarHeightKey.self, value: geo.size.height)
-            }
-        )
         .overlay(
             Rectangle()
                 .fill(Color.white.opacity(0.1))
@@ -82,28 +80,28 @@ struct MainTabView: View {
         )
     }
 
-        private var cartButton: some View {
-            VStack(spacing: 4) {
-                Button {
-                    withAnimation { showShopLoading = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                        withAnimation {
-                            showShopLoading = false
-                            showShop = true
-                        }
+    private var cartButton: some View {
+        VStack(spacing: 4) {
+            Button {
+                withAnimation { showShopLoading = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    withAnimation {
+                        showShopLoading = false
+                        showShop = true
                     }
-                } label: {
-                    Image(systemName: "cart.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.green)
                 }
-                Text("Carrito")
-                    .font(.caption2)
+            } label: {
+                Image(systemName: "cart.fill")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.green)
             }
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity)
+            Text("Carrito")
+                .font(.caption2)
+                .foregroundColor(.green)
         }
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity)
+    }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
         let isSelected = selected == tab
@@ -169,11 +167,6 @@ struct MainTabView: View {
             .background(Color.black.opacity(0.6).ignoresSafeArea())
         }
     }
-}
-
-private struct BottomBarHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 // MARK: - Placeholder Screens (sin lógica por ahora)

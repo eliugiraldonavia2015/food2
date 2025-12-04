@@ -3,7 +3,24 @@ import SwiftUI
 struct VerticalPager<Content: View>: UIViewRepresentable {
     let count: Int
     @Binding var index: Int
+    let pageHeight: CGFloat? // Nueva: altura específica opcional para cada página
     let content: (CGSize, Int) -> Content
+    
+    // Inicializador compatible hacia atrás
+    init(count: Int, index: Binding<Int>, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
+        self.count = count
+        self._index = index
+        self.pageHeight = nil
+        self.content = content
+    }
+    
+    // Nuevo inicializador con altura específica
+    init(count: Int, index: Binding<Int>, pageHeight: CGFloat, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
+        self.count = count
+        self._index = index
+        self.pageHeight = pageHeight
+        self.content = content
+    }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -17,24 +34,43 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.contentInset = .zero
         scroll.scrollIndicatorInsets = .zero
+        scroll.automaticallyAdjustsScrollIndicatorInsets = false
         scroll.delegate = context.coordinator
         context.coordinator.install(in: scroll)
         return scroll
     }
 
     func updateUIView(_ scroll: UIScrollView, context: Context) {
-        // Ensure no insets so pages touch exactly (TikTok-style)
+        // Obtener la altura de página (específica o del scroll view)
+        let height = pageHeight ?? scroll.bounds.height
+        
+        // Si la altura es 0, posponer el layout
+        if height == 0 {
+            DispatchQueue.main.async {
+                context.coordinator.layout(in: scroll)
+            }
+            return
+        }
+        
+        // Asegurar que no hay insets (estilo TikTok)
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.contentInset = .zero
         scroll.scrollIndicatorInsets = .zero
+        
+        // Actualizar contenido
         context.coordinator.update(count: count, builder: content)
-        context.coordinator.layout(in: scroll)
-        let pageHeight = scroll.bounds.height
-        if pageHeight == 0 {
-            DispatchQueue.main.async { context.coordinator.layout(in: scroll) }
-            return
+        
+        // Si tenemos altura específica, usar tamaño personalizado
+        if let pageHeight = pageHeight {
+            let size = CGSize(width: scroll.bounds.width, height: pageHeight)
+            context.coordinator.layout(in: scroll, size: size)
+        } else {
+            // Comportamiento original: usar altura del scroll view
+            context.coordinator.layout(in: scroll)
         }
-        let targetY = CGFloat(index) * pageHeight
+        
+        // Posicionar en la página correcta
+        let targetY = CGFloat(index) * height
         if !context.coordinator.isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
             scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
         }
@@ -62,47 +98,77 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
                 hosts = (0..<count).map { _ in UIHostingController(rootView: AnyView(EmptyView())) }
             }
             if count > 0 {
-                if parent.index >= count { DispatchQueue.main.async { self.parent.index = count - 1 } }
+                if parent.index >= count { 
+                    DispatchQueue.main.async { self.parent.index = count - 1 } 
+                }
             } else {
-                if parent.index != 0 { DispatchQueue.main.async { self.parent.index = 0 } }
+                if parent.index != 0 { 
+                    DispatchQueue.main.async { self.parent.index = 0 } 
+                }
             }
         }
 
+        // Método original para compatibilidad
         func layout(in scroll: UIScrollView) {
             let size = scroll.bounds.size
+            layout(in: scroll, size: size)
+        }
+        
+        // Nuevo método con tamaño específico
+        func layout(in scroll: UIScrollView, size: CGSize) {
             guard let builder = builder else { return }
             if size.height <= 0 { return }
+            
+            // Usar el tamaño proporcionado
+            let pageSize = size
+            
             for (i, host) in hosts.enumerated() {
-                host.rootView = AnyView(builder(size, i))
+                host.rootView = AnyView(builder(pageSize, i))
                 let view = host.view!
                 if view.superview == nil { scroll.addSubview(view) }
-                view.frame = CGRect(x: 0, y: CGFloat(i) * size.height, width: size.width, height: size.height)
+                
+                // Cada página toca exactamente a la siguiente
+                view.frame = CGRect(
+                    x: 0, 
+                    y: CGFloat(i) * pageSize.height, 
+                    width: pageSize.width, 
+                    height: pageSize.height
+                )
             }
-            if lastSize != size || lastCount != hosts.count {
-                scroll.contentSize = CGSize(width: size.width, height: size.height * CGFloat(hosts.count))
-                lastSize = size
+            
+            if lastSize != pageSize || lastCount != hosts.count {
+                scroll.contentSize = CGSize(
+                    width: pageSize.width, 
+                    height: pageSize.height * CGFloat(hosts.count)
+                )
+                lastSize = pageSize
                 lastCount = hosts.count
             }
-            let targetY = CGFloat(parent.index) * size.height
+            
+            let targetY = CGFloat(parent.index) * pageSize.height
             if !isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
                 scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
             }
         }
 
         func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-            let h = max(scrollView.bounds.height, 1)
+            let pageHeight = lastSize.height
             let y = scrollView.contentOffset.y
-            let next = Int(round(y / h))
-            let target = CGPoint(x: 0, y: CGFloat(next) * h)
+            let next = Int(round(y / pageHeight))
+            let target = CGPoint(x: 0, y: CGFloat(next) * pageHeight)
             targetContentOffset.pointee = target
             isAnimating = true
         }
 
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-            let h = max(scrollView.bounds.height, 1)
-            let idx = Int(round(scrollView.contentOffset.y / h))
+            let pageHeight = lastSize.height
+            let idx = Int(round(scrollView.contentOffset.y / pageHeight))
             isAnimating = false
             DispatchQueue.main.async { self.parent.index = idx }
+        }
+        
+        func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+            isAnimating = false
         }
     }
 }

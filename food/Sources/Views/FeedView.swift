@@ -154,42 +154,43 @@ struct FeedView: View {
     @State private var expandedDescriptions: Set<UUID> = []
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            GeometryReader { geo in
-                VerticalPager(count: currentItems.count, index: selectedIndexBinding) { size, idx in
-                    GeometryReader { pageGeo in
-                        let item = currentItems[idx]
-                        ZStack {
-                                ZStack {
-                                    WebImage(url: URL(string: item.backgroundUrl))
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(
-                                            width: pageGeo.size.width,
-                                            height: pageGeo.size.height
-                                        )
-                                        .clipped()
-                                }
-
-
-                                LinearGradient(
-                                    colors: [.black.opacity(0.2), .clear],
-                                    startPoint: .bottom, endPoint: .top
-                                )
-
-                                overlayContent(pageGeo, item)
-                            }
-                            .ignoresSafeArea(edges: .vertical)
-                       }
-                }
-                .ignoresSafeArea(edges: .vertical)
-            }
+        GeometryReader { geo in
+            let totalHeight = geo.size.height
+            let tabBarHeight: CGFloat = 60 // ← MISMA altura que en MainTabView
+            let usableHeight = totalHeight - tabBarHeight // ← Altura para el video
             
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: usableHeight) { size, idx in
+                    let item = currentItems[idx]
+                    
+                    ZStack {
+                        // IMAGEN que cubre el área USABLE (no incluye tab bar)
+                        WebImage(url: URL(string: item.backgroundUrl))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: size.width, height: size.height)
+                            .clipped()
+                            .contentShape(Rectangle())
+                        
+                        // Gradiente opcional
+                        LinearGradient(
+                            colors: [.black.opacity(0.2), .clear],
+                            startPoint: .bottom, endPoint: .top
+                        )
+                        
+                        // CONTENIDO OVERLAY
+                        overlayContent(size, item)
+                    }
+                }
+                .frame(height: usableHeight) // ← Pager usa altura USABLE
+            }
+            .overlay(topTabs.padding(.top, geo.safeAreaInsets.top + 8), alignment: .top)
+            .background(Color.black.ignoresSafeArea())
+            .overlay(overlays, alignment: .center)
         }
-        .overlay(topTabs.padding(.top, 8), alignment: .top)
-        .background(Color.black.ignoresSafeArea())
-        .overlay(overlays, alignment: .center)
+        .ignoresSafeArea(edges: .top) // ← Solo ignora safe area arriba
         .preferredColorScheme(.dark)
         .onAppear {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
@@ -206,7 +207,7 @@ struct FeedView: View {
         }
     }
 
-    private func overlayContent(_ geo: GeometryProxy, _ item: FeedItem) -> some View {
+    private func overlayContent(_ size: CGSize, _ item: FeedItem) -> some View {
         let hasRing = item.label == .foodieReview || item.hasStories
         let ringColor: Color = item.label == .foodieReview ? .yellow : .green
         let labelText: String? = {
@@ -265,7 +266,7 @@ struct FeedView: View {
                         .font(.footnote)
                         .lineLimit(isExpanded ? nil : 2)
                         .truncationMode(.tail)
-                        .frame(maxWidth: geo.size.width * 0.5, alignment: .leading)
+                        .frame(maxWidth: size.width * 0.5, alignment: .leading)
                         .onTapGesture {
                             if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
                         }
@@ -325,7 +326,8 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, bottomInset + overlayBottomGap)
+            .padding(.bottom, overlayBottomGap) // ← Solo el gap, NO bottomInset
+            // El padding top ya se maneja en el overlay de topTabs
         }
     }
 
