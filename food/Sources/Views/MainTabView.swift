@@ -8,7 +8,7 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
-    private let tabBarHeight: CGFloat = 44
+    private let tabBarHeight: CGFloat = 52
 
     var body: some View {
         ZStack(alignment: .bottom) {
