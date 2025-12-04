@@ -62,14 +62,14 @@ struct MainTabView: View {
 
     private var bottomBar: some View {
         ZStack(alignment: .top) {
-            HStack(spacing: 0) {
+            HStack(spacing: -2) {
                 navButton(icon: "house", title: "Inicio", tab: .feed)
                 navButton(icon: "bell", title: "Notif", tab: .notifications)
                 cartButton
                 navButton(icon: "message", title: "Mensajes", tab: .messages)
                 navButton(icon: "person", title: "Perfil", tab: .profile)
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 6)
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
@@ -94,7 +94,7 @@ struct MainTabView: View {
                 }
             } label: {
                 Image(systemName: "cart.fill")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 19, weight: .medium))
                     .foregroundColor(.green)
                     .scaleEffect(1.0)
             }
@@ -117,10 +117,10 @@ struct MainTabView: View {
         } label: {
             VStack(spacing: 1) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 19, weight: .medium))
                     .foregroundColor(isSelected ? .white : .gray)
                     .symbolVariant(isSelected ? .fill : .none)
-                    .scaleEffect(isSelected ? 1.1 : 1.0)
+                    .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 8, weight: .medium))
