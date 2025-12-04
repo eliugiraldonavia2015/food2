@@ -394,7 +394,7 @@ struct FeedView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.top, 80)
+                .padding(.top, 120)
                 .padding(.trailing, 16)
             }
             .padding(.horizontal, 16)
