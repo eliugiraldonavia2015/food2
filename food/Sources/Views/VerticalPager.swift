@@ -15,6 +15,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.decelerationRate = .fast
         scroll.delaysContentTouches = false
         scroll.contentInsetAdjustmentBehavior = .never
+        scroll.contentInset = .zero
+        scroll.scrollIndicatorInsets = .zero
         scroll.delegate = context.coordinator
         context.coordinator.install(in: scroll)
         return scroll

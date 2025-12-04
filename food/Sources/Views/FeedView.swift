@@ -3,7 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
-    private let overlayBottomGap: CGFloat = 4
+    private let overlayBottomGap: CGFloat = 0
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -174,7 +174,7 @@ struct FeedView: View {
 
 
                                 LinearGradient(
-                                    colors: [.black.opacity(0.65), .clear],
+                                    colors: [.black.opacity(0.2), .clear],
                                     startPoint: .bottom, endPoint: .top
                                 )
 
