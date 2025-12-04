@@ -23,6 +23,10 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
     }
 
     func updateUIView(_ scroll: UIScrollView, context: Context) {
+        // Ensure no insets so pages touch exactly (TikTok-style)
+        scroll.contentInsetAdjustmentBehavior = .never
+        scroll.contentInset = .zero
+        scroll.scrollIndicatorInsets = .zero
         context.coordinator.update(count: count, builder: content)
         context.coordinator.layout(in: scroll)
         let pageHeight = scroll.bounds.height
