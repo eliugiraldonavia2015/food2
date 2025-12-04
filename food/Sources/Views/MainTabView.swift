@@ -83,7 +83,7 @@ struct MainTabView: View {
     }
 
     private var cartButton: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 1) {
             Button {
                 withAnimation { showShopLoading = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
@@ -94,18 +94,18 @@ struct MainTabView: View {
                 }
             } label: {
                 Image(systemName: "cart.fill")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.green)
                     .scaleEffect(1.0)
             }
             Text("Carrito")
-                .font(.system(size: 9, weight: .medium))
+                .font(.system(size: 8, weight: .medium))
                 .foregroundColor(.green)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 5)
         .frame(maxWidth: .infinity)
         .background(Color.clear)
-        .cornerRadius(8)
+        .cornerRadius(6)
     }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
@@ -115,21 +115,21 @@ struct MainTabView: View {
                 selected = tab
             }
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 1) {
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(isSelected ? .white : .gray)
                     .symbolVariant(isSelected ? .fill : .none)
-                    .scaleEffect(isSelected ? 1.12 : 1.0)
+                    .scaleEffect(isSelected ? 1.1 : 1.0)
                 
                 Text(title)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 8, weight: .medium))
                     .foregroundColor(isSelected ? .white : .gray)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 5)
             .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
-            .cornerRadius(8)
+            .cornerRadius(6)
         }
     }
 
