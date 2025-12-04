@@ -388,7 +388,7 @@ struct FeedView: View {
                             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                     }
                 }
-                .padding(.top, 40)
+                .padding(.top, 80)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, bottomInset)
