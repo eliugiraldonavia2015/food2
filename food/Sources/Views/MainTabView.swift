@@ -93,16 +93,19 @@ struct MainTabView: View {
                     }
                 }
             } label: {
-                Image(systemName: "cart.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.green)
+                Image(systemName: "cart")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.gray)
+                    .scaleEffect(1.0)
             }
             Text("Carrito")
-                .font(.caption2)
-                .foregroundColor(.green)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.gray)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
+        .background(Color.clear)
+        .cornerRadius(8)
     }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
