@@ -185,13 +185,13 @@ struct FeedView: View {
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
                 
-                // TABS SUPERIORES
-                topTabs
-                    .padding(.top, geo.safeAreaInsets.top + 8)
-                    .frame(maxWidth: .infinity, alignment: .top)
-                
                 // OVERLAYS MODALES
                 overlays
+            }
+            .overlay(alignment: .top) {
+                topTabs
+                    .padding(.top, geo.safeAreaInsets.top)
+            }
             }
             .background(Color.black.ignoresSafeArea())
         }
