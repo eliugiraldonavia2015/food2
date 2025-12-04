@@ -345,7 +345,7 @@ struct FeedView: View {
         let isExpanded = expandedDescriptions.contains(item.id)
         
         return VStack {
-            Spacer(minLength: size.height * 0.75)
+            Spacer()
             ZStack {
                     // Columna izquierda - se mantiene alineada al fondo
                     HStack {
@@ -419,7 +419,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, bottomInset)
+            .padding(.bottom, bottomInset + 100)
             // El padding top ya se maneja en el overlay de topTabs
         }
     }
