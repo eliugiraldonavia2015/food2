@@ -190,7 +190,7 @@ struct FeedView: View {
             }
             .overlay(alignment: .top) {
                 topTabs
-                    .padding(.top, geo.safeAreaInsets.top)
+                    .padding(.top, geo.safeAreaInsets.top + 12)
                     .frame(maxWidth: .infinity)
             }
             .background(Color.black.ignoresSafeArea())
