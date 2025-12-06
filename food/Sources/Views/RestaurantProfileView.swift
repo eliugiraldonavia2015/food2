@@ -40,16 +40,16 @@ struct RestaurantProfileView: View {
                 menuPill
                 descriptionCard
                 sectionHeader("Ubicaciones disponibles")
-                ZStack(alignment: .topLeading) {
-                    HStack {
-                        locationSelector
-                        Spacer()
-                    }
+                HStack {
+                    locationSelector
+                    Spacer()
+                }
+                .overlay(alignment: .topLeading) {
                     if showLocationList {
                         locationList
                             .padding(.top, 52)
                             .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(1)
+                            .zIndex(2)
                     }
                 }
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
