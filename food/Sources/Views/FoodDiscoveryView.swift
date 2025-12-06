@@ -71,30 +71,30 @@ struct FoodDiscoveryView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 
-                ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Fixed Header Section
                     VStack(spacing: 24) {
-                        // 1. Header
                         headerView
-                        
-                        // 2. Search Bar
                         searchBar
-                        
-                        // 3. Categories Filter (Pills)
                         categoriesFilter
-                        
-                        // 4. Hero Banner
-                        heroBanner
-                        
-                        // 5. Category Icons
-                        categoryIconsRow
-                        
-                        // 6. Popular Section
-                        popularSection
-                        
-                        // Extra space at bottom
-                        Spacer().frame(height: 100)
                     }
                     .padding(.top, 10)
+                    .padding(.bottom, 10)
+                    .background(Color.black)
+                    
+                    // Scrollable Content
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(spacing: 24) {
+                            heroBanner
+                            
+                            categoryIconsRow
+                            
+                            popularSection
+                            
+                            Spacer().frame(height: 100)
+                        }
+                        .padding(.top, 10)
+                    }
                 }
             }
             .navigationBarHidden(true)
