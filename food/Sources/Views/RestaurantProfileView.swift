@@ -23,6 +23,14 @@ struct RestaurantProfileView: View {
     @State private var isFollowing = false
     @State private var showLocationList = false
     @State private var selectedBranchName = ""
+    private let photoColumns: [GridItem] = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    private var photoItems: [PhotoItem] {
+        (0..<12).map { i in i < data.photos.count ? data.photos[i] : PhotoItem(url: "", title: "") }
+    }
 
     private let locations: [LocationItem] = [
         .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 3194.7),
@@ -285,12 +293,9 @@ struct RestaurantProfileView: View {
     }
 
     private var photoGrid: some View {
-        let gridItems: [PhotoItem] = (0..<12).map { i in
-            i < data.photos.count ? data.photos[i] : PhotoItem(url: "", title: "")
-        }
-        return LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            ForEach(gridItems) { p in
-                photoTile(url: p.url)
+        LazyVGrid(columns: photoColumns, spacing: 12) {
+            ForEach(0..<photoItems.count, id: \.self) { i in
+                photoTile(url: photoItems[i].url)
             }
         }
     }
