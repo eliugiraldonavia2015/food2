@@ -1017,7 +1017,7 @@ struct RoundedCorner: Shape {
 // Global safe image loader with graceful fallback
 func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
     let finalURL = URL(string: url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-    AsyncImage(url: finalURL) { phase in
+    return AsyncImage(url: finalURL) { phase in
         switch phase {
         case .empty:
             ZStack {
