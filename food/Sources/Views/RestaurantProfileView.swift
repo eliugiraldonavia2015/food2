@@ -47,17 +47,18 @@ struct RestaurantProfileView: View {
                 .resizable()
                 .indicator(.activity)
                 .aspectRatio(contentMode: .fill)
-                .frame(height: 280)
+                .frame(height: 340)
                 .clipped()
                 .overlay(
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: Color.black.opacity(0.0), location: 0.0),
-                            .init(color: Color.black.opacity(0.0), location: 0.70),
-                            .init(color: Color.black.opacity(0.15), location: 0.78),
-                            .init(color: Color.black.opacity(0.35), location: 0.86),
-                            .init(color: Color.black.opacity(0.55), location: 0.92),
-                            .init(color: Color.black.opacity(0.85), location: 0.98),
+                            .init(color: Color.black.opacity(0.0), location: 0.55),
+                            .init(color: Color.black.opacity(0.10), location: 0.65),
+                            .init(color: Color.black.opacity(0.25), location: 0.75),
+                            .init(color: Color.black.opacity(0.45), location: 0.85),
+                            .init(color: Color.black.opacity(0.70), location: 0.92),
+                            .init(color: Color.black.opacity(0.90), location: 0.97),
                             .init(color: Color.black.opacity(1.0), location: 1.0)
                         ]),
                         startPoint: .top,
