@@ -8,6 +8,7 @@ struct MainTabView: View {
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
+    @State private var inDiscoveryMode = false
     private let tabBarHeight: CGFloat = 52
 
     var body: some View {
@@ -50,15 +51,14 @@ struct MainTabView: View {
                     .zIndex(2)
             }
 
-            // TAB BAR: cuando está en Feed y otras pantallas
-            if !showShop {
-                bottomBar
-                    .background(Color.black.opacity(0.9))
+            // TAB BAR
+            if inDiscoveryMode {
+                bottomBarDiscovery
+                    .background(Color.black)
                     .zIndex(4)
             } else {
-                // TAB BAR variante para Discovery
-                bottomBarDiscovery
-                    .background(Color.black.opacity(0.9))
+                bottomBar
+                    .background(Color.black)
                     .zIndex(4)
             }
         }
@@ -81,7 +81,7 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.black.opacity(0.95))
+        .background(Color.black)
         .overlay(
             Rectangle()
                 .fill(Color.white.opacity(0.15))
@@ -93,7 +93,7 @@ struct MainTabView: View {
     private var bottomBarDiscovery: some View {
         ZStack(alignment: .top) {
             HStack(spacing: -2) {
-                navButtonDiscovery(icon: "house", title: "Inicio", tab: .feed)
+                backButtonDiscovery
                 navButtonDiscovery(icon: "bell", title: "Notif", tab: .notifications)
                 fireButton
                 navButtonDiscovery(icon: "message", title: "Mensajes", tab: .messages)
@@ -103,7 +103,7 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.black.opacity(0.95))
+        .background(Color.black)
         .overlay(
             Rectangle()
                 .fill(Color.white.opacity(0.15))
@@ -120,6 +120,7 @@ struct MainTabView: View {
                     withAnimation {
                         showShopLoading = false
                         showShop = true
+                        inDiscoveryMode = true
                     }
                 }
             } label: {
@@ -138,12 +139,35 @@ struct MainTabView: View {
         .cornerRadius(6)
     }
 
+    private var backButtonDiscovery: some View {
+        VStack(spacing: 1) {
+            Button {
+                withAnimation {
+                    showShop = true
+                }
+            } label: {
+                Image(systemName: "arrow.backward")
+                    .font(.system(size: 19, weight: .medium))
+                    .foregroundColor(.white)
+                    .scaleEffect(1.0)
+            }
+            Text("Regresar")
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(.white)
+        }
+        .padding(.vertical, 5)
+        .frame(maxWidth: .infinity)
+        .background(Color.clear)
+        .cornerRadius(6)
+    }
+
     private var fireButton: some View {
         VStack(spacing: 1) {
             Button {
                 withAnimation {
                     showShop = false
                     selected = .feed
+                    inDiscoveryMode = false
                 }
             } label: {
                 Image(systemName: "flame.fill")
@@ -192,6 +216,7 @@ struct MainTabView: View {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selected = tab
                 showShop = false
+                inDiscoveryMode = true
             }
         } label: {
             VStack(spacing: 1) {
