@@ -53,9 +53,9 @@ struct RestaurantProfileView: View {
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: Color.black.opacity(0.0), location: 0.0),
-                            .init(color: Color.black.opacity(0.0), location: 0.84),
-                            .init(color: Color.black.opacity(0.5), location: 0.90),
-                            .init(color: Color.black.opacity(0.9), location: 0.96),
+                            .init(color: Color.black.opacity(0.0), location: 0.82),
+                            .init(color: Color.black.opacity(0.35), location: 0.90),
+                            .init(color: Color.black.opacity(0.9), location: 0.97),
                             .init(color: Color.black.opacity(1.0), location: 1.0)
                         ]),
                         startPoint: .top,
@@ -82,7 +82,7 @@ struct RestaurantProfileView: View {
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
-                .offset(y: -28)
+                .offset(y: -22)
             Text(data.name)
                 .foregroundColor(.white)
                 .font(.system(size: 24, weight: .bold))
@@ -149,7 +149,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .padding(.top, -28)
+        .padding(.top, -22)
         .padding(.bottom, 4)
     }
 
