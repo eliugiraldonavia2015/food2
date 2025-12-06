@@ -14,6 +14,9 @@ struct FeedView: View {
         let title: String
         let description: String
         let soundTitle: String
+        let likes: Int
+        let comments: Int
+        let shares: Int
     }
 
     private let forYouItems: [FeedItem] = [
@@ -26,7 +29,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
             title: "🔥 Smash Burger Deluxe",
             description: "Juicy double patty with special sauce, crispy onions, and melted cheese. The perfect burger experience!",
-            soundTitle: "Grill Beats • Burger Jam"
+            soundTitle: "Grill Beats • Burger Jam",
+            likes: 12400,
+            comments: 342,
+            shares: 120
         ),
         // 2. Sponsored sin historias
         .init(
@@ -37,7 +43,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5",
             title: "🍕 Pepperoni Feast",
             description: "Loaded with extra pepperoni, mozzarella, and our signature tomato sauce. Order now!",
-            soundTitle: "Pizza Groove • Delivery Beat"
+            soundTitle: "Pizza Groove • Delivery Beat",
+            likes: 8500,
+            comments: 156,
+            shares: 45
         ),
         // 3. Normal con historias (círculo verde)
         .init(
@@ -48,7 +57,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
             title: "🎌 Dragon Roll Supreme",
             description: "Fresh salmon, avocado, and cucumber wrapped in nori. Topped with eel sauce and sesame seeds.",
-            soundTitle: "Tokyo Vibes • Sushi Flow"
+            soundTitle: "Tokyo Vibes • Sushi Flow",
+            likes: 23100,
+            comments: 890,
+            shares: 430
         ),
         // 4. Foodie Review sin historias
         .init(
@@ -59,7 +71,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1547425260-76bcadfb4f2c",
             title: "🍝 Truffle Mushroom Pasta",
             description: "Creamy truffle sauce with wild mushrooms and parmesan. A gourmet experience!",
-            soundTitle: "Italian Beats • Pasta Jam"
+            soundTitle: "Italian Beats • Pasta Jam",
+            likes: 15600,
+            comments: 420,
+            shares: 210
         ),
         // 5. Sponsored con historias (círculo verde)
         .init(
@@ -70,7 +85,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
             title: "🍰 Chocolate Lava Cake",
             description: "Warm chocolate cake with molten center. Served with vanilla ice cream.",
-            soundTitle: "Sweet Melody • Dessert Mix"
+            soundTitle: "Sweet Melody • Dessert Mix",
+            likes: 45000,
+            comments: 1200,
+            shares: 3500
         ),
         // 6. Normal sin historias
         .init(
@@ -81,7 +99,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
             title: "🥗 Superfood Bowl",
             description: "Quinoa, kale, avocado, nuts, and seeds with citrus vinaigrette. Healthy and delicious!",
-            soundTitle: "Fresh Beats • Green Mix"
+            soundTitle: "Fresh Beats • Green Mix",
+            likes: 5600,
+            comments: 89,
+            shares: 23
         ),
         // 7. Foodie Review con historias (círculo verde) - Mix completo
         .init(
@@ -92,7 +113,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
             title: "🌮 Street Tacos Pack",
             description: "Authentic street-style tacos with your choice of meat, cilantro, onions, and lime.",
-            soundTitle: "Fiesta Rhythm • Taco Beat"
+            soundTitle: "Fiesta Rhythm • Taco Beat",
+            likes: 18900,
+            comments: 670,
+            shares: 890
         )
     ]
     
@@ -106,7 +130,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a",
             title: "🔥 Smoked Brisket Plate",
             description: "14-hour smoked brisket with peppery bark, house pickles, and cornbread. Authentic Texas style!",
-            soundTitle: "Smokehouse Beats • BBQ Jam"
+            soundTitle: "Smokehouse Beats • BBQ Jam",
+            likes: 32100,
+            comments: 1500,
+            shares: 2100
         ),
         // 2. Sponsored sin historias
         .init(
@@ -117,7 +144,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61",
             title: "🥗 Power Bowl",
             description: "Superfood salad with quinoa, roasted vegetables, and tahini dressing. Fuel your day!",
-            soundTitle: "Healthy Vibes • Green Mix"
+            soundTitle: "Healthy Vibes • Green Mix",
+            likes: 4200,
+            comments: 120,
+            shares: 45
         ),
         // 3. Normal con historias (círculo verde)
         .init(
@@ -128,7 +158,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5",
             title: "🌮 Street Taco Box",
             description: "Authentic street tacos with your choice of meat, fresh cilantro, onions, and lime wedges.",
-            soundTitle: "Street Beats • Taco Flow"
+            soundTitle: "Street Beats • Taco Flow",
+            likes: 14500,
+            comments: 340,
+            shares: 180
         ),
         // 4. Foodie Review sin historias
         .init(
@@ -139,7 +172,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
             title: "🥪 Ultimate Club",
             description: "Triple-decker with turkey, bacon, avocado, tomato, and special sauce. Served with chips.",
-            soundTitle: "Delicious Beats • Sandwich Jam"
+            soundTitle: "Delicious Beats • Sandwich Jam",
+            likes: 9800,
+            comments: 230,
+            shares: 120
         ),
         // 5. Sponsored con historias (círculo verde)
         .init(
@@ -150,7 +186,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e",
             title: "🍩 Donut Variety",
             description: "Freshly baked donuts with various glazes and toppings. Perfect with coffee!",
-            soundTitle: "Sweet Melody • Donut Mix"
+            soundTitle: "Sweet Melody • Donut Mix",
+            likes: 28900,
+            comments: 980,
+            shares: 1500
         ),
         // 6. Normal sin historias
         .init(
@@ -161,7 +200,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
             title: "🍕 Margherita Classic",
             description: "Traditional pizza with fresh mozzarella, tomato sauce, and basil. Simple and delicious!",
-            soundTitle: "Italian Beats • Pizza Flow"
+            soundTitle: "Italian Beats • Pizza Flow",
+            likes: 11200,
+            comments: 450,
+            shares: 320
         ),
         // 7. Foodie Review con historias (círculo verde) - Mix completo
         .init(
@@ -172,7 +214,10 @@ struct FeedView: View {
             avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
             title: "🍔 Signature Burger",
             description: "Gourmet beef patty with aged cheddar, caramelized onions, and truffle aioli. Served with fries.",
-            soundTitle: "Gourmet Beats • Burger Mix"
+            soundTitle: "Gourmet Beats • Burger Mix",
+            likes: 34500,
+            comments: 1100,
+            shares: 2300
         )
     ]
     
@@ -198,16 +243,13 @@ struct FeedView: View {
     }
 
     @State private var isFollowing = false
-    @State private var liked = false
     @State private var showRestaurantProfile = false
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
-    @State private var likesCount = 2487
-    @State private var commentsCount = 132
-    @State private var sharesCount = 89
+    @State private var bottomSectionHeight: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -235,76 +277,23 @@ struct FeedView: View {
                     
                     // CONTENIDO OVERLAY
                     overlayContent(size, item)
+                    
+                    // COLUMNA DERECHA DE BOTONES - Ahora dentro del pager
+                    ActionButtonsView(
+                        item: item,
+                        onComment: { showComments = true },
+                        onShare: { showShare = true },
+                        onBookmark: { showMusic = true }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(.top, size.height * 0.59)
+                    .padding(.trailing, 16)
                 }
                 .frame(width: size.width, height: size.height)
                 .ignoresSafeArea()
             }
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
-                
-                // COLUMNA DERECHA DE BOTONES - Fuera del overlay para libre posicionamiento
-                VStack(spacing: 24) {
-                    // Like button with count
-                    VStack(spacing: 6) {
-                        Button(action: { 
-                            liked.toggle()
-                            likesCount += liked ? 1 : -1
-                        }) {
-                            Image(systemName: liked ? "heart.fill" : "heart")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .foregroundColor(liked ? .red : .white)
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        }
-                        Text(formatCount(likesCount))
-                            .foregroundColor(.white)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    
-                    // Comment button with count
-                    VStack(spacing: 6) {
-                        Button(action: { showComments = true }) {
-                            Image(systemName: "bubble.left")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                            }
-                        Text(formatCount(commentsCount))
-                            .foregroundColor(.white)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    
-                    // Bookmark button
-                    Button(action: { showMusic = true }) {
-                        Image(systemName: "bookmark")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 24, height: 28)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                    }
-                    
-                    // Share button with count
-                    VStack(spacing: 6) {
-                        Button(action: { showShare = true }) {
-                            Image(systemName: "paperplane")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        }
-                        Text(formatCount(sharesCount))
-                            .foregroundColor(.white)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, geo.size.height * 0.59)
-                .padding(.trailing, 16)
                 
                 // OVERLAYS MODALES
                 overlays
@@ -345,7 +334,7 @@ struct FeedView: View {
         let isExpanded = expandedDescriptions.contains(item.id)
         
         return VStack {
-            Spacer() // <-- Removed minLength: size.height * 0.75 to allow upward expansion
+            Spacer()
             ZStack {
                     // Columna izquierda - se mantiene alineada al fondo
                     HStack {
@@ -512,6 +501,97 @@ struct FeedView: View {
             return String(format: "%.1fK", Double(count) / 1_000)
         } else {
             return "\(count)"
+        }
+    }
+    
+    // Componente para los botones de acción
+    private struct ActionButtonsView: View {
+        let item: FeedItem
+        let onComment: () -> Void
+        let onShare: () -> Void
+        let onBookmark: () -> Void
+        
+        @State private var isLiked = false
+        @State private var likesCount: Int
+        
+        init(item: FeedItem, onComment: @escaping () -> Void, onShare: @escaping () -> Void, onBookmark: @escaping () -> Void) {
+            self.item = item
+            self.onComment = onComment
+            self.onShare = onShare
+            self.onBookmark = onBookmark
+            _likesCount = State(initialValue: item.likes)
+        }
+        
+        var body: some View {
+            VStack(spacing: 24) {
+                // Like button
+                VStack(spacing: 6) {
+                    Button(action: {
+                        isLiked.toggle()
+                        likesCount += isLiked ? 1 : -1
+                    }) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(isLiked ? .red : .white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    Text(formatCount(likesCount))
+                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .medium))
+                }
+                
+                // Comment button
+                VStack(spacing: 6) {
+                    Button(action: onComment) {
+                        Image(systemName: "bubble.left")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    Text(formatCount(item.comments))
+                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .medium))
+                }
+                
+                // Bookmark button
+                Button(action: onBookmark) {
+                    Image(systemName: "bookmark")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 28)
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                }
+                
+                // Share button
+                VStack(spacing: 6) {
+                    Button(action: onShare) {
+                        Image(systemName: "paperplane")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    }
+                    Text(formatCount(item.shares))
+                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .medium))
+                }
+            }
+        }
+        
+        private func formatCount(_ count: Int) -> String {
+            if count >= 1_000_000 {
+                return String(format: "%.1fM", Double(count) / 1_000_000)
+            } else if count >= 1_000 {
+                return String(format: "%.1fK", Double(count) / 1_000)
+            } else {
+                return "\(count)"
+            }
         }
     }
 }
