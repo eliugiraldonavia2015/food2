@@ -18,12 +18,12 @@ struct FoodDiscoveryView: View {
     }
     
     let categoryItems = [
-        CategoryItem(name: "Burgers", icon: "hamburger", color: .orange),
-        CategoryItem(name: "Pizza", icon: "fork.knife", color: .yellow),
-        CategoryItem(name: "Saludable", icon: "leaf", color: .green),
-        CategoryItem(name: "Carnes", icon: "flame", color: .red),
-        CategoryItem(name: "Drinks", icon: "wineglass", color: .blue),
-        CategoryItem(name: "Sushi", icon: "fish", color: .pink)
+        CategoryItem(name: "Burgers", icon: "🍔", color: .white),
+        CategoryItem(name: "Pizza", icon: "🍕", color: .white),
+        CategoryItem(name: "Saludable", icon: "🥗", color: .white),
+        CategoryItem(name: "Carnes", icon: "🥩", color: .white),
+        CategoryItem(name: "Drinks", icon: "🥤", color: .white),
+        CategoryItem(name: "Sushi", icon: "🍣", color: .white)
     ]
     
     struct PopularItem: Identifiable {
@@ -85,12 +85,15 @@ struct FoodDiscoveryView: View {
                 // Scrollable Content
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 24) {
-                        heroBanner
-                        
+                        promoCarousel
                         categoryIconsRow
-                        
+                        ForEach(style1SectionsData) { section in
+                            sectionStyle1(title: section.title, items: section.items)
+                        }
+                        dealsSection(title: "Descuentazos")
+                        dealsSection(title: "Más ofertas")
                         popularSection
-                        
+                        feedSectionStyle4
                         Spacer().frame(height: 100)
                     }
                     .padding(.top, 10)
@@ -265,12 +268,9 @@ struct FoodDiscoveryView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color.white.opacity(0.08))
                                 .frame(width: 64, height: 64)
-                            
-                            // Usamos imágenes del sistema como placeholder para los iconos coloridos
-                            // En una app real serían Assets personalizados
-                            Image(systemName: item.icon)
-                                .font(.system(size: 28))
-                                .foregroundColor(item.color)
+                            Text(item.icon)
+                                .font(.system(size: 30))
+                                .foregroundColor(.white)
                         }
                         
                         Text(item.name)
@@ -281,6 +281,314 @@ struct FoodDiscoveryView: View {
             }
             .padding(.horizontal)
         }
+    }
+
+    struct RestaurantItem: Identifiable {
+        let id = UUID()
+        let title: String
+        let time: String
+        let fee: String
+        let distance: String
+        let rating: Double
+        let imageUrl: String
+        let promo: String?
+    }
+
+    struct SectionData: Identifiable {
+        let id = UUID()
+        let title: String
+        let items: [RestaurantItem]
+    }
+
+    private var style1SectionsData: [SectionData] {
+        [
+            SectionData(title: "Pollo delicioso", items: [
+                RestaurantItem(title: "KFC", time: "48 min", fee: "$0.90", distance: "2.9 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Burger King", time: "48 min", fee: "$1.50", distance: "5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", promo: "$4 gratis en créditos")
+            ]),
+            SectionData(title: "Antojo de hamburguesa", items: [
+                RestaurantItem(title: "El Corral", time: "62 min", fee: "$1.50", distance: "5 km", rating: 4.8, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Roger's Smash", time: "45 min", fee: "$0.80", distance: "3.1 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: "$4 gratis en créditos")
+            ]),
+            SectionData(title: "Pizza top", items: [
+                RestaurantItem(title: "Pizzeria Roma", time: "40 min", fee: "$0.70", distance: "3.4 km", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$3 de envío")
+            ]),
+            SectionData(title: "Sushi favorito", items: [
+                RestaurantItem(title: "Kobe Sushi & Rolls", time: "53 min", fee: "$1.10", distance: "4.6 km", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$4 gratis en créditos")
+            ])
+        ]
+    }
+
+    private func sectionStyle1(title: String, items: [RestaurantItem]) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(items) { item in
+                        restaurantCardStyle1(item)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+
+    private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .bottomLeading) {
+                WebImage(url: URL(string: item.imageUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 240, height: 140)
+                    .clipped()
+                if let promo = item.promo {
+                    Text(promo)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.yellow)
+                        .cornerRadius(6)
+                        .padding(8)
+                }
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                HStack(spacing: 8) {
+                    Text(item.time)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    Text("•")
+                        .foregroundColor(.gray)
+                    Text(item.fee)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    Text("•")
+                        .foregroundColor(.gray)
+                    Text(item.distance)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                    Text(String(format: "%.1f", item.rating))
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.05))
+        }
+        .frame(width: 240)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    struct DealItem: Identifiable {
+        let id = UUID()
+        let price: String
+        let discountText: String
+        let oldPrice: String
+        let subtitle: String
+        let merchant: String
+        let time: String
+        let imageUrl: String
+    }
+
+    private var dealsData: [DealItem] {
+        [
+            DealItem(price: "$6,55", discountText: "-61%", oldPrice: "$17,00", subtitle: "15 Bocados Especiales..", merchant: "Kobe Sushi & Rolls", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
+            DealItem(price: "$5,00", discountText: "-53%", oldPrice: "$10,80", subtitle: "Todo por $5", merchant: "Burger King", time: "48 min", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
+            DealItem(price: "$5,20", discountText: "-41%", oldPrice: "$8,80", subtitle: "BBQ Pack", merchant: "Carl's Jr.", time: "37 min", imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225")
+        ]
+    }
+
+    private func dealsSection(title: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(dealsData) { deal in
+                        dealCard(deal)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+
+    private func dealCard(_ deal: DealItem) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .topTrailing) {
+                WebImage(url: URL(string: deal.imageUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 120)
+                    .clipped()
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 28, height: 28)
+                    .overlay(Text("+").font(.system(size: 16, weight: .bold)).foregroundColor(.white))
+                    .padding(8)
+            }
+            Text(deal.price)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+            HStack(spacing: 8) {
+                Text(deal.discountText)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow)
+                    .cornerRadius(4)
+                Text(deal.oldPrice)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .strikethrough()
+            }
+            Text(deal.subtitle)
+                .font(.system(size: 13))
+                .foregroundColor(.gray)
+                .lineLimit(1)
+            HStack(spacing: 6) {
+                Text(deal.merchant)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white)
+                Text("•")
+                    .foregroundColor(.gray)
+                Image(systemName: "clock")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 12))
+                Text(deal.time)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white)
+            }
+        }
+        .frame(width: 180)
+        .padding(12)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    struct FeedItem: Identifiable {
+        let id = UUID()
+        let title: String
+        let imageUrl: String
+        let meta: String
+        let rating: String
+        let promo: String?
+    }
+
+    private var feedItems: [FeedItem] {
+        [
+            FeedItem(title: "Fast Shawarma", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", meta: "53 min  •  $1.10  •  4.6 km", rating: "★ 4.9 (35)", promo: "$4 gratis en créditos"),
+            FeedItem(title: "Kobe Sushi & Rolls", imageUrl: "https://images.unsplash.com/photo-1527455272121-3e1e7a42e9d1", meta: "53 min  •  $1.10  •  4.6 km", rating: "★ 4.8", promo: nil),
+            FeedItem(title: "Pizzeria Roma", imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", meta: "40 min  •  $0.70  •  3.4 km", rating: "★ 4.7", promo: "$3 de envío"),
+            FeedItem(title: "Smash House", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", meta: "45 min  •  $0.80  •  3.1 km", rating: "★ 4.6", promo: "$4 gratis en créditos"),
+            FeedItem(title: "Tacos Express", imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba", meta: "35 min  •  $0.60  •  2.0 km", rating: "★ 4.5", promo: nil),
+            FeedItem(title: "Thai Garden", imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", meta: "50 min  •  $1.20  •  5.4 km", rating: "★ 4.8", promo: "$2 de envío")
+        ]
+    }
+
+    private var feedSectionStyle4: some View {
+        VStack(spacing: 16) {
+            ForEach(feedItems) { item in
+                VStack(alignment: .leading, spacing: 8) {
+                    WebImage(url: URL(string: item.imageUrl))
+                        .resizable()
+                        .indicator(.activity)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 180)
+                        .clipped()
+                        .cornerRadius(16)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(item.title)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                        if let promo = item.promo {
+                            Text(promo)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.yellow)
+                                .cornerRadius(6)
+                        }
+                        Text(item.meta)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                        Text(item.rating)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.horizontal)
+            }
+            Spacer().frame(height: 20)
+        }
+    }
+
+    private var promoCarousel: some View {
+        TabView {
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591")
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349")
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
+        }
+        .frame(height: 220)
+        .tabViewStyle(PageTabViewStyle())
+        .padding(.horizontal)
+    }
+
+    private func promoSlide(imageUrl: String) -> some View {
+        ZStack(alignment: .trailing) {
+            HStack(spacing: 0) {
+                WebImage(url: URL(string: imageUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 220)
+                    .clipped()
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Burgers con")
+                        .font(.system(size: 18))
+                        .foregroundColor(.brown)
+                    Text("40% OFF")
+                        .font(.system(size: 34, weight: .heavy))
+                        .foregroundColor(.brown)
+                    Text("30% FULL")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.brown)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(red: 0.96, green: 0.93, blue: 0.88))
+            }
+        }
+        .cornerRadius(24)
     }
     
     private var popularSection: some View {
