@@ -25,6 +25,7 @@ struct RestaurantProfileView: View {
     @State private var selectedBranchName = ""
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
+    @State private var refreshToken = UUID()
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -95,9 +96,10 @@ struct RestaurantProfileView: View {
 
     private var header: some View {
         ZStack(alignment: .topLeading) {
-            WebImage(url: URL(string: data.coverUrl))
+            WebImage(url: URL(string: data.coverUrl), options: [.refreshCached])
                 .resizable()
                 .indicator(.activity)
+                .transition(.fade(duration: 0.6))
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 340)
                 .clipped()
@@ -118,6 +120,7 @@ struct RestaurantProfileView: View {
                     )
                 )
                 .offset(y: 80)
+                .id(refreshToken)
             Button(action: { dismiss() }) {
                 Circle()
                     .fill(Color.black.opacity(0.6))
@@ -170,13 +173,15 @@ struct RestaurantProfileView: View {
 
     private var profileInfo: some View {
         VStack(spacing: 12) {
-            WebImage(url: URL(string: data.avatarUrl))
+            WebImage(url: URL(string: data.avatarUrl), options: [.refreshCached])
                 .resizable()
                 .scaledToFill()
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 .offset(y: -22)
+                .transition(.fade(duration: 0.6))
+                .id(refreshToken)
             VStack(spacing: 6) {
                 Text(data.name)
                     .foregroundColor(.white)
@@ -354,6 +359,7 @@ struct RestaurantProfileView: View {
         try? await Task.sleep(nanoseconds: UInt64(0.9 * 1_000_000_000))
         await MainActor.run {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) {
+                refreshToken = UUID()
                 isRefreshing = false
             }
         }
@@ -362,7 +368,7 @@ struct RestaurantProfileView: View {
     private var photoGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 12) {
             ForEach(0..<photoItems.count, id: \.self) { i in
-                PhotoTileView(url: photoItems[i].url)
+                PhotoTileView(url: photoItems[i].url, reloadKey: refreshToken)
             }
         }
     }
@@ -376,9 +382,10 @@ struct RestaurantProfileView: View {
 
     struct PhotoTileView: View {
         let url: String
+        let reloadKey: UUID
         var body: some View {
             let finalURL = URL(string: url.isEmpty ? "" : url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-            AsyncImage(url: finalURL) { phase in
+            AsyncImage(url: finalURL, transaction: Transaction(animation: .spring(response: 0.4, dampingFraction: 0.85, blendDuration: 0.2))) { phase in
                 switch phase {
                 case .empty:
                     placeholder
@@ -386,6 +393,7 @@ struct RestaurantProfileView: View {
                     image
                         .resizable()
                         .aspectRatio(1, contentMode: .fill)
+                        .transition(.scale.combined(with: .opacity))
                 case .failure(_):
                     errorView
                 @unknown default:
@@ -396,6 +404,7 @@ struct RestaurantProfileView: View {
             .background(Color.white.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
+            .id(reloadKey)
         }
 
         private var placeholder: some View {
