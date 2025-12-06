@@ -437,23 +437,26 @@ struct FoodDiscoveryView: View {
 
     private func dealCard(_ deal: DealItem) -> some View {
         VStack(spacing: 0) {
-            safeImage(url: deal.imageUrl, height: 120, contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .cornerRadius(16, corners: [.topLeft, .topRight])
+            ZStack(alignment: .bottomLeading) {
+                safeImage(url: deal.imageUrl, height: 120, contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .cornerRadius(16, corners: [.topLeft, .topRight])
+                Text(deal.discountText)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow)
+                    .cornerRadius(4)
+                    .padding(8)
+            }
             VStack(alignment: .leading, spacing: 8) {
-                Text(deal.price)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
                 HStack(spacing: 8) {
-                    Text(deal.discountText)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.yellow)
-                        .cornerRadius(4)
+                    Text(deal.price)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
                     Text(deal.oldPrice)
-                        .font(.system(size: 12))
+                        .font(.system(size: 18))
                         .foregroundColor(.gray)
                         .strikethrough()
                 }
