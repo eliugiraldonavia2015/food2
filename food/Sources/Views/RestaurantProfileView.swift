@@ -40,16 +40,19 @@ struct RestaurantProfileView: View {
                 menuPill
                 descriptionCard
                 sectionHeader("Ubicaciones disponibles")
-                HStack {
-                    locationSelector
-                    Spacer()
-                }
-                if showLocationList {
+                ZStack(alignment: .topLeading) {
                     HStack {
-                        locationList
+                        locationSelector
                         Spacer()
                     }
+                    if showLocationList {
+                        locationList
+                            .padding(.top, 52)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(1)
+                    }
                 }
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
                 sectionHeader("Fotos")
                 photoGrid
             }
@@ -209,7 +212,7 @@ struct RestaurantProfileView: View {
     }
 
     private var locationSelector: some View {
-        Button(action: { showLocationList.toggle() }) {
+        Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
             HStack(spacing: 10) {
                 Image(systemName: "mappin")
                     .foregroundColor(.green)
@@ -258,7 +261,8 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .frame(width: UIScreen.main.bounds.width * 0.65)
+        .frame(maxWidth: .infinity)
+        .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
     private var photoGrid: some View {
