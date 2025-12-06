@@ -89,45 +89,47 @@ struct RestaurantProfileView: View {
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 .offset(y: -22)
-            Text(data.name)
-                .foregroundColor(.white)
-                .font(.system(size: 24, weight: .bold))
-            Text("@\(data.username)")
-                .foregroundColor(.white.opacity(0.85))
-                .font(.subheadline)
-            HStack(spacing: 10) {
-                HStack(spacing: 6) {
-                    Image(systemName: "mappin.and.ellipse").foregroundColor(.white.opacity(0.9))
-                    Text(data.location).foregroundColor(.white).font(.footnote)
-                }
-                HStack(spacing: 6) {
-                    Image(systemName: "star.fill").foregroundColor(.yellow)
-                    Text(String(format: "%.1f", data.rating)).foregroundColor(.white).font(.footnote)
-                }
-            }
-            HStack(spacing: 8) {
-                Text("Categoría:")
-                    .foregroundColor(.white.opacity(0.9))
-                    .font(.footnote)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                Text(data.category)
-                    .foregroundColor(.green)
-                    .font(.footnote.weight(.semibold))
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-            }
-            VStack(spacing: 2) {
-                Text(formatCount(data.followers))
+            VStack(spacing: 6) {
+                Text(data.name)
                     .foregroundColor(.white)
-                    .font(.system(size: 22, weight: .bold))
-                Text("Seguidores")
+                    .font(.system(size: 24, weight: .bold))
+                Text("@\(data.username)")
                     .foregroundColor(.white.opacity(0.85))
-                    .font(.caption)
+                    .font(.subheadline)
+                HStack(spacing: 10) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse").foregroundColor(.white.opacity(0.9))
+                        Text(data.location).foregroundColor(.white).font(.footnote)
+                    }
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill").foregroundColor(.yellow)
+                        Text(String(format: "%.1f", data.rating)).foregroundColor(.white).font(.footnote)
+                    }
+                }
+                HStack(spacing: 8) {
+                    Text("Categoría:")
+                        .foregroundColor(.white.opacity(0.9))
+                        .font(.footnote)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                    Text(data.category)
+                        .foregroundColor(.green)
+                        .font(.footnote.weight(.semibold))
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                }
+                VStack(spacing: 2) {
+                    Text(formatCount(data.followers))
+                        .foregroundColor(.white)
+                        .font(.system(size: 22, weight: .bold))
+                    Text("Seguidores")
+                        .foregroundColor(.white.opacity(0.85))
+                        .font(.caption)
+                }
             }
             HStack(spacing: 12) {
                 Button(action: { isFollowing.toggle() }) {
