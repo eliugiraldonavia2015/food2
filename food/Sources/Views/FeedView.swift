@@ -295,6 +295,29 @@ struct FeedView: View {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
         }
+        .fullScreenCover(isPresented: $showRestaurantProfile) {
+            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            let photos: [RestaurantProfileView.PhotoItem] = [
+                .init(url: "https://images.unsplash.com/photo-1604908176997-431199f7c209", title: "Salsas mexicanas"),
+                .init(url: "https://images.unsplash.com/photo-1612197528228-7d9d7e9db2e8", title: "Tacos variados"),
+                .init(url: "https://images.unsplash.com/photo-1617191519200-3d5d4b8c9a27", title: "Quesadillas")
+            ]
+            RestaurantProfileView(
+                data: .init(
+                    coverUrl: item.backgroundUrl,
+                    avatarUrl: item.avatarUrl,
+                    name: item.username,
+                    username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                    location: "CDMX, México",
+                    rating: 4.8,
+                    category: "Comida Mexicana",
+                    followers: 45200,
+                    description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
+                    branch: "Sucursal Condesa",
+                    photos: photos
+                )
+            )
+        }
     }
 
     private var topTabs: some View {
@@ -342,7 +365,6 @@ struct FeedView: View {
 
     private var overlays: some View {
         ZStack {
-            if showRestaurantProfile { modalCard(title: "Perfil del Restaurante", onClose: { showRestaurantProfile = false }) }
             if showMenu { modalCard(title: "Menú", onClose: { showMenu = false }) }
             if showComments { modalCard(title: "Comentarios", onClose: { showComments = false }) }
             if showShare { modalCard(title: "Compartir", onClose: { showShare = false }) }
