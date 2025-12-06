@@ -83,17 +83,19 @@ struct RestaurantProfileView: View {
             if baselineTopY == 0 { baselineTopY = y }
             pullOffset = max(0, y - baselineTopY)
         }
-        .overlay(alignment: .top) {
-            refreshOverlay
-                .allowsHitTesting(false)
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
-            if isRefreshing { refreshingHUD }
+        .safeAreaInset(edge: .top) {
+            VStack(spacing: 0) {
+                refreshOverlay
+                    .allowsHitTesting(false)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
+                if isRefreshing { refreshingHUD }
+            }
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
-        .ignoresSafeArea(edges: .top)
+        
     }
 
     private var header: some View {
@@ -163,7 +165,7 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
-        .padding(.top, 44)
+        .padding(.top, 8)
         .frame(maxWidth: .infinity)
         .background(Color.black.opacity(0.9))
         .overlay(Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1), alignment: .bottom)
