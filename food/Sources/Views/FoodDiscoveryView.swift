@@ -519,7 +519,7 @@ struct FilterSheet: View {
                     .padding()
                 }
                 .frame(height: geometry.size.height * 0.65)
-                .background(Color(UIColor.systemBackground).colorInvert()) // Black background
+                .background(Color(red: 0.1, green: 0.1, blue: 0.1)) // Dark background
                 .cornerRadius(24, corners: [.topLeft, .topRight])
             }
         }
