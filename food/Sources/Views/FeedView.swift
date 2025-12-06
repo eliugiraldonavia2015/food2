@@ -242,56 +242,33 @@ struct FeedView: View {
         )
     }
 
-    @State private var isFollowing = false
     @State private var showRestaurantProfile = false
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
-    @State private var bottomSectionHeight: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
             let totalHeight = geo.size.height
             
             ZStack {
-                // PAGER PRINCIPAL - OCUPA TODA LA PANTALLA
+                // PAGER PRINCIPAL
                 VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: totalHeight) { size, idx in
                     let item = currentItems[idx]
-                    
-                ZStack {
-                    // IMAGEN que cubre TODA la pantalla
-                    WebImage(url: URL(string: item.backgroundUrl))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: size.width, height: size.height)
-                        .clipped()
-                        .contentShape(Rectangle())
-                    
-                    // Gradiente opcional
-                    LinearGradient(
-                        colors: [.black.opacity(0.2), .clear],
-                        startPoint: .bottom, endPoint: .top
-                    )
-                    
-                    // CONTENIDO OVERLAY
-                    overlayContent(size, item)
-                    
-                    // COLUMNA DERECHA DE BOTONES - Ahora dentro del pager
-                    ActionButtonsView(
+                    FeedItemView(
                         item: item,
-                        onComment: { showComments = true },
-                        onShare: { showShare = true },
-                        onBookmark: { showMusic = true }
+                        size: size,
+                        bottomInset: bottomInset,
+                        expandedDescriptions: $expandedDescriptions,
+                        onShowProfile: { showRestaurantProfile = true },
+                        onShowMenu: { showMenu = true },
+                        onShowComments: { showComments = true },
+                        onShowShare: { showShare = true },
+                        onShowMusic: { showMusic = true }
                     )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(.top, size.height * 0.59)
-                    .padding(.trailing, 16)
                 }
-                .frame(width: size.width, height: size.height)
-                .ignoresSafeArea()
-            }
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
                 
@@ -317,101 +294,6 @@ struct FeedView: View {
             withAnimation(.easeInOut(duration: 0.2)) { }
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
-        }
-    }
-
-    private func overlayContent(_ size: CGSize, _ item: FeedItem) -> some View {
-        let hasRing = item.label == .foodieReview || item.hasStories
-        let ringColor: Color = item.label == .foodieReview ? .yellow : .green
-        let labelText: String? = {
-            switch item.label {
-            case .sponsored: return "SPONSORED"
-            case .foodieReview: return "FOODIE REVIEW"
-            case .none: return nil
-            }
-        }()
-        let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
-        let isExpanded = expandedDescriptions.contains(item.id)
-        
-        return VStack {
-            Spacer()
-            ZStack {
-                    // Columna izquierda - se mantiene alineada al fondo
-                    HStack {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(alignment: .center, spacing: 12) {
-                            WebImage(url: URL(string: item.avatarUrl))
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 53, height: 53)
-                                .clipShape(Circle())
-                            .overlay(
-                                Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
-                            )
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 8) {
-                                    Button(action: { showRestaurantProfile = true }) {
-                                        Text(item.username)
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 20, weight: .bold))
-                                    }
-                                    Button(action: { isFollowing.toggle() }) {
-                                        Capsule()
-                                            .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                            .frame(width: 90, height: 32)
-                                            .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
-                                    }
-                                }
-                                if let labelText = labelText {
-                                    Text(labelText)
-                                        .foregroundColor(labelColor)
-                                        .font(.caption2)
-                                        .fontWeight(.heavy)
-                                }
-                            }
-                        }
-                        
-                        Text(item.title)
-                            .foregroundColor(.white)
-                            .font(.system(size: 24, weight: .bold))
-                        
-                        Text(item.description)
-                            .foregroundColor(.white.opacity(0.9))
-                            .font(.system(size: 14))
-                            .lineLimit(isExpanded ? nil : 2)
-                            .truncationMode(.tail)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: size.width * 0.5, alignment: .leading)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
-                            }
-                        
-                        HStack(spacing: 8) {
-                            Image(systemName: "music.note")
-                                .foregroundColor(.white)
-                            Text(item.soundTitle)
-                                .foregroundColor(.white)
-                                .font(.system(size: 14))
-                                .lineLimit(1)
-                        }
-                        
-                        HStack(spacing: 10) {
-                            Button(action: { showMenu = true }) {
-                                Capsule()
-                                    .fill(Color.green)
-                                    .frame(width: 216, height: 48)
-                                    .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
-                            }
-                        }
-                    }
-                    Spacer()
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, bottomInset - 24)
-            // El padding top ya se maneja en el overlay de topTabs
         }
     }
 
@@ -504,31 +386,227 @@ struct FeedView: View {
         }
     }
     
-    // Componente para los botones de acción
-    private struct ActionButtonsView: View {
+    // MARK: - FeedItemView Unificado
+    private struct FeedItemView: View {
         let item: FeedItem
-        let onComment: () -> Void
-        let onShare: () -> Void
-        let onBookmark: () -> Void
+        let size: CGSize
+        let bottomInset: CGFloat
+        @Binding var expandedDescriptions: Set<UUID>
         
+        // Callbacks
+        let onShowProfile: () -> Void
+        let onShowMenu: () -> Void
+        let onShowComments: () -> Void
+        let onShowShare: () -> Void
+        let onShowMusic: () -> Void
+        
+        // State
         @State private var isLiked = false
         @State private var likesCount: Int
+        @State private var isFollowing = false
+        @State private var bottomSectionHeight: CGFloat = 0
         
-        init(item: FeedItem, onComment: @escaping () -> Void, onShare: @escaping () -> Void, onBookmark: @escaping () -> Void) {
+        // Animation State
+        @State private var showLikeHeart = false
+        @State private var heartScale: CGFloat = 0.5
+        @State private var heartOpacity: Double = 0
+        @State private var heartAngle: Double = 0
+        
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
-            self.onComment = onComment
-            self.onShare = onShare
-            self.onBookmark = onBookmark
+            self.size = size
+            self.bottomInset = bottomInset
+            self._expandedDescriptions = expandedDescriptions
+            self.onShowProfile = onShowProfile
+            self.onShowMenu = onShowMenu
+            self.onShowComments = onShowComments
+            self.onShowShare = onShowShare
+            self.onShowMusic = onShowMusic
             _likesCount = State(initialValue: item.likes)
         }
         
         var body: some View {
+            ZStack {
+                // IMAGEN DE FONDO con Doble Tap
+                WebImage(url: URL(string: item.backgroundUrl))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: 2) {
+                        handleDoubleTap()
+                    }
+                
+                // Gradiente
+                LinearGradient(
+                    colors: [.black.opacity(0.2), .clear],
+                    startPoint: .bottom, endPoint: .top
+                )
+                
+                // ANIMACIÓN CORAZÓN GRANDE
+                if showLikeHeart {
+                    Image(systemName: "heart.fill")
+                        .foregroundColor(.white)
+                        .font(.system(size: 100))
+                        .shadow(color: .black.opacity(0.3), radius: 10)
+                        .scaleEffect(heartScale)
+                        .opacity(heartOpacity)
+                        .rotationEffect(.degrees(heartAngle))
+                        .allowsHitTesting(false) // Permitir taps a través de la animación
+                }
+                
+                // COLUMNA IZQUIERDA (Contenido Overlay)
+                leftColumn
+                
+                // COLUMNA DERECHA (Botones)
+                rightColumn
+            }
+            .frame(width: size.width, height: size.height)
+            .ignoresSafeArea()
+        }
+        
+        private func handleDoubleTap() {
+            // Feedback háptico
+            let generator = UIImpactFeedbackGenerator(style: .heavy)
+            generator.impactOccurred()
+            
+            // Configurar animación aleatoria
+            heartAngle = Double.random(in: -15...15)
+            heartScale = 0.5
+            heartOpacity = 0
+            showLikeHeart = true
+            
+            // Actualizar estado de like si es necesario
+            if !isLiked {
+                isLiked = true
+                likesCount += 1
+            }
+            
+            // Secuencia de animación
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
+                heartScale = 1.3
+                heartOpacity = 1
+            }
+            
+            // Desvanecer
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    heartScale = 0.8
+                    heartOpacity = 0
+                    // Mover ligeramente hacia arriba al desaparecer
+                }
+            }
+            
+            // Limpiar vista
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                showLikeHeart = false
+            }
+        }
+        
+        private var leftColumn: some View {
+            let hasRing = item.label == .foodieReview || item.hasStories
+            let ringColor: Color = item.label == .foodieReview ? .yellow : .green
+            let labelText: String? = {
+                switch item.label {
+                case .sponsored: return "SPONSORED"
+                case .foodieReview: return "FOODIE REVIEW"
+                case .none: return nil
+                }
+            }()
+            let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
+            let isExpanded = expandedDescriptions.contains(item.id)
+            
+            return VStack {
+                Spacer()
+                ZStack {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .center, spacing: 12) {
+                                WebImage(url: URL(string: item.avatarUrl))
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 53, height: 53)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
+                                    )
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 8) {
+                                        Button(action: onShowProfile) {
+                                            Text(item.username)
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 20, weight: .bold))
+                                        }
+                                        Button(action: { isFollowing.toggle() }) {
+                                            Capsule()
+                                                .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                                .frame(width: 90, height: 32)
+                                                .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                                        }
+                                    }
+                                    if let labelText = labelText {
+                                        Text(labelText)
+                                            .foregroundColor(labelColor)
+                                            .font(.caption2)
+                                            .fontWeight(.heavy)
+                                    }
+                                }
+                            }
+                            
+                            Text(item.title)
+                                .foregroundColor(.white)
+                                .font(.system(size: 24, weight: .bold))
+                            
+                            Text(item.description)
+                                .foregroundColor(.white.opacity(0.9))
+                                .font(.system(size: 14))
+                                .lineLimit(isExpanded ? nil : 2)
+                                .truncationMode(.tail)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: size.width * 0.5, alignment: .leading)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
+                                }
+                            
+                            HStack(spacing: 8) {
+                                Image(systemName: "music.note")
+                                    .foregroundColor(.white)
+                                Text(item.soundTitle)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 14))
+                                    .lineLimit(1)
+                            }
+                            
+                            HStack(spacing: 10) {
+                                Button(action: onShowMenu) {
+                                    Capsule()
+                                        .fill(Color.green)
+                                        .frame(width: 216, height: 48)
+                                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                                }
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, bottomInset - 24)
+            }
+        }
+        
+        private var rightColumn: some View {
             VStack(spacing: 24) {
                 // Like button
                 VStack(spacing: 6) {
                     Button(action: {
                         isLiked.toggle()
                         likesCount += isLiked ? 1 : -1
+                        // Feedback ligero para tap normal
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
                     }) {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .resizable()
@@ -536,6 +614,8 @@ struct FeedView: View {
                             .frame(width: 28, height: 28)
                             .foregroundColor(isLiked ? .red : .white)
                             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                            .scaleEffect(isLiked ? 1.1 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isLiked)
                     }
                     Text(formatCount(likesCount))
                         .foregroundColor(.white)
@@ -544,7 +624,7 @@ struct FeedView: View {
                 
                 // Comment button
                 VStack(spacing: 6) {
-                    Button(action: onComment) {
+                    Button(action: onShowComments) {
                         Image(systemName: "bubble.left")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -558,7 +638,7 @@ struct FeedView: View {
                 }
                 
                 // Bookmark button
-                Button(action: onBookmark) {
+                Button(action: onShowMusic) {
                     Image(systemName: "bookmark")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -569,7 +649,7 @@ struct FeedView: View {
                 
                 // Share button
                 VStack(spacing: 6) {
-                    Button(action: onShare) {
+                    Button(action: onShowShare) {
                         Image(systemName: "paperplane")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -582,6 +662,9 @@ struct FeedView: View {
                         .font(.system(size: 12, weight: .medium))
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .padding(.top, size.height * 0.59)
+            .padding(.trailing, 16)
         }
         
         private func formatCount(_ count: Int) -> String {
