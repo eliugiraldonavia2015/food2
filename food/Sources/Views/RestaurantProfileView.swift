@@ -29,7 +29,7 @@ struct RestaurantProfileView: View {
                 profileInfo
                 menuPill
                 descriptionCard
-                locationsHeaderButton
+                sectionHeader("Ubicaciones disponibles")
                 locationSelector
                 sectionHeader("Fotos")
                 photoGrid
@@ -200,7 +200,8 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 14)
-        .frame(maxWidth: .infinity)
+        .frame(width: UIScreen.main.bounds.width / 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
@@ -237,22 +238,7 @@ struct RestaurantProfileView: View {
         }
     }
 
-    private var locationsHeaderButton: some View {
-        HStack {
-            HStack {
-                Text("Ubicaciones disponibles")
-                    .foregroundColor(.white)
-                    .font(.headline)
-                Spacer()
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 14)
-            .background(Color.white.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .frame(width: UIScreen.main.bounds.width / 2)
-            Spacer()
-        }
-    }
+    
 
     private func formatCount(_ count: Int) -> String {
         if count >= 1_000_000 { return String(format: "%.1fM", Double(count)/1_000_000) }
