@@ -208,7 +208,6 @@ struct FeedView: View {
     @State private var likesCount = 2487
     @State private var commentsCount = 132
     @State private var sharesCount = 89
-    @State private var bottomSectionHeight: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -272,7 +271,7 @@ struct FeedView: View {
                                 .frame(width: 28, height: 28)
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        }
+                            }
                         Text(formatCount(commentsCount))
                             .foregroundColor(.white)
                             .font(.system(size: 12, weight: .medium))
@@ -346,11 +345,10 @@ struct FeedView: View {
         let isExpanded = expandedDescriptions.contains(item.id)
         
         return VStack {
-            Spacer(minLength: size.height * 0.75)
+            Spacer() // <-- Removed minLength: size.height * 0.75 to allow upward expansion
             ZStack {
                     // Columna izquierda - se mantiene alineada al fondo
                     HStack {
-                    ZStack(alignment: .bottomLeading) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .center, spacing: 12) {
                             WebImage(url: URL(string: item.avatarUrl))
@@ -400,11 +398,7 @@ struct FeedView: View {
                             .onTapGesture {
                                 if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
                             }
-                    }
-                    .frame(maxHeight: .infinity, alignment: .bottomLeading)
-                    .padding(.bottom, bottomSectionHeight + 10)
-                    
-                    VStack(spacing: 8) {
+                        
                         HStack(spacing: 8) {
                             Image(systemName: "music.note")
                                 .foregroundColor(.white)
@@ -413,6 +407,7 @@ struct FeedView: View {
                                 .font(.system(size: 14))
                                 .lineLimit(1)
                         }
+                        
                         HStack(spacing: 10) {
                             Button(action: { showMenu = true }) {
                                 Capsule()
@@ -422,16 +417,8 @@ struct FeedView: View {
                             }
                         }
                     }
-                    .background(
-                        GeometryReader { proxy in
-                            Color.clear
-                                .onAppear { bottomSectionHeight = proxy.size.height }
-                        }
-                    )
-                    }
                     Spacer()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, bottomInset + 20)
@@ -467,9 +454,9 @@ struct FeedView: View {
                 
                 if isActive {
                     Capsule()
-                        .fill(indicatorColor)
-                        .frame(width: 24, height: 3)
-                        .shadow(color: indicatorColor.opacity(0.9), radius: 6, x: 0, y: 1)
+                    .fill(indicatorColor)
+                    .frame(width: 24, height: 3)
+                    .shadow(color: indicatorColor.opacity(0.9), radius: 6, x: 0, y: 1)
                 } else {
                     Capsule()
                         .fill(Color.clear)
