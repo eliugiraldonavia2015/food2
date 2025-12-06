@@ -50,7 +50,16 @@ struct RestaurantProfileView: View {
                 .frame(height: 280)
                 .clipped()
                 .overlay(
-                    LinearGradient(colors: [.black.opacity(0.0), .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: Color.black.opacity(0.0), location: 0.0),
+                            .init(color: Color.black.opacity(0.0), location: 0.85),
+                            .init(color: Color.black.opacity(0.35), location: 0.93),
+                            .init(color: Color.black.opacity(0.85), location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
             Button(action: { dismiss() }) {
                 Circle()
@@ -72,6 +81,7 @@ struct RestaurantProfileView: View {
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
+                .offset(y: -28)
             Text(data.name)
                 .foregroundColor(.white)
                 .font(.system(size: 24, weight: .bold))
@@ -138,6 +148,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
+        .padding(.top, -28)
         .padding(.bottom, 4)
     }
 
