@@ -78,7 +78,7 @@ struct FoodDiscoveryView: View {
                     searchBar
                     categoriesFilter
                 }
-                .padding(.top, 40) // Ajuste manual para subirlo más
+                .padding(.top, 55) // Ajuste manual para subirlo más
                 .padding(.bottom, 10)
                 .background(Color.black)
                 
