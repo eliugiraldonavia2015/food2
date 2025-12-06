@@ -73,12 +73,11 @@ struct FoodDiscoveryView: View {
                 
                 VStack(spacing: 0) {
                     // Fixed Header Section
-                    VStack(spacing: 24) {
+                    VStack(spacing: 12) {
                         headerView
                         searchBar
                         categoriesFilter
                     }
-                    .padding(.top, 10)
                     .padding(.bottom, 10)
                     .background(Color.black)
                     
