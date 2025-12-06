@@ -47,8 +47,8 @@ struct RestaurantProfileView: View {
                 .resizable()
                 .indicator(.activity)
                 .aspectRatio(contentMode: .fill)
-                .frame(height: 380)
-                .offset(y: 40)
+                .frame(height: 440)
+                .offset(y: 120)
                 .clipped()
                 .overlay(
                     LinearGradient(
