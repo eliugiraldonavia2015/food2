@@ -340,7 +340,7 @@ struct FoodDiscoveryView: View {
     private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                safeImage(url: item.imageUrl, width: 240, height: 140, contentMode: .fill)
+                safeImage(url: item.imageUrl, width: 240, height: 120, contentMode: .fill)
                 if let promo = item.promo {
                     Text(promo)
                         .font(.system(size: 12, weight: .bold))
@@ -355,6 +355,8 @@ struct FoodDiscoveryView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.title)
                     .font(.system(size: 16, weight: .bold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundColor(.white)
                 HStack(spacing: 8) {
                     Text(item.time)
@@ -380,7 +382,8 @@ struct FoodDiscoveryView: View {
                         .foregroundColor(.white)
                 }
             }
-            .padding(12)
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.white.opacity(0.12))
         }
         .frame(width: 240)
@@ -435,7 +438,7 @@ struct FoodDiscoveryView: View {
     private func dealCard(_ deal: DealItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                safeImage(url: deal.imageUrl, width: 180, height: 120, contentMode: .fill)
+                safeImage(url: deal.imageUrl, width: 180, height: 100, contentMode: .fill)
                 Circle()
                     .fill(Color.green)
                     .frame(width: 28, height: 28)
@@ -461,7 +464,8 @@ struct FoodDiscoveryView: View {
             Text(deal.subtitle)
                 .font(.system(size: 13))
                 .foregroundColor(.gray)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 6) {
                 Text(deal.merchant)
                     .font(.system(size: 12))
@@ -477,7 +481,8 @@ struct FoodDiscoveryView: View {
             }
         }
         .frame(width: 180)
-        .padding(12)
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white.opacity(0.12))
         .cornerRadius(16)
         .overlay(
@@ -510,11 +515,13 @@ struct FoodDiscoveryView: View {
         VStack(spacing: 16) {
             ForEach(feedItems) { item in
                 VStack(alignment: .leading, spacing: 8) {
-                    safeImage(url: item.imageUrl, height: 180, contentMode: .fill)
+                    safeImage(url: item.imageUrl, height: 160, contentMode: .fill)
                         .cornerRadius(16)
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.title)
                             .font(.system(size: 20, weight: .bold))
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                             .foregroundColor(.white)
                         if let promo = item.promo {
                             Text(promo)
@@ -533,6 +540,7 @@ struct FoodDiscoveryView: View {
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal)
             }
@@ -598,7 +606,7 @@ struct FoodDiscoveryView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Image Header
             ZStack(alignment: .top) {
-                safeImage(url: item.imageUrl, width: 200, height: 140, contentMode: .fill)
+                safeImage(url: item.imageUrl, width: 200, height: 120, contentMode: .fill)
                 
                 HStack {
                     if let discount = item.discount {
@@ -633,8 +641,9 @@ struct FoodDiscoveryView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.name)
                     .font(.system(size: 16, weight: .bold))
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundColor(.white)
-                    .lineLimit(1)
                 
                 Text(item.restaurant)
                     .font(.system(size: 12))
@@ -652,7 +661,8 @@ struct FoodDiscoveryView: View {
                         .foregroundColor(.gray)
                 }
             }
-            .padding(12)
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.white.opacity(0.12))
         }
         .frame(width: 200)
@@ -1034,7 +1044,8 @@ struct RoundedCorner: Shape {
 
 // Global safe image loader with graceful fallback
 func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
-    AsyncImage(url: URL(string: url)) { phase in
+    let finalURL = URL(string: url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
+    AsyncImage(url: finalURL) { phase in
         switch phase {
         case .empty:
             ZStack {
