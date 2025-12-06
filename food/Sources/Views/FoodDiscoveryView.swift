@@ -377,12 +377,30 @@ struct FoodDiscoveryView: View {
     }
 }
 
-// MARK: - Filter Sheet
+// MARK: - FilterSheet
 struct FilterSheet: View {
     var onClose: () -> Void
-    @State private var expandedSections: Set<String> = ["Precio", "Calificación", "Tipo de comida"]
-    @State private var priceValue: Double = 25
-    @State private var timeValue: Double = 30
+    
+    // Estado de expansión (Solo uno a la vez)
+    @State private var expandedSection: String? = nil
+    
+    // Estados de Sliders (Índices)
+    @State private var priceIndex: Double = 0
+    @State private var timeIndex: Double = 0
+    @State private var distanceIndex: Double = 0
+    
+    // Estados de Selección Múltiple
+    @State private var selectedRatings: Set<Int> = []
+    @State private var selectedFoodTypes: Set<String> = []
+    @State private var selectedOffers: Set<String> = []
+    
+    // Arrays de valores para los sliders (Mapeo no lineal)
+    private let priceValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+    private let timeValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 75, 90, 105, 120]
+    private let distanceValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 35, 40]
+    
+    private let foodTypes = ["Mexicana", "Italiana", "China", "Japonesa", "Vegana", "Vegetariana", "Hamburguesas", "Postres"]
+    private let offerTypes = ["10% off", "20% off", "50% off", "2x1", "Envío Gratis", "Cupón"]
     
     var body: some View {
         GeometryReader { geometry in
@@ -399,9 +417,7 @@ struct FilterSheet: View {
                         
                         Spacer()
                         
-                        Button(action: {
-                            // Limpiar acción
-                        }) {
+                        Button(action: clearFilters) {
                             Text("Limpiar Filtros")
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.white)
@@ -418,28 +434,28 @@ struct FilterSheet: View {
                     ScrollView {
                         VStack(spacing: 12) {
                             // Precio
-                            filterSection(title: "Precio: $0 - $50", id: "Precio") {
+                            filterSection(title: "Precio: \(getPriceString())", id: "Precio") {
                                 VStack(spacing: 8) {
-                                    Slider(value: $priceValue, in: 0...50, step: 1)
+                                    Slider(value: $priceIndex, in: 0...Double(priceValues.count - 1), step: 1)
                                         .accentColor(.green)
                                     HStack {
-                                        Text("$0").font(.caption).foregroundColor(.gray)
+                                        Text("$1").font(.caption).foregroundColor(.gray)
                                         Spacer()
-                                        Text("$50").font(.caption).foregroundColor(.gray)
+                                        Text("$150").font(.caption).foregroundColor(.gray)
                                     }
                                 }
                                 .padding(.top, 8)
                             }
                             
                             // Tiempo
-                            filterSection(title: "Tiempo: 0 - 60 min", id: "Tiempo") {
+                            filterSection(title: "Tiempo: \(getTimeString())", id: "Tiempo") {
                                 VStack(spacing: 8) {
-                                    Slider(value: $timeValue, in: 0...60, step: 5)
+                                    Slider(value: $timeIndex, in: 0...Double(timeValues.count - 1), step: 1)
                                         .accentColor(.green)
                                     HStack {
-                                        Text("0 min").font(.caption).foregroundColor(.gray)
+                                        Text("1 min").font(.caption).foregroundColor(.gray)
                                         Spacer()
-                                        Text("60 min").font(.caption).foregroundColor(.gray)
+                                        Text("120 min").font(.caption).foregroundColor(.gray)
                                     }
                                 }
                                 .padding(.top, 8)
@@ -449,18 +465,18 @@ struct FilterSheet: View {
                             filterSection(title: "Calificación", id: "Calificación") {
                                 HStack(spacing: 12) {
                                     ForEach([5, 4, 3, 2, 1], id: \.self) { star in
-                                        Button(action: {}) {
+                                        Button(action: { toggleRating(star) }) {
                                             HStack(spacing: 4) {
                                                 Text("\(star)")
                                                     .font(.system(size: 14, weight: .bold))
                                                     .foregroundColor(.white)
                                                 Image(systemName: "star.fill")
                                                     .font(.system(size: 10))
-                                                    .foregroundColor(.yellow)
+                                                    .foregroundColor(selectedRatings.contains(star) ? .white : .yellow)
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(Color.white.opacity(0.06))
+                                            .background(selectedRatings.contains(star) ? Color.orange : Color.white.opacity(0.06))
                                             .cornerRadius(8)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 8)
@@ -475,31 +491,59 @@ struct FilterSheet: View {
                             // Tipo de comida
                             filterSection(title: "Tipo de comida", id: "Tipo de comida") {
                                 FlowLayout(spacing: 10) {
-                                    ForEach(["Mexicana", "Italiana", "China", "Japonesa", "Vegana", "Vegetariana"], id: \.self) { type in
-                                        Text(type)
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(Color.white.opacity(0.06))
-                                            .cornerRadius(8)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                            )
+                                    ForEach(foodTypes, id: \.self) { type in
+                                        Button(action: { toggleFoodType(type) }) {
+                                            Text(type)
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 10)
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color.white.opacity(0.06))
+                                                .cornerRadius(8)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                                )
+                                        }
                                     }
                                 }
                                 .padding(.top, 8)
                             }
                             
                             // Distancia
-                            filterSection(title: "Distancia: Hasta 5 km", id: "Distancia") {
-                                EmptyView()
+                            filterSection(title: "Distancia: \(getDistanceString())", id: "Distancia") {
+                                VStack(spacing: 8) {
+                                    Slider(value: $distanceIndex, in: 0...Double(distanceValues.count - 1), step: 1)
+                                        .accentColor(.green)
+                                    HStack {
+                                        Text("1 km(-)").font(.caption).foregroundColor(.gray)
+                                        Spacer()
+                                        Text("40 km").font(.caption).foregroundColor(.gray)
+                                    }
+                                }
+                                .padding(.top, 8)
                             }
                             
-                            // Ofertas
+                            // Ofertas y descuentos
                             filterSection(title: "Ofertas y descuentos", id: "Ofertas") {
-                                EmptyView()
+                                FlowLayout(spacing: 10) {
+                                    ForEach(offerTypes, id: \.self) { offer in
+                                        Button(action: { toggleOffer(offer) }) {
+                                            Text(offer)
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 10)
+                                                .background(selectedOffers.contains(offer) ? Color.orange : Color.white.opacity(0.06))
+                                                .cornerRadius(8)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                                )
+                                        }
+                                    }
+                                }
+                                .padding(.top, 8)
                             }
                         }
                         .padding()
@@ -530,10 +574,10 @@ struct FilterSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: {
                 withAnimation {
-                    if expandedSections.contains(id) {
-                        expandedSections.remove(id)
+                    if expandedSection == id {
+                        expandedSection = nil
                     } else {
-                        expandedSections.insert(id)
+                        expandedSection = id
                     }
                 }
             }) {
@@ -544,13 +588,13 @@ struct FilterSheet: View {
                     Spacer()
                     Image(systemName: "chevron.down")
                         .foregroundColor(.white)
-                        .rotationEffect(.degrees(expandedSections.contains(id) ? 180 : 0))
+                        .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
                 .background(Color.white.opacity(0.06))
             }
             
-            if expandedSections.contains(id) {
+            if expandedSection == id {
                 content()
                     .padding(.horizontal)
                     .padding(.bottom, 16)
@@ -559,6 +603,58 @@ struct FilterSheet: View {
         }
         .background(Color.white.opacity(0.03))
         .cornerRadius(12)
+    }
+    
+    // MARK: - Helpers
+    
+    private func clearFilters() {
+        withAnimation {
+            priceIndex = 0
+            timeIndex = 0
+            distanceIndex = 0
+            selectedRatings.removeAll()
+            selectedFoodTypes.removeAll()
+            selectedOffers.removeAll()
+        }
+    }
+    
+    private func toggleRating(_ rating: Int) {
+        if selectedRatings.contains(rating) {
+            selectedRatings.remove(rating)
+        } else {
+            selectedRatings.insert(rating)
+        }
+    }
+    
+    private func toggleFoodType(_ type: String) {
+        if selectedFoodTypes.contains(type) {
+            selectedFoodTypes.remove(type)
+        } else {
+            selectedFoodTypes.insert(type)
+        }
+    }
+    
+    private func toggleOffer(_ offer: String) {
+        if selectedOffers.contains(offer) {
+            selectedOffers.remove(offer)
+        } else {
+            selectedOffers.insert(offer)
+        }
+    }
+    
+    private func getPriceString() -> String {
+        let val = priceValues[Int(priceIndex)]
+        return "$\(val)"
+    }
+    
+    private func getTimeString() -> String {
+        let val = timeValues[Int(timeIndex)]
+        return "\(val) min"
+    }
+    
+    private func getDistanceString() -> String {
+        let val = distanceValues[Int(distanceIndex)]
+        return val == 1 ? "1 km(-)" : "\(val) km"
     }
 }
 
