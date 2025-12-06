@@ -38,33 +38,13 @@ struct FoodDiscoveryView: View {
     }
     
     let popularItems = [
-        PopularItem(
-            name: "Plato Especial 1",
-            restaurant: "Restaurante 1",
-            price: 22.38,
-            time: "38 min",
-            rating: 4.9,
-            discount: 32,
-            imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"
-        ),
-        PopularItem(
-            name: "Plato Especial 3",
-            restaurant: "Restaurante 3",
-            price: 26.57,
-            time: "38 min",
-            rating: 4.7,
-            discount: 28,
-            imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"
-        ),
-        PopularItem(
-            name: "Plato Especial 5",
-            restaurant: "Restaurante 5",
-            price: 27.55,
-            time: "33 min",
-            rating: 4.8,
-            discount: 37,
-            imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe"
-        )
+        PopularItem(name: "Plato Especial 1", restaurant: "Restaurante 1", price: 22.38, time: "38 min", rating: 4.9, discount: 32, imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
+        PopularItem(name: "Plato Especial 2", restaurant: "Restaurante 2", price: 20.10, time: "35 min", rating: 4.6, discount: 20, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
+        PopularItem(name: "Plato Especial 3", restaurant: "Restaurante 3", price: 26.57, time: "38 min", rating: 4.7, discount: 28, imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
+        PopularItem(name: "Plato Especial 4", restaurant: "Restaurante 4", price: 18.25, time: "42 min", rating: 4.5, discount: 15, imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7"),
+        PopularItem(name: "Plato Especial 5", restaurant: "Restaurante 5", price: 27.55, time: "33 min", rating: 4.8, discount: 37, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe"),
+        PopularItem(name: "Plato Especial 6", restaurant: "Restaurante 6", price: 16.70, time: "31 min", rating: 4.4, discount: 12, imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba"),
+        PopularItem(name: "Plato Especial 7", restaurant: "Restaurante 7", price: 24.90, time: "47 min", rating: 4.6, discount: 25, imageUrl: "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9")
     ]
     
     var body: some View {
@@ -221,13 +201,7 @@ struct FoodDiscoveryView: View {
     
     private var heroBanner: some View {
         ZStack(alignment: .leading) {
-            // Background Image
-            WebImage(url: URL(string: "https://images.unsplash.com/photo-1504674900247-0877df9cc836"))
-                .resizable()
-                .indicator(.activity)
-                .aspectRatio(contentMode: .fill)
-                .frame(height: 180)
-                .clipped()
+            safeImage(url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836", height: 180, contentMode: .fill)
                 .overlay(
                     LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .leading, endPoint: .trailing)
                 )
@@ -266,8 +240,12 @@ struct FoodDiscoveryView: View {
                     VStack(spacing: 8) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.08))
+                                .fill(Color.white.opacity(0.14))
                                 .frame(width: 64, height: 64)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                                )
                             Text(item.icon)
                                 .font(.system(size: 30))
                                 .foregroundColor(.white)
@@ -304,17 +282,39 @@ struct FoodDiscoveryView: View {
         [
             SectionData(title: "Pollo delicioso", items: [
                 RestaurantItem(title: "KFC", time: "48 min", fee: "$0.90", distance: "2.9 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Burger King", time: "48 min", fee: "$1.50", distance: "5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", promo: "$4 gratis en créditos")
+                RestaurantItem(title: "Burger King", time: "48 min", fee: "$1.50", distance: "5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Pío Pío", time: "36 min", fee: "$1.10", distance: "3.5 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1604908177221-b6154a5340ff", promo: "$2 de envío"),
+                RestaurantItem(title: "Chicken Bros", time: "40 min", fee: "$0.80", distance: "2.2 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1553163147-622ab57be1c7", promo: nil),
+                RestaurantItem(title: "Crispy House", time: "49 min", fee: "$1.00", distance: "4.0 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1606756793446-1e2c9ef7bd8d", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Wings & Co", time: "52 min", fee: "$1.20", distance: "5.6 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1562967916-eb82221dfb36", promo: nil),
+                RestaurantItem(title: "Pollo Express", time: "35 min", fee: "$0.70", distance: "2.1 km", rating: 4.2, imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225", promo: nil)
             ]),
             SectionData(title: "Antojo de hamburguesa", items: [
                 RestaurantItem(title: "El Corral", time: "62 min", fee: "$1.50", distance: "5 km", rating: 4.8, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Roger's Smash", time: "45 min", fee: "$0.80", distance: "3.1 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: "$4 gratis en créditos")
+                RestaurantItem(title: "Roger's Smash", time: "45 min", fee: "$0.80", distance: "3.1 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Smash House", time: "43 min", fee: "$0.90", distance: "2.8 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: nil),
+                RestaurantItem(title: "Burger Factory", time: "50 min", fee: "$1.10", distance: "4.5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1550317138-10000687a72b", promo: nil),
+                RestaurantItem(title: "Double Smash", time: "48 min", fee: "$1.30", distance: "4.9 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: "$2 de envío"),
+                RestaurantItem(title: "Cheese Lovers", time: "41 min", fee: "$0.70", distance: "3.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: nil),
+                RestaurantItem(title: "The Burger Co.", time: "47 min", fee: "$1.00", distance: "3.7 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: nil)
             ]),
             SectionData(title: "Pizza top", items: [
-                RestaurantItem(title: "Pizzeria Roma", time: "40 min", fee: "$0.70", distance: "3.4 km", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$3 de envío")
+                RestaurantItem(title: "Pizzeria Roma", time: "40 min", fee: "$0.70", distance: "3.4 km", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$3 de envío"),
+                RestaurantItem(title: "Napoli", time: "44 min", fee: "$0.90", distance: "4.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
+                RestaurantItem(title: "Pizza Lab", time: "38 min", fee: "$0.80", distance: "2.5 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
+                RestaurantItem(title: "Mozza", time: "55 min", fee: "$1.20", distance: "6.1 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$2 de envío"),
+                RestaurantItem(title: "Al Taglio", time: "47 min", fee: "$1.10", distance: "4.3 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
+                RestaurantItem(title: "Rustica", time: "52 min", fee: "$1.00", distance: "5.0 km", rating: 4.2, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
+                RestaurantItem(title: "Di Parma", time: "36 min", fee: "$0.70", distance: "2.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil)
             ]),
             SectionData(title: "Sushi favorito", items: [
-                RestaurantItem(title: "Kobe Sushi & Rolls", time: "53 min", fee: "$1.10", distance: "4.6 km", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$4 gratis en créditos")
+                RestaurantItem(title: "Kobe Sushi & Rolls", time: "53 min", fee: "$1.10", distance: "4.6 km", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$4 gratis en créditos"),
+                RestaurantItem(title: "Sushi House", time: "49 min", fee: "$1.00", distance: "4.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
+                RestaurantItem(title: "Tokyo Bites", time: "45 min", fee: "$0.90", distance: "3.2 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
+                RestaurantItem(title: "Sashimi Co.", time: "57 min", fee: "$1.20", distance: "5.7 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$2 de envío"),
+                RestaurantItem(title: "Nigiri Lab", time: "50 min", fee: "$1.10", distance: "4.3 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
+                RestaurantItem(title: "Uramaki Spot", time: "43 min", fee: "$0.80", distance: "3.0 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
+                RestaurantItem(title: "Zen Sushi", time: "41 min", fee: "$0.70", distance: "2.6 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil)
             ])
         ]
     }
@@ -340,12 +340,7 @@ struct FoodDiscoveryView: View {
     private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                WebImage(url: URL(string: item.imageUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 240, height: 140)
-                    .clipped()
+                safeImage(url: item.imageUrl, width: 240, height: 140, contentMode: .fill)
                 if let promo = item.promo {
                     Text(promo)
                         .font(.system(size: 12, weight: .bold))
@@ -386,13 +381,13 @@ struct FoodDiscoveryView: View {
                 }
             }
             .padding(12)
-            .background(Color.white.opacity(0.05))
+            .background(Color.white.opacity(0.12))
         }
         .frame(width: 240)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .stroke(Color.white.opacity(0.22), lineWidth: 1)
         )
     }
 
@@ -411,7 +406,11 @@ struct FoodDiscoveryView: View {
         [
             DealItem(price: "$6,55", discountText: "-61%", oldPrice: "$17,00", subtitle: "15 Bocados Especiales..", merchant: "Kobe Sushi & Rolls", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
             DealItem(price: "$5,00", discountText: "-53%", oldPrice: "$10,80", subtitle: "Todo por $5", merchant: "Burger King", time: "48 min", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
-            DealItem(price: "$5,20", discountText: "-41%", oldPrice: "$8,80", subtitle: "BBQ Pack", merchant: "Carl's Jr.", time: "37 min", imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225")
+            DealItem(price: "$5,20", discountText: "-41%", oldPrice: "$8,80", subtitle: "BBQ Pack", merchant: "Carl's Jr.", time: "37 min", imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225"),
+            DealItem(price: "$7,40", discountText: "-35%", oldPrice: "$11,40", subtitle: "Combo Nuggets", merchant: "KFC", time: "44 min", imageUrl: "https://images.unsplash.com/photo-1606756793446-1e2c9ef7bd8d"),
+            DealItem(price: "$4,90", discountText: "-45%", oldPrice: "$8,90", subtitle: "Wrap + Papas", merchant: "Shawarma Fast", time: "39 min", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
+            DealItem(price: "$3,80", discountText: "-50%", oldPrice: "$7,60", subtitle: "Sundae 2x1", merchant: "Burger King", time: "48 min", imageUrl: "https://images.unsplash.com/photo-1550317138-10000687a72b"),
+            DealItem(price: "$6,10", discountText: "-40%", oldPrice: "$10,20", subtitle: "Sushi Box", merchant: "Kobe", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754")
         ]
     }
 
@@ -436,12 +435,7 @@ struct FoodDiscoveryView: View {
     private func dealCard(_ deal: DealItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                WebImage(url: URL(string: deal.imageUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 180, height: 120)
-                    .clipped()
+                safeImage(url: deal.imageUrl, width: 180, height: 120, contentMode: .fill)
                 Circle()
                     .fill(Color.green)
                     .frame(width: 28, height: 28)
@@ -484,11 +478,11 @@ struct FoodDiscoveryView: View {
         }
         .frame(width: 180)
         .padding(12)
-        .background(Color.white.opacity(0.05))
+        .background(Color.white.opacity(0.12))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .stroke(Color.white.opacity(0.22), lineWidth: 1)
         )
     }
 
@@ -516,12 +510,7 @@ struct FoodDiscoveryView: View {
         VStack(spacing: 16) {
             ForEach(feedItems) { item in
                 VStack(alignment: .leading, spacing: 8) {
-                    WebImage(url: URL(string: item.imageUrl))
-                        .resizable()
-                        .indicator(.activity)
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 180)
-                        .clipped()
+                    safeImage(url: item.imageUrl, height: 180, contentMode: .fill)
                         .cornerRadius(16)
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.title)
@@ -565,12 +554,7 @@ struct FoodDiscoveryView: View {
     private func promoSlide(imageUrl: String) -> some View {
         ZStack(alignment: .trailing) {
             HStack(spacing: 0) {
-                WebImage(url: URL(string: imageUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 180, height: 220)
-                    .clipped()
+                safeImage(url: imageUrl, width: 180, height: 220, contentMode: .fill)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Burgers con")
                         .font(.system(size: 18))
@@ -614,12 +598,7 @@ struct FoodDiscoveryView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Image Header
             ZStack(alignment: .top) {
-                WebImage(url: URL(string: item.imageUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 200, height: 140)
-                    .clipped()
+                safeImage(url: item.imageUrl, width: 200, height: 140, contentMode: .fill)
                 
                 HStack {
                     if let discount = item.discount {
@@ -674,13 +653,13 @@ struct FoodDiscoveryView: View {
                 }
             }
             .padding(12)
-            .background(Color.white.opacity(0.05))
+            .background(Color.white.opacity(0.12))
         }
         .frame(width: 200)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .stroke(Color.white.opacity(0.22), lineWidth: 1)
         )
     }
 }
@@ -963,6 +942,35 @@ struct FilterSheet: View {
     private func getDistanceString() -> String {
         let val = distanceValues[Int(distanceIndex)]
         return val == 1 ? "1 km(-)" : "\(val) km"
+    }
+
+    private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: ContentMode = .fill) -> some View {
+        AsyncImage(url: URL(string: url)) { phase in
+            switch phase {
+            case .empty:
+                ZStack {
+                    LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: "photo")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+            case .failure(_):
+                ZStack {
+                    LinearGradient(colors: [Color.gray.opacity(0.25), Color.gray.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Text("🍽️")
+                        .font(.system(size: 28))
+                }
+            @unknown default:
+                Color.gray.opacity(0.3)
+            }
+        }
+        .frame(width: width, height: height)
+        .background(Color.white.opacity(0.06))
+        .clipped()
     }
 }
 
