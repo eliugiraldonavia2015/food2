@@ -53,9 +53,10 @@ struct RestaurantProfileView: View {
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: Color.black.opacity(0.0), location: 0.0),
-                            .init(color: Color.black.opacity(0.0), location: 0.85),
-                            .init(color: Color.black.opacity(0.35), location: 0.93),
-                            .init(color: Color.black.opacity(0.85), location: 1.0)
+                            .init(color: Color.black.opacity(0.0), location: 0.84),
+                            .init(color: Color.black.opacity(0.5), location: 0.90),
+                            .init(color: Color.black.opacity(0.9), location: 0.96),
+                            .init(color: Color.black.opacity(1.0), location: 1.0)
                         ]),
                         startPoint: .top,
                         endPoint: .bottom
