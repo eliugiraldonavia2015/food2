@@ -73,7 +73,7 @@ struct RestaurantProfileView: View {
                     .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             }
             .padding(12)
-            .offset(y: 100)
+            .offset(y: 160)
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
