@@ -234,34 +234,37 @@ struct RestaurantProfileView: View {
     }
 
     private var locationList: some View {
-        VStack(spacing: 8) {
-            ForEach(locations) { loc in
-                Button(action: {
-                    selectedBranchName = loc.name
-                    showLocationList = false
-                }) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(loc.name)
-                                .foregroundColor(.white)
-                                .font(.system(size: 16, weight: .bold))
-                            Text(loc.address)
-                                .foregroundColor(.white.opacity(0.75))
-                                .font(.footnote)
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(locations) { loc in
+                    Button(action: {
+                        selectedBranchName = loc.name
+                        showLocationList = false
+                    }) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(loc.name)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16, weight: .bold))
+                                Text(loc.address)
+                                    .foregroundColor(.white.opacity(0.75))
+                                    .font(.footnote)
+                            }
+                            Spacer()
+                            Text(String(format: "%.1f km", loc.distanceKm))
+                                .foregroundColor(.green)
+                                .font(.system(size: 14, weight: .semibold))
                         }
-                        Spacer()
-                        Text(String(format: "%.1f km", loc.distanceKm))
-                            .foregroundColor(.green)
-                            .font(.system(size: 14, weight: .semibold))
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 14)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
                 }
             }
         }
         .frame(maxWidth: .infinity)
+        .frame(height: CGFloat(min(locations.count, 3)) * 76)
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
