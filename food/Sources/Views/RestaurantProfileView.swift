@@ -3,6 +3,7 @@ import SDWebImageSwiftUI
 
 struct RestaurantProfileView: View {
     struct PhotoItem: Identifiable { let id = UUID(); let url: String; let title: String }
+    struct LocationItem: Identifiable { let id = UUID(); let name: String; let address: String; let distanceKm: Double }
     struct DataModel {
         let coverUrl: String
         let avatarUrl: String
@@ -20,6 +21,15 @@ struct RestaurantProfileView: View {
     let data: DataModel
     @Environment(\.dismiss) private var dismiss
     @State private var isFollowing = false
+    @State private var showLocationList = false
+    @State private var selectedBranchName = ""
+
+    private let locations: [LocationItem] = [
+        .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 3194.7),
+        .init(name: "Sucursal Condesa", address: "Av. Michoacán 78, Condesa", distanceKm: 3195.6),
+        .init(name: "Sucursal Roma", address: "Calle Orizaba 45, Roma Norte", distanceKm: 3195.6),
+        .init(name: "Sucursal Polanco", address: "Masaryk 200, Polanco", distanceKm: 3196.1)
+    ]
 
     var body: some View {
         ScrollView {
@@ -33,6 +43,12 @@ struct RestaurantProfileView: View {
                 HStack {
                     locationSelector
                     Spacer()
+                }
+                if showLocationList {
+                    HStack {
+                        locationList
+                        Spacer()
+                    }
                 }
                 sectionHeader("Fotos")
                 photoGrid
@@ -193,19 +209,56 @@ struct RestaurantProfileView: View {
     }
 
     private var locationSelector: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "mappin")
-                .foregroundColor(.green)
-                .font(.system(size: 18))
-            Text(data.branch).foregroundColor(.white).font(.subheadline)
-            Spacer()
-            Image(systemName: "chevron.down").foregroundColor(.white.opacity(0.8))
+        Button(action: { showLocationList.toggle() }) {
+            HStack(spacing: 10) {
+                Image(systemName: "mappin")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18))
+                Text(selectedBranchName.isEmpty ? data.branch : selectedBranchName)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white.opacity(0.8))
+                    .rotationEffect(.degrees(showLocationList ? 180 : 0))
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .frame(width: UIScreen.main.bounds.width * 0.65)
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 14)
-        .frame(width: UIScreen.main.bounds.width * 0.65)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var locationList: some View {
+        VStack(spacing: 8) {
+            ForEach(locations) { loc in
+                Button(action: {
+                    selectedBranchName = loc.name
+                    showLocationList = false
+                }) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(loc.name)
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .bold))
+                            Text(loc.address)
+                                .foregroundColor(.white.opacity(0.75))
+                                .font(.footnote)
+                        }
+                        Spacer()
+                        Text(String(format: "%.1f km", loc.distanceKm))
+                            .foregroundColor(.green)
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                }
+            }
+        }
+        .frame(width: UIScreen.main.bounds.width * 0.65)
     }
 
     private var photoGrid: some View {
