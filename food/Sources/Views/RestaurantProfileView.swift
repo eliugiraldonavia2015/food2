@@ -29,7 +29,7 @@ struct RestaurantProfileView: View {
                 profileInfo
                 menuPill
                 descriptionCard
-                sectionHeader("Ubicaciones disponibles")
+                locationsHeaderButton
                 locationSelector
                 sectionHeader("Fotos")
                 photoGrid
@@ -233,6 +233,23 @@ struct RestaurantProfileView: View {
     private func sectionHeader(_ title: String) -> some View {
         HStack {
             Text(title).foregroundColor(.white).font(.headline)
+            Spacer()
+        }
+    }
+
+    private var locationsHeaderButton: some View {
+        HStack {
+            HStack {
+                Text("Ubicaciones disponibles")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                Spacer()
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .background(Color.white.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .frame(width: UIScreen.main.bounds.width / 2)
             Spacer()
         }
     }
