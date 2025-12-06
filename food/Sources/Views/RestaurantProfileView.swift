@@ -26,6 +26,7 @@ struct RestaurantProfileView: View {
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var refreshToken = UUID()
+    @State private var baselineTopY: CGFloat = 0
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -49,7 +50,7 @@ struct RestaurantProfileView: View {
                     .frame(height: 0)
                     .background(
                         GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
+                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .global).minY)
                         }
                     )
                 header
@@ -79,7 +80,8 @@ struct RestaurantProfileView: View {
         }
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-            pullOffset = max(0, y)
+            if baselineTopY == 0 { baselineTopY = y }
+            pullOffset = max(0, y - baselineTopY)
         }
         .overlay(alignment: .top) {
             refreshOverlay
@@ -136,11 +138,14 @@ struct RestaurantProfileView: View {
     }
 
     private var refreshOverlay: some View {
-        let h = max(0, min(pullOffset, 120))
+        let h = max(0, min(pullOffset, 140))
         return ZStack {
             if h > 0 {
-                RefreshIndicatorView(progress: min(1, h / 120), isRefreshing: isRefreshing)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack {
+                    Spacer()
+                    RefreshIndicatorView(progress: min(1, h / 140), isRefreshing: isRefreshing)
+                    Spacer()
+                }
             }
         }
         .frame(height: h)
