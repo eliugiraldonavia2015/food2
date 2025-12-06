@@ -427,12 +427,18 @@ struct FeedView: View {
         
         var body: some View {
             ZStack {
-                // IMAGEN DE FONDO con Doble Tap
+                // IMAGEN DE FONDO
                 WebImage(url: URL(string: item.backgroundUrl))
                     .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.5))
                     .aspectRatio(contentMode: .fill)
                     .frame(width: size.width, height: size.height)
                     .clipped()
+                
+                // CAPA DE GESTOS (TRANSPARENTE, ENCIMA DE TODO)
+                Color.black.opacity(0.001) // Casi transparente para capturar taps
+                    .frame(width: size.width, height: size.height)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) {
                         handleDoubleTap()
@@ -443,6 +449,7 @@ struct FeedView: View {
                     colors: [.black.opacity(0.2), .clear],
                     startPoint: .bottom, endPoint: .top
                 )
+                .allowsHitTesting(false) // Permitir que los taps pasen a la capa de gestos
                 
                 // ANIMACIÓN CORAZÓN GRANDE
                 if showLikeHeart {
@@ -453,7 +460,7 @@ struct FeedView: View {
                         .scaleEffect(heartScale)
                         .opacity(heartOpacity)
                         .rotationEffect(.degrees(heartAngle))
-                        .allowsHitTesting(false) // Permitir taps a través de la animación
+                        .allowsHitTesting(false)
                 }
                 
                 // COLUMNA IZQUIERDA (Contenido Overlay)
@@ -494,7 +501,6 @@ struct FeedView: View {
                 withAnimation(.easeOut(duration: 0.4)) {
                     heartScale = 0.8
                     heartOpacity = 0
-                    // Mover ligeramente hacia arriba al desaparecer
                 }
             }
             
