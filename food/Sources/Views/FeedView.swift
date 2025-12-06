@@ -421,7 +421,7 @@ struct FeedView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, bottomInset - 12)
+            .padding(.bottom, bottomInset - 24)
             // El padding top ya se maneja en el overlay de topTabs
         }
     }
