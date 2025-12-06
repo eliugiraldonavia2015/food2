@@ -235,7 +235,8 @@ struct RestaurantProfileView: View {
     }
 
     private var locationList: some View {
-        ScrollView {
+        let nearestId = locations.min(by: { $0.distanceKm < $1.distanceKm })?.id
+        return ScrollView {
             VStack(spacing: 8) {
                 ForEach(locations) { loc in
                     Button(action: {
@@ -252,13 +253,24 @@ struct RestaurantProfileView: View {
                                     .font(.footnote)
                             }
                             Spacer()
-                            Text(String(format: "%.1f km", loc.distanceKm))
-                                .foregroundColor(.green)
-                                .font(.system(size: 14, weight: .semibold))
+                            HStack(spacing: 8) {
+                                if nearestId == loc.id {
+                                    Text("Más cercano")
+                                        .foregroundColor(.green)
+                                        .font(.caption2.weight(.semibold))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                        .background(Color.green.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                                Text(String(format: "%.1f km", loc.distanceKm))
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 14)
-                        .background(Color.white.opacity(0.08))
+                        .background(Color.white.opacity(nearestId == loc.id ? 0.12 : 0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     }
                 }
