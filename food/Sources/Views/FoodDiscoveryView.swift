@@ -67,37 +67,36 @@ struct FoodDiscoveryView: View {
     ]
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Fixed Header Section
+                VStack(spacing: 12) {
+                    headerView
+                    searchBar
+                    categoriesFilter
+                }
+                .padding(.top, 40) // Ajuste manual para subirlo más
+                .padding(.bottom, 10)
+                .background(Color.black)
                 
-                VStack(spacing: 0) {
-                    // Fixed Header Section
-                    VStack(spacing: 12) {
-                        headerView
-                        searchBar
-                        categoriesFilter
+                // Scrollable Content
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        heroBanner
+                        
+                        categoryIconsRow
+                        
+                        popularSection
+                        
+                        Spacer().frame(height: 100)
                     }
-                    .padding(.bottom, 10)
-                    .background(Color.black)
-                    
-                    // Scrollable Content
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 24) {
-                            heroBanner
-                            
-                            categoryIconsRow
-                            
-                            popularSection
-                            
-                            Spacer().frame(height: 100)
-                        }
-                        .padding(.top, 10)
-                    }
+                    .padding(.top, 10)
                 }
             }
-            .navigationBarHidden(true)
         }
+        .ignoresSafeArea(edges: .top)
         .gesture(
             DragGesture().onEnded { value in
                 if value.translation.height > 50 {
