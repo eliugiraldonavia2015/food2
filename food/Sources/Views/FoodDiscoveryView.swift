@@ -4,6 +4,7 @@ import SDWebImageSwiftUI
 struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
     @State private var searchText = ""
+    @State private var showFilters = false // Estado para mostrar filtros
     var onClose: () -> Void
     
     // Datos simulados
@@ -95,15 +96,34 @@ struct FoodDiscoveryView: View {
                     .padding(.top, 10)
                 }
             }
+            .blur(radius: showFilters ? 5 : 0) // Blur effect when filters are shown
+            
+            // Dimming Background
+            if showFilters {
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation { showFilters = false }
+                    }
+                    .transition(.opacity)
+            }
+            
+            // Filter Sheet
+            if showFilters {
+                FilterSheet(onClose: { withAnimation { showFilters = false } })
+                    .transition(.move(edge: .bottom))
+                    .zIndex(2)
+            }
         }
         .ignoresSafeArea(edges: .top)
         .gesture(
             DragGesture().onEnded { value in
-                if value.translation.height > 50 {
+                if value.translation.height > 50 && !showFilters {
                     onClose()
                 }
             }
         )
+        .animation(.easeInOut, value: showFilters)
     }
     
     // MARK: - Subviews
@@ -163,7 +183,9 @@ struct FoodDiscoveryView: View {
             .background(Color(UIColor.systemGray6).opacity(0.15))
             .cornerRadius(25)
             
-            Button(action: {}) {
+            Button(action: {
+                withAnimation { showFilters = true }
+            }) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
@@ -352,5 +374,248 @@ struct FoodDiscoveryView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Filter Sheet
+struct FilterSheet: View {
+    var onClose: () -> Void
+    @State private var expandedSections: Set<String> = ["Precio", "Calificación", "Tipo de comida"]
+    @State private var priceValue: Double = 25
+    @State private var timeValue: Double = 30
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Spacer()
+                
+                VStack(spacing: 0) {
+                    // Header
+                    HStack {
+                        Text("Filtros")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            // Limpiar acción
+                        }) {
+                            Text("Limpiar Filtros")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.orange)
+                                .cornerRadius(8)
+                        }
+                    }
+                    .padding()
+                    .padding(.top, 10)
+                    
+                    // Content List
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            // Precio
+                            filterSection(title: "Precio: $0 - $50", id: "Precio") {
+                                VStack(spacing: 8) {
+                                    Slider(value: $priceValue, in: 0...50, step: 1)
+                                        .accentColor(.green)
+                                    HStack {
+                                        Text("$0").font(.caption).foregroundColor(.gray)
+                                        Spacer()
+                                        Text("$50").font(.caption).foregroundColor(.gray)
+                                    }
+                                }
+                                .padding(.top, 8)
+                            }
+                            
+                            // Tiempo
+                            filterSection(title: "Tiempo: 0 - 60 min", id: "Tiempo") {
+                                VStack(spacing: 8) {
+                                    Slider(value: $timeValue, in: 0...60, step: 5)
+                                        .accentColor(.green)
+                                    HStack {
+                                        Text("0 min").font(.caption).foregroundColor(.gray)
+                                        Spacer()
+                                        Text("60 min").font(.caption).foregroundColor(.gray)
+                                    }
+                                }
+                                .padding(.top, 8)
+                            }
+                            
+                            // Calificación
+                            filterSection(title: "Calificación", id: "Calificación") {
+                                HStack(spacing: 12) {
+                                    ForEach([5, 4, 3, 2, 1], id: \.self) { star in
+                                        Button(action: {}) {
+                                            HStack(spacing: 4) {
+                                                Text("\(star)")
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(.white)
+                                                Image(systemName: "star.fill")
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.yellow)
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white.opacity(0.06))
+                                            .cornerRadius(8)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                            )
+                                        }
+                                    }
+                                }
+                                .padding(.top, 8)
+                            }
+                            
+                            // Tipo de comida
+                            filterSection(title: "Tipo de comida", id: "Tipo de comida") {
+                                FlowLayout(spacing: 10) {
+                                    ForEach(["Mexicana", "Italiana", "China", "Japonesa", "Vegana", "Vegetariana"], id: \.self) { type in
+                                        Text(type)
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .background(Color.white.opacity(0.06))
+                                            .cornerRadius(8)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                            )
+                                    }
+                                }
+                                .padding(.top, 8)
+                            }
+                            
+                            // Distancia
+                            filterSection(title: "Distancia: Hasta 5 km", id: "Distancia") {
+                                EmptyView()
+                            }
+                            
+                            // Ofertas
+                            filterSection(title: "Ofertas y descuentos", id: "Ofertas") {
+                                EmptyView()
+                            }
+                        }
+                        .padding()
+                        .padding(.bottom, 80) // Space for apply button
+                    }
+                    
+                    // Apply Button
+                    Button(action: onClose) {
+                        Text("Aplicar")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(12)
+                    }
+                    .padding()
+                }
+                .frame(height: geometry.size.height * 0.65)
+                .background(Color(UIColor.systemBackground).colorInvert()) // Black background
+                .cornerRadius(24, corners: [.topLeft, .topRight])
+            }
+        }
+        .ignoresSafeArea()
+    }
+    
+    private func filterSection<Content: View>(title: String, id: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button(action: {
+                withAnimation {
+                    if expandedSections.contains(id) {
+                        expandedSections.remove(id)
+                    } else {
+                        expandedSections.insert(id)
+                    }
+                }
+            }) {
+                HStack {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(expandedSections.contains(id) ? 180 : 0))
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+            }
+            
+            if expandedSections.contains(id) {
+                content()
+                    .padding(.horizontal)
+                    .padding(.bottom, 16)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .background(Color.white.opacity(0.03))
+        .cornerRadius(12)
+    }
+}
+
+// Helper for FlowLayout (Simple horizontal wrapping)
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = flow(subviews: subviews, containerWidth: proposal.width ?? .infinity)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = flow(subviews: subviews, containerWidth: bounds.width)
+        for (index, point) in result.points.enumerated() {
+            subviews[index].place(at: CGPoint(x: bounds.minX + point.x, y: bounds.minY + point.y), proposal: .unspecified)
+        }
+    }
+
+    private func flow(subviews: Subviews, containerWidth: CGFloat) -> (size: CGSize, points: [CGPoint]) {
+        var points: [CGPoint] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var maxWidth: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if currentX + size.width > containerWidth {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+            
+            points.append(CGPoint(x: currentX, y: currentY))
+            lineHeight = max(lineHeight, size.height)
+            currentX += size.width + spacing
+            maxWidth = max(maxWidth, currentX)
+        }
+        
+        return (CGSize(width: maxWidth, height: currentY + lineHeight), points)
+    }
+}
+
+// Helper for corner radius
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
