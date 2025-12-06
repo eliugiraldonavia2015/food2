@@ -38,6 +38,7 @@ struct RestaurantProfileView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .ignoresSafeArea(edges: .top)
     }
 
     private var header: some View {
@@ -59,6 +60,8 @@ struct RestaurantProfileView: View {
             }
             .padding(12)
         }
+        .frame(maxWidth: .infinity)
+        .ignoresSafeArea(edges: .top)
     }
 
     private var profileInfo: some View {
