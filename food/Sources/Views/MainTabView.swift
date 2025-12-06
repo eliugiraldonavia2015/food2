@@ -26,10 +26,6 @@ struct MainTabView: View {
             .background(Color.black.ignoresSafeArea())
             .padding(.bottom, tabBarHeight) // ← ESPACIO FIJO para el tab bar
 
-            // TAB BAR FIJO (siempre visible)
-            bottomBar
-                .background(Color.black.opacity(0.9))
-
             if showShopLoading {
                 VStack(spacing: 10) {
                     ProgressView()
@@ -53,6 +49,18 @@ struct MainTabView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(2)
             }
+
+            // TAB BAR: cuando está en Feed y otras pantallas
+            if !showShop {
+                bottomBar
+                    .background(Color.black.opacity(0.9))
+                    .zIndex(4)
+            } else {
+                // TAB BAR variante para Discovery
+                bottomBarDiscovery
+                    .background(Color.black.opacity(0.9))
+                    .zIndex(4)
+            }
         }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
@@ -68,6 +76,28 @@ struct MainTabView: View {
                 cartButton
                 navButton(icon: "message", title: "Mensajes", tab: .messages)
                 navButton(icon: "person", title: "Perfil", tab: .profile)
+            }
+            .padding(.horizontal, 6)
+            .padding(.top, 6)
+            .padding(.bottom, 0)
+        }
+        .background(Color.black.opacity(0.95))
+        .overlay(
+            Rectangle()
+                .fill(Color.white.opacity(0.15))
+                .frame(height: 0.5), alignment: .top
+        )
+        .frame(height: tabBarHeight)
+    }
+
+    private var bottomBarDiscovery: some View {
+        ZStack(alignment: .top) {
+            HStack(spacing: -2) {
+                navButtonDiscovery(icon: "house", title: "Inicio", tab: .feed)
+                navButtonDiscovery(icon: "bell", title: "Notif", tab: .notifications)
+                fireButton
+                navButtonDiscovery(icon: "message", title: "Mensajes", tab: .messages)
+                navButtonDiscovery(icon: "person", title: "Perfil", tab: .profile)
             }
             .padding(.horizontal, 6)
             .padding(.top, 6)
@@ -108,11 +138,60 @@ struct MainTabView: View {
         .cornerRadius(6)
     }
 
+    private var fireButton: some View {
+        VStack(spacing: 1) {
+            Button {
+                withAnimation {
+                    showShop = false
+                    selected = .feed
+                }
+            } label: {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 19, weight: .medium))
+                    .foregroundColor(.orange)
+                    .scaleEffect(1.0)
+            }
+            Text("Fuego")
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(.orange)
+        }
+        .padding(.vertical, 5)
+        .frame(maxWidth: .infinity)
+        .background(Color.clear)
+        .cornerRadius(6)
+    }
+
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
         let isSelected = selected == tab
         return Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selected = tab
+            }
+        } label: {
+            VStack(spacing: 1) {
+                Image(systemName: icon)
+                    .font(.system(size: 19, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .gray)
+                    .symbolVariant(isSelected ? .fill : .none)
+                    .scaleEffect(isSelected ? 1.12 : 1.0)
+                
+                Text(title)
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(isSelected ? .white : .gray)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 5)
+            .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+            .cornerRadius(6)
+        }
+    }
+
+    private func navButtonDiscovery(icon: String, title: String, tab: Tab) -> some View {
+        let isSelected = selected == tab
+        return Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selected = tab
+                showShop = false
             }
         } label: {
             VStack(spacing: 1) {
