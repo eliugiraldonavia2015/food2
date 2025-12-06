@@ -47,8 +47,7 @@ struct RestaurantProfileView: View {
                 .resizable()
                 .indicator(.activity)
                 .aspectRatio(contentMode: .fill)
-                .frame(height: 440)
-                .offset(y: 120)
+                .frame(height: 340)
                 .clipped()
                 .overlay(
                     LinearGradient(
@@ -66,6 +65,7 @@ struct RestaurantProfileView: View {
                         endPoint: .bottom
                     )
                 )
+                .offset(y: 80)
             Button(action: { dismiss() }) {
                 Circle()
                     .fill(Color.black.opacity(0.6))
