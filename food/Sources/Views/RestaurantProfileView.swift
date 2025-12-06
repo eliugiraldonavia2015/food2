@@ -85,6 +85,7 @@ struct RestaurantProfileView: View {
                 .allowsHitTesting(false)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
+            if isRefreshing { refreshingHUD }
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
@@ -132,17 +133,39 @@ struct RestaurantProfileView: View {
     }
 
     private var refreshOverlay: some View {
-        ZStack {
-            if pullOffset > 0 || isRefreshing {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1 + min(pullOffset, 120) / 300)
-                    .opacity(min(1, pullOffset / 80))
+        let h = max(0, min(pullOffset, 100))
+        return ZStack {
+            if h > 0 || isRefreshing {
+                VStack {
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1 + h / 200)
+                        .opacity(min(1, h / 60))
+                        .padding(.bottom, 10)
+                }
             }
         }
-        .frame(height: max(0, min(pullOffset, 100)))
+        .frame(height: h)
         .frame(maxWidth: .infinity)
-        .background(pullOffset > 0 || isRefreshing ? Color.black : Color.clear)
+        .background((h > 0 || isRefreshing) ? Color.black : Color.clear)
+    }
+
+    private var refreshingHUD: some View {
+        HStack(spacing: 10) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+            Text("Actualizando…")
+                .foregroundColor(.white)
+                .font(.subheadline.weight(.semibold))
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .background(Color.black.opacity(0.9))
+        .overlay(Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1), alignment: .bottom)
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .zIndex(30)
     }
 
     private var profileInfo: some View {
