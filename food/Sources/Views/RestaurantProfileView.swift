@@ -76,6 +76,7 @@ struct RestaurantProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
+        .padding(.top, -80)
     }
 
     private var profileInfo: some View {
