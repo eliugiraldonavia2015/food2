@@ -392,7 +392,9 @@ struct FeedView: View {
                             .font(.system(size: 14))
                             .lineLimit(isExpanded ? nil : 2)
                             .truncationMode(.tail)
+                            .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: size.width * 0.5, alignment: .leading)
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
                             }
