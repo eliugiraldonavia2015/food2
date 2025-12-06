@@ -113,30 +113,17 @@ struct MainTabView: View {
     }
 
     private var cartButton: some View {
-        VStack(spacing: 1) {
-            Button {
-                withAnimation { showShopLoading = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    withAnimation {
-                        showShopLoading = false
-                        showShop = true
-                        inDiscoveryMode = true
-                    }
+        centerAccentButton(icon: "cart.fill", title: "Carrito", color: .green) {
+            withAnimation { showShopLoading = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                withAnimation {
+                    showShopLoading = false
+                    showShop = true
+                    inDiscoveryMode = true
                 }
-            } label: {
-                Image(systemName: "cart.fill")
-                    .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(.green)
-                    .scaleEffect(1.0)
             }
-            Text("Carrito")
-                .font(.system(size: 8, weight: .medium))
-                .foregroundColor(.green)
         }
-        .padding(.vertical, 5)
         .frame(maxWidth: .infinity)
-        .background(Color.clear)
-        .cornerRadius(6)
     }
 
     private var backButtonDiscovery: some View {
@@ -162,27 +149,14 @@ struct MainTabView: View {
     }
 
     private var fireButton: some View {
-        VStack(spacing: 1) {
-            Button {
-                withAnimation {
-                    showShop = false
-                    selected = .feed
-                    inDiscoveryMode = false
-                }
-            } label: {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(.orange)
-                    .scaleEffect(1.0)
+        centerAccentButton(icon: "flame.fill", title: "Fuego", color: .orange) {
+            withAnimation {
+                showShop = false
+                selected = .feed
+                inDiscoveryMode = false
             }
-            Text("Fuego")
-                .font(.system(size: 8, weight: .medium))
-                .foregroundColor(.orange)
         }
-        .padding(.vertical, 5)
         .frame(maxWidth: .infinity)
-        .background(Color.clear)
-        .cornerRadius(6)
     }
 
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
@@ -211,7 +185,7 @@ struct MainTabView: View {
     }
 
     private func navButtonDiscovery(icon: String, title: String, tab: Tab) -> some View {
-        let isSelected = selected == tab
+        let isSelected = !showShop && selected == tab
         return Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selected = tab
@@ -235,6 +209,33 @@ struct MainTabView: View {
             .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
             .cornerRadius(6)
         }
+    }
+
+    private func centerAccentButton(icon: String, title: String, color: Color, action: @escaping () -> Void) -> some View {
+        VStack(spacing: 6) {
+            Button(action: action) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(colors: [color.opacity(0.25), color.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .frame(width: 46, height: 46)
+                        .overlay(
+                            Circle().stroke(color, lineWidth: 2)
+                        )
+                        .shadow(color: color.opacity(0.7), radius: 10, x: 0, y: 2)
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 1)
+                }
+            }
+            .offset(y: -10)
+            Text(title)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(color)
+        }
+        .padding(.vertical, 2)
     }
 }
 
