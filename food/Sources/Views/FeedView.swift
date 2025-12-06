@@ -350,6 +350,7 @@ struct FeedView: View {
             ZStack {
                     // Columna izquierda - se mantiene alineada al fondo
                     HStack {
+                    ZStack(alignment: .bottomLeading) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .center, spacing: 12) {
                             WebImage(url: URL(string: item.avatarUrl))
@@ -400,35 +401,37 @@ struct FeedView: View {
                                 if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
                             }
                     }
+                    .frame(maxHeight: .infinity, alignment: .bottomLeading)
                     .padding(.bottom, bottomSectionHeight + 10)
-                    .overlay(alignment: .bottomLeading) {
-                        VStack(spacing: 8) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "music.note")
-                                    .foregroundColor(.white)
-                                Text(item.soundTitle)
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 14))
-                                    .lineLimit(1)
-                            }
-                            HStack(spacing: 10) {
-                                Button(action: { showMenu = true }) {
-                                    Capsule()
-                                        .fill(Color.green)
-                                        .frame(width: 216, height: 48)
-                                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
-                                }
+                    
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "music.note")
+                                .foregroundColor(.white)
+                            Text(item.soundTitle)
+                                .foregroundColor(.white)
+                                .font(.system(size: 14))
+                                .lineLimit(1)
+                        }
+                        HStack(spacing: 10) {
+                            Button(action: { showMenu = true }) {
+                                Capsule()
+                                    .fill(Color.green)
+                                    .frame(width: 216, height: 48)
+                                    .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                             }
                         }
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear
-                                    .onAppear { bottomSectionHeight = proxy.size.height }
-                            }
-                        )
+                    }
+                    .background(
+                        GeometryReader { proxy in
+                            Color.clear
+                                .onAppear { bottomSectionHeight = proxy.size.height }
+                        }
+                    )
                     }
                     Spacer()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, bottomInset + 20)
