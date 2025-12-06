@@ -23,6 +23,7 @@ struct RestaurantProfileView: View {
     @State private var isFollowing = false
     @State private var showLocationList = false
     @State private var selectedBranchName = ""
+    @State private var pullOffset: CGFloat = 0
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -42,6 +43,13 @@ struct RestaurantProfileView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                Color.clear
+                    .frame(height: 0)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
+                        }
+                    )
                 header
                     .padding(.horizontal, -16)
                 profileInfo
@@ -67,6 +75,17 @@ struct RestaurantProfileView: View {
             }
             .padding(.horizontal, 16)
         }
+        .coordinateSpace(name: "profileScroll")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+            pullOffset = max(0, y)
+        }
+        .overlay(alignment: .top) {
+            refreshOverlay
+                .allowsHitTesting(false)
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
+        }
+        .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
@@ -109,6 +128,20 @@ struct RestaurantProfileView: View {
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
         .padding(.top, -80)
+    }
+
+    private var refreshOverlay: some View {
+        ZStack {
+            if pullOffset > 0 || isRefreshing {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1 + min(pullOffset, 120) / 300)
+                    .opacity(min(1, pullOffset / 80))
+            }
+        }
+        .frame(height: max(0, min(pullOffset, 100)))
+        .frame(maxWidth: .infinity)
+        .background(pullOffset > 0 || isRefreshing ? Color.black : Color.clear)
     }
 
     private var profileInfo: some View {
@@ -292,6 +325,16 @@ struct RestaurantProfileView: View {
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
+    private func performRefresh() async {
+        await MainActor.run { isRefreshing = true }
+        try? await Task.sleep(nanoseconds: UInt64(0.9 * 1_000_000_000))
+        await MainActor.run {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) {
+                isRefreshing = false
+            }
+        }
+    }
+
     private var photoGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 12) {
             ForEach(0..<photoItems.count, id: \.self) { i in
@@ -347,6 +390,11 @@ struct RestaurantProfileView: View {
                     .font(.system(size: 28))
             }
         }
+    }
+
+    struct ScrollOffsetPreferenceKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
 
     
