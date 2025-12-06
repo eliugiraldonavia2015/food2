@@ -954,34 +954,6 @@ struct FilterSheet: View {
         return val == 1 ? "1 km(-)" : "\(val) km"
     }
 
-    private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: ContentMode = .fill) -> some View {
-        AsyncImage(url: URL(string: url)) { phase in
-            switch phase {
-            case .empty:
-                ZStack {
-                    LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    Image(systemName: "photo")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white.opacity(0.8))
-                }
-            case .success(let image):
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: contentMode)
-            case .failure(_):
-                ZStack {
-                    LinearGradient(colors: [Color.gray.opacity(0.25), Color.gray.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    Text("🍽️")
-                        .font(.system(size: 28))
-                }
-            @unknown default:
-                Color.gray.opacity(0.3)
-            }
-        }
-        .frame(width: width, height: height)
-        .background(Color.white.opacity(0.06))
-        .clipped()
-    }
 }
 
 // Helper for FlowLayout (Simple horizontal wrapping)
