@@ -92,31 +92,31 @@ struct RestaurantProfileView: View {
             VStack(spacing: 6) {
                 Text(data.name)
                     .foregroundColor(.white)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 26, weight: .bold))
                 Text("@\(data.username)")
                     .foregroundColor(.white.opacity(0.85))
-                    .font(.subheadline)
+                    .font(.system(size: 16))
                 HStack(spacing: 10) {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.and.ellipse").foregroundColor(.white.opacity(0.9))
-                        Text(data.location).foregroundColor(.white).font(.footnote)
+                        Text(data.location).foregroundColor(.white).font(.system(size: 14))
                     }
                     HStack(spacing: 6) {
                         Image(systemName: "star.fill").foregroundColor(.yellow)
-                        Text(String(format: "%.1f", data.rating)).foregroundColor(.white).font(.footnote)
+                        Text(String(format: "%.1f", data.rating)).foregroundColor(.white).font(.system(size: 14))
                     }
                 }
                 HStack(spacing: 8) {
                     Text("Categoría:")
                         .foregroundColor(.white.opacity(0.9))
-                        .font(.footnote)
+                        .font(.system(size: 14))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .background(Color.white.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     Text(data.category)
                         .foregroundColor(.green)
-                        .font(.footnote.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .background(Color.white.opacity(0.08))
@@ -125,10 +125,10 @@ struct RestaurantProfileView: View {
                 VStack(spacing: 2) {
                     Text(formatCount(data.followers))
                         .foregroundColor(.white)
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.system(size: 24, weight: .bold))
                     Text("Seguidores")
                         .foregroundColor(.white.opacity(0.85))
-                        .font(.caption)
+                        .font(.system(size: 13))
                 }
             }
             HStack(spacing: 12) {
@@ -138,20 +138,20 @@ struct RestaurantProfileView: View {
                             .foregroundColor(.white)
                         Text(isFollowing ? "Siguiendo" : "Seguir")
                             .foregroundColor(.white)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 14)
                     .background(Color.green)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 Button(action: {}) {
                     HStack(spacing: 8) {
                         Image(systemName: "paperplane.fill").foregroundColor(.white)
-                        Text("Mensaje").foregroundColor(.white).font(.subheadline.weight(.semibold))
+                        Text("Mensaje").foregroundColor(.white).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 14)
                     .background(Color.white.opacity(0.08))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
@@ -162,15 +162,18 @@ struct RestaurantProfileView: View {
     }
 
     private var menuPill: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "line.3.horizontal")
-                .foregroundColor(.white)
+        ZStack {
+            HStack {
+                Image(systemName: "line.3.horizontal")
+                    .foregroundColor(.white)
+                Spacer()
+            }
             Text("Ver Menú Completo")
                 .foregroundColor(.white)
-                .font(.subheadline.weight(.semibold))
-            Spacer()
+                .font(.system(size: 16, weight: .semibold))
         }
-        .padding()
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
         .background(Color.black)
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.8), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 18))
