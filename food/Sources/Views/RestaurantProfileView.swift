@@ -285,14 +285,13 @@ struct RestaurantProfileView: View {
     }
 
     private var photoGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            ForEach(data.photos) { p in
+        let gridItems: [PhotoItem] = (0..<12).map { i in
+            i < data.photos.count ? data.photos[i] : PhotoItem(url: "", title: "")
+        }
+        return LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+            ForEach(gridItems) { p in
                 ZStack(alignment: .bottomLeading) {
-                    WebImage(url: URL(string: p.url))
-                        .resizable()
-                        .aspectRatio(1, contentMode: .fill)
-                        .frame(height: 120)
-                        .clipped()
+                    safeImage(url: p.url, height: 120, contentMode: .fill)
                         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
                     if !p.title.isEmpty {
                         Text(p.title)
@@ -314,6 +313,40 @@ struct RestaurantProfileView: View {
             Text(title).foregroundColor(.white).font(.headline)
             Spacer()
         }
+    }
+
+    private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
+        let finalURL = URL(string: url.isEmpty ? "" : url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
+        return AsyncImage(url: finalURL) { phase in
+            switch phase {
+            case .empty:
+                ZStack {
+                    LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: "photo")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            case .failure(_):
+                ZStack {
+                    LinearGradient(colors: [Color.gray.opacity(0.25), Color.gray.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Text("🍽️")
+                        .font(.system(size: 28))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            @unknown default:
+                Color.gray.opacity(0.3)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+        }
+        .frame(width: width, height: height)
+        .background(Color.white.opacity(0.06))
+        .clipped()
     }
 
     
