@@ -436,53 +436,50 @@ struct FoodDiscoveryView: View {
     }
 
     private func dealCard(_ deal: DealItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ZStack(alignment: .topTrailing) {
-                safeImage(url: deal.imageUrl, width: 180, height: 100, contentMode: .fill)
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: 28, height: 28)
-                    .overlay(Text("+").font(.system(size: 16, weight: .bold)).foregroundColor(.white))
-                    .padding(8)
-            }
-            Text(deal.price)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-            HStack(spacing: 8) {
-                Text(deal.discountText)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.yellow)
-                    .cornerRadius(4)
-                Text(deal.oldPrice)
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .strikethrough()
-            }
-            Text(deal.subtitle)
-                .font(.system(size: 13))
-                .foregroundColor(.gray)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 6) {
-                Text(deal.merchant)
-                    .font(.system(size: 12))
+        VStack(spacing: 0) {
+            safeImage(url: deal.imageUrl, height: 120, contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .cornerRadius(16, corners: [.topLeft, .topRight])
+            VStack(alignment: .leading, spacing: 8) {
+                Text(deal.price)
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
-                Text("•")
+                HStack(spacing: 8) {
+                    Text(deal.discountText)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.yellow)
+                        .cornerRadius(4)
+                    Text(deal.oldPrice)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .strikethrough()
+                }
+                Text(deal.subtitle)
+                    .font(.system(size: 13))
                     .foregroundColor(.gray)
-                Image(systemName: "clock")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 12))
-                Text(deal.time)
-                    .font(.system(size: 12))
-                    .foregroundColor(.white)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 6) {
+                    Text(deal.merchant)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                    Text("•")
+                        .foregroundColor(.gray)
+                    Image(systemName: "clock")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 12))
+                    Text(deal.time)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                }
             }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: 180)
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white.opacity(0.12))
         .cornerRadius(16)
         .overlay(
