@@ -265,6 +265,9 @@ struct RestaurantProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: CGFloat(min(locations.count, 3)) * 76)
+        .background(Color.black.opacity(0.9))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
