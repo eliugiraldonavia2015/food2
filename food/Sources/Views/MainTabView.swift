@@ -49,7 +49,7 @@ struct MainTabView: View {
             }
 
             if showShop {
-                ShopOverlay(onClose: { withAnimation { showShop = false } })
+                FoodDiscoveryView(onClose: { withAnimation { showShop = false } })
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(2)
             }
@@ -130,51 +130,6 @@ struct MainTabView: View {
             .padding(.vertical, 5)
             .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
             .cornerRadius(6)
-        }
-    }
-
-    private struct ShopOverlay: View {
-        let onClose: () -> Void
-        var body: some View {
-            VStack(spacing: 12) {
-                Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
-                Text("Tienda").foregroundColor(.white).font(.headline.bold())
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(0..<8) { _ in
-                            HStack(spacing: 12) {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.green.opacity(0.2))
-                                    .frame(width: 64, height: 64)
-                                    .overlay(Image(systemName: "bag.fill").foregroundColor(.green))
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Combo del Día").foregroundColor(.white).font(.subheadline.bold())
-                                    Text("Delicioso y económico").foregroundColor(.secondary).font(.caption)
-                                }
-                                Spacer()
-                                Text("$9.99").foregroundColor(.green).font(.subheadline.bold())
-                            }
-                            .padding()
-                            .background(Color.white.opacity(0.06))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        }
-                    }
-                    .padding()
-                }
-                Button(action: onClose) {
-                    Text("Cerrar")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 12)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .background(Color.black.opacity(0.6).ignoresSafeArea())
         }
     }
 }
