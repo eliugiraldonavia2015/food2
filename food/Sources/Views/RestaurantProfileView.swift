@@ -136,22 +136,16 @@ struct RestaurantProfileView: View {
     }
 
     private var refreshOverlay: some View {
-        let h = max(0, min(pullOffset, 100))
+        let h = max(0, min(pullOffset, 120))
         return ZStack {
-            if h > 0 || isRefreshing {
-                VStack {
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1 + h / 200)
-                        .opacity(min(1, h / 60))
-                        .padding(.bottom, 10)
-                }
+            if h > 0 {
+                RefreshIndicatorView(progress: min(1, h / 120), isRefreshing: isRefreshing)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(height: h)
         .frame(maxWidth: .infinity)
-        .background((h > 0 || isRefreshing) ? Color.black : Color.clear)
+        .background(h > 0 ? Color.black.opacity(0.6) : Color.clear)
     }
 
     private var refreshingHUD: some View {
@@ -164,6 +158,7 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
+        .padding(.top, 44)
         .frame(maxWidth: .infinity)
         .background(Color.black.opacity(0.9))
         .overlay(Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1), alignment: .bottom)
@@ -430,7 +425,27 @@ struct RestaurantProfileView: View {
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
 
-    
+    struct RefreshIndicatorView: View {
+        let progress: CGFloat
+        let isRefreshing: Bool
+        @State private var pulse = false
+        var body: some View {
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.18))
+                    .frame(width: 46 + progress * 18, height: 46 + progress * 18)
+                    .scaleEffect(isRefreshing ? (pulse ? 1.08 : 0.92) : 1)
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                    .scaleEffect(1 + progress * 0.15)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(isRefreshing ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true) : .spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pulse)
+            .onAppear { if isRefreshing { pulse = true } }
+            .onChange(of: isRefreshing) { v in pulse = v }
+        }
+    }
 
     private func formatCount(_ count: Int) -> String {
         if count >= 1_000_000 { return String(format: "%.1fM", Double(count)/1_000_000) }
