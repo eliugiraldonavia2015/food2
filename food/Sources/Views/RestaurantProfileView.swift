@@ -290,20 +290,7 @@ struct RestaurantProfileView: View {
         }
         return LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
             ForEach(gridItems) { p in
-                ZStack(alignment: .bottomLeading) {
-                    safeImage(url: p.url, height: 120, contentMode: .fill)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
-                    if !p.title.isEmpty {
-                        Text(p.title)
-                            .foregroundColor(.white)
-                            .font(.footnote.weight(.semibold))
-                            .padding(8)
-                            .background(Color.black.opacity(0.35))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .padding(6)
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                photoTile(url: p.url)
             }
         }
     }
@@ -313,6 +300,35 @@ struct RestaurantProfileView: View {
             Text(title).foregroundColor(.white).font(.headline)
             Spacer()
         }
+    }
+
+    private func photoTile(url: String) -> some View {
+        Group {
+            if let u = URL(string: url), !url.isEmpty {
+                WebImage(url: u)
+                    .placeholder {
+                        ZStack {
+                            LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            Image(systemName: "photo")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fill)
+                    .onFailure { _ in }
+            } else {
+                ZStack {
+                    LinearGradient(colors: [Color.gray.opacity(0.25), Color.gray.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Text("🍽️")
+                        .font(.system(size: 28))
+                }
+            }
+        }
+        .frame(height: 120)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
     }
 
     private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
