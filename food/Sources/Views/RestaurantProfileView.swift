@@ -30,7 +30,10 @@ struct RestaurantProfileView: View {
                 menuPill
                 descriptionCard
                 sectionHeader("Ubicaciones disponibles")
-                locationSelector
+                HStack {
+                    locationSelector
+                    Spacer()
+                }
                 sectionHeader("Fotos")
                 photoGrid
             }
@@ -200,8 +203,7 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 14)
-        .frame(width: UIScreen.main.bounds.width / 2)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: UIScreen.main.bounds.width * 0.65)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
