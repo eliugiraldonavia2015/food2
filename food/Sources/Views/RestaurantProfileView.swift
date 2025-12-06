@@ -131,6 +131,7 @@ struct RestaurantProfileView: View {
                         .font(.system(size: 13))
                 }
             }
+            .padding(.top, -10)
             HStack(spacing: 12) {
                 Button(action: { isFollowing.toggle() }) {
                     HStack(spacing: 8) {
@@ -190,13 +191,16 @@ struct RestaurantProfileView: View {
 
     private var locationSelector: some View {
         HStack(spacing: 10) {
-            Circle().fill(Color.green.opacity(0.25)).frame(width: 32, height: 32).overlay(Image(systemName: "mappin").foregroundColor(.green))
+            Image(systemName: "mappin")
+                .foregroundColor(.green)
+                .font(.system(size: 18))
             Text(data.branch).foregroundColor(.white).font(.subheadline)
             Spacer()
             Image(systemName: "chevron.down").foregroundColor(.white.opacity(0.8))
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 14)
+        .frame(maxWidth: .infinity)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
