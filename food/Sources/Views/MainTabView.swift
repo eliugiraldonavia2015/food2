@@ -19,7 +19,7 @@ struct MainTabView: View {
                 case .feed: FeedView(bottomInset: tabBarHeight)
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
-                case .messages: MessagesScreen()
+                case .messages: MessagesListView()
                 case .profile: ProfileScreen()
                 }
             }
@@ -302,36 +302,6 @@ private struct StoreScreen: View {
     }
 }
 
-private struct MessagesScreen: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                sectionHeader("Messages")
-                ForEach(0..<10) { _ in
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.blue.opacity(0.25))
-                            .frame(width: 42, height: 42)
-                            .overlay(Image(systemName: "person.fill").foregroundColor(.blue))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Restaurante La Plaza")
-                                .foregroundColor(.white).font(.subheadline.bold())
-                            Text("Tu pedido está en camino 🚗")
-                                .foregroundColor(.secondary).font(.caption)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundColor(.gray)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .padding()
-        }
-        .background(Color.black.ignoresSafeArea())
-    }
-}
 
 private struct ProfileScreen: View {
     var body: some View {
