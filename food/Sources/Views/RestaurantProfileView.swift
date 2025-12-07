@@ -147,6 +147,7 @@ struct RestaurantProfileView: View {
                                 .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
                                 .onAppear { emojiSpin = true }
                                 .onDisappear { emojiSpin = false }
+                                .offset(x: -8)
                                 .allowsHitTesting(false)
                         }
                     }
