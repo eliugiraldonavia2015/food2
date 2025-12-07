@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct MessagesListView: View {
     @State private var searchText: String = ""
@@ -193,7 +194,7 @@ struct ChatView: View {
                 composerText = ""
             } label: {
                 Image(systemName: "paperplane.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(Color(UIColor.systemBlue))
                     .font(.system(size: 20))
             }
         }
@@ -219,17 +220,17 @@ struct MessageBubble: View {
                     .padding(.vertical, 10)
                     .background(
                         Group {
-                            if message.isMe { Color.green.opacity(0.35) } else { Color.white.opacity(0.10) }
+                            if message.isMe { Color(UIColor.systemBlue) } else { Color.white.opacity(0.12) }
                         }
                     )
                     .overlay(
-                        RoundedCorner(radius: 18, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
-                            .stroke(message.isMe ? Color.green.opacity(0.7) : Color.white.opacity(0.12), lineWidth: 1)
+                        RoundedCorner(radius: 20, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
+                            .stroke(message.isMe ? Color.clear : Color.white.opacity(0.14), lineWidth: 1)
                     )
-                    .clipShape(RoundedCorner(radius: 16, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
+                    .clipShape(RoundedCorner(radius: 20, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
                 Text(message.time)
-                    .foregroundColor(.gray)
-                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.6))
+                    .font(.caption)
             }
             if !message.isMe { Spacer() }
         }
