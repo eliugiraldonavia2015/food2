@@ -117,7 +117,7 @@ struct RestaurantProfileView: View {
                         endPoint: .bottom
                     )
                 )
-                .offset(y: 80)
+                .offset(y: 0)
             Button(action: { dismiss() }) {
                 Circle()
                     .fill(Color.black.opacity(0.6))
@@ -129,7 +129,7 @@ struct RestaurantProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
-        .padding(.top, -80)
+        .padding(.top, 0)
     }
 
     private var refreshOverlay: some View {
