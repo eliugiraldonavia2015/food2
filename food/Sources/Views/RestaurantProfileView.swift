@@ -158,7 +158,7 @@ struct RestaurantProfileView: View {
     private func emojiOverlay(minY: CGFloat) -> some View {
         if minY > 12 {
             Text("⏳")
-                .font(Font.system(size: 44))
+                .font(SwiftUI.Font.system(size: 44, weight: .regular))
                 .foregroundColor(.white)
                 .opacity(min(0.6, (minY - 12) / 140))
                 .rotationEffect(.degrees(emojiSpin ? 360 : 0))
@@ -167,6 +167,8 @@ struct RestaurantProfileView: View {
                 .onDisappear { emojiSpin = false }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .allowsHitTesting(false)
+        } else {
+            EmptyView()
         }
     }
 
