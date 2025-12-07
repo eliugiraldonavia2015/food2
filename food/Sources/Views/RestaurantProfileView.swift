@@ -102,6 +102,7 @@ struct RestaurantProfileView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 340)
                 .clipped()
+                .ignoresSafeArea(edges: .top)
                 .overlay(
                     LinearGradient(
                         gradient: Gradient(stops: [
@@ -130,7 +131,7 @@ struct RestaurantProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
-        .padding(.top, 0)
+        .padding(.top, -8)
     }
 
     private var refreshOverlay: some View {
@@ -225,7 +226,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .padding(.top, -40)
+        .padding(.top, -64)
         .padding(.bottom, 4)
     }
 
