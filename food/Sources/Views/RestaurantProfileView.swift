@@ -25,6 +25,7 @@ struct RestaurantProfileView: View {
     @State private var selectedBranchName = ""
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
+    private let headerHeight: CGFloat = 340
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -42,44 +43,48 @@ struct RestaurantProfileView: View {
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                Color.clear
-                    .frame(height: 0)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
-                        }
-                    )
-                    .padding(.bottom, -16)
-                header
-                    .padding(.horizontal, -16)
-                profileInfo
-                menuPill
-                descriptionCard
-                sectionHeader("Ubicaciones disponibles")
-                HStack {
-                    locationSelector
-                    Spacer()
-                }
-                .overlay(alignment: .topLeading) {
-                    if showLocationList {
-                        locationList
-                            .padding(.top, 52)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(2)
+        ZStack(alignment: .top) {
+            header
+            ScrollView {
+                VStack(spacing: 16) {
+                    Color.clear
+                        .frame(height: 0)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
+                            }
+                        )
+                        .padding(.bottom, -16)
+                    Color.clear
+                        .frame(height: headerHeight)
+                    profileInfo
+                    menuPill
+                    descriptionCard
+                    sectionHeader("Ubicaciones disponibles")
+                    HStack {
+                        locationSelector
+                        Spacer()
                     }
+                    .overlay(alignment: .topLeading) {
+                        if showLocationList {
+                            locationList
+                                .padding(.top, 52)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .zIndex(2)
+                        }
+                    }
+                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
+                    .zIndex(showLocationList ? 10 : 0)
+                    sectionHeader("Fotos")
+                    photoGrid
                 }
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
-                .zIndex(showLocationList ? 10 : 0)
-                sectionHeader("Fotos")
-                photoGrid
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
-        }
-        .coordinateSpace(name: "profileScroll")
-        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-            pullOffset = max(0, y)
+            .coordinateSpace(name: "profileScroll")
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+                pullOffset = max(0, y)
+            }
+            .refreshable { await performRefresh() }
         }
         .overlay(alignment: .top) {
             refreshOverlay
@@ -87,7 +92,6 @@ struct RestaurantProfileView: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
         }
-        .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
