@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import UIKit
 
 struct RestaurantProfileView: View {
     struct PhotoItem: Identifiable { let id = UUID(); let url: String; let title: String }
@@ -28,6 +29,7 @@ struct RestaurantProfileView: View {
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     @State private var reachedThreshold = false
+    @State private var didHapticThreshold = false
     @State private var refreshedData: DataModel?
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
@@ -88,6 +90,12 @@ struct RestaurantProfileView: View {
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
             pullOffset = max(0, y)
             reachedThreshold = pullOffset >= refreshThreshold
+            if reachedThreshold && !didHapticThreshold {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+                didHapticThreshold = true
+            }
+            if !reachedThreshold { didHapticThreshold = false }
         }
         .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
             headerMinY = v
@@ -109,7 +117,14 @@ struct RestaurantProfileView: View {
             .opacity(1)
             .zIndex(1000)
         }
-        .refreshable { await performRefresh() }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 1, coordinateSpace: .named("profileScroll"))
+                .onEnded { _ in
+                    if reachedThreshold && !isRefreshing {
+                        Task { await performRefresh() }
+                    }
+                }
+        )
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
@@ -159,30 +174,32 @@ struct RestaurantProfileView: View {
     }
 
 
+    private var pullProgress: CGFloat { min(max(pullOffset / refreshThreshold, 0), 1) }
+
     private var refreshOverlay: some View {
         ZStack {
             if isRefreshing {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.1)
-            } else if reachedThreshold {
-                HStack(spacing: 10) {
-                    Image(systemName: "arrow.down.circle")
+                RefreshSpinner()
+                Text("Actualizando…")
+                    .foregroundColor(.white)
+                    .font(.system(size: 14, weight: .semibold))
+                    .padding(.top, 64)
+                    .transition(.opacity)
+            } else if pullOffset > 0 {
+                VStack(spacing: 10) {
+                    ProgressRing(progress: pullProgress)
+                        .frame(width: 42, height: 42)
+                    Text(reachedThreshold ? "Soltar para actualizar" : "Desliza para actualizar")
                         .foregroundColor(.white)
-                        .font(.system(size: 22, weight: .semibold))
-                        .rotationEffect(.degrees(180))
-                        .scaleEffect(1 + min((pullOffset - refreshThreshold) / 140, 0.25))
-                    Text("Soltar para actualizar")
-                        .foregroundColor(.white)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .opacity(0.95)
                 }
                 .transition(.scale.combined(with: .opacity))
             }
         }
-        .frame(height: max(0, min(pullOffset, 110)))
+        .frame(height: max(0, min(pullOffset, 140)))
         .frame(maxWidth: .infinity)
-        .background((reachedThreshold || isRefreshing) ? Color.black : Color.clear)
+        .background((pullOffset > 0 || isRefreshing) ? Color.black.opacity(0.6) : Color.clear)
     }
 
     private var profileInfo: some View {
@@ -445,7 +462,39 @@ struct RestaurantProfileView: View {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
+    struct ProgressRing: View {
+        let progress: CGFloat
+        var body: some View {
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.25), lineWidth: 4)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(AngularGradient(colors: [.green, .white], center: .center), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.25, dampingFraction: 0.9, blendDuration: 0.2), value: progress)
+            }
+        }
+    }
 
+    struct RefreshSpinner: View {
+        @State private var spin = false
+        var body: some View {
+            Circle()
+                .stroke(Color.white.opacity(0.25), lineWidth: 4)
+                .frame(width: 42, height: 42)
+                .overlay(
+                    Circle()
+                        .trim(from: 0.0, to: 0.65)
+                        .stroke(AngularGradient(colors: [.green, .white], center: .center), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .frame(width: 42, height: 42)
+                        .rotationEffect(.degrees(spin ? 360 : 0))
+                        .animation(.linear(duration: 0.8).repeatForever(autoreverses: false), value: spin)
+                )
+                .onAppear { spin = true }
+                .onDisappear { spin = false }
+        }
+    }
     
 
     private func formatCount(_ count: Int) -> String {
