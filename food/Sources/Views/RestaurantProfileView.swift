@@ -160,7 +160,7 @@ struct RestaurantProfileView: View {
             ZStack { Text("⏳") }
                 .font(.system(size: 44, weight: .regular))
                 .foregroundColor(.white)
-                .opacity(min(0.6, (minY - 12) / 140))
+                .opacity(min(0.6, Double(minY - 12) / 140.0))
                 .rotationEffect(.degrees(emojiSpin ? 360 : 0))
                 .animation(.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
                 .onAppear { emojiSpin = true }
