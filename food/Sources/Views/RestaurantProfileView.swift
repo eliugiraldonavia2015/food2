@@ -43,50 +43,44 @@ struct RestaurantProfileView: View {
     ]
 
     var body: some View {
-        ZStack(alignment: .top) {
-            ScrollView {
-                VStack(spacing: 16) {
-                    Color.clear
-                        .frame(height: 0)
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
-                            }
-                        )
-                        .padding(.bottom, -16)
-                    Color.clear
-                        .frame(height: headerHeight)
-                    profileInfo
-                    menuPill
-                    descriptionCard
-                    sectionHeader("Ubicaciones disponibles")
-                    HStack {
-                        locationSelector
-                        Spacer()
-                    }
-                    .overlay(alignment: .topLeading) {
-                        if showLocationList {
-                            locationList
-                                .padding(.top, 52)
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                                .zIndex(2)
+        ScrollView {
+            VStack(spacing: 16) {
+                Color.clear
+                    .frame(height: 0)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
                         }
-                    }
-                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
-                    .zIndex(showLocationList ? 10 : 0)
-                    sectionHeader("Fotos")
-                    photoGrid
+                    )
+                    .padding(.bottom, -16)
+                header
+                    .padding(.horizontal, -16)
+                profileInfo
+                menuPill
+                descriptionCard
+                sectionHeader("Ubicaciones disponibles")
+                HStack {
+                    locationSelector
+                    Spacer()
                 }
-                .padding(.horizontal, 16)
+                .overlay(alignment: .topLeading) {
+                    if showLocationList {
+                        locationList
+                            .padding(.top, 52)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(2)
+                    }
+                }
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
+                .zIndex(showLocationList ? 10 : 0)
+                sectionHeader("Fotos")
+                photoGrid
             }
-            .coordinateSpace(name: "profileScroll")
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-                pullOffset = max(0, y)
-            }
-            .refreshable { await performRefresh() }
-            .zIndex(0)
-            header
-                .zIndex(1)
+            .padding(.horizontal, 16)
+        }
+        .coordinateSpace(name: "profileScroll")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+            pullOffset = max(0, y)
         }
         .overlay(alignment: .top) {
             refreshOverlay
@@ -94,6 +88,7 @@ struct RestaurantProfileView: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
         }
+        .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
@@ -230,7 +225,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .padding(.top, -22)
+        .padding(.top, -40)
         .padding(.bottom, 4)
     }
 
