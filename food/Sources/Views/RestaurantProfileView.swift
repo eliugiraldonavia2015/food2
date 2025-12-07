@@ -434,14 +434,10 @@ struct RestaurantProfileView: View {
         @State private var pulse = false
         var body: some View {
             ZStack {
-                Circle()
-                    .fill(Color.green.opacity(0.18))
-                    .frame(width: 46 + progress * 18, height: 46 + progress * 18)
-                    .scaleEffect(isRefreshing ? (pulse ? 1.08 : 0.92) : 1)
-                Image(systemName: "fork.knife")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                    .scaleEffect(1 + progress * 0.15)
+                Text("🍕")
+                    .font(.system(size: 28 + progress * 22))
+                    .scaleEffect(isRefreshing ? (pulse ? 1.06 : 0.94) : 1)
+                    .rotationEffect(.degrees(isRefreshing ? (pulse ? 6 : -6) : 0))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(isRefreshing ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true) : .spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pulse)
