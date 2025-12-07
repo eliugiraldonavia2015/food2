@@ -114,42 +114,8 @@ struct RestaurantProfileView: View {
         GeometryReader { geo in
             let minY = geo.frame(in: .global).minY
             ZStack(alignment: .topLeading) {
-                WebImage(url: URL(string: data.coverUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
-                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                    .clipped()
-                    .overlay(
-                        LinearGradient(
-                            gradient: Gradient(stops: [
-                                .init(color: Color.black.opacity(0.0), location: 0.0),
-                                .init(color: Color.black.opacity(0.0), location: 0.55),
-                                .init(color: Color.black.opacity(0.30), location: 0.65),
-                                .init(color: Color.black.opacity(0.75), location: 0.75),
-                                .init(color: Color.black.opacity(1.0), location: 0.85),
-                                .init(color: Color.black.opacity(1.0), location: 0.92),
-                                .init(color: Color.black.opacity(1.0), location: 0.97),
-                                .init(color: Color.black.opacity(1.0), location: 1.0)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .offset(y: minY > 0 ? -minY : 0)
-                if minY > 12 {
-                    Text("⏳")
-                        .font(.system(size: 44))
-                        .foregroundColor(.white)
-                        .opacity(min(0.6, (minY - 12) / 140))
-                        .rotationEffect(.degrees(emojiSpin ? 360 : 0))
-                        .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
-                        .onAppear { emojiSpin = true }
-                        .onDisappear { emojiSpin = false }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .allowsHitTesting(false)
-                }
+                coverImage(minY: minY)
+                emojiOverlay(minY: minY)
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
@@ -157,6 +123,51 @@ struct RestaurantProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
+    }
+
+    private var coverGradient: LinearGradient {
+        LinearGradient(
+            gradient: Gradient(stops: [
+                .init(color: Color.black.opacity(0.0), location: 0.0),
+                .init(color: Color.black.opacity(0.0), location: 0.55),
+                .init(color: Color.black.opacity(0.30), location: 0.65),
+                .init(color: Color.black.opacity(0.75), location: 0.75),
+                .init(color: Color.black.opacity(1.0), location: 0.85),
+                .init(color: Color.black.opacity(1.0), location: 0.92),
+                .init(color: Color.black.opacity(1.0), location: 0.97),
+                .init(color: Color.black.opacity(1.0), location: 1.0)
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    private func coverImage(minY: CGFloat) -> some View {
+        WebImage(url: URL(string: data.coverUrl))
+            .resizable()
+            .indicator(.activity)
+            .aspectRatio(contentMode: .fill)
+            .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
+            .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+            .clipped()
+            .overlay(coverGradient)
+            .offset(y: minY > 0 ? -minY : 0)
+    }
+
+    @ViewBuilder
+    private func emojiOverlay(minY: CGFloat) -> some View {
+        if minY > 12 {
+            Text("⏳")
+                .font(.system(size: 44))
+                .foregroundColor(.white)
+                .opacity(min(0.6, (minY - 12) / 140))
+                .rotationEffect(.degrees(emojiSpin ? 360 : 0))
+                .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
+                .onAppear { emojiSpin = true }
+                .onDisappear { emojiSpin = false }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .allowsHitTesting(false)
+        }
     }
 
     private var refreshOverlay: some View {
