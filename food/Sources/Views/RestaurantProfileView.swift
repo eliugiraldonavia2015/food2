@@ -26,6 +26,7 @@ struct RestaurantProfileView: View {
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
+    @State private var emojiSpin = false
     private let headerHeight: CGFloat = 340
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
@@ -89,7 +90,6 @@ struct RestaurantProfileView: View {
         .overlay(alignment: .top) {
             refreshOverlay
                 .allowsHitTesting(false)
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
         }
         .overlay(alignment: .topLeading) {
@@ -119,6 +119,7 @@ struct RestaurantProfileView: View {
                     .indicator(.activity)
                     .aspectRatio(contentMode: .fill)
                     .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
                     .clipped()
                     .overlay(
                         LinearGradient(
@@ -137,6 +138,18 @@ struct RestaurantProfileView: View {
                         )
                     )
                     .offset(y: minY > 0 ? -minY : 0)
+                if minY > 0 {
+                    Text("⏳")
+                        .font(.system(size: 34))
+                        .foregroundColor(.white)
+                        .opacity(min(0.6, minY / 140))
+                        .rotationEffect(.degrees(emojiSpin ? 360 : 0))
+                        .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
+                        .onAppear { emojiSpin = true }
+                        .onDisappear { emojiSpin = false }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .allowsHitTesting(false)
+                }
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
