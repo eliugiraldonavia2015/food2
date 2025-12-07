@@ -23,7 +23,6 @@ struct RestaurantProfileView: View {
     @State private var isFollowing = false
     @State private var showLocationList = false
     @State private var selectedBranchName = ""
-    @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
