@@ -144,7 +144,7 @@ struct RestaurantProfileView: View {
                         .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
                 }
                 .padding(12)
-                .offset(y: 160)
+                .offset(y: max(72, 160 + (minY > 0 ? 0 : minY)))
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
