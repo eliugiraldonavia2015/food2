@@ -33,7 +33,7 @@ struct RestaurantProfileView: View {
     @State private var refreshedData: DataModel?
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
-    private let refreshThreshold: CGFloat = 90
+    private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.2
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -215,23 +215,25 @@ struct RestaurantProfileView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .opacity(0.95)
                 }
-                .padding(.vertical, 10)
-            } else if pullOffset > 0 {
-                VStack(spacing: 8) {
+                .padding(.vertical, 12)
+            } else if reachedThreshold {
+                VStack(spacing: 10) {
                     ProgressRing(progress: pullProgress)
-                        .frame(width: 48, height: 48)
-                    Text(reachedThreshold ? "Soltar para actualizar" : "Desliza para actualizar")
+                        .frame(width: 56, height: 56)
+                    Text("Soltar para actualizar")
                         .foregroundColor(.white)
-                        .font(.system(size: 15, weight: .semibold))
-                        .opacity(0.95)
+                        .font(.system(size: 16, weight: .semibold))
+                        .opacity(0.98)
                 }
-                .padding(.vertical, 10)
+                .padding(.vertical, 14)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .shadow(color: Color.black.opacity(0.6), radius: 10, x: 0, y: 8)
             }
         }
-        .frame(height: max(0, min(pullOffset, 120)))
+        .frame(height: max(0, min(pullOffset, UIScreen.main.bounds.height * 0.25)))
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(colors: [Color.black.opacity(0.85), Color.black.opacity(0.6)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color.black.opacity(0.9), Color.black.opacity(0.6)], startPoint: .top, endPoint: .bottom)
         )
     }
 
