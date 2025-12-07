@@ -47,6 +47,7 @@ struct RestaurantProfileView: View {
             VStack(spacing: 16) {
                 Color.clear
                     .frame(height: 0)
+                    .padding(.bottom, -16)
                     .background(
                         GeometryReader { geo in
                             Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
@@ -103,6 +104,7 @@ struct RestaurantProfileView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 340)
                 .clipped()
+                .ignoresSafeArea(.container, edges: .top)
                 .overlay(
                     LinearGradient(
                         gradient: Gradient(stops: [
