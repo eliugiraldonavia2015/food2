@@ -95,43 +95,45 @@ struct RestaurantProfileView: View {
     }
 
     private var header: some View {
-        ZStack(alignment: .topLeading) {
-            WebImage(url: URL(string: data.coverUrl))
-                .resizable()
-                .indicator(.activity)
-                .aspectRatio(contentMode: .fill)
-                .frame(height: 340)
-                .clipped()
-                .ignoresSafeArea(edges: .top)
-                .overlay(
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: Color.black.opacity(0.0), location: 0.0),
-                            .init(color: Color.black.opacity(0.0), location: 0.55),
-                            .init(color: Color.black.opacity(0.30), location: 0.65),
-                            .init(color: Color.black.opacity(0.75), location: 0.75),
-                            .init(color: Color.black.opacity(1.0), location: 0.85),
-                            .init(color: Color.black.opacity(1.0), location: 0.92),
-                            .init(color: Color.black.opacity(1.0), location: 0.97),
-                            .init(color: Color.black.opacity(1.0), location: 1.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
+        GeometryReader { geo in
+            let minY = geo.frame(in: .global).minY
+            ZStack(alignment: .topLeading) {
+                WebImage(url: URL(string: data.coverUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
+                    .clipped()
+                    .overlay(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: Color.black.opacity(0.0), location: 0.0),
+                                .init(color: Color.black.opacity(0.0), location: 0.55),
+                                .init(color: Color.black.opacity(0.30), location: 0.65),
+                                .init(color: Color.black.opacity(0.75), location: 0.75),
+                                .init(color: Color.black.opacity(1.0), location: 0.85),
+                                .init(color: Color.black.opacity(1.0), location: 0.92),
+                                .init(color: Color.black.opacity(1.0), location: 0.97),
+                                .init(color: Color.black.opacity(1.0), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
                     )
-                )
-                .offset(y: 0)
-            Button(action: { dismiss() }) {
-                Circle()
-                    .fill(Color.black.opacity(0.6))
-                    .frame(width: 38, height: 38)
-                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+                    .offset(y: minY > 0 ? -minY : 0)
+                Button(action: { dismiss() }) {
+                    Circle()
+                        .fill(Color.black.opacity(0.6))
+                        .frame(width: 38, height: 38)
+                        .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+                }
+                .padding(12)
+                .offset(y: 160)
             }
-            .padding(12)
-            .offset(y: 160)
+            .frame(height: headerHeight)
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .ignoresSafeArea(edges: .top)
-        .padding(.top, -8)
+        .frame(height: headerHeight)
     }
 
     private var refreshOverlay: some View {
@@ -226,7 +228,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .padding(.top, -64)
+        .padding(.top, -80)
         .padding(.bottom, 4)
     }
 
