@@ -27,9 +27,11 @@ struct RestaurantProfileView: View {
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
+    @State private var reachedThreshold = false
     @State private var refreshedData: DataModel?
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
+    private let refreshThreshold: CGFloat = 90
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -85,6 +87,7 @@ struct RestaurantProfileView: View {
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
             pullOffset = max(0, y)
+            reachedThreshold = pullOffset >= refreshThreshold
         }
         .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
             headerMinY = v
@@ -158,16 +161,28 @@ struct RestaurantProfileView: View {
 
     private var refreshOverlay: some View {
         ZStack {
-            if pullOffset > 0 || isRefreshing {
+            if isRefreshing {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1 + min(pullOffset, 120) / 300)
-                    .opacity(min(1, pullOffset / 80))
+                    .scaleEffect(1.1)
+            } else if reachedThreshold {
+                HStack(spacing: 10) {
+                    Image(systemName: "arrow.down.circle")
+                        .foregroundColor(.white)
+                        .font(.system(size: 22, weight: .semibold))
+                        .rotationEffect(.degrees(180))
+                        .scaleEffect(1 + min((pullOffset - refreshThreshold) / 140, 0.25))
+                    Text("Soltar para actualizar")
+                        .foregroundColor(.white)
+                        .font(.system(size: 15, weight: .semibold))
+                        .opacity(0.95)
+                }
+                .transition(.scale.combined(with: .opacity))
             }
         }
-        .frame(height: max(0, min(pullOffset, 100)))
+        .frame(height: max(0, min(pullOffset, 110)))
         .frame(maxWidth: .infinity)
-        .background(pullOffset > 0 || isRefreshing ? Color.black : Color.clear)
+        .background((reachedThreshold || isRefreshing) ? Color.black : Color.clear)
     }
 
     private var profileInfo: some View {
