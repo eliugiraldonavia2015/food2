@@ -25,6 +25,7 @@ struct RestaurantProfileView: View {
     @State private var selectedBranchName = ""
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
+    @State private var headerMinY: CGFloat = 0
     private let headerHeight: CGFloat = 340
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
@@ -82,11 +83,26 @@ struct RestaurantProfileView: View {
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
             pullOffset = max(0, y)
         }
+        .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
+            headerMinY = v
+        }
         .overlay(alignment: .top) {
             refreshOverlay
                 .allowsHitTesting(false)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
+        }
+        .overlay(alignment: .topLeading) {
+            if headerMinY < -80 {
+                Button(action: { dismiss() }) {
+                    Circle()
+                        .fill(Color.black.opacity(0.6))
+                        .frame(width: 38, height: 38)
+                        .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+                }
+                .padding(12)
+                .transition(.opacity)
+            }
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
@@ -129,6 +145,8 @@ struct RestaurantProfileView: View {
                 }
                 .padding(12)
                 .offset(y: 160)
+                Color.clear
+                    .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
             .frame(height: headerHeight)
             .frame(maxWidth: .infinity)
@@ -399,6 +417,11 @@ struct RestaurantProfileView: View {
     }
 
     struct ScrollOffsetPreferenceKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    }
+
+    struct HeaderOffsetPreferenceKey: PreferenceKey {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
