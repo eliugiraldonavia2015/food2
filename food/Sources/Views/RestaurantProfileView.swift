@@ -102,8 +102,8 @@ struct RestaurantProfileView: View {
             pullOffset = max(0, v)
             reachedThreshold = pullOffset >= refreshThreshold
         }
-        .overlay(alignment: .top) {
-            refreshOverlay
+        .safeAreaInset(edge: .top) {
+            refreshHeader
                 .allowsHitTesting(false)
                 .zIndex(1001)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
@@ -203,6 +203,36 @@ struct RestaurantProfileView: View {
         .frame(height: max(0, min(pullOffset, 140)))
         .frame(maxWidth: .infinity)
         .background((pullOffset > 0 || isRefreshing) ? Color.black.opacity(0.6) : Color.clear)
+    }
+
+    private var refreshHeader: some View {
+        ZStack {
+            if isRefreshing {
+                VStack(spacing: 10) {
+                    RefreshSpinner()
+                    Text("Actualizando…")
+                        .foregroundColor(.white)
+                        .font(.system(size: 14, weight: .semibold))
+                        .opacity(0.95)
+                }
+                .padding(.vertical, 10)
+            } else if pullOffset > 0 {
+                VStack(spacing: 8) {
+                    ProgressRing(progress: pullProgress)
+                        .frame(width: 48, height: 48)
+                    Text(reachedThreshold ? "Soltar para actualizar" : "Desliza para actualizar")
+                        .foregroundColor(.white)
+                        .font(.system(size: 15, weight: .semibold))
+                        .opacity(0.95)
+                }
+                .padding(.vertical, 10)
+            }
+        }
+        .frame(height: max(0, min(pullOffset, 120)))
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(colors: [Color.black.opacity(0.85), Color.black.opacity(0.6)], startPoint: .top, endPoint: .bottom)
+        )
     }
 
     private var profileInfo: some View {
