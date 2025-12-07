@@ -51,6 +51,7 @@ struct RestaurantProfileView: View {
                             Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
                         }
                     )
+                    .padding(.bottom, -16)
                 header
                     .padding(.horizontal, -16)
                 profileInfo
