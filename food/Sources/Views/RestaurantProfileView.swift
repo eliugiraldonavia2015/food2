@@ -26,7 +26,6 @@ struct RestaurantProfileView: View {
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var refreshToken = UUID()
-    @State private var baselineTopY: CGFloat = 0
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -50,7 +49,7 @@ struct RestaurantProfileView: View {
                     .frame(height: 0)
                     .background(
                         GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .global).minY)
+                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
                         }
                     )
                 header
@@ -80,22 +79,19 @@ struct RestaurantProfileView: View {
         }
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-            if baselineTopY == 0 { baselineTopY = y }
-            pullOffset = max(0, y - baselineTopY)
+            pullOffset = max(0, y)
         }
-        .safeAreaInset(edge: .top) {
-            VStack(spacing: 0) {
-                refreshOverlay
-                    .allowsHitTesting(false)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
-                if isRefreshing { refreshingHUD }
-            }
+        .overlay(alignment: .top) {
+            refreshOverlay
+                .allowsHitTesting(false)
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pullOffset)
+                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
+            if isRefreshing { refreshingHUD }
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
-        
+        .ignoresSafeArea(edges: .top)
     }
 
     private var header: some View {
@@ -140,12 +136,12 @@ struct RestaurantProfileView: View {
     }
 
     private var refreshOverlay: some View {
-        let h = max(0, min(pullOffset, 140))
+        let h = max(0, pullOffset)
         return ZStack {
             if h > 0 {
                 VStack {
                     Spacer()
-                    RefreshIndicatorView(progress: min(1, h / 140), isRefreshing: isRefreshing)
+                    RefreshIndicatorView(progress: min(1, h / 160), isRefreshing: isRefreshing)
                     Spacer()
                 }
             }
