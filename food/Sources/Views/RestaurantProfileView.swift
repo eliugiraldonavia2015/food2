@@ -99,10 +99,13 @@ struct RestaurantProfileView: View {
         }
         .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
             headerMinY = v
+            pullOffset = max(0, v)
+            reachedThreshold = pullOffset >= refreshThreshold
         }
         .overlay(alignment: .top) {
             refreshOverlay
                 .allowsHitTesting(false)
+                .zIndex(1001)
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
         }
         .overlay(alignment: .topLeading) {
