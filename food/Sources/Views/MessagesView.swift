@@ -15,16 +15,18 @@ struct MessagesListView: View {
                 header
                 searchBar
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: 0) {
                         ForEach(filteredConversations) { convo in
                             NavigationLink(value: convo) {
                                 ConversationRow(convo: convo)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
                 }
             }
             .background(Color.black.ignoresSafeArea())
@@ -57,13 +59,14 @@ struct MessagesListView: View {
                 .disableAutocorrection(true)
         }
         .padding(12)
-        .background(Color.white.opacity(0.07))
+        .background(Color.white.opacity(0.08))
         .overlay(
             RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.6), radius: 8, x: 0, y: 2)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal, 16)
-        .padding(.bottom, 6)
+        .padding(.bottom, 4)
     }
 }
 
@@ -74,25 +77,28 @@ struct ConversationRow: View {
         HStack(spacing: 12) {
             ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 44, height: 44)
+                    .fill(Color.white.opacity(0.10))
+                    .frame(width: 46, height: 46)
                     .overlay(Image(systemName: convo.avatarSystemName).foregroundColor(.white))
+                    .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
                 if convo.isOnline {
                     Circle()
                         .fill(Color.green)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 11, height: 11)
                         .overlay(Circle().stroke(Color.black, lineWidth: 2))
                         .offset(x: 2, y: 2)
                 }
             }
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(convo.title)
                     .foregroundColor(.white)
-                    .font(.subheadline.bold())
+                    .font(.callout.weight(.semibold))
+                    .lineLimit(1)
                 Text(convo.subtitle)
                     .foregroundColor(.gray)
-                    .font(.caption)
+                    .font(.footnote)
+                    .lineLimit(2)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {
@@ -110,9 +116,14 @@ struct ConversationRow: View {
                 }
             }
         }
-        .padding(12)
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .padding(.horizontal, 4)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.white.opacity(0.06)).frame(height: 0.6) }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button { } label: { Image(systemName: "pin.fill") }.tint(.orange)
+            Button { } label: { Image(systemName: "envelope.open.fill") }.tint(.green)
+            Button(role: .destructive) { } label: { Image(systemName: "trash") }
+        }
     }
 }
 
@@ -127,14 +138,14 @@ struct ChatView: View {
             chatHeader
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 10) {
+                    LazyVStack(spacing: 8) {
                         ForEach(messages) { msg in
                             MessageBubble(message: msg)
                                 .id(msg.id)
                         }
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
                 }
                 .onChange(of: messages.count) { _ in
                     if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
@@ -185,7 +196,7 @@ struct ChatView: View {
         }
         .padding(12)
         .background(Color.white.opacity(0.06))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.1), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -196,22 +207,39 @@ struct MessageBubble: View {
     let message: Message
 
     var body: some View {
-        HStack {
+        HStack(alignment: .bottom) {
             if message.isMe { Spacer() }
-            VStack(alignment: message.isMe ? .trailing : .leading, spacing: 6) {
+            VStack(alignment: message.isMe ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(message.isMe ? Color.green.opacity(0.25) : Color.white.opacity(0.08))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(message.isMe ? Color.green.opacity(0.6) : Color.white.opacity(0.12), lineWidth: 1))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .background(
+                        Group {
+                            if message.isMe { Color.green.opacity(0.35) } else { Color.white.opacity(0.10) }
+                        }
+                    )
+                    .overlay(
+                        RoundedCorner(radius: 16, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
+                            .stroke(message.isMe ? Color.green.opacity(0.7) : Color.white.opacity(0.12), lineWidth: 1)
+                    )
+                    .clipShape(RoundedCorner(radius: 16, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
                 Text(message.time)
                     .foregroundColor(.gray)
                     .font(.caption2)
             }
             if !message.isMe { Spacer() }
         }
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = 16
+    var corners: UIRectCorner = [.allCorners]
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
 
