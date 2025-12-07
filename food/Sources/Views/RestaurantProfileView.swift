@@ -119,7 +119,7 @@ struct RestaurantProfileView: View {
                         endPoint: .bottom
                     )
                 )
-                .offset(y: 0)
+                .offset(y: 80)
                 .id(refreshToken)
             Button(action: { dismiss() }) {
                 Circle()
@@ -132,16 +132,16 @@ struct RestaurantProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
-        .padding(.top, 0)
+        .padding(.top, -80)
     }
 
     private var refreshOverlay: some View {
-        let h = max(0, pullOffset)
+        let h = max(0, min(pullOffset, 140))
         return ZStack {
             if h > 0 {
                 VStack {
                     Spacer()
-                    RefreshIndicatorView(progress: min(1, h / 160), isRefreshing: isRefreshing)
+                    RefreshIndicatorView(progress: min(1, h / 140), isRefreshing: isRefreshing)
                     Spacer()
                 }
             }
@@ -161,7 +161,7 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
-        .padding(.top, 8)
+        .padding(.top, 44)
         .frame(maxWidth: .infinity)
         .background(Color.black.opacity(0.9))
         .overlay(Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1), alignment: .bottom)
@@ -434,10 +434,14 @@ struct RestaurantProfileView: View {
         @State private var pulse = false
         var body: some View {
             ZStack {
-                Text("🍕")
-                    .font(.system(size: 28 + progress * 22))
-                    .scaleEffect(isRefreshing ? (pulse ? 1.06 : 0.94) : 1)
-                    .rotationEffect(.degrees(isRefreshing ? (pulse ? 6 : -6) : 0))
+                Circle()
+                    .fill(Color.green.opacity(0.18))
+                    .frame(width: 46 + progress * 18, height: 46 + progress * 18)
+                    .scaleEffect(isRefreshing ? (pulse ? 1.08 : 0.92) : 1)
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                    .scaleEffect(1 + progress * 0.15)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(isRefreshing ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true) : .spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pulse)
