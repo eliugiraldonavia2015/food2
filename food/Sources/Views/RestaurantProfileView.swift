@@ -119,7 +119,6 @@ struct RestaurantProfileView: View {
                         endPoint: .bottom
                     )
                 )
-                .offset(y: 80)
                 .id(refreshToken)
             Button(action: { dismiss() }) {
                 Circle()
@@ -127,12 +126,11 @@ struct RestaurantProfileView: View {
                     .frame(width: 38, height: 38)
                     .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             }
-            .padding(12)
-            .offset(y: 160)
+            .padding(.leading, 12)
+            .padding(.top, 44)
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
-        .padding(.top, -80)
     }
 
     private var refreshOverlay: some View {
