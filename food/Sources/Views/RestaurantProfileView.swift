@@ -25,7 +25,6 @@ struct RestaurantProfileView: View {
     @State private var selectedBranchName = ""
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
-    @State private var refreshToken = UUID()
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -47,7 +46,6 @@ struct RestaurantProfileView: View {
             VStack(spacing: 16) {
                 Color.clear
                     .frame(height: 0)
-                    .padding(.bottom, -16)
                     .background(
                         GeometryReader { geo in
                             Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
@@ -97,14 +95,12 @@ struct RestaurantProfileView: View {
 
     private var header: some View {
         ZStack(alignment: .topLeading) {
-            WebImage(url: URL(string: data.coverUrl), options: [.refreshCached])
+            WebImage(url: URL(string: data.coverUrl))
                 .resizable()
                 .indicator(.activity)
-                .transition(.fade(duration: 0.6))
                 .aspectRatio(contentMode: .fill)
                 .frame(height: 340)
                 .clipped()
-                .ignoresSafeArea(.container, edges: .top)
                 .overlay(
                     LinearGradient(
                         gradient: Gradient(stops: [
@@ -121,34 +117,38 @@ struct RestaurantProfileView: View {
                         endPoint: .bottom
                     )
                 )
-                .id(refreshToken)
+                .offset(y: 80)
             Button(action: { dismiss() }) {
                 Circle()
                     .fill(Color.black.opacity(0.6))
                     .frame(width: 38, height: 38)
                     .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             }
-            .padding(.leading, 12)
-            .padding(.top, 44)
+            .padding(12)
+            .offset(y: 160)
         }
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .top)
+        .padding(.top, -80)
     }
 
     private var refreshOverlay: some View {
-        let h = max(0, min(pullOffset, 140))
+        let h = max(0, min(pullOffset, 100))
         return ZStack {
-            if h > 0 {
+            if h > 0 || isRefreshing {
                 VStack {
                     Spacer()
-                    RefreshIndicatorView(progress: min(1, h / 140), isRefreshing: isRefreshing)
-                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1 + h / 200)
+                        .opacity(min(1, h / 60))
+                        .padding(.bottom, 10)
                 }
             }
         }
         .frame(height: h)
         .frame(maxWidth: .infinity)
-        .background(h > 0 ? Color.black.opacity(0.6) : Color.clear)
+        .background((h > 0 || isRefreshing) ? Color.black : Color.clear)
     }
 
     private var refreshingHUD: some View {
@@ -161,7 +161,6 @@ struct RestaurantProfileView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 16)
-        .padding(.top, 44)
         .frame(maxWidth: .infinity)
         .background(Color.black.opacity(0.9))
         .overlay(Rectangle().fill(Color.white.opacity(0.06)).frame(height: 1), alignment: .bottom)
@@ -171,15 +170,13 @@ struct RestaurantProfileView: View {
 
     private var profileInfo: some View {
         VStack(spacing: 12) {
-            WebImage(url: URL(string: data.avatarUrl), options: [.refreshCached])
+            WebImage(url: URL(string: data.avatarUrl))
                 .resizable()
                 .scaledToFill()
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 .offset(y: -22)
-                .transition(.fade(duration: 0.6))
-                .id(refreshToken)
             VStack(spacing: 6) {
                 Text(data.name)
                     .foregroundColor(.white)
@@ -357,7 +354,6 @@ struct RestaurantProfileView: View {
         try? await Task.sleep(nanoseconds: UInt64(0.9 * 1_000_000_000))
         await MainActor.run {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) {
-                refreshToken = UUID()
                 isRefreshing = false
             }
         }
@@ -366,7 +362,7 @@ struct RestaurantProfileView: View {
     private var photoGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 12) {
             ForEach(0..<photoItems.count, id: \.self) { i in
-                PhotoTileView(url: photoItems[i].url, reloadKey: refreshToken)
+                PhotoTileView(url: photoItems[i].url)
             }
         }
     }
@@ -380,10 +376,9 @@ struct RestaurantProfileView: View {
 
     struct PhotoTileView: View {
         let url: String
-        let reloadKey: UUID
         var body: some View {
             let finalURL = URL(string: url.isEmpty ? "" : url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-            AsyncImage(url: finalURL, transaction: Transaction(animation: .spring(response: 0.4, dampingFraction: 0.85, blendDuration: 0.2))) { phase in
+            AsyncImage(url: finalURL) { phase in
                 switch phase {
                 case .empty:
                     placeholder
@@ -391,7 +386,6 @@ struct RestaurantProfileView: View {
                     image
                         .resizable()
                         .aspectRatio(1, contentMode: .fill)
-                        .transition(.scale.combined(with: .opacity))
                 case .failure(_):
                     errorView
                 @unknown default:
@@ -402,7 +396,6 @@ struct RestaurantProfileView: View {
             .background(Color.white.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
-            .id(reloadKey)
         }
 
         private var placeholder: some View {
@@ -428,27 +421,7 @@ struct RestaurantProfileView: View {
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
 
-    struct RefreshIndicatorView: View {
-        let progress: CGFloat
-        let isRefreshing: Bool
-        @State private var pulse = false
-        var body: some View {
-            ZStack {
-                Circle()
-                    .fill(Color.green.opacity(0.18))
-                    .frame(width: 46 + progress * 18, height: 46 + progress * 18)
-                    .scaleEffect(isRefreshing ? (pulse ? 1.08 : 0.92) : 1)
-                Image(systemName: "fork.knife")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                    .scaleEffect(1 + progress * 0.15)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .animation(isRefreshing ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true) : .spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: pulse)
-            .onAppear { if isRefreshing { pulse = true } }
-            .onChange(of: isRefreshing) { v in pulse = v }
-        }
-    }
+    
 
     private func formatCount(_ count: Int) -> String {
         if count >= 1_000_000 { return String(format: "%.1fM", Double(count)/1_000_000) }
