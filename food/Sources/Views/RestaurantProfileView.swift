@@ -101,7 +101,8 @@ struct RestaurantProfileView: View {
             }
             .padding(12)
             .offset(y: 80)
-            .opacity(headerMinY <= -headerHeight + 1 ? 1 : 0)
+            .opacity(headerMinY <= -88 ? 1 : 0)
+            .zIndex(1000)
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
