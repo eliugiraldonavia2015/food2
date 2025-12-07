@@ -44,7 +44,6 @@ struct RestaurantProfileView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            header
             ScrollView {
                 VStack(spacing: 16) {
                     Color.clear
@@ -85,6 +84,9 @@ struct RestaurantProfileView: View {
                 pullOffset = max(0, y)
             }
             .refreshable { await performRefresh() }
+            .zIndex(0)
+            header
+                .zIndex(1)
         }
         .overlay(alignment: .top) {
             refreshOverlay
