@@ -228,7 +228,7 @@ struct RestaurantProfileView: View {
                 }
             }
         }
-        .padding(.top, -80)
+        .padding(.top, -96)
         .padding(.bottom, 4)
     }
 
