@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct MessagesListView: View {
     @State private var searchText: String = ""
@@ -190,11 +189,11 @@ struct ChatView: View {
             Button {
                 let txt = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !txt.isEmpty else { return }
-                messages.append(Message(text: txt, isMe: true, time: "Ahora"))
+                messages.append(Message(text: txt, isMe: true, time: "Ahora", status: .sent))
                 composerText = ""
             } label: {
                 Image(systemName: "paperplane.fill")
-                    .foregroundColor(Color(UIColor.systemBlue))
+                    .foregroundColor(.green)
                     .font(.system(size: 20))
             }
         }
@@ -220,7 +219,7 @@ struct MessageBubble: View {
                     .padding(.vertical, 10)
                     .background(
                         Group {
-                            if message.isMe { Color(UIColor.systemBlue) } else { Color.white.opacity(0.12) }
+                            if message.isMe { Color.green } else { Color.white.opacity(0.12) }
                         }
                     )
                     .overlay(
@@ -231,6 +230,16 @@ struct MessageBubble: View {
                 Text(message.time)
                     .foregroundColor(.white.opacity(0.6))
                     .font(.caption)
+                if message.isMe, let status = message.status {
+                    HStack(spacing: 4) {
+                        Image(systemName: status == .seen ? "checkmark.circle.fill" : (status == .delivered ? "checkmark.circle" : "paperplane"))
+                            .font(.caption2)
+                            .foregroundColor(.green)
+                        Text(status.label)
+                            .foregroundColor(.white.opacity(0.6))
+                            .font(.caption2)
+                    }
+                }
             }
             if !message.isMe { Spacer() }
         }
@@ -254,16 +263,23 @@ struct Conversation: Identifiable, Hashable {
     ]
 }
 
+enum MessageStatus { case sent, delivered, seen }
+
+extension MessageStatus {
+    var label: String { switch self { case .sent: return "Enviado"; case .delivered: return "Entregado"; case .seen: return "Visto" } }
+}
+
 struct Message: Identifiable {
     let id = UUID()
     let text: String
     let isMe: Bool
     let time: String
+    var status: MessageStatus?
 
     static let sample: [Message] = [
-        Message(text: "Hola, ¿el pedido #123 está listo?", isMe: true, time: "Hace 10 min"),
-        Message(text: "Sí, ya está en mostrador.", isMe: false, time: "Hace 9 min"),
-        Message(text: "Perfecto, paso en 5.", isMe: true, time: "Hace 8 min")
+        Message(text: "Hola, ¿el pedido #123 está listo?", isMe: true, time: "Hace 10 min", status: .delivered),
+        Message(text: "Sí, ya está en mostrador.", isMe: false, time: "Hace 9 min", status: nil),
+        Message(text: "Perfecto, paso en 5.", isMe: true, time: "Hace 8 min", status: .seen)
     ]
 }
 
