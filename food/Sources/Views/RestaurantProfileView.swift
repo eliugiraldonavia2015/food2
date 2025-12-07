@@ -137,21 +137,20 @@ struct RestaurantProfileView: View {
                             endPoint: .bottom
                         )
                     )
-                    .overlay(alignment: .center) {
-                        if minY > 0 {
-                            Text("⏳")
-                                .font(.system(size: 44))
-                                .foregroundColor(.white)
-                                .opacity(min(0.6, minY / 140))
-                                .rotationEffect(.degrees(emojiSpin ? 360 : 0))
-                                .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
-                                .onAppear { emojiSpin = true }
-                                .onDisappear { emojiSpin = false }
-                                .offset(x: -8)
-                                .allowsHitTesting(false)
-                        }
-                    }
                     .offset(y: minY > 0 ? -minY : 0)
+                if minY > 0 {
+                    Text("⏳")
+                        .font(.system(size: 44))
+                        .foregroundColor(.white)
+                        .opacity(min(0.6, minY / 140))
+                        .rotationEffect(.degrees(emojiSpin ? 360 : 0))
+                        .animation(Animation.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
+                        .onAppear { emojiSpin = true }
+                        .onDisappear { emojiSpin = false }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .offset(x: -8)
+                        .allowsHitTesting(false)
+                }
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
