@@ -93,16 +93,15 @@ struct RestaurantProfileView: View {
                 .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
         }
         .overlay(alignment: .topLeading) {
-            if headerMinY < -80 {
-                Button(action: { dismiss() }) {
-                    Circle()
-                        .fill(Color.black.opacity(0.6))
-                        .frame(width: 38, height: 38)
-                        .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
-                }
-                .padding(12)
-                .transition(.opacity)
+            Button(action: { dismiss() }) {
+                Circle()
+                    .fill(Color.black.opacity(0.6))
+                    .frame(width: 38, height: 38)
+                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             }
+            .padding(12)
+            .offset(y: 80)
+            .opacity(headerMinY <= -headerHeight + 1 ? 1 : 0)
         }
         .refreshable { await performRefresh() }
         .background(Color.black.ignoresSafeArea())
