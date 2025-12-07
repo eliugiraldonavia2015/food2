@@ -315,7 +315,28 @@ struct FeedView: View {
                     description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                     branch: "Sucursal Condesa",
                     photos: photos
-                )
+                ),
+                onRefresh: {
+                    try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
+                    let newPhotos: [RestaurantProfileView.PhotoItem] = [
+                        .init(url: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092", title: "Guacamole fresco"),
+                        .init(url: "https://images.unsplash.com/photo-1605475121025-6520df4cf73e", title: "Enchiladas verdes"),
+                        .init(url: "https://images.unsplash.com/photo-1589308078053-02051b89c1a3", title: "Pozole tradicional")
+                    ]
+                    return .init(
+                        coverUrl: item.backgroundUrl,
+                        avatarUrl: item.avatarUrl,
+                        name: item.username,
+                        username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                        location: "CDMX, México",
+                        rating: 4.8,
+                        category: "Comida Mexicana",
+                        followers: 45200,
+                        description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
+                        branch: "Sucursal Condesa",
+                        photos: newPhotos
+                    )
+                }
             )
         }
     }

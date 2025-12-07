@@ -19,6 +19,7 @@ struct RestaurantProfileView: View {
     }
 
     let data: DataModel
+    let onRefresh: (() async -> DataModel?)?
     @Environment(\.dismiss) private var dismiss
     @State private var isFollowing = false
     @State private var showLocationList = false
@@ -26,7 +27,8 @@ struct RestaurantProfileView: View {
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
-    @State private var emojiSpin = false
+    @State private var refreshedData: DataModel?
+    private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
@@ -34,7 +36,7 @@ struct RestaurantProfileView: View {
         GridItem(.flexible(), spacing: 12)
     ]
     private var photoItems: [PhotoItem] {
-        (0..<12).map { i in i < data.photos.count ? data.photos[i] : PhotoItem(url: "", title: "") }
+        (0..<12).map { i in i < currentData.photos.count ? currentData.photos[i] : PhotoItem(url: "", title: "") }
     }
 
     private let locations: [LocationItem] = [
@@ -115,7 +117,6 @@ struct RestaurantProfileView: View {
             let minY = geo.frame(in: .global).minY
             ZStack(alignment: .topLeading) {
                 coverImage(minY: minY)
-                emojiOverlay(minY: minY)
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
@@ -143,7 +144,7 @@ struct RestaurantProfileView: View {
     }
 
     private func coverImage(minY: CGFloat) -> some View {
-        WebImage(url: URL(string: data.coverUrl))
+        WebImage(url: URL(string: currentData.coverUrl))
             .resizable()
             .indicator(.activity)
             .aspectRatio(contentMode: .fill)
@@ -154,23 +155,6 @@ struct RestaurantProfileView: View {
             .offset(y: minY > 0 ? -minY : 0)
     }
 
-    @ViewBuilder
-    private func emojiOverlay(minY: CGFloat) -> some View {
-        if minY > 12 {
-            ZStack { Text("⏳") }
-                .font(.system(size: 44, weight: .regular))
-                .foregroundColor(.white)
-                .opacity(min(0.6, Double(minY - 12) / 140.0))
-                .rotationEffect(.degrees(emojiSpin ? 360 : 0))
-                .animation(.linear(duration: 1.1).repeatForever(autoreverses: false), value: emojiSpin)
-                .onAppear { emojiSpin = true }
-                .onDisappear { emojiSpin = false }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .allowsHitTesting(false)
-        } else {
-            EmptyView()
-        }
-    }
 
     private var refreshOverlay: some View {
         ZStack {
@@ -188,7 +172,7 @@ struct RestaurantProfileView: View {
 
     private var profileInfo: some View {
         VStack(spacing: 12) {
-            WebImage(url: URL(string: data.avatarUrl))
+            WebImage(url: URL(string: currentData.avatarUrl))
                 .resizable()
                 .scaledToFill()
                 .frame(width: 86, height: 86)
@@ -196,20 +180,20 @@ struct RestaurantProfileView: View {
                 .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 .offset(y: -22)
             VStack(spacing: 6) {
-                Text(data.name)
+                Text(currentData.name)
                     .foregroundColor(.white)
                     .font(.system(size: 26, weight: .bold))
-                Text("@\(data.username)")
+                Text("@\(currentData.username)")
                     .foregroundColor(.white.opacity(0.85))
                     .font(.system(size: 16))
                 HStack(spacing: 10) {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.and.ellipse").foregroundColor(.white.opacity(0.9))
-                        Text(data.location).foregroundColor(.white).font(.system(size: 14))
+                        Text(currentData.location).foregroundColor(.white).font(.system(size: 14))
                     }
                     HStack(spacing: 6) {
                         Image(systemName: "star.fill").foregroundColor(.yellow)
-                        Text(String(format: "%.1f", data.rating)).foregroundColor(.white).font(.system(size: 14))
+                        Text(String(format: "%.1f", currentData.rating)).foregroundColor(.white).font(.system(size: 14))
                     }
                 }
                 HStack(spacing: 8) {
@@ -220,7 +204,7 @@ struct RestaurantProfileView: View {
                         .padding(.horizontal, 12)
                         .background(Color.white.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
-                    Text(data.category)
+                    Text(currentData.category)
                         .foregroundColor(.green)
                         .font(.system(size: 14, weight: .semibold))
                         .padding(.vertical, 6)
@@ -229,7 +213,7 @@ struct RestaurantProfileView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                 }
                 VStack(spacing: 2) {
-                    Text(formatCount(data.followers))
+                    Text(formatCount(currentData.followers))
                         .foregroundColor(.white)
                         .font(.system(size: 24, weight: .bold))
                     Text("Seguidores")
@@ -287,7 +271,7 @@ struct RestaurantProfileView: View {
     }
 
     private var descriptionCard: some View {
-        Text(data.description)
+        Text(currentData.description)
             .foregroundColor(.white)
             .font(.subheadline)
             .padding()
@@ -301,7 +285,7 @@ struct RestaurantProfileView: View {
                 Image(systemName: "mappin")
                     .foregroundColor(.green)
                     .font(.system(size: 18))
-                Text(selectedBranchName.isEmpty ? data.branch : selectedBranchName)
+                Text(selectedBranchName.isEmpty ? currentData.branch : selectedBranchName)
                     .foregroundColor(.white)
                     .font(.subheadline)
                 Spacer()
@@ -369,8 +353,11 @@ struct RestaurantProfileView: View {
 
     private func performRefresh() async {
         await MainActor.run { isRefreshing = true }
-        try? await Task.sleep(nanoseconds: UInt64(0.9 * 1_000_000_000))
+        let newData = await onRefresh?()
         await MainActor.run {
+            if let newData = newData {
+                refreshedData = newData
+            }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) {
                 isRefreshing = false
             }
