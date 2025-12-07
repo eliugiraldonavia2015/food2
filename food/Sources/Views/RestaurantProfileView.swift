@@ -137,14 +137,6 @@ struct RestaurantProfileView: View {
                         )
                     )
                     .offset(y: minY > 0 ? -minY : 0)
-                Button(action: { dismiss() }) {
-                    Circle()
-                        .fill(Color.black.opacity(0.6))
-                        .frame(width: 38, height: 38)
-                        .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
-                }
-                .padding(12)
-                .offset(y: max(72, 160 + (minY > 0 ? 0 : minY)))
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
             }
