@@ -35,6 +35,7 @@ struct MessagesListView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var header: some View {
@@ -156,6 +157,7 @@ struct ChatView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var chatHeader: some View {
