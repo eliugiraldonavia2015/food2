@@ -41,7 +41,7 @@ struct MessagesListView: View {
         HStack(spacing: 12) {
             Text("Mensajes")
                 .foregroundColor(.white)
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -55,6 +55,7 @@ struct MessagesListView: View {
                 .foregroundColor(.gray)
             TextField("Buscar conversaciones...", text: $searchText)
                 .foregroundColor(.white)
+                .font(.callout)
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
         }
@@ -78,7 +79,7 @@ struct ConversationRow: View {
             ZStack(alignment: .bottomTrailing) {
                 Circle()
                     .fill(Color.white.opacity(0.10))
-                    .frame(width: 46, height: 46)
+                    .frame(width: 52, height: 52)
                     .overlay(Image(systemName: convo.avatarSystemName).foregroundColor(.white))
                     .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
                 if convo.isOnline {
@@ -93,11 +94,11 @@ struct ConversationRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(convo.title)
                     .foregroundColor(.white)
-                    .font(.callout.weight(.semibold))
+                    .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Text(convo.subtitle)
                     .foregroundColor(.gray)
-                    .font(.footnote)
+                    .font(.callout)
                     .lineLimit(2)
             }
             Spacer()
@@ -110,14 +111,14 @@ struct ConversationRow: View {
                         Circle().fill(Color.green)
                         Text("\(unread)")
                             .foregroundColor(.white)
-                            .font(.caption2.bold())
+                            .font(.caption.bold())
                     }
-                    .frame(width: 22, height: 22)
+                    .frame(width: 24, height: 24)
                 }
             }
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 16)
         .overlay(alignment: .bottom) { Rectangle().fill(Color.white.opacity(0.06)).frame(height: 0.6) }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button { } label: { Image(systemName: "pin.fill") }.tint(.orange)
@@ -138,14 +139,14 @@ struct ChatView: View {
             chatHeader
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: 10) {
                         ForEach(messages) { msg in
                             MessageBubble(message: msg)
                                 .id(msg.id)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                 }
                 .onChange(of: messages.count) { _ in
                     if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
@@ -162,11 +163,11 @@ struct ChatView: View {
             Button { dismiss() } label: {
                 Image(systemName: "chevron.left")
                     .foregroundColor(.white)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 22, weight: .semibold))
             }
             Text(conversation.title)
                 .foregroundColor(.white)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 22, weight: .bold))
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -179,9 +180,10 @@ struct ChatView: View {
             Button {} label: {
                 Image(systemName: "paperclip")
                     .foregroundColor(.gray)
+                    .font(.system(size: 18))
             }
             TextField("Escribe un mensaje...", text: $composerText, axis: .vertical)
-                .lineLimit(1...4)
+                .lineLimit(1...5)
                 .foregroundColor(.white)
                 .textInputAutocapitalization(.sentences)
             Button {
@@ -192,12 +194,13 @@ struct ChatView: View {
             } label: {
                 Image(systemName: "paperplane.fill")
                     .foregroundColor(.green)
+                    .font(.system(size: 20))
             }
         }
-        .padding(12)
+        .padding(14)
         .background(Color.white.opacity(0.06))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.1), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.1), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
     }
@@ -212,15 +215,15 @@ struct MessageBubble: View {
             VStack(alignment: message.isMe ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
                     .background(
                         Group {
                             if message.isMe { Color.green.opacity(0.35) } else { Color.white.opacity(0.10) }
                         }
                     )
                     .overlay(
-                        RoundedCorner(radius: 16, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
+                        RoundedCorner(radius: 18, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
                             .stroke(message.isMe ? Color.green.opacity(0.7) : Color.white.opacity(0.12), lineWidth: 1)
                     )
                     .clipShape(RoundedCorner(radius: 16, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
