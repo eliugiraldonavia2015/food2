@@ -733,10 +733,17 @@ struct FeedView: View {
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                         }
-                        .onLongPressGesture(minimumDuration: 0.35) {
+                        .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
+                            if !pressing && showQuickShare {
+                                withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
+                                quickHighlighted = nil
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { quickSent.removeAll() }
+                            }
+                        }) {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
                         }
-                        if showQuickShare { quickShareRadial }
+                        .frame(width: 44, height: 44)
+                        .overlay(alignment: .center) { if showQuickShare { quickShareRadial } }
                     }
                     .gesture(
                         DragGesture(minimumDistance: 0)
@@ -780,9 +787,9 @@ struct FeedView: View {
         private func quickTargetOffsets() -> [UUID: CGPoint] {
             var map: [UUID: CGPoint] = [:]
             if quickPeople.count >= 3 {
-                map[quickPeople[0].id] = CGPoint(x: -74, y: -60)
-                map[quickPeople[1].id] = CGPoint(x: -90, y: 0)
-                map[quickPeople[2].id] = CGPoint(x: -74, y: 60)
+                map[quickPeople[0].id] = CGPoint(x: -72, y: -48)
+                map[quickPeople[1].id] = CGPoint(x: -92, y: 0)
+                map[quickPeople[2].id] = CGPoint(x: -72, y: 48)
             }
             return map
         }
