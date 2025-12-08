@@ -552,7 +552,8 @@ struct FullMenuView: View {
 
     private var compactHeader: some View {
         VStack {
-            let show = heroFrame.height > 0 && heroFrame.maxY <= 0
+            let threshold: CGFloat = 12
+            let show = heroFrame.height > 0 && heroFrame.maxY <= threshold
             if show {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
