@@ -497,13 +497,13 @@ struct FullMenuView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(height: 180)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .opacity(max(0, min(1, 1 + (y / 160))))
+                    .opacity(max(0.0, min(1.0, 1.0 + Double(y) / 160.0)))
                 Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
                     Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
                         .overlay(Image(systemName: "xmark").foregroundColor(.white))
                         .padding(10)
                 }
-                .opacity(max(0, min(1, 1 + (y / 120))))
+                .opacity(max(0.0, min(1.0, 1.0 + Double(y) / 120.0)))
             }
         }
         .frame(height: 180)
