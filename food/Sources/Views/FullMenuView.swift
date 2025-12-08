@@ -566,7 +566,7 @@ struct FullMenuView: View {
     }
 
     private var compactHeader: some View {
-        VStack {
+        ZStack {
             if showCompactHeader {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -586,9 +586,9 @@ struct FullMenuView: View {
                 .padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
                 .transition(.move(edge: .top).combined(with: .opacity))
+                .frame(height: 40)
             }
         }
-        .frame(height: 40)
         .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showCompactHeader)
         .zIndex(showCompactHeader ? 10 : 0)
         .allowsHitTesting(false)
