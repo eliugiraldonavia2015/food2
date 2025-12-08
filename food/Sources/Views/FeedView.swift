@@ -404,7 +404,14 @@ struct FeedView: View {
             if showShare {
                 ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
             }
-            if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }) }
+            if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { name in
+                lastSavedFolder = name
+                toastMode = .saved
+                showSavedToast = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                }
+            }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
     }
@@ -480,6 +487,9 @@ struct FeedView: View {
         @State private var quickShareWork: DispatchWorkItem? = nil
         @State private var isBookmarked = false
         @State private var showSavedToast = false
+        private enum SavedToastMode { case saved, removed }
+        @State private var toastMode: SavedToastMode = .saved
+        @State private var lastSavedFolder: String = "Favoritos"
         private let bookmarkOrange = Color(red: 1.0, green: 0.5, blue: 0.0)
         private let quickPeople: [QuickPerson] = [
             .init(name: "María", emoji: "👩"),
@@ -719,10 +729,11 @@ struct FeedView: View {
                 
                 // Bookmark button
                 Button(action: {
-                    isBookmarked = true
+                    isBookmarked.toggle()
                     let gen = UIImpactFeedbackGenerator(style: .medium)
                     gen.impactOccurred()
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
+                    toastMode = isBookmarked ? .saved : .removed
                     showSavedToast = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                         withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
@@ -866,17 +877,29 @@ struct FeedView: View {
 
         private var savedToast: some View {
             HStack(spacing: 12) {
-                Text("Guardado en favoritos")
+                Text(toastMode == .saved ? "Guardado en \(lastSavedFolder)" : "Quitado de \(lastSavedFolder)")
                     .foregroundColor(.white)
                     .font(.system(size: 14, weight: .semibold))
                 Spacer(minLength: 0)
-                Button(action: {
-                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
-                    onShowMusic()
-                }) {
-                    Text("Cambiar")
-                        .foregroundColor(.green)
-                        .font(.system(size: 14, weight: .bold))
+                if toastMode == .saved {
+                    Button(action: {
+                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                        onShowMusic()
+                    }) {
+                        Text("Cambiar")
+                            .foregroundColor(.green)
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                } else {
+                    Button(action: {
+                        isBookmarked = true
+                        toastMode = .saved
+                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                    }) {
+                        Text("Deshacer")
+                            .foregroundColor(.green)
+                            .font(.system(size: 14, weight: .bold))
+                    }
                 }
             }
             .padding(.horizontal, 14)
@@ -886,7 +909,7 @@ struct FeedView: View {
             .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
-            .padding(.bottom, bottomInset + 12)
+            .padding(.bottom, 8)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }

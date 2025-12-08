@@ -3,6 +3,7 @@ import SwiftUI
 struct SaveFoldersOverlayView: View {
     struct Folder: Identifiable { let id = UUID(); let name: String; let icon: String; var color: Color }
     let onClose: () -> Void
+    let onSelect: (String) -> Void
     @State private var folders: [Folder] = [
         .init(name: "Favoritos", icon: "star.fill", color: .yellow),
         .init(name: "Postres", icon: "birthday.cake", color: .pink),
@@ -85,6 +86,10 @@ struct SaveFoldersOverlayView: View {
     private func folderItem(_ f: Folder) -> some View {
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { selected = f.id }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                onSelect(f.name)
+                withAnimation(.easeOut(duration: 0.25)) { onClose() }
+            }
         } label: {
             HStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 12)
