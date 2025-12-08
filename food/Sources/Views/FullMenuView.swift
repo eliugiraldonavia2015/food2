@@ -19,6 +19,8 @@ struct FullMenuView: View {
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
+    @State private var selectedSides: Set<String> = []
+    @State private var selectedDrinks: Set<String> = []
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -453,14 +455,14 @@ struct FullMenuView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         sectionTitle("Acompañamiento recomendado")
                         Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                        optionRow("Papas Fritas", "+ $2.5")
-                        optionRow("Aros de Cebolla", "+ $3")
-                        optionRow("Ensalada César", "+ $2")
+                        optionRow("Papas Fritas", "+ $2.5", selection: $selectedSides)
+                        optionRow("Aros de Cebolla", "+ $3", selection: $selectedSides)
+                        optionRow("Ensalada César", "+ $2", selection: $selectedSides)
                         sectionTitle("Bebidas recomendadas")
                         Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                        optionRow("Coca-Cola", "+ $1.5")
-                        optionRow("Limonada", "+ $2")
-                        optionRow("Té Helado", "+ $1.8")
+                        optionRow("Coca-Cola", "+ $1.5", selection: $selectedDrinks)
+                        optionRow("Limonada", "+ $2", selection: $selectedDrinks)
+                        optionRow("Té Helado", "+ $1.8", selection: $selectedDrinks)
                         sectionTitle("Notas especiales")
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.white.opacity(0.06))
@@ -473,9 +475,12 @@ struct FullMenuView: View {
                             )
                     }
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 120)
                 }
             }
+            .overlay(alignment: .top) { compactHeader.padding(.top, 0) }
+            .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
+            .overlay(alignment: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.bottom, 12) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
@@ -531,10 +536,16 @@ struct FullMenuView: View {
         )
     }
 
-    private func optionRow(_ title: String, _ price: String) -> some View {
-        HStack {
+    private func optionRow(_ title: String, _ price: String, selection: Binding<Set<String>>) -> some View {
+        let isSelected = selection.wrappedValue.contains(title)
+        return HStack {
             HStack(spacing: 10) {
-                Circle().stroke(Color.green, lineWidth: 2).frame(width: 18, height: 18)
+                if isSelected {
+                    Circle().fill(Color.green).frame(width: 18, height: 18)
+                        .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundColor(.black))
+                } else {
+                    Circle().stroke(Color.green, lineWidth: 2).frame(width: 18, height: 18)
+                }
                 Text(title).foregroundColor(.white).font(.system(size: 16))
             }
             Spacer()
@@ -543,6 +554,32 @@ struct FullMenuView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
+        .onTapGesture {
+            if isSelected {
+                selection.wrappedValue.remove(title)
+            } else {
+                if selection.wrappedValue.count < 3 { selection.wrappedValue.insert(title) }
+            }
+        }
+    }
+
+    private var sheetCloseButton: some View {
+        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
+            Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
+                .overlay(Image(systemName: "xmark").foregroundColor(.white))
+        }
+    }
+
+    private var sheetActionBar: some View {
+        Button(action: {}) {
+            Text("Agregar al carrito • \(sheetPrice)")
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color.green)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
     }
 
     
