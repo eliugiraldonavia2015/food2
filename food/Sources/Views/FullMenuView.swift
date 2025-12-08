@@ -81,7 +81,7 @@ struct FullMenuView: View {
             .ignoresSafeArea(edges: .top)
             .blur(radius: showDishSheet ? 8 : 0)
             .allowsHitTesting(!showDishSheet)
-            checkoutBar
+            if !showDishSheet { checkoutBar }
             topBar
             if showDishSheet { dishBottomSheet }
         }
@@ -475,11 +475,11 @@ struct FullMenuView: View {
                             )
                     }
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 90)
                 }
             }
             .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
-            .overlay(alignment: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.bottom, 12) }
+            .overlay(alignment: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.bottom, 8) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
