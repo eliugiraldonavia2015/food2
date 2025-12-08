@@ -11,6 +11,8 @@ struct FullMenuView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
     private let tabs = ["Todo","Popular","Combos","Entradas","Especiales","Sopas"]
+    @State private var showLocationList = false
+    @State private var selectedBranchName: String = ""
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -40,6 +42,13 @@ struct FullMenuView: View {
         ]
     ]
     private var allItems: [MenuItem] { Array(menuData.values.joined()) }
+    private struct LocationItem: Identifiable { let id = UUID(); let name: String; let address: String; let distanceKm: Double }
+    private let locations: [LocationItem] = [
+        .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 3194.7),
+        .init(name: "Sucursal Condesa", address: "Av. Michoacán 78, Condesa", distanceKm: 3195.6),
+        .init(name: "Sucursal Roma", address: "Calle Orizaba 45, Roma Norte", distanceKm: 3195.6),
+        .init(name: "Sucursal Polanco", address: "Masaryk 200, Polanco", distanceKm: 3196.1)
+    ]
 
     var body: some View {
         ZStack {
@@ -49,6 +58,12 @@ struct FullMenuView: View {
                     header
                     infoRow
                     branchDistance
+                    HStack { branchSelector; Spacer() }
+                        .overlay(alignment: .topLeading) {
+                            if showLocationList { locationList.padding(.top, 52).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
+                        }
+                        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
+                        .zIndex(showLocationList ? 10 : 0)
                     categoryTabs
                     sectionsStack
                     Spacer(minLength: 80)
@@ -61,6 +76,9 @@ struct FullMenuView: View {
             topBar
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            selectedBranchName = (branchName ?? location)
+        }
     }
 
     private var header: some View {
@@ -154,7 +172,7 @@ struct FullMenuView: View {
                         Text("Sucursal seleccionada")
                             .foregroundColor(.white.opacity(0.8))
                             .font(.caption)
-                        Text(branchName ?? location)
+                        Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
                             .foregroundColor(.white)
                             .font(.system(size: 16, weight: .semibold))
                     }
@@ -170,6 +188,78 @@ struct FullMenuView: View {
                 }
                 .padding(.horizontal, 16)
             )
+    }
+
+    private var branchSelector: some View {
+        Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
+            HStack(spacing: 10) {
+                Image(systemName: "mappin")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18))
+                Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white.opacity(0.8))
+                    .rotationEffect(.degrees(showLocationList ? 180 : 0))
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .frame(width: UIScreen.main.bounds.width * 0.65)
+        }
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var locationList: some View {
+        let nearestId = locations.min(by: { $0.distanceKm < $1.distanceKm })?.id
+        return ScrollView {
+            VStack(spacing: 8) {
+                ForEach(locations) { loc in
+                    Button(action: {
+                        selectedBranchName = loc.name
+                        showLocationList = false
+                    }) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(loc.name)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16, weight: .bold))
+                                Text(loc.address)
+                                    .foregroundColor(.white.opacity(0.75))
+                                    .font(.footnote)
+                            }
+                            Spacer()
+                            HStack(spacing: 8) {
+                                if nearestId == loc.id {
+                                    Text("Más cercano")
+                                        .foregroundColor(.green)
+                                        .font(.caption2.weight(.semibold))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 8)
+                                        .background(Color.green.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                                Text(String(format: "%.1f km", loc.distanceKm))
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 14)
+                        .background(Color.white.opacity(nearestId == loc.id ? 0.12 : 0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: CGFloat(min(locations.count, 3)) * 76)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
     private var categoryTabs: some View {
@@ -211,26 +301,70 @@ struct FullMenuView: View {
             sectionTitle(title)
             HStack(spacing: 12) {
                 ForEach(items.prefix(3)) { it in
-                    menuCard(title: it.title, url: it.url)
+                    optionDealCard(title: it.title, url: it.url, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
                 }
             }
             .frame(height: 170)
         }
     }
 
-    private func menuCard(title: String, url: String) -> some View {
-        VStack(spacing: 6) {
-            WebImage(url: URL(string: url))
-                .resizable()
-                .indicator(.activity)
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 120, height: 130)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.green.opacity(0.4), lineWidth: title == "Pizza" ? 2 : 0))
-            Text(title)
-                .foregroundColor(.white)
-                .font(.footnote)
+    private func optionDealCard(title: String, url: String, merchant: String, time: String) -> some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                WebImage(url: URL(string: url))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 180, height: 110)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .mask(
+                        RoundedRectangle(cornerRadius: 16)
+                            .frame(width: 180, height: 110)
+                    )
+                Text("-20%")
+                    .foregroundColor(.black)
+                    .font(.system(size: 12, weight: .bold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow)
+                    .cornerRadius(4)
+                    .padding(8)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Text("$5,00")
+                        .foregroundColor(.white)
+                        .font(.system(size: 18, weight: .bold))
+                    Text("$10,80")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 18))
+                        .strikethrough()
+                }
+                Text(title)
+                    .foregroundColor(.gray)
+                    .font(.system(size: 13))
+                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    Text(merchant)
+                        .foregroundColor(.white)
+                        .font(.system(size: 12))
+                    Text("•")
+                        .foregroundColor(.gray)
+                    Image(systemName: "clock")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 12))
+                    Text(time)
+                        .foregroundColor(.white)
+                        .font(.system(size: 12))
+                }
+            }
+            .padding(10)
+            .frame(width: 180, alignment: .leading)
+            .background(Color.white.opacity(0.12))
         }
+        .frame(width: 180)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.22), lineWidth: 1))
     }
 
     private var checkoutBar: some View {
