@@ -79,7 +79,7 @@ struct MainTabView: View {
         }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
-        .animation(.easeOut(duration: 0.6), value: showCommentsOverlay)
+        .animation(.easeOut(duration: 0.4), value: showCommentsOverlay)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
         }
