@@ -58,9 +58,8 @@ struct FullMenuView: View {
                     header
                     infoRow
                     branchDistance
-                    HStack { branchSelector; Spacer() }
                         .overlay(alignment: .topLeading) {
-                            if showLocationList { locationList.padding(.top, 52).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
+                            if showLocationList { locationList.padding(.top, 88).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
                         }
                         .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
                         .zIndex(showLocationList ? 10 : 0)
@@ -163,31 +162,37 @@ struct FullMenuView: View {
     }
 
     private var branchDistance: some View {
-        RoundedRectangle(cornerRadius: 16)
-            .fill(Color.white.opacity(0.06))
-            .frame(height: 84)
-            .overlay(
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Sucursal seleccionada")
-                            .foregroundColor(.white.opacity(0.8))
-                            .font(.caption)
-                        Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .semibold))
+        Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 84)
+                .overlay(
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Sucursal seleccionada")
+                                .foregroundColor(.white.opacity(0.8))
+                                .font(.caption)
+                            Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 6) {
+                            Text("Distancia")
+                                .foregroundColor(.white.opacity(0.8))
+                                .font(.caption)
+                            HStack(spacing: 6) {
+                                Text(String(format: "%.1f km", distanceKm ?? 2.3))
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 16, weight: .semibold))
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
                     }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 6) {
-                        Text("Distancia")
-                            .foregroundColor(.white.opacity(0.8))
-                            .font(.caption)
-                        Text(String(format: "%.1f km", distanceKm ?? 2.3))
-                            .foregroundColor(.green)
-                            .font(.system(size: 16, weight: .semibold))
-                    }
-                }
-                .padding(.horizontal, 16)
-            )
+                    .padding(.horizontal, 16)
+                )
+        }
     }
 
     private var branchSelector: some View {
@@ -299,12 +304,14 @@ struct FullMenuView: View {
     private func section(_ title: String, items: [MenuItem]) -> some View {
         VStack(spacing: 12) {
             sectionTitle(title)
-            HStack(spacing: 12) {
-                ForEach(items.prefix(3)) { it in
-                    optionDealCard(title: it.title, url: it.url, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(items) { it in
+                        optionDealCard(title: it.title, url: it.url, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
+                    }
                 }
+                .padding(.horizontal, 2)
             }
-            .frame(height: 170)
         }
     }
 
