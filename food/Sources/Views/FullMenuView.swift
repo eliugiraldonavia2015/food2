@@ -18,6 +18,7 @@ struct FullMenuView: View {
     @State private var sheetImageUrl: String = ""
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
+    @State private var priceMaxY: CGFloat = 0
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -477,6 +478,7 @@ struct FullMenuView: View {
             }
             .overlay(alignment: .top) { compactHeader }
             .coordinateSpace(name: "dishScroll")
+            .onPreferenceChange(PriceOffsetKey.self) { v in priceMaxY = v }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
@@ -520,6 +522,11 @@ struct FullMenuView: View {
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
         .offset(y: -18)
         .padding(.horizontal, 12)
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: PriceOffsetKey.self, value: geo.frame(in: .named("dishScroll")).maxY)
+            }
+        )
     }
 
     private func optionRow(_ title: String, _ price: String) -> some View {
@@ -537,32 +544,33 @@ struct FullMenuView: View {
     }
 
     private var compactHeader: some View {
-        GeometryReader { geo in
-            let y = geo.frame(in: .named("dishScroll")).minY
-            let show = y < -20
-            VStack {
-                if show {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
-                            Text(sheetPrice).foregroundColor(.green).font(.caption.bold())
-                        }
-                        Spacer()
-                        HStack(spacing: 8) {
-                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "square.and.arrow.up").foregroundColor(.white))
-                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "bookmark").foregroundColor(.white))
-                            Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
-                                Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "xmark").foregroundColor(.white))
-                            }
+        VStack {
+            if priceMaxY < 0 {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
+                        Text(sheetPrice).foregroundColor(.green).font(.caption.bold())
+                    }
+                    Spacer()
+                    HStack(spacing: 8) {
+                        Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "square.and.arrow.up").foregroundColor(.white))
+                        Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "bookmark").foregroundColor(.white))
+                        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
+                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "xmark").foregroundColor(.white))
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
             }
         }
         .frame(height: 40)
+    }
+
+    private struct PriceOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
 }
 
