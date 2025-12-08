@@ -125,6 +125,7 @@ struct FullMenuView: View {
                     }
                 }
                 .padding(16)
+                .offset(y: minY > 0 ? -minY * 0.6 : 0)
             }
             .frame(height: 240)
         }
