@@ -81,48 +81,54 @@ struct FullMenuView: View {
     }
 
     private var header: some View {
-        ZStack(alignment: .bottomLeading) {
-            WebImage(url: URL(string: coverUrl))
-                .resizable()
-                .indicator(.activity)
-                .aspectRatio(contentMode: .fill)
-                .frame(height: 240)
-                .clipped()
-                .overlay(
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: Color.black.opacity(0.0), location: 0.0),
-                            .init(color: Color.black.opacity(0.0), location: 0.55),
-                            .init(color: Color.black.opacity(0.30), location: 0.65),
-                            .init(color: Color.black.opacity(0.75), location: 0.75),
-                            .init(color: Color.black.opacity(1.0), location: 0.85),
-                            .init(color: Color.black.opacity(1.0), location: 0.92),
-                            .init(color: Color.black.opacity(1.0), location: 0.97),
-                            .init(color: Color.black.opacity(1.0), location: 1.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-            HStack(alignment: .center, spacing: 12) {
-                WebImage(url: URL(string: avatarUrl))
+        GeometryReader { geo in
+            let minY = geo.frame(in: .global).minY
+            ZStack(alignment: .bottomLeading) {
+                WebImage(url: URL(string: coverUrl))
                     .resizable()
-                    .scaledToFill()
-                    .frame(width: 64, height: 64)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.green, lineWidth: 2))
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(restaurantName)
-                        .foregroundColor(.white)
-                        .font(.system(size: 28, weight: .bold))
-                    Text(location)
-                        .foregroundColor(.white.opacity(0.9))
-                        .font(.subheadline)
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: minY > 0 ? 240 + minY : 240)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                    .clipped()
+                    .overlay(
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: Color.black.opacity(0.0), location: 0.0),
+                                .init(color: Color.black.opacity(0.0), location: 0.55),
+                                .init(color: Color.black.opacity(0.30), location: 0.65),
+                                .init(color: Color.black.opacity(0.75), location: 0.75),
+                                .init(color: Color.black.opacity(1.0), location: 0.85),
+                                .init(color: Color.black.opacity(1.0), location: 0.92),
+                                .init(color: Color.black.opacity(1.0), location: 0.97),
+                                .init(color: Color.black.opacity(1.0), location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .offset(y: minY > 0 ? -minY : 0)
+                HStack(alignment: .center, spacing: 12) {
+                    WebImage(url: URL(string: avatarUrl))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 64, height: 64)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.green, lineWidth: 2))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(restaurantName)
+                            .foregroundColor(.white)
+                            .font(.system(size: 28, weight: .bold))
+                        Text(location)
+                            .foregroundColor(.white.opacity(0.9))
+                            .font(.subheadline)
+                    }
                 }
+                .padding(16)
             }
-            .padding(16)
+            .frame(height: 240)
         }
-        .frame(maxWidth: .infinity)
+        .frame(height: 240)
         .padding(.horizontal, -16)
         .ignoresSafeArea(edges: .top)
     }
