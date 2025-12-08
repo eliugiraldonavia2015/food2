@@ -274,7 +274,7 @@ struct FeedView: View {
                         onShowProfile: { showRestaurantProfile = true },
                         onShowMenu: { showMenu = true },
                         onShowComments: { onGlobalShowComments?(item.comments, item.backgroundUrl) },
-                        onShowShare: { showShare = true },
+                        onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
                         onShowMusic: { showMusic = true }
                     )
                 }
@@ -401,7 +401,9 @@ struct FeedView: View {
                 let item = currentItems[idx]
                 CommentsOverlayView(count: item.comments, onClose: { showComments = false })
             }
-            if showShare { modalCard(title: "Compartir", onClose: { showShare = false }) }
+            if showShare {
+                ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
+            }
             if showMusic { modalCard(title: "Guardados", onClose: { showMusic = false }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
