@@ -31,6 +31,7 @@ struct RestaurantProfileView: View {
     @State private var reachedThreshold = false
     @State private var didHapticThreshold = false
     @State private var refreshedData: DataModel?
+    @State private var showFullMenu = false
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
@@ -131,6 +132,16 @@ struct RestaurantProfileView: View {
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
+        .fullScreenCover(isPresented: $showFullMenu) {
+            FullMenuView(
+                restaurantName: currentData.name,
+                coverUrl: currentData.coverUrl,
+                avatarUrl: currentData.avatarUrl,
+                location: currentData.location,
+                branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
+                distanceKm: 2.3
+            )
+        }
     }
 
     private var header: some View {
@@ -329,21 +340,23 @@ struct RestaurantProfileView: View {
     }
 
     private var menuPill: some View {
-        ZStack {
-            HStack {
-                Image(systemName: "line.3.horizontal")
+        Button(action: { showFullMenu = true }) {
+            ZStack {
+                HStack {
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                Text("Ver Menú Completo")
                     .foregroundColor(.white)
-                Spacer()
+                    .font(.system(size: 16, weight: .semibold))
             }
-            Text("Ver Menú Completo")
-                .foregroundColor(.white)
-                .font(.system(size: 16, weight: .semibold))
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color.black)
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.8), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 18))
         }
-        .padding(.vertical, 14)
-        .padding(.horizontal, 16)
-        .background(Color.black)
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.8), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
     private var descriptionCard: some View {

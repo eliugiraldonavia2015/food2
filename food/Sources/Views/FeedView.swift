@@ -348,6 +348,17 @@ struct FeedView: View {
                 }
             )
         }
+        .fullScreenCover(isPresented: $showMenu) {
+            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            FullMenuView(
+                restaurantName: item.username,
+                coverUrl: item.backgroundUrl,
+                avatarUrl: item.avatarUrl,
+                location: "CDMX, México",
+                branchName: "CDMX, México",
+                distanceKm: 2.3
+            )
+        }
     }
 
     private var topTabs: some View {
@@ -395,7 +406,6 @@ struct FeedView: View {
 
     private var overlays: some View {
         ZStack {
-            if showMenu { modalCard(title: "Menú", onClose: { showMenu = false }) }
             if showComments {
                 let idx = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
                 let item = currentItems[idx]
