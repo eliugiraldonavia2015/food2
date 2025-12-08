@@ -470,6 +470,17 @@ struct FeedView: View {
         @State private var heartScale: CGFloat = 0.5
         @State private var heartOpacity: Double = 0
         @State private var heartAngle: Double = 0
+
+        // Quick Share
+        struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
+        @State private var showQuickShare = false
+        @State private var quickHighlighted: UUID? = nil
+        @State private var quickSent: Set<UUID> = []
+        private let quickPeople: [QuickPerson] = [
+            .init(name: "María", emoji: "👩"),
+            .init(name: "Juan", emoji: "👨"),
+            .init(name: "Laura", emoji: "👩")
+        ]
         
         init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
@@ -713,14 +724,48 @@ struct FeedView: View {
                 
                 // Share button
                 VStack(spacing: 6) {
-                    Button(action: onShowShare) {
-                        Image(systemName: "paperplane")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    ZStack {
+                        Button(action: onShowShare) {
+                            Image(systemName: "paperplane")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        .onLongPressGesture(minimumDuration: 0.35) {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
+                        }
+                        if showQuickShare { quickShareRadial }
                     }
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                guard showQuickShare else { return }
+                                let p = value.location
+                                let targets = quickTargetOffsets()
+                                var newHighlight: UUID? = nil
+                                for (id, off) in targets {
+                                    let dx = p.x - (14 + off.x)
+                                    let dy = p.y - (14 + off.y)
+                                    let dist = CGFloat(hypot(Double(dx), Double(dy)))
+                                    if dist < 36 { newHighlight = id }
+                                }
+                                if let h = newHighlight {
+                                    quickHighlighted = h
+                                    quickSent = [h]
+                                } else {
+                                    quickHighlighted = nil
+                                    quickSent.removeAll()
+                                }
+                            }
+                            .onEnded { _ in
+                                guard showQuickShare else { return }
+                                withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
+                                quickHighlighted = nil
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { quickSent.removeAll() }
+                            }
+                    )
                     Text(formatCount(item.shares))
                         .foregroundColor(.white)
                         .font(.system(size: 12, weight: .medium))
@@ -729,8 +774,47 @@ struct FeedView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .padding(.top, size.height * 0.59)
             .padding(.trailing, 16)
+            
         }
         
+        private func quickTargetOffsets() -> [UUID: CGPoint] {
+            var map: [UUID: CGPoint] = [:]
+            if quickPeople.count >= 3 {
+                map[quickPeople[0].id] = CGPoint(x: -74, y: -60)
+                map[quickPeople[1].id] = CGPoint(x: -90, y: 0)
+                map[quickPeople[2].id] = CGPoint(x: -74, y: 60)
+            }
+            return map
+        }
+
+        private var quickShareRadial: some View {
+            ZStack {
+                ForEach(quickPeople) { person in
+                    let off = quickTargetOffsets()[person.id] ?? .zero
+                    VStack(spacing: 6) {
+                        ZStack {
+                            Circle().fill(Color.white.opacity(0.12)).frame(width: 44, height: 44)
+                            Text(person.emoji).font(.system(size: 22))
+                            if quickSent.contains(person.id) {
+                                Circle().fill(Color.green).frame(width: 44, height: 44)
+                                    .overlay(
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 16, weight: .bold))
+                                    )
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+                        }
+                    }
+                    .offset(x: off.x, y: off.y)
+                    .scaleEffect(showQuickShare ? 1 : 0.8)
+                    .opacity(showQuickShare ? 1 : 0)
+                }
+            }
+            .frame(width: 160, height: 160)
+            .contentShape(Rectangle())
+        }
+
         private func formatCount(_ count: Int) -> String {
             if count >= 1_000_000 {
                 return String(format: "%.1fM", Double(count) / 1_000_000)
