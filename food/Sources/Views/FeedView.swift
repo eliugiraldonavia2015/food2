@@ -4,6 +4,7 @@ import SDWebImageSwiftUI
 struct FeedView: View {
     let bottomInset: CGFloat
     let onGlobalShowComments: ((Int, String) -> Void)?
+    let isCommentsOverlayActive: Bool
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -250,9 +251,10 @@ struct FeedView: View {
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
 
-    init(bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil) {
+    init(bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false) {
         self.bottomInset = bottomInset
         self.onGlobalShowComments = onGlobalShowComments
+        self.isCommentsOverlayActive = isCommentsOverlayActive
     }
 
     var body: some View {
@@ -268,6 +270,7 @@ struct FeedView: View {
                         size: size,
                         bottomInset: bottomInset,
                         expandedDescriptions: $expandedDescriptions,
+                        isCommentsOverlayActive: isCommentsOverlayActive,
                         onShowProfile: { showRestaurantProfile = true },
                         onShowMenu: { showMenu = true },
                         onShowComments: { onGlobalShowComments?(item.comments, item.backgroundUrl) },
@@ -445,6 +448,7 @@ struct FeedView: View {
         let size: CGSize
         let bottomInset: CGFloat
         @Binding var expandedDescriptions: Set<UUID>
+        let isCommentsOverlayActive: Bool
         
         // Callbacks
         let onShowProfile: () -> Void
@@ -465,11 +469,12 @@ struct FeedView: View {
         @State private var heartOpacity: Double = 0
         @State private var heartAngle: Double = 0
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
             self._expandedDescriptions = expandedDescriptions
+            self.isCommentsOverlayActive = isCommentsOverlayActive
             self.onShowProfile = onShowProfile
             self.onShowMenu = onShowMenu
             self.onShowComments = onShowComments
@@ -479,32 +484,30 @@ struct FeedView: View {
         }
         
         var body: some View {
-            ZStack {
-                // IMAGEN DE FONDO
-                WebImage(url: URL(string: item.backgroundUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.5))
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: size.width, height: size.height)
-                    .clipped()
-                
-                // CAPA DE GESTOS (TRANSPARENTE, ENCIMA DE TODO)
-                Color.black.opacity(0.001) // Casi transparente para capturar taps
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    WebImage(url: URL(string: item.backgroundUrl))
+                        .resizable()
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.5))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
+                        .clipped()
+                    Spacer(minLength: 0)
+                }
+                .frame(width: size.width, height: size.height)
+
+                // CAPA DE GESTOS (TRANSPARENTE)
+                Color.black.opacity(0.001)
                     .frame(width: size.width, height: size.height)
                     .contentShape(Rectangle())
-                    .onTapGesture(count: 2) {
-                        handleDoubleTap()
-                    }
-                
-                // Gradiente
-                LinearGradient(
-                    colors: [.black.opacity(0.2), .clear],
-                    startPoint: .bottom, endPoint: .top
-                )
-                .allowsHitTesting(false) // Permitir que los taps pasen a la capa de gestos
-                
-                // ANIMACIÓN CORAZÓN GRANDE
+                    .onTapGesture(count: 2) { handleDoubleTap() }
+
+                if !isCommentsOverlayActive {
+                    LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
+                        .allowsHitTesting(false)
+                }
+
                 if showLikeHeart {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.white)
@@ -515,15 +518,13 @@ struct FeedView: View {
                         .rotationEffect(.degrees(heartAngle))
                         .allowsHitTesting(false)
                 }
-                
-                // COLUMNA IZQUIERDA (Contenido Overlay)
-                leftColumn
-                
-                // COLUMNA DERECHA (Botones)
-                rightColumn
+
+                if !isCommentsOverlayActive { leftColumn }
+                if !isCommentsOverlayActive { rightColumn }
             }
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
+            .animation(.easeInOut(duration: 0.75), value: isCommentsOverlayActive)
         }
         
         private func handleDoubleTap() {

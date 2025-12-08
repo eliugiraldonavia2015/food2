@@ -25,7 +25,7 @@ struct MainTabView: View {
                         commentsCount = count
                         currentFeedImageUrl = url
                         withAnimation { showCommentsOverlay = true }
-                    })
+                    }, isCommentsOverlayActive: showCommentsOverlay)
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
@@ -76,25 +76,10 @@ struct MainTabView: View {
                 CommentsOverlayView(count: commentsCount, onClose: { withAnimation { showCommentsOverlay = false } })
                     .zIndex(6)
             }
-
-            // Miniatura superior del feed cuando los comentarios suben
-            if selected == .feed, showCommentsOverlay, let url = URL(string: currentFeedImageUrl) {
-                WebImage(url: url)
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geo.size.height * 0.35)
-                    .clipped()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .allowsHitTesting(false)
-                    .zIndex(5)
-            }
         }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
-        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: showCommentsOverlay)
+        .animation(.easeInOut(duration: 0.75), value: showCommentsOverlay)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
         }
