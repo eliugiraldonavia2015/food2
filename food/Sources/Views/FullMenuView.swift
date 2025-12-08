@@ -482,11 +482,11 @@ struct FullMenuView: View {
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
-                let threshold: CGFloat = 8
-                showCompactHeader = v.minY <= threshold
             }
             .onPreferenceChange(HeroFrameKey.self) { v in
                 heroFrame = v
+                let threshold: CGFloat = 64
+                showCompactHeader = v.maxY <= threshold
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
