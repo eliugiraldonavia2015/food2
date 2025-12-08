@@ -19,9 +19,6 @@ struct FullMenuView: View {
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
-    @State private var heroFrame: CGRect = .zero
-    @State private var showCompactHeader = false
-    @State private var scrollOffset: CGFloat = 0
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -451,10 +448,6 @@ struct FullMenuView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(spacing: 0) {
-                    GeometryReader { geo in
-                        Color.clear.preference(key: ScrollOffsetKey.self, value: -geo.frame(in: .named("dishScroll")).minY)
-                    }
-                    .frame(height: 1)
                     dishTopBlock
                     dishInfoPanel
                     VStack(alignment: .leading, spacing: 16) {
@@ -483,18 +476,9 @@ struct FullMenuView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .overlay(alignment: .top) { compactHeader.padding(.top, 0) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
-            }
-            .onPreferenceChange(HeroFrameKey.self) { v in
-                heroFrame = v
-            }
-            .onPreferenceChange(ScrollOffsetKey.self) { off in
-                scrollOffset = off
-                let threshold: CGFloat = 44
-                showCompactHeader = off >= threshold
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
@@ -524,11 +508,7 @@ struct FullMenuView: View {
                 }
                 .opacity(max(0.0, min(1.0, 1.0 + Double(y) / 120.0)))
             }
-            .background(
-                GeometryReader { geo in
-                    Color.clear.preference(key: HeroFrameKey.self, value: geo.frame(in: .named("dishScroll")))
-                }
-            )
+            .background(Color.clear)
         }
         .frame(height: 180)
         .padding(.horizontal, 12)
@@ -565,48 +545,13 @@ struct FullMenuView: View {
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
     }
 
-    private var compactHeader: some View {
-        ZStack {
-            if showCompactHeader {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
-                        Text(sheetPrice).foregroundColor(.green).font(.caption.bold())
-                    }
-                    Spacer()
-                    HStack(spacing: 8) {
-                        Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "square.and.arrow.up").foregroundColor(.white))
-                        Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "bookmark").foregroundColor(.white))
-                        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
-                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "xmark").foregroundColor(.white))
-                        }
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .frame(height: 40)
-            }
-        }
-        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showCompactHeader)
-        .zIndex(showCompactHeader ? 10 : 0)
-        .allowsHitTesting(false)
-    }
+    
 
     private struct PriceFrameKey: PreferenceKey {
         static var defaultValue: CGRect = .zero
         static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
     }
 
-    private struct HeroFrameKey: PreferenceKey {
-        static var defaultValue: CGRect = .zero
-        static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
-    }
-
-    private struct ScrollOffsetKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-    }
+    
 }
 
