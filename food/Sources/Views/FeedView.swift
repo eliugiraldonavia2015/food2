@@ -729,15 +729,7 @@ struct FeedView: View {
                     let gen = UIImpactFeedbackGenerator(style: .medium)
                     gen.impactOccurred()
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
-                    toastMode = isBookmarked ? .saved : .removed
-                    toastWork?.cancel()
-                    withAnimation(.easeOut(duration: 0.1)) { showSavedToast = false }
-                    showSavedToast = true
-                    let work = DispatchWorkItem {
-                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
-                    }
-                    toastWork = work
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0, execute: work)
+                    presentToast(isBookmarked ? .saved : .removed)
                 }) {
                     Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                         .resizable()
@@ -912,6 +904,25 @@ struct FeedView: View {
             .padding(.bottom, 8)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+
+        private func presentToast(_ mode: SavedToastMode) {
+            toastWork?.cancel()
+            let showNew = {
+                toastMode = mode
+                withAnimation(.easeOut(duration: 0.22)) { showSavedToast = true }
+                let work = DispatchWorkItem {
+                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                }
+                toastWork = work
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0, execute: work)
+            }
+            if showSavedToast {
+                withAnimation(.easeOut(duration: 0.18)) { showSavedToast = false }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) { showNew() }
+            } else {
+                showNew()
+            }
         }
 
         private func formatCount(_ count: Int) -> String {
