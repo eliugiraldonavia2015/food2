@@ -814,9 +814,8 @@ struct FeedView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .padding(.top, size.height * 0.59)
             .padding(.trailing, 16)
-
-            if showSavedToast && !isCommentsOverlayActive {
-                savedToast
+            .overlay(alignment: .bottom) {
+                if showSavedToast && !isCommentsOverlayActive { savedToast }
             }
         }
         
