@@ -27,8 +27,9 @@ struct CommentsOverlayView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: UIScreen.main.bounds.height * 0.65)
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(.move(edge: .bottom))
         }
+        .transition(.move(edge: .bottom))
     }
 
     private var sheet: some View {
