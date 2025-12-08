@@ -33,7 +33,7 @@ struct RestaurantProfileView: View {
     @State private var refreshedData: DataModel?
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
-    private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.2
+    private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -190,12 +190,21 @@ struct RestaurantProfileView: View {
                     .transition(.opacity)
             } else if pullOffset > 0 {
                 VStack(spacing: 10) {
-                    ProgressRing(progress: pullProgress)
-                        .frame(width: 42, height: 42)
-                    Text(reachedThreshold ? "Soltar para actualizar" : "Desliza para actualizar")
-                        .foregroundColor(.white)
-                        .font(.system(size: 14, weight: .semibold))
-                        .opacity(0.95)
+                    if reachedThreshold {
+                        RefreshSpinner()
+                            .frame(width: 42, height: 42)
+                        Text("Soltar para actualizar")
+                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .semibold))
+                            .opacity(0.95)
+                    } else {
+                        ProgressRing(progress: pullProgress)
+                            .frame(width: 42, height: 42)
+                        Text("Desliza para actualizar")
+                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .semibold))
+                            .opacity(0.95)
+                    }
                 }
                 .transition(.scale.combined(with: .opacity))
             }
@@ -218,7 +227,7 @@ struct RestaurantProfileView: View {
                 .padding(.vertical, 12)
             } else if reachedThreshold {
                 VStack(spacing: 10) {
-                    ProgressRing(progress: pullProgress)
+                    RefreshSpinner()
                         .frame(width: 56, height: 56)
                     Text("Soltar para actualizar")
                         .foregroundColor(.white)

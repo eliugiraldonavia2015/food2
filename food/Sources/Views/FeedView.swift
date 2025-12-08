@@ -387,7 +387,11 @@ struct FeedView: View {
     private var overlays: some View {
         ZStack {
             if showMenu { modalCard(title: "Menú", onClose: { showMenu = false }) }
-            if showComments { modalCard(title: "Comentarios", onClose: { showComments = false }) }
+            if showComments {
+                let idx = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
+                let item = currentItems[idx]
+                CommentsOverlayView(count: item.comments, onClose: { showComments = false })
+            }
             if showShare { modalCard(title: "Compartir", onClose: { showShare = false }) }
             if showMusic { modalCard(title: "Guardados", onClose: { showMusic = false }) }
         }
