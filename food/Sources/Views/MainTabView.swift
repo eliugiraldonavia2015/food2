@@ -24,7 +24,7 @@ struct MainTabView: View {
                 case .feed: FeedView(bottomInset: tabBarHeight, onGlobalShowComments: { count, url in
                         commentsCount = count
                         currentFeedImageUrl = url
-                        withAnimation { showCommentsOverlay = true }
+                        withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
                     }, isCommentsOverlayActive: showCommentsOverlay)
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
@@ -73,13 +73,13 @@ struct MainTabView: View {
 
             // Overlay de comentarios por encima del tab bar
             if selected == .feed, showCommentsOverlay {
-                CommentsOverlayView(count: commentsCount, onClose: { withAnimation { showCommentsOverlay = false } })
+                CommentsOverlayView(count: commentsCount, onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } })
                     .zIndex(6)
             }
         }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
-        .animation(.easeOut(duration: 0.4), value: showCommentsOverlay)
+        .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
         }
