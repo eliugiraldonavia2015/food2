@@ -815,29 +815,47 @@ struct FeedView: View {
 
         private var quickShareRadial: some View {
             ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.10))
+                    .frame(width: 64, height: 64)
+                    .shadow(color: Color.white.opacity(0.12), radius: 10, x: 0, y: 0)
+                    .scaleEffect(showQuickShare ? 1.0 : 0.8)
+                    .opacity(showQuickShare ? 1.0 : 0.0)
                 ForEach(quickPeople) { person in
                     let off = quickTargetOffsets()[person.id] ?? .zero
+                    Path { p in
+                        p.move(to: .zero)
+                        p.addQuadCurve(to: off, control: CGPoint(x: off.x * 0.5, y: off.y * 0.2))
+                    }
+                    .stroke(Color.white.opacity(0.18), lineWidth: 2)
                     VStack(spacing: 6) {
                         ZStack {
-                            Circle().fill(Color.white.opacity(0.12)).frame(width: 44, height: 44)
-                            Text(person.emoji).font(.system(size: 22))
+                            Circle()
+                                .fill(LinearGradient(colors: [Color.white.opacity(0.22), Color.white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
+                                .frame(width: 46, height: 46)
+                                .shadow(color: Color.black.opacity(0.35), radius: 6, x: 0, y: 4)
+                            Text(person.emoji)
+                                .font(.system(size: 22))
                             if quickSent.contains(person.id) {
-                                Circle().fill(Color.green).frame(width: 44, height: 44)
-                                    .overlay(
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 16, weight: .bold))
-                                    )
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 46, height: 46)
+                                    .overlay(Image(systemName: "checkmark").foregroundColor(.white).font(.system(size: 16, weight: .bold)))
                                     .transition(.scale.combined(with: .opacity))
                             }
                         }
+                        Text(person.name)
+                            .foregroundColor(.white)
+                            .font(.system(size: 11, weight: .medium))
+                            .opacity(0.95)
                     }
                     .offset(x: off.x, y: off.y)
                     .scaleEffect(showQuickShare ? 1 : 0.8)
                     .opacity(showQuickShare ? 1 : 0)
                 }
             }
-            .frame(width: 160, height: 160)
+            .frame(width: 180, height: 180)
             .contentShape(Rectangle())
         }
 
