@@ -404,7 +404,7 @@ struct FeedView: View {
             if showShare {
                 ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
             }
-            if showMusic { modalCard(title: "Guardados", onClose: { showMusic = false }) }
+            if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
     }
@@ -478,6 +478,9 @@ struct FeedView: View {
         @State private var quickSent: Set<UUID> = []
         @State private var isPressingShare = false
         @State private var quickShareWork: DispatchWorkItem? = nil
+        @State private var isBookmarked = false
+        @State private var showSavedToast = false
+        private let bookmarkOrange = Color(red: 1.0, green: 0.5, blue: 0.0)
         private let quickPeople: [QuickPerson] = [
             .init(name: "María", emoji: "👩"),
             .init(name: "Juan", emoji: "👨"),
@@ -715,13 +718,24 @@ struct FeedView: View {
                 }
                 
                 // Bookmark button
-                Button(action: onShowMusic) {
-                    Image(systemName: "bookmark")
+                Button(action: {
+                    isBookmarked = true
+                    let gen = UIImpactFeedbackGenerator(style: .medium)
+                    gen.impactOccurred()
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
+                    showSavedToast = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                    }
+                }) {
+                    Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 24, height: 28)
-                        .foregroundColor(.white)
+                        .foregroundColor(isBookmarked ? bookmarkOrange : .white)
                         .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        .scaleEffect(isBookmarked ? 1.06 : 1.0)
+                        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isBookmarked)
                 }
                 
                 // Share button
@@ -800,7 +814,10 @@ struct FeedView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .padding(.top, size.height * 0.59)
             .padding(.trailing, 16)
-            
+
+            if showSavedToast && !isCommentsOverlayActive {
+                savedToast
+            }
         }
         
         private func quickTargetOffsets() -> [UUID: CGPoint] {
@@ -846,6 +863,33 @@ struct FeedView: View {
             }
             .frame(width: 180, height: 180)
             .contentShape(Rectangle())
+        }
+
+        private var savedToast: some View {
+            HStack(spacing: 12) {
+                Text("Guardado en favoritos")
+                    .foregroundColor(.white)
+                    .font(.system(size: 14, weight: .semibold))
+                Spacer(minLength: 0)
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                    onShowMusic()
+                }) {
+                    Text("Cambiar")
+                        .foregroundColor(.green)
+                        .font(.system(size: 14, weight: .bold))
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+            .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.bottom, bottomInset + 12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
 
         private func formatCount(_ count: Int) -> String {
