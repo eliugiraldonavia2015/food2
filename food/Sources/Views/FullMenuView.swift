@@ -21,6 +21,7 @@ struct FullMenuView: View {
     @State private var priceFrame: CGRect = .zero
     @State private var heroFrame: CGRect = .zero
     @State private var showCompactHeader = false
+    @State private var scrollOffset: CGFloat = 0
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -450,6 +451,10 @@ struct FullMenuView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(spacing: 0) {
+                    GeometryReader { geo in
+                        Color.clear.preference(key: ScrollOffsetKey.self, value: -geo.frame(in: .named("dishScroll")).minY)
+                    }
+                    .frame(height: 0)
                     dishTopBlock
                     dishInfoPanel
                     VStack(alignment: .leading, spacing: 16) {
@@ -485,8 +490,11 @@ struct FullMenuView: View {
             }
             .onPreferenceChange(HeroFrameKey.self) { v in
                 heroFrame = v
-                let revealY: CGFloat = 10
-                showCompactHeader = v.maxY <= revealY
+            }
+            .onPreferenceChange(ScrollOffsetKey.self) { off in
+                scrollOffset = off
+                let threshold: CGFloat = 44
+                showCompactHeader = off >= threshold
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
@@ -594,6 +602,11 @@ struct FullMenuView: View {
     private struct HeroFrameKey: PreferenceKey {
         static var defaultValue: CGRect = .zero
         static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
+    }
+
+    private struct ScrollOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
     }
 }
 
