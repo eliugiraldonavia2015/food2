@@ -485,8 +485,9 @@ struct FullMenuView: View {
             }
             .onPreferenceChange(HeroFrameKey.self) { v in
                 heroFrame = v
-                let threshold: CGFloat = 64
-                showCompactHeader = v.maxY <= threshold
+                let offset = max(0, -v.minY)
+                let revealDistance: CGFloat = 44
+                showCompactHeader = offset >= revealDistance
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
