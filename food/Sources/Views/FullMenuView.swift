@@ -483,7 +483,6 @@ struct FullMenuView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .overlay(alignment: .top) { compactHeader.padding(.top, 44) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
@@ -494,13 +493,15 @@ struct FullMenuView: View {
             .onPreferenceChange(ScrollOffsetKey.self) { off in
                 scrollOffset = off
                 let threshold: CGFloat = 44
-                showCompactHeader = off >= threshold
+                showCompactHeader = off >= threshold || heroFrame.maxY <= 0
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
             .clipShape(RoundedRectangle(cornerRadius: 18))
             .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
+            VStack { compactHeader.padding(.top, 44); Spacer() }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .transition(.move(edge: .bottom).combined(with: .opacity))
