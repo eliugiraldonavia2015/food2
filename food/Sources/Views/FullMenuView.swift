@@ -18,7 +18,7 @@ struct FullMenuView: View {
     @State private var sheetImageUrl: String = ""
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
-    @State private var priceMaxY: CGFloat = 0
+    @State private var priceFrame: CGRect = .zero
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -478,7 +478,7 @@ struct FullMenuView: View {
             }
             .overlay(alignment: .top) { compactHeader }
             .coordinateSpace(name: "dishScroll")
-            .onPreferenceChange(PriceOffsetKey.self) { v in priceMaxY = v }
+            .onPreferenceChange(PriceFrameKey.self) { v in priceFrame = v }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
@@ -524,7 +524,7 @@ struct FullMenuView: View {
         .padding(.horizontal, 12)
         .background(
             GeometryReader { geo in
-                Color.clear.preference(key: PriceOffsetKey.self, value: geo.frame(in: .named("dishScroll")).maxY)
+                Color.clear.preference(key: PriceFrameKey.self, value: geo.frame(in: .named("dishScroll")))
             }
         )
     }
@@ -545,7 +545,8 @@ struct FullMenuView: View {
 
     private var compactHeader: some View {
         VStack {
-            if priceMaxY < 0 {
+            let show = priceFrame.maxY <= 0
+            if show {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
@@ -563,14 +564,16 @@ struct FullMenuView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
         .frame(height: 40)
+        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: priceFrame)
     }
 
-    private struct PriceOffsetKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    private struct PriceFrameKey: PreferenceKey {
+        static var defaultValue: CGRect = .zero
+        static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
     }
 }
 
