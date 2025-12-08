@@ -19,6 +19,7 @@ struct FullMenuView: View {
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
+    @State private var heroFrame: CGRect = .zero
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -479,6 +480,7 @@ struct FullMenuView: View {
             .overlay(alignment: .top) { compactHeader }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in priceFrame = v }
+            .onPreferenceChange(HeroFrameKey.self) { v in heroFrame = v }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
@@ -507,6 +509,11 @@ struct FullMenuView: View {
                 }
                 .opacity(max(0.0, min(1.0, 1.0 + Double(y) / 120.0)))
             }
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(key: HeroFrameKey.self, value: geo.frame(in: .named("dishScroll")))
+                }
+            )
         }
         .frame(height: 180)
         .padding(.horizontal, 12)
@@ -545,7 +552,7 @@ struct FullMenuView: View {
 
     private var compactHeader: some View {
         VStack {
-            let show = priceFrame.maxY <= 0
+            let show = heroFrame.height > 0 && heroFrame.maxY <= 0
             if show {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -568,10 +575,15 @@ struct FullMenuView: View {
             }
         }
         .frame(height: 40)
-        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: priceFrame)
+        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: heroFrame)
     }
 
     private struct PriceFrameKey: PreferenceKey {
+        static var defaultValue: CGRect = .zero
+        static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
+    }
+
+    private struct HeroFrameKey: PreferenceKey {
         static var defaultValue: CGRect = .zero
         static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
     }
