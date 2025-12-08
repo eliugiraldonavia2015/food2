@@ -730,7 +730,7 @@ struct FeedView: View {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
                     toastMode = isBookmarked ? .saved : .removed
                     showSavedToast = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
                         withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
                     }
                 }) {
