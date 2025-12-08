@@ -478,7 +478,6 @@ struct FullMenuView: View {
                     .padding(.bottom, 120)
                 }
             }
-            .overlay(alignment: .top) { compactHeader.padding(.top, 0) }
             .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
             .overlay(alignment: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.bottom, 12) }
             .coordinateSpace(name: "dishScroll")
