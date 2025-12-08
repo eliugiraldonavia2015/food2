@@ -478,16 +478,15 @@ struct FullMenuView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .overlay(alignment: .top) { compactHeader.padding(.top, 8) }
+            .overlay(alignment: .top) { compactHeader.padding(.top, 10) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
             }
             .onPreferenceChange(HeroFrameKey.self) { v in
                 heroFrame = v
-                let offset = max(0, -v.minY)
-                let revealDistance: CGFloat = 28
-                showCompactHeader = offset >= revealDistance
+                let revealY: CGFloat = 10
+                showCompactHeader = v.maxY <= revealY
             }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
