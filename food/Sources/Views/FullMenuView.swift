@@ -20,6 +20,7 @@ struct FullMenuView: View {
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
     @State private var heroFrame: CGRect = .zero
+    @State private var showCompactHeader = false
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -479,8 +480,14 @@ struct FullMenuView: View {
             }
             .overlay(alignment: .top) { compactHeader }
             .coordinateSpace(name: "dishScroll")
-            .onPreferenceChange(PriceFrameKey.self) { v in priceFrame = v }
-            .onPreferenceChange(HeroFrameKey.self) { v in heroFrame = v }
+            .onPreferenceChange(PriceFrameKey.self) { v in
+                priceFrame = v
+                let threshold: CGFloat = 8
+                showCompactHeader = v.minY <= threshold
+            }
+            .onPreferenceChange(HeroFrameKey.self) { v in
+                heroFrame = v
+            }
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
@@ -552,9 +559,7 @@ struct FullMenuView: View {
 
     private var compactHeader: some View {
         VStack {
-            let threshold: CGFloat = 12
-            let show = heroFrame.height > 0 && heroFrame.maxY <= threshold
-            if show {
+            if showCompactHeader {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
@@ -576,7 +581,9 @@ struct FullMenuView: View {
             }
         }
         .frame(height: 40)
-        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: heroFrame)
+        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showCompactHeader)
+        .zIndex(showCompactHeader ? 10 : 0)
+        .allowsHitTesting(false)
     }
 
     private struct PriceFrameKey: PreferenceKey {
