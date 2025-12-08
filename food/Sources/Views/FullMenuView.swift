@@ -76,6 +76,8 @@ struct FullMenuView: View {
                 
             }
             .ignoresSafeArea(edges: .top)
+            .blur(radius: showDishSheet ? 8 : 0)
+            .allowsHitTesting(!showDishSheet)
             checkoutBar
             topBar
             if showDishSheet { dishBottomSheet }
@@ -443,62 +445,38 @@ struct FullMenuView: View {
 
     private var dishBottomSheet: some View {
         ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
+            ScrollView {
                 VStack(spacing: 0) {
-                    ZStack(alignment: .topTrailing) {
-                        WebImage(url: URL(string: sheetImageUrl))
-                            .resizable()
-                            .indicator(.activity)
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: 18))
-                        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
-                            Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
-                                .overlay(Image(systemName: "xmark").foregroundColor(.white))
-                                .padding(10)
-                        }
+                    dishTopBlock
+                    dishInfoPanel
+                    VStack(alignment: .leading, spacing: 16) {
+                        sectionTitle("Acompañamiento recomendado")
+                        Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
+                        optionRow("Papas Fritas", "+ $2.5")
+                        optionRow("Aros de Cebolla", "+ $3")
+                        optionRow("Ensalada César", "+ $2")
+                        sectionTitle("Bebidas recomendadas")
+                        Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
+                        optionRow("Coca-Cola", "+ $1.5")
+                        optionRow("Limonada", "+ $2")
+                        optionRow("Té Helado", "+ $1.8")
+                        sectionTitle("Notas especiales")
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.06))
+                            .frame(height: 100)
+                            .overlay(
+                                Text("¿Alguna preferencia? (ej: sin cebolla, extra salsa...)")
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .font(.footnote)
+                                    .padding(12), alignment: .topLeading
+                            )
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(sheetTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
-                        Text(sheetSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
-                        Text(sheetPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
-                    }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
-                    .offset(y: -18)
-                    .padding(.horizontal, 12)
-                }
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 16) {
-                            sectionTitle("Acompañamiento recomendado")
-                            Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                            optionRow("Papas Fritas", "+ $2.5")
-                            optionRow("Aros de Cebolla", "+ $3")
-                            optionRow("Ensalada César", "+ $2")
-                            sectionTitle("Bebidas recomendadas")
-                            Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                            optionRow("Coca-Cola", "+ $1.5")
-                            optionRow("Limonada", "+ $2")
-                            optionRow("Té Helado", "+ $1.8")
-                            sectionTitle("Notas especiales")
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.white.opacity(0.06))
-                                .frame(height: 100)
-                                .overlay(
-                                    Text("¿Alguna preferencia? (ej: sin cebolla, extra salsa...)")
-                                        .foregroundColor(.white.opacity(0.6))
-                                        .font(.footnote)
-                                        .padding(12), alignment: .topLeading
-                                )
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
-                    }
-                    .overlay(alignment: .top) { compactHeader }
-                    .coordinateSpace(name: "dishScroll")
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
                 }
             }
+            .overlay(alignment: .top) { compactHeader }
+            .coordinateSpace(name: "dishScroll")
             .frame(maxWidth: .infinity)
             .frame(height: UIScreen.main.bounds.height * 0.75)
             .background(Color.black)
@@ -507,6 +485,41 @@ struct FullMenuView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    private var dishTopBlock: some View {
+        GeometryReader { g in
+            let y = g.frame(in: .named("dishScroll")).minY
+            ZStack(alignment: .topTrailing) {
+                WebImage(url: URL(string: sheetImageUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .opacity(max(0, min(1, 1 + (y / 160))))
+                Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
+                    Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
+                        .overlay(Image(systemName: "xmark").foregroundColor(.white))
+                        .padding(10)
+                }
+                .opacity(max(0, min(1, 1 + (y / 120))))
+            }
+        }
+        .frame(height: 180)
+        .padding(.horizontal, 12)
+    }
+
+    private var dishInfoPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(sheetTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
+            Text(sheetSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
+            Text(sheetPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
+        .offset(y: -18)
+        .padding(.horizontal, 12)
     }
 
     private func optionRow(_ title: String, _ price: String) -> some View {
@@ -526,7 +539,7 @@ struct FullMenuView: View {
     private var compactHeader: some View {
         GeometryReader { geo in
             let y = geo.frame(in: .named("dishScroll")).minY
-            let show = y < 0
+            let show = y < -20
             VStack {
                 if show {
                     HStack(spacing: 12) {
