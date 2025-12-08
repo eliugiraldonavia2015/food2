@@ -475,11 +475,11 @@ struct FullMenuView: View {
                             )
                     }
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 90)
+                    .padding(.bottom, 64)
                 }
             }
             .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
-            .overlay(alignment: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.bottom, 8) }
+            .safeAreaInset(edge: .bottom) { sheetActionBar.padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 0).background(Color.black) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
@@ -575,7 +575,7 @@ struct FullMenuView: View {
                 .foregroundColor(.black)
                 .font(.system(size: 16, weight: .bold))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .padding(.vertical, 18)
                 .background(Color.green)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
