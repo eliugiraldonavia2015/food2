@@ -476,6 +476,8 @@ struct FeedView: View {
         @State private var showQuickShare = false
         @State private var quickHighlighted: UUID? = nil
         @State private var quickSent: Set<UUID> = []
+        @State private var isPressingShare = false
+        @State private var quickShareWork: DispatchWorkItem? = nil
         private let quickPeople: [QuickPerson] = [
             .init(name: "María", emoji: "👩"),
             .init(name: "Juan", emoji: "👨"),
@@ -734,14 +736,31 @@ struct FeedView: View {
                                 .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                         }
                         .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
-                            if !pressing && showQuickShare {
-                                withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
-                                quickHighlighted = nil
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { quickSent.removeAll() }
+                            if pressing {
+                                isPressingShare = true
+                                quickShareWork?.cancel()
+                                let work = DispatchWorkItem {
+                                    if isPressingShare && !showQuickShare {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
+                                    }
+                                }
+                                quickShareWork = work
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+                            } else {
+                                isPressingShare = false
+                                quickShareWork?.cancel()
+                                if showQuickShare {
+                                    if let h = quickHighlighted {
+                                        quickSent = [h]
+                                        let gen = UIImpactFeedbackGenerator(style: .medium)
+                                        gen.impactOccurred()
+                                    }
+                                    withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
+                                    quickHighlighted = nil
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { quickSent.removeAll() }
+                                }
                             }
-                        }) {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
-                        }
+                        }) {}
                         .frame(width: 44, height: 44)
                         .overlay(alignment: .center) { if showQuickShare { quickShareRadial } }
                     }
