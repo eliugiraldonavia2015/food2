@@ -13,6 +13,11 @@ struct FullMenuView: View {
     private let tabs = ["Todo","Popular","Combos","Entradas","Especiales","Sopas"]
     @State private var showLocationList = false
     @State private var selectedBranchName: String = ""
+    @State private var showDishSheet = false
+    @State private var sheetTitle: String = ""
+    @State private var sheetImageUrl: String = ""
+    @State private var sheetPrice: String = "$15.99"
+    @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -73,6 +78,7 @@ struct FullMenuView: View {
             .ignoresSafeArea(edges: .top)
             checkoutBar
             topBar
+            if showDishSheet { dishBottomSheet }
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -379,6 +385,13 @@ struct FullMenuView: View {
         .frame(width: 180)
         .cornerRadius(16)
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.22), lineWidth: 1))
+        .onTapGesture {
+            sheetTitle = title
+            sheetImageUrl = url
+            sheetPrice = "$15.99"
+            sheetSubtitle = "Pizza con mozzarella fresca"
+            withAnimation(.easeOut(duration: 0.25)) { showDishSheet = true }
+        }
     }
 
     private var checkoutBar: some View {
@@ -426,6 +439,117 @@ struct FullMenuView: View {
             .padding(.top, 8)
             Spacer()
         }
+    }
+
+    private var dishBottomSheet: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    ZStack(alignment: .topTrailing) {
+                        WebImage(url: URL(string: sheetImageUrl))
+                            .resizable()
+                            .indicator(.activity)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
+                            Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
+                                .overlay(Image(systemName: "xmark").foregroundColor(.white))
+                                .padding(10)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(sheetTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
+                        Text(sheetSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
+                        Text(sheetPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
+                    .offset(y: -18)
+                    .padding(.horizontal, 12)
+                }
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 16) {
+                            sectionTitle("Acompañamiento recomendado")
+                            Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
+                            optionRow("Papas Fritas", "+ $2.5")
+                            optionRow("Aros de Cebolla", "+ $3")
+                            optionRow("Ensalada César", "+ $2")
+                            sectionTitle("Bebidas recomendadas")
+                            Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
+                            optionRow("Coca-Cola", "+ $1.5")
+                            optionRow("Limonada", "+ $2")
+                            optionRow("Té Helado", "+ $1.8")
+                            sectionTitle("Notas especiales")
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.white.opacity(0.06))
+                                .frame(height: 100)
+                                .overlay(
+                                    Text("¿Alguna preferencia? (ej: sin cebolla, extra salsa...)")
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .font(.footnote)
+                                        .padding(12), alignment: .topLeading
+                                )
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                    }
+                    .overlay(alignment: .top) { compactHeader }
+                    .coordinateSpace(name: "dishScroll")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: UIScreen.main.bounds.height * 0.75)
+            .background(Color.black)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    private func optionRow(_ title: String, _ price: String) -> some View {
+        HStack {
+            HStack(spacing: 10) {
+                Circle().stroke(Color.green, lineWidth: 2).frame(width: 18, height: 18)
+                Text(title).foregroundColor(.white).font(.system(size: 16))
+            }
+            Spacer()
+            Text(price).foregroundColor(.green).font(.system(size: 16, weight: .semibold))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
+    }
+
+    private var compactHeader: some View {
+        GeometryReader { geo in
+            let y = geo.frame(in: .named("dishScroll")).minY
+            let show = y < 0
+            VStack {
+                if show {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(sheetTitle).foregroundColor(.white).font(.system(size: 16, weight: .bold))
+                            Text(sheetPrice).foregroundColor(.green).font(.caption.bold())
+                        }
+                        Spacer()
+                        HStack(spacing: 8) {
+                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "square.and.arrow.up").foregroundColor(.white))
+                            Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "bookmark").foregroundColor(.white))
+                            Button(action: { withAnimation(.easeOut(duration: 0.25)) { showDishSheet = false } }) {
+                                Circle().fill(Color.white.opacity(0.10)).frame(width: 32, height: 32).overlay(Image(systemName: "xmark").foregroundColor(.white))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.95)))
+                }
+            }
+        }
+        .frame(height: 40)
     }
 }
 
