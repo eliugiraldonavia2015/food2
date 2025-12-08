@@ -454,7 +454,7 @@ struct FullMenuView: View {
                     GeometryReader { geo in
                         Color.clear.preference(key: ScrollOffsetKey.self, value: -geo.frame(in: .named("dishScroll")).minY)
                     }
-                    .frame(height: 0)
+                    .frame(height: 1)
                     dishTopBlock
                     dishInfoPanel
                     VStack(alignment: .leading, spacing: 16) {
@@ -483,7 +483,7 @@ struct FullMenuView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .overlay(alignment: .top) { compactHeader.padding(.top, 10) }
+            .overlay(alignment: .top) { compactHeader.padding(.top, 44) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
