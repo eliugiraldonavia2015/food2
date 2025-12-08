@@ -37,7 +37,7 @@ struct CommentsOverlayView: View {
             Divider().background(Color.white.opacity(0.08))
             ScrollView {
                 LazyVStack(spacing: 14) {
-                    ForEach(comments.indices, id: \._self) { i in
+                    ForEach(comments.indices, id: \.self) { i in
                         commentRow(comments[i])
                     }
                 }
