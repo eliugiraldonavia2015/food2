@@ -510,7 +510,7 @@ struct FeedView: View {
                         .allowsHitTesting(false)
                 }
 
-                if showLikeHeart {
+                if showLikeHeart && !isCommentsOverlayActive {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.white)
                         .font(.system(size: 100))
@@ -518,6 +518,7 @@ struct FeedView: View {
                         .scaleEffect(heartScale)
                         .opacity(heartOpacity)
                         .rotationEffect(.degrees(heartAngle))
+                        .frame(width: size.width, height: size.height, alignment: .center)
                         .allowsHitTesting(false)
                 }
 
@@ -530,6 +531,7 @@ struct FeedView: View {
         }
         
         private func handleDoubleTap() {
+            guard !isCommentsOverlayActive else { return }
             // Feedback háptico
             let generator = UIImpactFeedbackGenerator(style: .heavy)
             generator.impactOccurred()
