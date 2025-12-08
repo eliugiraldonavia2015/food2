@@ -10,13 +10,18 @@ struct MainTabView: View {
     @State private var showShop = false
     @State private var inDiscoveryMode = false
     private let tabBarHeight: CGFloat = 52
+    @State private var showCommentsOverlay = false
+    @State private var commentsCount: Int = 0
 
     var body: some View {
         ZStack(alignment: .bottom) {
             // CONTENIDO PRINCIPAL
             Group {
                 switch selected {
-                case .feed: FeedView(bottomInset: tabBarHeight)
+                case .feed: FeedView(bottomInset: tabBarHeight, onGlobalShowComments: { count in
+                        commentsCount = count
+                        withAnimation { showCommentsOverlay = true }
+                    })
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
@@ -60,6 +65,12 @@ struct MainTabView: View {
                 bottomBar
                     .background(Color.black)
                     .zIndex(4)
+            }
+
+            // Overlay de comentarios por encima del tab bar
+            if selected == .feed, showCommentsOverlay {
+                CommentsOverlayView(count: commentsCount, onClose: { withAnimation { showCommentsOverlay = false } })
+                    .zIndex(5)
             }
         }
         .animation(.easeInOut, value: showShopLoading)

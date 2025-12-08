@@ -3,6 +3,7 @@ import SDWebImageSwiftUI
 
 struct FeedView: View {
     let bottomInset: CGFloat
+    let onGlobalShowComments: ((Int) -> Void)?
     private struct FeedItem: Identifiable {
         enum Label { case sponsored, foodieReview, none }
         let id = UUID()
@@ -249,6 +250,11 @@ struct FeedView: View {
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
 
+    init(bottomInset: CGFloat, onGlobalShowComments: ((Int) -> Void)? = nil) {
+        self.bottomInset = bottomInset
+        self.onGlobalShowComments = onGlobalShowComments
+    }
+
     var body: some View {
         GeometryReader { geo in
             let totalHeight = geo.size.height
@@ -264,7 +270,7 @@ struct FeedView: View {
                         expandedDescriptions: $expandedDescriptions,
                         onShowProfile: { showRestaurantProfile = true },
                         onShowMenu: { showMenu = true },
-                        onShowComments: { showComments = true },
+                        onShowComments: { onGlobalShowComments?(item.comments) },
                         onShowShare: { showShare = true },
                         onShowMusic: { showMusic = true }
                     )
