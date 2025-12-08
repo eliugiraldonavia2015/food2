@@ -478,7 +478,7 @@ struct FullMenuView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .overlay(alignment: .top) { compactHeader }
+            .overlay(alignment: .top) { compactHeader.padding(.top, 8) }
             .coordinateSpace(name: "dishScroll")
             .onPreferenceChange(PriceFrameKey.self) { v in
                 priceFrame = v
@@ -486,7 +486,7 @@ struct FullMenuView: View {
             .onPreferenceChange(HeroFrameKey.self) { v in
                 heroFrame = v
                 let offset = max(0, -v.minY)
-                let revealDistance: CGFloat = 44
+                let revealDistance: CGFloat = 28
                 showCompactHeader = offset >= revealDistance
             }
             .frame(maxWidth: .infinity)
