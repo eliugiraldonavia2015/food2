@@ -404,13 +404,8 @@ struct FeedView: View {
             if showShare {
                 ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
             }
-            if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { name in
-                lastSavedFolder = name
-                toastMode = .saved
-                showSavedToast = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
-                }
+            if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { _ in
+                withAnimation(.easeOut(duration: 0.25)) { showMusic = false }
             }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
