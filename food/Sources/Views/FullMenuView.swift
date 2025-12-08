@@ -500,7 +500,7 @@ struct FullMenuView: View {
             .background(Color.black)
             .clipShape(RoundedRectangle(cornerRadius: 18))
             .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
-            VStack { compactHeader.padding(.top, 44); Spacer() }
+            VStack { compactHeader.padding(.top, 12); Spacer() }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
