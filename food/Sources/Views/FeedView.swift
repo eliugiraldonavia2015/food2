@@ -524,7 +524,7 @@ struct FeedView: View {
             }
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
-            .animation(.easeInOut(duration: 0.75), value: isCommentsOverlayActive)
+            .animation(.easeInOut(duration: 0.6), value: isCommentsOverlayActive)
         }
         
         private func handleDoubleTap() {

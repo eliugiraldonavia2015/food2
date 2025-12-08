@@ -22,7 +22,6 @@ struct CommentsOverlayView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Color.black.opacity(0.45).ignoresSafeArea()
             sheet
                 .frame(maxWidth: .infinity)
                 .frame(height: UIScreen.main.bounds.height * 0.65)
