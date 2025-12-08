@@ -485,6 +485,7 @@ struct FeedView: View {
         private enum SavedToastMode { case saved, removed }
         @State private var toastMode: SavedToastMode = .saved
         @State private var lastSavedFolder: String = "Favoritos"
+        @State private var toastWork: DispatchWorkItem? = nil
         private let bookmarkOrange = Color(red: 1.0, green: 0.5, blue: 0.0)
         private let quickPeople: [QuickPerson] = [
             .init(name: "María", emoji: "👩"),
@@ -729,10 +730,14 @@ struct FeedView: View {
                     gen.impactOccurred()
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
                     toastMode = isBookmarked ? .saved : .removed
+                    toastWork?.cancel()
+                    withAnimation(.easeOut(duration: 0.1)) { showSavedToast = false }
                     showSavedToast = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                    let work = DispatchWorkItem {
                         withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
                     }
+                    toastWork = work
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0, execute: work)
                 }) {
                     Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                         .resizable()
