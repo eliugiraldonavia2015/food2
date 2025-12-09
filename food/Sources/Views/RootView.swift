@@ -6,6 +6,7 @@ struct RootView: View {
     @StateObject private var auth = AuthService.shared
     @State private var showOnboarding = false
     @State private var showRoleSelection = false
+    @State private var showStartupSplash = false
     
     var body: some View {
         ZStack {
@@ -43,9 +44,13 @@ struct RootView: View {
                             .transition(.opacity)
                     }
                 } else {
-                    // 🔐 Pantalla de login
-                    LoginView()
-                        .transition(.opacity)
+                    if showStartupSplash {
+                        Color.black
+                    } else {
+                        // 🔐 Pantalla de login
+                        LoginView()
+                            .transition(.opacity)
+                    }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
@@ -58,10 +63,28 @@ struct RootView: View {
                     .progressViewStyle(CircularProgressViewStyle(tint: .orange))
                     .scaleEffect(1.5)
             }
+            
+            if showStartupSplash {
+                StartupSplashView()
+                    .transition(.opacity)
+                    .zIndex(1000)
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
+        .onAppear {
+            if Auth.auth().currentUser != nil {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showStartupSplash = true
+                }
+            }
+        }
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated, let uid = auth.user?.uid else { return }
+            if showStartupSplash {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStartupSplash = false
+                }
+            }
             
             // 🔍 Verificar si el usuario ya completó el onboarding
             OnboardingService.shared.hasCompletedOnboarding(uid: uid) { completed in
@@ -99,6 +122,15 @@ struct RootView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+private struct StartupSplashView: View {
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            BrandLogoView()
         }
     }
 }
