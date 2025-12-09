@@ -1,6 +1,7 @@
 // Sources/Views/RootView.swift
 import SwiftUI
 import Firebase
+import FirebaseAuth
 
 struct RootView: View {
     @StateObject private var auth = AuthService.shared
