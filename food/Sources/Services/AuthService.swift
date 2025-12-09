@@ -214,7 +214,6 @@ public final class AuthService: ObservableObject {
     @Published public private(set) var isLoading: Bool = false
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var phoneAuthState: PhoneAuthState = .idle
-    @Published public private(set) var isInitialized: Bool = false
     
     // MARK: - Private Properties
     private let db = DatabaseService.shared.db
@@ -1027,14 +1026,12 @@ extension AuthService {
                         )
                         self.isAuthenticated = true
                         self.isLoading = false
-                        self.isInitialized = true
                     }
                 }
             } else {
                 self.user = nil
                 self.isAuthenticated = false
                 self.isLoading = false
-                self.isInitialized = true
             }
         }
     }
