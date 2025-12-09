@@ -461,7 +461,7 @@ private struct ProfileScreen: View {
             Circle()
                 .fill(Color.pink)
                 .frame(width: 46, height: 46)
-                .overlay(Image(systemName: "person.fill").foregroundColor(.green))
+                .overlay(avatarDrawing())
         }
     }
 
@@ -533,20 +533,43 @@ private struct ProfileScreen: View {
     }
 
     private func galleryGrid() -> some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
-            ForEach(Array(imageUrls.enumerated()), id: \.offset) { _, urlStr in
-                if let url = URL(string: urlStr) {
-                    WebImage(url: url)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 120)
-                        .clipped()
-                } else {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.06))
-                        .frame(height: 120)
+        GeometryReader { geo in
+            let tile = floor((geo.size.width - 4) / 3)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
+                ForEach(Array(imageUrls.enumerated()), id: \.offset) { _, urlStr in
+                    ZStack {
+                        if let url = URL(string: urlStr) {
+                            WebImage(url: url)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.06))
+                        }
+                    }
+                    .frame(width: tile, height: tile)
+                    .clipped()
                 }
             }
+        }
+        .frame(maxHeight: .infinity)
+    }
+
+    private func avatarDrawing() -> some View {
+        ZStack {
+            Circle()
+                .fill(Color(red: 1.0, green: 0.92, blue: 0.85))
+                .frame(width: 34, height: 34)
+                .offset(y: 2)
+            HStack(spacing: 6) {
+                Circle().fill(Color.black).frame(width: 4, height: 4)
+                Circle().fill(Color.black).frame(width: 4, height: 4)
+            }
+            .offset(y: -4)
+            Capsule()
+                .fill(Color.green)
+                .frame(width: 14, height: 4)
+                .offset(y: 5)
         }
     }
 }
