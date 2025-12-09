@@ -602,7 +602,7 @@ private struct SettingsScreen: View {
     @State private var darkModeEnabled: Bool = true
     @State private var showSub: Subscreen? = nil
 
-    enum Subscreen { case notifications, privacy, language, payments }
+    enum Subscreen { case notifications, privacy, language, payments, security, help }
 
     private func header() -> some View {
         HStack {
@@ -675,6 +675,31 @@ private struct SettingsScreen: View {
                     navRowButton(icon: "lock", title: "Privacidad", subtitle: "Controla tu privacidad") { showSub = .privacy }
                     navRowButton(icon: "globe", title: "Idioma", subtitle: "Español") { showSub = .language }
                     navRowButton(icon: "creditcard", title: "Pagos", subtitle: "Métodos de pago") { showSub = .payments }
+                    navRowButton(icon: "shield", title: "Seguridad", subtitle: "Contraseña y autenticación") { showSub = .security }
+                    navRowButton(icon: "questionmark.circle", title: "Ayuda", subtitle: "Centro de ayuda y soporte") { showSub = .help }
+
+                    VStack(spacing: 6) {
+                        Text("Versión de la aplicación").foregroundColor(.white.opacity(0.8)).font(.caption).multilineTextAlignment(.center)
+                        Text("Foodtook v1.0.0").foregroundColor(.white).font(.subheadline.bold()).multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    Button(action: { AuthService.shared.signOut() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.right")
+                                .foregroundColor(.red)
+                            Text("Cerrar Sesión")
+                                .foregroundColor(.red)
+                                .font(.subheadline.bold())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.red, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding()
             }
@@ -690,6 +715,10 @@ private struct SettingsScreen: View {
                 LanguageSettingsView(onClose: { showSub = nil })
             case .payments:
                 PaymentMethodsView(onClose: { showSub = nil })
+            case .security:
+                SecuritySettingsView(onClose: { showSub = nil })
+            case .help:
+                HelpSupportView(onClose: { showSub = nil })
             case .none:
                 EmptyView()
             }
@@ -931,6 +960,152 @@ private struct PaymentMethodsView: View {
                         }
                     }
                     addButton()
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+}
+
+private struct SecuritySettingsView: View {
+    let onClose: () -> Void
+    @State private var currentPassword: String = ""
+    @State private var newPassword: String = ""
+    @State private var confirmPassword: String = ""
+    @State private var twoFAEnabled: Bool = false
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Seguridad").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func sectionTitle(_ text: String) -> some View {
+        HStack { Text(text).foregroundColor(.white).font(.subheadline.bold()); Spacer() }
+    }
+
+    private func field(label: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).foregroundColor(.white.opacity(0.8)).font(.caption)
+            SecureField("", text: text)
+                .padding()
+                .background(Color.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func deviceRow(title: String, time: String, location: String, trailing: AnyView) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text("Última actividad: \(time)").foregroundColor(.white.opacity(0.8)).font(.caption)
+                Text(location).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            trailing
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    sectionTitle("Cambiar contraseña")
+                    field(label: "Contraseña actual", text: $currentPassword)
+                    field(label: "Nueva contraseña", text: $newPassword)
+                    field(label: "Confirmar contraseña", text: $confirmPassword)
+                    Button(action: {}) {
+                        Text("Actualizar contraseña").foregroundColor(.black).font(.subheadline.bold()).frame(maxWidth: .infinity).padding()
+                    }
+                    .background(Color.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    sectionTitle("Autenticación de dos factores")
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("2FA").foregroundColor(.white).font(.subheadline.bold())
+                            Text("Mayor seguridad para tu cuenta").foregroundColor(.white.opacity(0.8)).font(.caption)
+                        }
+                        Spacer()
+                        Toggle("", isOn: $twoFAEnabled).labelsHidden().tint(.green)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    sectionTitle("Sesiones activas")
+                    deviceRow(title: "iPhone 15 Pro", time: "Ahora", location: "Ciudad de México, México", trailing: AnyView(Text("Actual").foregroundColor(.white).font(.caption.bold()).padding(.horizontal, 8).padding(.vertical, 4).background(Color.green).clipShape(Capsule())))
+                    deviceRow(title: "MacBook Pro", time: "Hace 2 horas", location: "Ciudad de México, México", trailing: AnyView(Button("Cerrar sesión", action: {}).foregroundColor(.red)))
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+}
+
+private struct HelpSupportView: View {
+    let onClose: () -> Void
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Ayuda y Soporte").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func iconCircle(_ name: String) -> some View {
+        Circle().fill(Color.green.opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: name).foregroundColor(.green))
+    }
+
+    private func navRow(title: String, subtitle: String, icon: String) -> some View {
+        HStack(spacing: 12) {
+            iconCircle(icon)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    navRow(title: "Preguntas frecuentes", subtitle: "Encuentra respuestas rápidas", icon: "questionmark.circle")
+                    navRow(title: "Chat en vivo", subtitle: "Habla con soporte", icon: "message")
+                    navRow(title: "Contactar por email", subtitle: "support@foodtook.com", icon: "envelope")
+                    navRow(title: "Términos de servicio", subtitle: "Lee nuestros términos", icon: "doc.text")
+                    navRow(title: "Política de privacidad", subtitle: "Cómo protegemos tus datos", icon: "lock.doc")
+
+                    VStack(spacing: 6) {
+                        Text("Versión de la aplicación").foregroundColor(.white.opacity(0.8)).font(.caption).multilineTextAlignment(.center)
+                        Text("Foodtook v1.0.0").foregroundColor(.white).font(.subheadline.bold()).multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .padding()
             }
