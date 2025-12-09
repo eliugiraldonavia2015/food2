@@ -369,6 +369,7 @@ private struct StoreScreen: View {
 private struct ProfileScreen: View {
     @State private var selectedSegment: Int = 0
 
+    private let avatarURLString: String = "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
     private let imageUrls: [String] = [
         "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
         "https://images.unsplash.com/photo-1581185642208-9ce0c0a3d1c1",
@@ -399,7 +400,7 @@ private struct ProfileScreen: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "mappin.and.ellipse")
                                     .foregroundColor(.white)
-                                Text("Ciudad de México")
+                                Text("Guayaquil, Ecuador")
                                     .foregroundColor(.white)
                                     .font(.footnote)
                             }
@@ -455,9 +456,21 @@ private struct ProfileScreen: View {
                 .strokeBorder(Color.orange.opacity(0.6), lineWidth: 4)
                 .frame(width: 70, height: 70)
             Circle()
-                .fill(Color.pink)
+                .fill(Color.clear)
                 .frame(width: 60, height: 60)
-                .overlay(avatarDrawing())
+                .overlay(
+                    Group {
+                        if let url = URL(string: avatarURLString) {
+                            WebImage(url: url)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                        } else {
+                            Circle().fill(Color.pink).frame(width: 60, height: 60)
+                        }
+                    }
+                )
         }
     }
 
@@ -479,15 +492,12 @@ private struct ProfileScreen: View {
 
     private func primaryFilledButton(title: String) -> some View {
         Button(action: {}) {
-            HStack(spacing: 8) {
-                Image(systemName: "pencil")
-                    .foregroundColor(.white)
-                Text(title)
-                    .foregroundColor(.white)
-                    .fontWeight(.semibold)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            Text(title)
+                .foregroundColor(.white)
+                .font(.callout)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
         }
         .background(
             LinearGradient(colors: [Color.green.opacity(0.95), Color.green.opacity(0.75)], startPoint: .top, endPoint: .bottom)
@@ -500,9 +510,10 @@ private struct ProfileScreen: View {
         Button(action: {}) {
             Text(title)
                 .foregroundColor(.white)
+                .font(.callout)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .padding(.vertical, 10)
         }
         .background(Color.clear)
         .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
