@@ -167,23 +167,8 @@ struct LoginView: View {
                 Spacer()
                 
                 // Brand Header - Floating
-                VStack(spacing: 8) {
-                    Text("Food")
-                        .font(.system(size: 60, weight: .black, design: .default))
-                        .foregroundColor(.white) +
-                    Text("Took")
-                        .font(.system(size: 60, weight: .black, design: .default))
-                        .foregroundColor(.green)
-                    
-                    Text("Taste the trend.")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(.black.opacity(0.3))
-                        .clipShape(Capsule())
-                }
-                .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+                BrandLogoView()
+                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
                 
                 Spacer()
                 
