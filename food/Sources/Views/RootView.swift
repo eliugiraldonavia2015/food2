@@ -7,7 +7,7 @@ struct RootView: View {
     @StateObject private var auth = AuthService.shared
     @State private var showOnboarding = false
     @State private var showRoleSelection = false
-    @State private var showStartupSplash = false
+    @State private var showStartupSplash = Auth.auth().currentUser != nil
     
     var body: some View {
         ZStack {
@@ -72,13 +72,7 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
-        .onAppear {
-            if Auth.auth().currentUser != nil {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showStartupSplash = true
-                }
-            }
-        }
+        
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated, let uid = auth.user?.uid else { return }
             if showStartupSplash {
