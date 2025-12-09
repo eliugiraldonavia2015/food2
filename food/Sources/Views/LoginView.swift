@@ -167,9 +167,8 @@ struct LoginView: View {
                 Spacer()
                 
                 // Brand Header - Floating
-                Text("Foodtook")
-                    .font(.system(size: 22, weight: .heavy))
-                    .foregroundColor(.white)
+                BrandLogoView()
+                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
                 
                 Spacer()
                 
@@ -1050,8 +1049,6 @@ struct LoginView: View {
         }
     }
 }
-
- 
 
 // MARK: - Previews
 struct LoginView_Previews: PreviewProvider {

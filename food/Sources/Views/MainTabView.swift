@@ -233,20 +233,24 @@ struct MainTabView: View {
             Button(action: action) {
                 ZStack {
                     Circle()
-                        .fill(Color.white.opacity(0.10))
+                        .fill(
+                            LinearGradient(colors: [color.opacity(0.25), color.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
                         .frame(width: 46, height: 46)
                         .overlay(
-                            Circle().stroke(Color.white.opacity(0.18), lineWidth: 1)
+                            Circle().stroke(color, lineWidth: 2)
                         )
-                        .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 2)
+                        .shadow(color: color.opacity(0.7), radius: 10, x: 0, y: 2)
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(color)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 1)
                 }
             }
+            .offset(y: -10)
             Text(title)
                 .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(color)
         }
         .padding(.vertical, 2)
     }
