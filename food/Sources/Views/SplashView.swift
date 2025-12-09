@@ -1,18 +1,18 @@
 import SwiftUI
 
 struct SplashView: View {
-    @State private var showLogo = false
     var body: some View {
         ZStack {
-            Color.black
+            Color(.systemBackground)
                 .ignoresSafeArea()
-            BrandLogoView()
-                .opacity(showLogo ? 1 : 0)
-                .animation(.easeInOut(duration: 0.4), value: showLogo)
-        }
-        .preferredColorScheme(.dark)
-        .onAppear {
-            showLogo = true
+            VStack(spacing: 16) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+                    .scaleEffect(1.5)
+                Text("Cargando...")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }

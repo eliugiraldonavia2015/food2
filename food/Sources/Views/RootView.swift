@@ -10,10 +10,7 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Group {
-                if !auth.isInitialized {
-                    SplashView()
-                        .transition(.opacity)
-                } else if auth.isAuthenticated {
+                if auth.isAuthenticated {
                     if showRoleSelection {
                         // 👥 Pantalla de selección de rol
                         RoleSelectionView(
