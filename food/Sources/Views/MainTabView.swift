@@ -548,22 +548,27 @@ private struct ProfileScreen: View {
     }
 
     private func galleryGrid() -> some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
+        let side = floor((UIScreen.main.bounds.width - 32 - 4) / 3)
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
             ForEach(imageUrls, id: \.self) { urlStr in
                 ZStack {
                     if let url = URL(string: urlStr) {
                         WebImage(url: url)
                             .resizable()
                             .scaledToFill()
+                            .overlay(Rectangle().fill(Color.black.opacity(0.08)))
                     } else {
                         Rectangle()
                             .fill(Color.white.opacity(0.06))
                     }
                 }
-                .aspectRatio(1, contentMode: .fit)
+                .frame(width: side, height: side)
                 .clipped()
             }
         }
+        .padding(2)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func avatarDrawing() -> some View {
