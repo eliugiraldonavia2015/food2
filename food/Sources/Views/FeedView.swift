@@ -628,7 +628,7 @@ struct FeedView: View {
                                         Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
                                     )
                                 
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: 1) {
                                     HStack(spacing: 8) {
                                         Button(action: onShowProfile) {
                                             Text(item.username)
@@ -645,7 +645,7 @@ struct FeedView: View {
                                     if let labelText = labelText {
                                         Text(labelText)
                                             .foregroundColor(labelColor)
-                                            .font(.caption2)
+                                            .font(.footnote)
                                             .fontWeight(.heavy)
                                     }
                                 }
