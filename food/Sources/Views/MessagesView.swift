@@ -1,4 +1,5 @@
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct MessagesListView: View {
     @State private var searchText: String = ""
@@ -98,29 +99,39 @@ struct ConversationRow: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
                 Text(convo.subtitle)
-                    .foregroundColor(.gray)
-                    .font(.callout)
-                    .lineLimit(2)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .lineLimit(1)
+                Text(convo.timestamp)
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                    .lineLimit(1)
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 6) {
-                Text(convo.timestamp)
-                    .foregroundColor(.gray)
-                    .font(.caption2)
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Group {
+                            if let thumb = convo.thumbnail, let url = URL(string: thumb) {
+                                WebImage(url: url)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    )
                 if let unread = convo.unreadCount, unread > 0 {
-                    ZStack {
-                        Circle().fill(Color.green)
-                        Text("\(unread)")
-                            .foregroundColor(.white)
-                            .font(.caption.bold())
-                    }
-                    .frame(width: 24, height: 24)
+                    Circle().fill(Color.green).frame(width: 8, height: 8)
+                        .offset(x: 4, y: -4)
                 }
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 16)
-        .overlay(alignment: .bottom) { Rectangle().fill(Color.white.opacity(0.06)).frame(height: 0.6) }
+        .padding()
+        .frame(height: 76)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button { } label: { Image(systemName: "pin.fill") }.tint(.orange)
             Button { } label: { Image(systemName: "envelope.open.fill") }.tint(.green)
@@ -257,11 +268,12 @@ struct Conversation: Identifiable, Hashable {
     let unreadCount: Int?
     let avatarSystemName: String
     let isOnline: Bool
+    let thumbnail: String?
 
     static let sample: [Conversation] = [
-        Conversation(title: "Tacos El Rey", subtitle: "¡Tu pedido está listo!", timestamp: "Hace 5 min", unreadCount: 2, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Pizza Lovers", subtitle: "Gracias por tu preferencia", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Sushi House", subtitle: "Promo 2x1 hoy", timestamp: "Ayer", unreadCount: 1, avatarSystemName: "leaf.circle", isOnline: false)
+        Conversation(title: "Tacos El Rey", subtitle: "¡Tu pedido está listo!", timestamp: "Hace 5 min", unreadCount: 2, avatarSystemName: "person.crop.circle.fill", isOnline: true, thumbnail: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba"),
+        Conversation(title: "Pizza Lovers", subtitle: "Gracias por tu preferencia", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false, thumbnail: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445"),
+        Conversation(title: "Sushi House", subtitle: "Promo 2x1 hoy", timestamp: "Ayer", unreadCount: 1, avatarSystemName: "leaf.circle", isOnline: false, thumbnail: "https://images.unsplash.com/photo-1527455272121-3e1e7a42e9d1")
     ]
 }
 
