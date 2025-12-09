@@ -234,23 +234,20 @@ struct MainTabView: View {
                 ZStack {
                     Circle()
                         .fill(
-                            LinearGradient(colors: [color.opacity(0.25), color.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            LinearGradient(colors: [color.opacity(0.9), color.opacity(0.7)], startPoint: .top, endPoint: .bottom)
                         )
-                        .frame(width: 46, height: 46)
-                        .overlay(
-                            Circle().stroke(color, lineWidth: 2)
-                        )
-                        .shadow(color: color.opacity(0.7), radius: 10, x: 0, y: 2)
+                        .frame(width: 44, height: 44)
+                        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
                     Image(systemName: icon)
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.white)
-                        .shadow(color: Color.black.opacity(0.6), radius: 4, x: 0, y: 1)
                 }
             }
-            .offset(y: -10)
+            .buttonStyle(.plain)
+            .offset(y: -6)
             Text(title)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(color)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white.opacity(0.9))
         }
         .padding(.vertical, 2)
     }
