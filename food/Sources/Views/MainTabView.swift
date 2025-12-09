@@ -600,6 +600,9 @@ private struct SettingsScreen: View {
     let onClose: () -> Void
     @State private var pushEnabled: Bool = true
     @State private var darkModeEnabled: Bool = true
+    @State private var showSub: Subscreen? = nil
+
+    enum Subscreen { case notifications, privacy, language, payments }
 
     private func header() -> some View {
         HStack {
@@ -643,16 +646,146 @@ private struct SettingsScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func navRow(icon: String, title: String, subtitle: String) -> some View {
+    private func navRowButton(icon: String, title: String, subtitle: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                iconCircle(icon)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).foregroundColor(.white).font(.subheadline.bold())
+                    Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
+            }
+            .padding()
+            .background(Color.white.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    toggleRow(icon: "bell", title: "Notificaciones", subtitle: "Recibir notificaciones push", binding: $pushEnabled)
+                    toggleRow(icon: "moon", title: "Modo Oscuro", subtitle: "Tema de la aplicación", binding: $darkModeEnabled)
+                    navRowButton(icon: "bell", title: "Notificaciones", subtitle: "Configura tus preferencias") { showSub = .notifications }
+                    navRowButton(icon: "lock", title: "Privacidad", subtitle: "Controla tu privacidad") { showSub = .privacy }
+                    navRowButton(icon: "globe", title: "Idioma", subtitle: "Español") { showSub = .language }
+                    navRowButton(icon: "creditcard", title: "Pagos", subtitle: "Métodos de pago") { showSub = .payments }
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+        .fullScreenCover(isPresented: Binding(get: { showSub != nil }, set: { if !$0 { showSub = nil } })) {
+            switch showSub {
+            case .notifications:
+                NotificationsSettingsView(onClose: { showSub = nil })
+            case .privacy:
+                PrivacySettingsView(onClose: { showSub = nil })
+            case .language:
+                LanguageSettingsView(onClose: { showSub = nil })
+            case .payments:
+                PaymentMethodsView(onClose: { showSub = nil })
+            case .none:
+                EmptyView()
+            }
+        }
+    }
+}
+
+private struct NotificationsSettingsView: View {
+    let onClose: () -> Void
+    @State private var pushOn = true
+    @State private var emailOn = true
+    @State private var smsOn = false
+    @State private var ordersOn = true
+    @State private var promosOn = true
+    @State private var newRestaurantsOn = false
+    @State private var recommendationsOn = true
+
+    private func sectionTitle(_ text: String) -> some View {
+        HStack { Text(text).foregroundColor(.white).font(.subheadline.bold()); Spacer() }
+    }
+
+    private func cardToggle(title: String, subtitle: String, binding: Binding<Bool>) -> some View {
         HStack(spacing: 12) {
-            iconCircle(icon)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).foregroundColor(.white).font(.subheadline.bold())
                 Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
             }
             Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundColor(.white.opacity(0.7))
+            Toggle("", isOn: binding).labelsHidden().tint(.green)
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Notificaciones").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    sectionTitle("General")
+                    cardToggle(title: "Notificaciones Push", subtitle: "Recibir notificaciones en tu dispositivo", binding: $pushOn)
+                    cardToggle(title: "Email", subtitle: "Recibir notificaciones por correo", binding: $emailOn)
+                    cardToggle(title: "SMS", subtitle: "Recibir notificaciones por mensaje", binding: $smsOn)
+                    sectionTitle("Pedidos")
+                    cardToggle(title: "Actualizaciones de pedidos", subtitle: "Estado de tus pedidos", binding: $ordersOn)
+                    sectionTitle("Marketing")
+                    cardToggle(title: "Promociones", subtitle: "Ofertas y descuentos especiales", binding: $promosOn)
+                    cardToggle(title: "Nuevos restaurantes", subtitle: "Cuando se agregan nuevos lugares", binding: $newRestaurantsOn)
+                    cardToggle(title: "Recomendaciones", subtitle: "Sugerencias personalizadas", binding: $recommendationsOn)
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+}
+
+private struct PrivacySettingsView: View {
+    let onClose: () -> Void
+    @State private var profileVisible = true
+    @State private var showLocation = true
+    @State private var showActivity = false
+    @State private var allowMessages = true
+    @State private var onlineStatus = true
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Privacidad").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func cardToggle(title: String, subtitle: String, binding: Binding<Bool>) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            Toggle("", isOn: binding).labelsHidden().tint(.green)
         }
         .padding()
         .background(Color.white.opacity(0.06))
@@ -664,15 +797,140 @@ private struct SettingsScreen: View {
             header()
             ScrollView {
                 VStack(spacing: 12) {
-                    toggleRow(icon: "bell", title: "Notificaciones", subtitle: "Recibir notificaciones push", binding: $pushEnabled)
-                    toggleRow(icon: "moon", title: "Modo Oscuro", subtitle: "Tema de la aplicación", binding: $darkModeEnabled)
-                    navRow(icon: "person", title: "Cuenta", subtitle: "Gestiona tu información personal")
-                    navRow(icon: "bell", title: "Notificaciones", subtitle: "Configura tus preferencias")
-                    navRow(icon: "lock", title: "Privacidad", subtitle: "Controla tu privacidad")
-                    navRow(icon: "globe", title: "Idioma", subtitle: "Español")
-                    navRow(icon: "creditcard", title: "Pagos", subtitle: "Métodos de pago")
-                    navRow(icon: "shield", title: "Seguridad", subtitle: "Contraseña y autenticación")
-                    navRow(icon: "questionmark.circle", title: "Ayuda", subtitle: "Centro de ayuda y soporte")
+                    cardToggle(title: "Perfil visible", subtitle: "Permitir que otros vean tu perfil", binding: $profileVisible)
+                    cardToggle(title: "Mostrar ubicación", subtitle: "Compartir tu ubicación actual", binding: $showLocation)
+                    cardToggle(title: "Mostrar actividad", subtitle: "Permitir ver tu actividad reciente", binding: $showActivity)
+                    cardToggle(title: "Permitir mensajes", subtitle: "Recibir mensajes de otros usuarios", binding: $allowMessages)
+                    cardToggle(title: "Estado en línea", subtitle: "Mostrar cuando estás activo", binding: $onlineStatus)
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+}
+
+private struct LanguageSettingsView: View {
+    let onClose: () -> Void
+    @State private var selected: String = "Español"
+    private let items: [(String, String)] = [
+        ("Español", "Español"),
+        ("English", "English"),
+        ("Français", "French"),
+        ("Deutsch", "German"),
+        ("Italiano", "Italian"),
+        ("Português", "Portuguese"),
+        ("中文", "Chinese"),
+        ("日本語", "Japanese"),
+        ("한국어", "Korean")
+    ]
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Idioma").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func row(primary: String, secondary: String) -> some View {
+        let isSelected = selected == primary
+        return Button {
+            selected = primary
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(primary).foregroundColor(.white).font(.subheadline.bold())
+                    Text(secondary).foregroundColor(.white.opacity(0.8)).font(.caption)
+                }
+                Spacer()
+                if isSelected { Image(systemName: "checkmark").foregroundColor(.green) }
+            }
+            .padding()
+            .background(isSelected ? Color.green.opacity(0.18) : Color.white.opacity(0.06))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(isSelected ? Color.green : Color.clear, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach(items, id: \.0) { item in
+                        row(primary: item.0, secondary: item.1)
+                    }
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+}
+
+private struct PaymentMethodsView: View {
+    let onClose: () -> Void
+    @State private var methods: [(String, String)] = [
+        ("Visa •••• 4242", "Expira 12/25"),
+        ("Mastercard •••• 5555", "Expira 06/26")
+    ]
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Spacer()
+            Text("Métodos de Pago").foregroundColor(.white).font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func methodRow(title: String, subtitle: String, onDelete: @escaping () -> Void) -> some View {
+        HStack(spacing: 12) {
+            Circle().fill(Color.green.opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: "creditcard").foregroundColor(.green))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            Button("Eliminar", action: onDelete)
+                .foregroundColor(.red)
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func addButton() -> some View {
+        Button(action: { methods.append(("Nueva tarjeta •••• 0000", "Expira 01/27")) }) {
+            HStack(spacing: 8) {
+                Image(systemName: "plus").foregroundColor(.white)
+                Text("Agregar método de pago").foregroundColor(.white).font(.subheadline)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(style: StrokeStyle(lineWidth: 1, dash: [4])).foregroundColor(.white.opacity(0.6)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach(Array(methods.enumerated()), id: \.offset) { idx, m in
+                        methodRow(title: m.0, subtitle: m.1) {
+                            methods.remove(at: idx)
+                        }
+                    }
+                    addButton()
                 }
                 .padding()
             }
