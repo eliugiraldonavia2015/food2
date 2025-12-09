@@ -427,10 +427,12 @@ private struct ProfileScreen: View {
                 segmentedControl()
 
                 galleryGrid()
+                Spacer(minLength: 0)
             }
             .padding()
+            .padding(.bottom, 80)
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color.black)
     }
 
     private func topBar() -> some View {
@@ -546,26 +548,22 @@ private struct ProfileScreen: View {
     }
 
     private func galleryGrid() -> some View {
-        GeometryReader { geo in
-            let tile = floor((geo.size.width - 4) / 3)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
-                ForEach(Array(imageUrls.enumerated()), id: \.offset) { _, urlStr in
-                    ZStack {
-                        if let url = URL(string: urlStr) {
-                            WebImage(url: url)
-                                .resizable()
-                                .scaledToFill()
-                        } else {
-                            Rectangle()
-                                .fill(Color.white.opacity(0.06))
-                        }
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
+            ForEach(imageUrls, id: \.self) { urlStr in
+                ZStack {
+                    if let url = URL(string: urlStr) {
+                        WebImage(url: url)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.06))
                     }
-                    .frame(width: tile, height: tile)
-                    .clipped()
                 }
+                .aspectRatio(1, contentMode: .fit)
+                .clipped()
             }
         }
-        .frame(maxHeight: .infinity)
     }
 
     private func avatarDrawing() -> some View {
