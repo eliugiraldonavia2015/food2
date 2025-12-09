@@ -368,6 +368,7 @@ private struct StoreScreen: View {
 
 private struct ProfileScreen: View {
     @State private var selectedSegment: Int = 0
+    @State private var showSettings: Bool = false
 
     private let avatarURLString: String = "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
     private let imageUrls: [String] = [
@@ -433,6 +434,9 @@ private struct ProfileScreen: View {
             .padding(.bottom, 80)
         }
         .background(Color.black)
+        .fullScreenCover(isPresented: $showSettings) {
+            SettingsScreen(onClose: { showSettings = false })
+        }
     }
 
     private func topBar() -> some View {
@@ -442,10 +446,12 @@ private struct ProfileScreen: View {
                 .foregroundColor(.white)
                 .font(.headline.bold())
             Spacer()
-            Circle()
-                .fill(Color.white.opacity(0.08))
-                .frame(width: 36, height: 36)
-                .overlay(Image(systemName: "gearshape").foregroundColor(.white))
+            Button { showSettings = true } label: {
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 36, height: 36)
+                    .overlay(Image(systemName: "gearshape").foregroundColor(.white))
+            }
         }
     }
 
@@ -587,6 +593,91 @@ private struct ProfileScreen: View {
                 .frame(width: 18, height: 5)
                 .offset(y: 8)
         }
+    }
+}
+
+private struct SettingsScreen: View {
+    let onClose: () -> Void
+    @State private var pushEnabled: Bool = true
+    @State private var darkModeEnabled: Bool = true
+
+    private func header() -> some View {
+        HStack {
+            Button(action: onClose) {
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 36, height: 36)
+                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+            }
+            Spacer()
+            Text("Configuración")
+                .foregroundColor(.white)
+                .font(.title3.bold())
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func iconCircle(_ name: String) -> some View {
+        Circle()
+            .fill(Color.green.opacity(0.2))
+            .frame(width: 36, height: 36)
+            .overlay(Image(systemName: name).foregroundColor(.green))
+    }
+
+    private func toggleRow(icon: String, title: String, subtitle: String, binding: Binding<Bool>) -> some View {
+        HStack(spacing: 12) {
+            iconCircle(icon)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            Toggle("", isOn: binding)
+                .labelsHidden()
+                .tint(.green)
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func navRow(icon: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: 12) {
+            iconCircle(icon)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).foregroundColor(.white).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            header()
+            ScrollView {
+                VStack(spacing: 12) {
+                    toggleRow(icon: "bell", title: "Notificaciones", subtitle: "Recibir notificaciones push", binding: $pushEnabled)
+                    toggleRow(icon: "moon", title: "Modo Oscuro", subtitle: "Tema de la aplicación", binding: $darkModeEnabled)
+                    navRow(icon: "person", title: "Cuenta", subtitle: "Gestiona tu información personal")
+                    navRow(icon: "bell", title: "Notificaciones", subtitle: "Configura tus preferencias")
+                    navRow(icon: "lock", title: "Privacidad", subtitle: "Controla tu privacidad")
+                    navRow(icon: "globe", title: "Idioma", subtitle: "Español")
+                    navRow(icon: "creditcard", title: "Pagos", subtitle: "Métodos de pago")
+                    navRow(icon: "shield", title: "Seguridad", subtitle: "Contraseña y autenticación")
+                    navRow(icon: "questionmark.circle", title: "Ayuda", subtitle: "Centro de ayuda y soporte")
+                }
+                .padding()
+            }
+        }
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
