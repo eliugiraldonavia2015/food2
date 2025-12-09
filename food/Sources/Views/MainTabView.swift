@@ -367,56 +367,187 @@ private struct StoreScreen: View {
 
 
 private struct ProfileScreen: View {
+    @State private var selectedSegment: Int = 0
+
+    private let imageUrls: [String] = [
+        "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
+        "https://images.unsplash.com/photo-1581185642208-9ce0c0a3d1c1",
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+        "https://images.unsplash.com/photo-1600891963932-6bafce2b9063",
+        "https://images.unsplash.com/photo-1612874741265-96b8f6f84cae",
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+        "https://images.unsplash.com/photo-1551183053-bf91a1d81139"
+    ]
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                sectionHeader("Profile")
-                HStack(spacing: 12) {
-                    Circle()
-                        .fill(Color.green.opacity(0.25))
-                        .frame(width: 56, height: 56)
-                        .overlay(Image(systemName: "person.fill").foregroundColor(.green))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Tu Nombre")
-                            .foregroundColor(.white).font(.headline)
-                        Text("Cliente")
-                            .foregroundColor(.secondary).font(.caption)
+                topBar()
+
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        avatarRing()
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("@usuario")
+                                .foregroundColor(.white)
+                                .font(.headline.bold())
+                            Text("Amante de la buena comida 🍕")
+                                .foregroundColor(.white)
+                                .font(.subheadline)
+                            HStack(spacing: 6) {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .foregroundColor(.white)
+                                Text("Ciudad de México")
+                                    .foregroundColor(.white)
+                                    .font(.footnote)
+                            }
+                        }
+                        Spacer()
                     }
-                    Spacer()
+                    Divider().background(Color.white.opacity(0.1))
                 }
                 .padding()
                 .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 HStack(spacing: 12) {
-                    statCard("Pedidos", "124")
-                    statCard("Favoritos", "32")
-                    statCard("Reseñas", "18")
+                    pillStat(number: "124", label: "Posts")
+                    pillStat(number: "2.5K", label: "Seguidores")
+                    pillStat(number: "892", label: "Siguiendo")
                 }
-                Button(action: { AuthService.shared.signOut() }) {
-                    Text("Cerrar sesión")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                HStack(spacing: 12) {
+                    primaryFilledButton(title: "Editar Perfil")
+                    primaryOutlinedButton(title: "Compartir Perfil")
                 }
+
+                segmentedControl()
+
+                galleryGrid()
             }
             .padding()
         }
         .background(Color.black.ignoresSafeArea())
     }
 
-    private func statCard(_ title: String, _ value: String) -> some View {
+    private func topBar() -> some View {
+        HStack {
+            Circle()
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 36, height: 36)
+                .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+            Spacer()
+            Text("Mi Perfil")
+                .foregroundColor(.white)
+                .font(.headline.bold())
+            Spacer()
+            Circle()
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 36, height: 36)
+                .overlay(Image(systemName: "gearshape").foregroundColor(.white))
+        }
+    }
+
+    private func avatarRing() -> some View {
+        ZStack {
+            Circle()
+                .strokeBorder(Color.green, lineWidth: 4)
+                .frame(width: 64, height: 64)
+            Circle()
+                .strokeBorder(Color.orange.opacity(0.6), lineWidth: 4)
+                .frame(width: 54, height: 54)
+            Circle()
+                .fill(Color.pink)
+                .frame(width: 46, height: 46)
+                .overlay(Image(systemName: "person.fill").foregroundColor(.green))
+        }
+    }
+
+    private func pillStat(number: String, label: String) -> some View {
         VStack(spacing: 6) {
-            Text(value).foregroundColor(.white).font(.title3.bold())
-            Text(title).foregroundColor(.secondary).font(.caption)
+            Text(number)
+                .foregroundColor(.white)
+                .font(.title3.bold())
+            Text(label)
+                .foregroundColor(.white.opacity(0.7))
+                .font(.caption)
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+    }
+
+    private func primaryFilledButton(title: String) -> some View {
+        Button(action: {}) {
+            Text(title)
+                .foregroundColor(.black)
+                .fontWeight(.medium)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+        }
+        .background(Color.green)
+        .clipShape(Capsule())
+        .shadow(color: .green.opacity(0.3), radius: 10, x: 0, y: 4)
+    }
+
+    private func primaryOutlinedButton(title: String) -> some View {
+        Button(action: {}) {
+            Text(title)
+                .foregroundColor(.white)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+        }
+        .background(Color.clear)
+        .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
+        .clipShape(Capsule())
+    }
+
+    private func segmentedControl() -> some View {
+        HStack(spacing: 12) {
+            segmentButton(icon: "square.grid.2x2", index: 0)
+            segmentButton(icon: "heart", index: 1)
+            segmentButton(icon: "bookmark", index: 2)
+        }
+        .padding(8)
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func segmentButton(icon: String, index: Int) -> some View {
+        let isSelected = selectedSegment == index
+        return Button {
+            withAnimation(.easeInOut(duration: 0.2)) { selectedSegment = index }
+        } label: {
+            Image(systemName: icon)
+                .foregroundColor(.white)
+                .frame(width: 36, height: 28)
+                .background(isSelected ? Color.green.opacity(0.35) : Color.clear)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func galleryGrid() -> some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 3), spacing: 2) {
+            ForEach(Array(imageUrls.enumerated()), id: \.offset) { _, urlStr in
+                if let url = URL(string: urlStr) {
+                    WebImage(url: url)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 120)
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.06))
+                        .frame(height: 120)
+                }
+            }
+        }
     }
 }
 
