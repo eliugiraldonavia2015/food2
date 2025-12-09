@@ -282,38 +282,42 @@ private struct NotificationsScreen: View {
                 .frame(width: 36, height: 36)
                 .overlay(Image(systemName: ic.name).foregroundColor(ic.color))
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(item.user.hasPrefix("@") ? item.user : "@\(item.user)")
-                        .foregroundColor(.white)
-                        .font(.subheadline.bold())
-                    Text(item.message)
-                        .foregroundColor(.white)
-                        .font(.subheadline)
-                }
+                Text(item.user.hasPrefix("@") ? item.user : "@\(item.user)")
+                    .foregroundColor(.white)
+                    .font(.subheadline.bold())
+                    .lineLimit(1)
+                Text(item.message)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .lineLimit(1)
                 Text(item.time)
                     .foregroundColor(.secondary)
                     .font(.caption)
+                    .lineLimit(1)
             }
             Spacer()
-            if let thumb = item.thumbnail, let url = URL(string: thumb) {
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.white.opacity(0.06))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            WebImage(url: url)
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        )
-                    if item.unread {
-                        Circle().fill(Color.green).frame(width: 8, height: 8)
-                            .offset(x: 4, y: -4)
-                    }
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Group {
+                            if let thumb = item.thumbnail, let url = URL(string: thumb) {
+                                WebImage(url: url)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    )
+                if item.unread {
+                    Circle().fill(Color.green).frame(width: 8, height: 8)
+                        .offset(x: 4, y: -4)
                 }
             }
         }
         .padding()
+        .frame(height: 76)
         .background(Color.white.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
