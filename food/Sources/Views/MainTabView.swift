@@ -255,30 +255,75 @@ struct MainTabView: View {
 
 // MARK: - Placeholder Screens (sin lógica por ahora)
 private struct NotificationsScreen: View {
+    enum Kind { case like, follow, comment, order }
+    struct Item: Identifiable { let id = UUID(); let kind: Kind; let user: String; let message: String; let time: String; let thumbnail: String?; let unread: Bool }
+    private var items: [Item] = [
+        .init(kind: .like, user: "pizzalovers", message: "le gustó tu publicación", time: "Hace 5 min", thumbnail: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445", unread: true),
+        .init(kind: .follow, user: "sushimaster", message: "comenzó a seguirte", time: "Hace 15 min", thumbnail: nil, unread: true),
+        .init(kind: .comment, user: "burgerhouse", message: "comentó: '¡Se ve delicioso! 😋'", time: "Hace 1 hora", thumbnail: "https://images.unsplash.com/photo-1550547660-d9450f859349", unread: false),
+        .init(kind: .order, user: "Pedido confirmado", message: "Tu pedido está en camino", time: "Hace 2 horas", thumbnail: nil, unread: false),
+        .init(kind: .like, user: "tacoselrey", message: "le gustó tu publicación", time: "Hace 3 horas", thumbnail: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba", unread: false)
+    ]
+
+    private func icon(for kind: Kind) -> (name: String, color: Color) {
+        switch kind {
+        case .like: return ("heart.fill", .orange)
+        case .follow: return ("person.badge.plus", .green)
+        case .comment: return ("bubble.left.fill", .green)
+        case .order: return ("checkmark.circle.fill", .blue)
+        }
+    }
+
+    private func row(_ item: Item) -> some View {
+        HStack(spacing: 12) {
+            let ic = icon(for: item.kind)
+            Circle()
+                .fill(ic.color.opacity(0.2))
+                .frame(width: 36, height: 36)
+                .overlay(Image(systemName: ic.name).foregroundColor(ic.color))
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(item.user.hasPrefix("@") ? item.user : "@\(item.user)")
+                        .foregroundColor(.white)
+                        .font(.subheadline.bold())
+                    Text(item.message)
+                        .foregroundColor(.white)
+                        .font(.subheadline)
+                }
+                Text(item.time)
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+            }
+            Spacer()
+            if let thumb = item.thumbnail, let url = URL(string: thumb) {
+                ZStack(alignment: .topTrailing) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.06))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            WebImage(url: url)
+                                .resizable()
+                                .scaledToFill()
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        )
+                    if item.unread {
+                        Circle().fill(Color.green).frame(width: 8, height: 8)
+                            .offset(x: 4, y: -4)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                sectionHeader("Notifications")
-                ForEach(0..<8) { i in
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.orange.opacity(0.2))
-                            .frame(width: 36, height: 36)
-                            .overlay(Image(systemName: "bell.fill").foregroundColor(.orange))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Nueva promoción disponible")
-                                .foregroundColor(.white)
-                                .font(.subheadline.bold())
-                            Text("Aprovecha descuentos hoy en tu zona")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                        Spacer()
-                        Text("hace \(i + 1)h").foregroundColor(.secondary).font(.caption2)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                sectionHeader("Notificaciones")
+                ForEach(items) { item in
+                    row(item)
                 }
             }
             .padding()
