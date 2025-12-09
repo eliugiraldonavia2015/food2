@@ -392,10 +392,10 @@ private struct ProfileScreen: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("@usuario")
                                 .foregroundColor(.white)
-                                .font(.headline.bold())
+                                .font(.title2.bold())
                             Text("Amante de la buena comida 🍕")
                                 .foregroundColor(.white)
-                                .font(.subheadline)
+                                .font(.body)
                             HStack(spacing: 6) {
                                 Image(systemName: "mappin.and.ellipse")
                                     .foregroundColor(.white)
@@ -434,10 +434,6 @@ private struct ProfileScreen: View {
 
     private func topBar() -> some View {
         HStack {
-            Circle()
-                .fill(Color.white.opacity(0.08))
-                .frame(width: 36, height: 36)
-                .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             Spacer()
             Text("Mi Perfil")
                 .foregroundColor(.white)
@@ -454,13 +450,13 @@ private struct ProfileScreen: View {
         ZStack {
             Circle()
                 .strokeBorder(Color.green, lineWidth: 4)
-                .frame(width: 64, height: 64)
+                .frame(width: 80, height: 80)
             Circle()
                 .strokeBorder(Color.orange.opacity(0.6), lineWidth: 4)
-                .frame(width: 54, height: 54)
+                .frame(width: 70, height: 70)
             Circle()
                 .fill(Color.pink)
-                .frame(width: 46, height: 46)
+                .frame(width: 60, height: 60)
                 .overlay(avatarDrawing())
         }
     }
@@ -483,15 +479,21 @@ private struct ProfileScreen: View {
 
     private func primaryFilledButton(title: String) -> some View {
         Button(action: {}) {
-            Text(title)
-                .foregroundColor(.black)
-                .fontWeight(.medium)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+            HStack(spacing: 8) {
+                Image(systemName: "pencil")
+                    .foregroundColor(.white)
+                Text(title)
+                    .foregroundColor(.white)
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
         }
-        .background(Color.green)
+        .background(
+            LinearGradient(colors: [Color.green.opacity(0.95), Color.green.opacity(0.75)], startPoint: .top, endPoint: .bottom)
+        )
         .clipShape(Capsule())
-        .shadow(color: .green.opacity(0.3), radius: 10, x: 0, y: 4)
+        .shadow(color: .green.opacity(0.35), radius: 12, x: 0, y: 6)
     }
 
     private func primaryOutlinedButton(title: String) -> some View {
@@ -559,17 +561,17 @@ private struct ProfileScreen: View {
         ZStack {
             Circle()
                 .fill(Color(red: 1.0, green: 0.92, blue: 0.85))
-                .frame(width: 34, height: 34)
-                .offset(y: 2)
-            HStack(spacing: 6) {
-                Circle().fill(Color.black).frame(width: 4, height: 4)
-                Circle().fill(Color.black).frame(width: 4, height: 4)
+                .frame(width: 48, height: 48)
+                .offset(y: 3)
+            HStack(spacing: 8) {
+                Circle().fill(Color.black).frame(width: 5, height: 5)
+                Circle().fill(Color.black).frame(width: 5, height: 5)
             }
-            .offset(y: -4)
+            .offset(y: -6)
             Capsule()
                 .fill(Color.green)
-                .frame(width: 14, height: 4)
-                .offset(y: 5)
+                .frame(width: 18, height: 5)
+                .offset(y: 8)
         }
     }
 }
