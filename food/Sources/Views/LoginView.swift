@@ -167,8 +167,9 @@ struct LoginView: View {
                 Spacer()
                 
                 // Brand Header - Floating
-                BrandLogoView()
-                    .shadow(color: Color.black.opacity(0.5), radius: 10, x: 0, y: 5)
+                Text("Foodtook")
+                    .font(.system(size: 22, weight: .heavy))
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
@@ -1050,30 +1051,7 @@ struct LoginView: View {
     }
 }
 
-struct BrandLogoView: View {
-    var body: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.10))
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Circle().stroke(Color.white.opacity(0.18), lineWidth: 1)
-                    )
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.orange)
-            }
-            Text("FoodFeed")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 10)
-        .background(Color.black.opacity(0.25))
-        .clipShape(Capsule())
-    }
-}
+ 
 
 // MARK: - Previews
 struct LoginView_Previews: PreviewProvider {
