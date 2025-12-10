@@ -6,6 +6,7 @@ struct MainTabView: View {
         case feed, notifications, store, messages, profile
     }
 
+    @ObservedObject private var auth = AuthService.shared
     @State private var selected: Tab = .feed
     @State private var showShopLoading = false
     @State private var showShop = false
@@ -14,6 +15,9 @@ struct MainTabView: View {
     @State private var showCommentsOverlay = false
     @State private var commentsCount: Int = 0
     @State private var currentFeedImageUrl: String = ""
+    @State private var showUploadPicker = false
+    @State private var showUploadVideo = false
+    @State private var showUploadDish = false
 
     var body: some View {
         GeometryReader { geo in
@@ -76,12 +80,22 @@ struct MainTabView: View {
                 CommentsOverlayView(count: commentsCount, onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } })
                     .zIndex(6)
             }
+            if showUploadPicker {
+                uploadPickerOverlay
+                    .zIndex(7)
+            }
         }
         .animation(.easeInOut, value: showShopLoading)
         .animation(.easeInOut, value: showShop)
         .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
+        }
+        .fullScreenCover(isPresented: $showUploadVideo) {
+            UploadVideoView(onClose: { showUploadVideo = false })
+        }
+        .fullScreenCover(isPresented: $showUploadDish) {
+            UploadDishView(onClose: { showUploadDish = false })
         }
     }
 
@@ -90,7 +104,7 @@ struct MainTabView: View {
             HStack(spacing: -2) {
                 navButton(icon: "house", title: "Inicio", tab: .feed)
                 navButton(icon: "bell", title: "Notif", tab: .notifications)
-                cartButton
+                centerRoleButton
                 navButton(icon: "message", title: "Mensajes", tab: .messages)
                 navButton(icon: "person", title: "Perfil", tab: .profile)
             }
@@ -141,6 +155,33 @@ struct MainTabView: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var plusButton: some View {
+        centerAccentButton(icon: "plus", title: "Crear", color: .green) {
+            withAnimation(.easeOut(duration: 0.25)) { showUploadPicker = true }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var riderButton: some View {
+        centerAccentButton(icon: "figure.bicycle", title: "Ruta", color: .orange) {
+            withAnimation {
+                selected = .notifications
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var centerRoleButton: some View {
+        let role = auth.user?.role ?? "client"
+        if role == "restaurant" {
+            return AnyView(plusButton)
+        } else if role == "rider" {
+            return AnyView(riderButton)
+        } else {
+            return AnyView(cartButton)
+        }
     }
 
     private var backButtonDiscovery: some View {
@@ -250,6 +291,69 @@ struct MainTabView: View {
                 .foregroundColor(.white.opacity(0.9))
         }
         .padding(.vertical, 2)
+    }
+
+    private var uploadPickerOverlay: some View {
+        VStack(spacing: 12) {
+            Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
+            Text("Crear contenido")
+                .foregroundColor(.white)
+                .font(.headline.bold())
+            VStack(spacing: 12) {
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) { showUploadPicker = false }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { showUploadVideo = true }
+                } label: {
+                    HStack(spacing: 12) {
+                        Circle().fill(Color.green.opacity(0.2)).frame(width: 40, height: 40).overlay(Image(systemName: "video.fill").foregroundColor(.green))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Subir Video").foregroundColor(.white).font(.subheadline.bold())
+                            Text("Promociona platos y tu marca").foregroundColor(.white.opacity(0.8)).font(.caption)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) { showUploadPicker = false }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { showUploadDish = true }
+                } label: {
+                    HStack(spacing: 12) {
+                        Circle().fill(Color.green.opacity(0.2)).frame(width: 40, height: 40).overlay(Image(systemName: "fork.knife").foregroundColor(.green))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Publicar Plato").foregroundColor(.white).font(.subheadline.bold())
+                            Text("Fotos, precio y disponibilidad").foregroundColor(.white.opacity(0.8)).font(.caption)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+            Button {
+                withAnimation(.easeOut(duration: 0.25)) { showUploadPicker = false }
+            } label: {
+                Text("Cerrar")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red)
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .background(Color.black.opacity(0.6).ignoresSafeArea())
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
 
