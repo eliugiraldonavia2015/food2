@@ -245,6 +245,7 @@ struct FeedView: View {
     }
 
     @State private var showRestaurantProfile = false
+    @State private var showUserProfile = false
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
@@ -271,7 +272,13 @@ struct FeedView: View {
                         bottomInset: bottomInset,
                         expandedDescriptions: $expandedDescriptions,
                         isCommentsOverlayActive: isCommentsOverlayActive,
-                        onShowProfile: { showRestaurantProfile = true },
+                        onShowProfile: {
+                            if item.label == .foodieReview {
+                                showUserProfile = true
+                            } else {
+                                showRestaurantProfile = true
+                            }
+                        },
                         onShowMenu: { showMenu = true },
                         onShowComments: { onGlobalShowComments?(item.comments, item.backgroundUrl) },
                         onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
@@ -343,6 +350,44 @@ struct FeedView: View {
                         followers: 45200,
                         description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                         branch: "Sucursal Condesa",
+                        photos: newPhotos
+                    )
+                }
+            )
+        }
+        .fullScreenCover(isPresented: $showUserProfile) {
+            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            let photos: [UserProfileView.PhotoItem] = [
+                .init(url: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", title: "Reseñas recientes"),
+                .init(url: "https://images.unsplash.com/photo-1526312426976-0c6e56a2ff5f", title: "Platos favoritos"),
+                .init(url: "https://images.unsplash.com/photo-1544025162-d76694265947", title: "Descubrimientos")
+            ]
+            UserProfileView(
+                data: .init(
+                    coverUrl: item.backgroundUrl,
+                    avatarUrl: item.avatarUrl,
+                    name: item.username,
+                    username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                    location: "CDMX, México",
+                    followers: 12800,
+                    bio: "Foodie reviewer: reseñas, descubrimientos y recomendaciones locales 🍽️",
+                    photos: photos
+                ),
+                onRefresh: {
+                    try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
+                    let newPhotos: [UserProfileView.PhotoItem] = [
+                        .init(url: "https://images.unsplash.com/photo-1558559509-7d2b32d343b3", title: "Nueva reseña"),
+                        .init(url: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f", title: "Favorito del mes"),
+                        .init(url: "https://images.unsplash.com/photo-1543352634-8b8d5372f064", title: "Top descubrimiento")
+                    ]
+                    return .init(
+                        coverUrl: item.backgroundUrl,
+                        avatarUrl: item.avatarUrl,
+                        name: item.username,
+                        username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                        location: "CDMX, México",
+                        followers: 12800,
+                        bio: "Foodie reviewer: reseñas, descubrimientos y recomendaciones locales 🍽️",
                         photos: newPhotos
                     )
                 }
