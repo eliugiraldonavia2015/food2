@@ -21,6 +21,10 @@ struct EditProfileView: View {
 
     private var currentUser = AuthService.shared.user
 
+    init(onClose: @escaping () -> Void) {
+        self.onClose = onClose
+    }
+
     private func header() -> some View {
         HStack {
             Button(action: { onClose() }) {
