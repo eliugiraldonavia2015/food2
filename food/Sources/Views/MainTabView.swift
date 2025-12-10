@@ -369,6 +369,7 @@ private struct StoreScreen: View {
 private struct ProfileScreen: View {
     @State private var selectedSegment: Int = 0
     @State private var showSettings: Bool = false
+    @State private var showEditProfile: Bool = false
 
     private let avatarURLString: String = "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
     private let imageUrls: [String] = [
@@ -437,6 +438,9 @@ private struct ProfileScreen: View {
         .fullScreenCover(isPresented: $showSettings) {
             SettingsScreen(onClose: { showSettings = false })
         }
+        .fullScreenCover(isPresented: $showEditProfile) {
+            EditProfileView(onClose: { showEditProfile = false })
+        }
     }
 
     private func topBar() -> some View {
@@ -499,7 +503,11 @@ private struct ProfileScreen: View {
     }
 
     private func primaryFilledButton(title: String) -> some View {
-        Button(action: {}) {
+        Button(action: {
+            if title == "Editar Perfil" {
+                showEditProfile = true
+            }
+        }) {
             Text(title)
                 .foregroundColor(.white)
                 .font(.callout)

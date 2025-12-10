@@ -47,6 +47,8 @@ public final class DatabaseService {
             "photoURL": photoURL?.absoluteString ?? "",
             "isPremium": false,
             "onboardingCompleted": false, // ✅ INICIALIZADO CORRECTAMENTE
+            "bio": "",
+            "location": "",
             "version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         ]
         
@@ -116,13 +118,17 @@ public final class DatabaseService {
         uid: String,
         name: String? = nil,
         photoURL: URL? = nil,
-        username: String? = nil
+        username: String? = nil,
+        bio: String? = nil,
+        location: String? = nil
     ) {
         var updateData: [String: Any] = [:]
         
         if let name = name { updateData["name"] = name }
         if let photoURL = photoURL { updateData["photoURL"] = photoURL.absoluteString }
         if let username = username { updateData["username"] = username }
+        if let bio = bio { updateData["bio"] = bio }
+        if let location = location { updateData["location"] = location }
         
         updateData["lastUpdated"] = Timestamp(date: Date())
         guard !updateData.isEmpty else { return }

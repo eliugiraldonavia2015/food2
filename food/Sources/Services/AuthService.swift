@@ -82,6 +82,8 @@ public struct AppUser: Identifiable {
     public let interests: [String]?
     // ✅ NUEVO: Campo para rol
     public let role: String? // "client", "rider", "restaurant"
+    public let bio: String?
+    public let location: String?
     
     public init(
         uid: String,
@@ -91,7 +93,9 @@ public struct AppUser: Identifiable {
         phoneNumber: String? = nil,
         photoURL: URL? = nil,
         interests: [String]? = nil,
-        role: String? = nil // ✅ NUEVO: Parámetro para rol
+        role: String? = nil,
+        bio: String? = nil,
+        location: String? = nil
     ) {
         self.uid = uid
         self.email = email
@@ -101,6 +105,8 @@ public struct AppUser: Identifiable {
         self.photoURL = photoURL
         self.interests = interests
         self.role = role
+        self.bio = bio
+        self.location = location
     }
     
     // ✅ Inicializador de compatibilidad
@@ -120,7 +126,9 @@ public struct AppUser: Identifiable {
             phoneNumber: phoneNumber,
             photoURL: photoURL,
             interests: nil,
-            role: nil // ✅ Incluir role en inicializador
+            role: nil,
+            bio: nil,
+            location: nil
         )
     }
 }
@@ -1009,11 +1017,13 @@ extension AuthService {
                     // Obtener rol del usuario
                     DatabaseService.shared.fetchUser(uid: firebaseUser.uid) { result in
                         var userRole: String? = nil
+                        var bio: String? = nil
+                        var location: String? = nil
                         if case .success(let userData) = result {
                             userRole = userData["role"] as? String
+                            bio = userData["bio"] as? String
+                            location = userData["location"] as? String
                         }
-                        
-                        // ✅ CORRECCIÓN: Usar el inicializador corregido sin el parámetro role extra
                         self.user = AppUser(
                             uid: firebaseUser.uid,
                             email: firebaseUser.email,
@@ -1022,7 +1032,9 @@ extension AuthService {
                             phoneNumber: firebaseUser.phoneNumber,
                             photoURL: firebaseUser.photoURL,
                             interests: interests,
-                            role: userRole // ✅ Ahora está incluido en el inicializador principal
+                            role: userRole,
+                            bio: bio,
+                            location: location
                         )
                         self.isAuthenticated = true
                         self.isLoading = false
