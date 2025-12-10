@@ -197,24 +197,25 @@ struct EditProfileView: View {
     private func load() {
         name = currentUser?.name ?? ""
         username = currentUser?.username ?? ""
-        bio = (try? loadField("bio")) ?? ""
-        location = (try? loadField("location")) ?? ""
+        bio = currentUser?.bio ?? ""
+        location = currentUser?.location ?? ""
         if !username.isEmpty { checkUsername() }
+
+        if let uid = Auth.auth().currentUser?.uid {
+            DatabaseService.shared.fetchUser(uid: uid) { result in
+                DispatchQueue.main.async {
+                    if case .success(let data) = result {
+                        name = (data["name"] as? String) ?? name
+                        username = (data["username"] as? String) ?? username
+                        bio = (data["bio"] as? String) ?? bio
+                        location = (data["location"] as? String) ?? location
+                    }
+                }
+            }
+        }
     }
 
-    private func loadField(_ key: String) throws -> String {
-        guard let uid = Auth.auth().currentUser?.uid else { return "" }
-        var value: String = ""
-        let semaphore = DispatchSemaphore(value: 0)
-        DatabaseService.shared.fetchUser(uid: uid) { result in
-            if case .success(let data) = result {
-                value = (data[key] as? String) ?? ""
-            }
-            semaphore.signal()
-        }
-        _ = semaphore.wait(timeout: .now() + 3)
-        return value
-    }
+    
 
     private func pickImage() {}
 

@@ -367,11 +367,11 @@ private struct StoreScreen: View {
 
 
 private struct ProfileScreen: View {
+    @ObservedObject private var auth = AuthService.shared
     @State private var selectedSegment: Int = 0
     @State private var showSettings: Bool = false
     @State private var showEditProfile: Bool = false
 
-    private let avatarURLString: String = "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
     private let imageUrls: [String] = [
         "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
         "https://images.unsplash.com/photo-1581185642208-9ce0c0a3d1c1",
@@ -392,21 +392,21 @@ private struct ProfileScreen: View {
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
                         avatarRing()
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("@usuario")
-                                .foregroundColor(.white)
-                                .font(.title2.bold())
-                            Text("Amante de la buena comida 🍕")
-                                .foregroundColor(.white)
-                                .font(.body)
-                            HStack(spacing: 6) {
-                                Image(systemName: "mappin.and.ellipse")
-                                    .foregroundColor(.white)
-                                Text("Guayaquil, Ecuador")
-                                    .foregroundColor(.white)
-                                    .font(.footnote)
-                            }
-                        }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("@\(auth.user?.username ?? "usuario")")
+                        .foregroundColor(.white)
+                        .font(.title2.bold())
+                    Text(auth.user?.bio ?? "")
+                        .foregroundColor(.white)
+                        .font(.body)
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(.white)
+                        Text(auth.user?.location ?? "")
+                            .foregroundColor(.white)
+                            .font(.footnote)
+                    }
+                }
                         Spacer()
                     }
                     Divider().background(Color.white.opacity(0.1))
@@ -472,7 +472,7 @@ private struct ProfileScreen: View {
                 .frame(width: 60, height: 60)
                 .overlay(
                     Group {
-                        if let url = URL(string: avatarURLString) {
+                        if let url = auth.user?.photoURL {
                             WebImage(url: url)
                                 .resizable()
                                 .scaledToFill()
