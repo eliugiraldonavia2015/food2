@@ -24,18 +24,30 @@ struct RestaurantDashboardView: View {
     }
 
     private func sectionTitle(_ text: String) -> some View {
-        HStack { Text(text).foregroundColor(.white).font(.title3.bold()); Spacer() }
+        HStack {
+            Text(text)
+                .foregroundColor(.white)
+                .font(.title3.bold())
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+            Spacer()
+        }
     }
 
     private func filterPill(icon: String, text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: icon).foregroundColor(.green)
-                Text(text).foregroundColor(.white).font(.footnote)
+                Text(text)
+                    .foregroundColor(.white)
+                    .font(.footnote)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Image(systemName: "chevron.down").foregroundColor(.white.opacity(0.8))
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
+            .frame(minHeight: 32)
         }
         .background(Color.white.opacity(0.06))
         .clipShape(Capsule())
@@ -68,14 +80,18 @@ struct RestaurantDashboardView: View {
         }
     }
 
-    private struct OrderItem: Identifiable { let id = UUID(); let title: String; let state: String; let time: String; let type: String }
-    private var ordersNowItems: [OrderItem] {
-        [
-            .init(title: "#A1245 • Combo Burger", state: "Pendiente", time: "2m", type: "Delivery"),
-            .init(title: "#A1246 • Sushi Box", state: "En cocina", time: "6m", type: "Para llevar"),
-            .init(title: "#A1247 • Enchiladas", state: "Listo", time: "1m", type: "En salón"),
-            .init(title: "#A1248 • Pasta Trufa", state: "Despachado", time: "5m", type: "Delivery")
-        ]
+    private enum OrderState: String, CaseIterable { case pendiente = "Pendiente", enCocina = "En cocina", listo = "Listo", enEntrega = "En entrega", despachado = "Despachado" }
+    private struct OrderItem: Identifiable { let id = UUID(); let title: String; let state: OrderState; let time: String; let type: String; let branch: String }
+    @State private var expandedStates: Set<OrderState> = []
+    private let branches: [String] = ["Centro", "Condesa", "Roma", "Polanco"]
+    private func makeOrders(for state: OrderState) -> [OrderItem] {
+        (0..<15).map { i in
+            let b = branches[i % branches.count]
+            let name = ["Combo Burger", "Sushi Box", "Enchiladas", "Pasta Trufa", "Dragon Roll", "Smash Burger", "Taco Pack"][i % 7]
+            let typ = ["Delivery", "Para llevar", "En salón"][i % 3]
+            let t = "\(max(1, (i % 12) + 1))m"
+            return .init(title: "#A\(1240 + i) • \(name)", state: state, time: t, type: typ, branch: b)
+        }
     }
 
     private func orderRow(_ it: OrderItem) -> some View {
@@ -84,9 +100,11 @@ struct RestaurantDashboardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(it.title).foregroundColor(.white).font(.subheadline.bold()).lineLimit(1)
                 HStack(spacing: 8) {
-                    Text(it.state).foregroundColor(colorForState(it.state)).font(.caption.bold())
+                    Text(it.state.rawValue).foregroundColor(colorForState(it.state)).font(.caption.bold()).lineLimit(1)
                     Text("•").foregroundColor(.white.opacity(0.6))
-                    Text(it.type).foregroundColor(.white.opacity(0.85)).font(.caption)
+                    Text(it.type).foregroundColor(.white.opacity(0.85)).font(.caption).lineLimit(1)
+                    Text("•").foregroundColor(.white.opacity(0.6))
+                    Text(it.branch).foregroundColor(.white.opacity(0.85)).font(.caption).lineLimit(1)
                 }
             }
             Spacer()
@@ -101,13 +119,13 @@ struct RestaurantDashboardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func colorForState(_ s: String) -> Color {
+    private func colorForState(_ s: OrderState) -> Color {
         switch s {
-        case "Pendiente": return .orange
-        case "En cocina": return .green
-        case "Listo": return .blue
-        case "Despachado": return .gray
-        default: return .white
+        case .pendiente: return .orange
+        case .enCocina: return .green
+        case .listo: return .blue
+        case .enEntrega: return .orange
+        case .despachado: return .gray
         }
     }
 
@@ -120,10 +138,35 @@ struct RestaurantDashboardView: View {
         }
     }
 
+    private func stateSection(_ state: OrderState) -> some View {
+        let items = makeOrders(for: state)
+        let isOpen = Binding<Bool>(
+            get: { expandedStates.contains(state) },
+            set: { v in withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { if v { expandedStates.insert(state) } else { expandedStates.remove(state) } } }
+        )
+        return VStack(spacing: 8) {
+            DisclosureGroup(isExpanded: isOpen) {
+                VStack(spacing: 8) {
+                    ForEach(items) { item in orderRow(item) }
+                }
+            } label: {
+                HStack {
+                    Text(state.rawValue).foregroundColor(.white).font(.subheadline.bold())
+                    Spacer()
+                    Text("\(items.count)").foregroundColor(.white.opacity(0.8)).font(.caption.bold())
+                }
+                .padding()
+                .background(Color.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .accentColor(.white)
+        }
+    }
+
     private var ordersNow: some View {
         VStack(spacing: 12) {
             sectionTitle("Órdenes en tiempo real")
-            ForEach(ordersNowItems) { item in orderRow(item) }
+            ForEach(OrderState.allCases, id: \.self) { s in stateSection(s) }
         }
     }
 
@@ -140,7 +183,7 @@ struct RestaurantDashboardView: View {
     private func branchRow(_ b: BranchPerf) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(b.name).foregroundColor(.white).font(.subheadline.bold())
+                Text(b.name).foregroundColor(.white).font(.subheadline.bold()).lineLimit(1).minimumScaleFactor(0.85)
                 HStack(spacing: 10) {
                     pill("Órdenes", "\(b.orders)")
                     pill("Ingresos", b.revenue)
@@ -158,8 +201,8 @@ struct RestaurantDashboardView: View {
 
     private func pill(_ title: String, _ value: String) -> some View {
         HStack(spacing: 6) {
-            Text(title).foregroundColor(.white.opacity(0.8)).font(.caption)
-            Text(value).foregroundColor(.green).font(.caption.bold())
+            Text(title).foregroundColor(.white.opacity(0.8)).font(.caption).lineLimit(1).minimumScaleFactor(0.85)
+            Text(value).foregroundColor(.green).font(.caption.bold()).lineLimit(1)
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)
@@ -174,22 +217,66 @@ struct RestaurantDashboardView: View {
         }
     }
 
+    private struct DemandZone: Identifiable { let id = UUID(); let name: String; let intensity: Double }
+    private var zones: [DemandZone] {
+        [
+            .init(name: "Centro", intensity: 0.9),
+            .init(name: "Condesa", intensity: 0.7),
+            .init(name: "Roma", intensity: 0.5),
+            .init(name: "Polanco", intensity: 0.8),
+            .init(name: "Nápoles", intensity: 0.6),
+            .init(name: "Del Valle", intensity: 0.4)
+        ]
+    }
+    private func colorForIntensity(_ v: Double) -> Color {
+        if v >= 0.75 { return .green }
+        if v >= 0.5 { return .orange }
+        return .red
+    }
     private var demandMap: some View {
         VStack(spacing: 12) {
             sectionTitle("Mapa de demanda")
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.06))
-                .frame(height: 160)
-                .overlay(
-                    HStack(spacing: 12) {
-                        Circle().fill(Color.green.opacity(0.25)).frame(width: 18, height: 18)
-                        Circle().fill(Color.orange.opacity(0.25)).frame(width: 18, height: 18)
-                        Circle().fill(Color.red.opacity(0.25)).frame(width: 18, height: 18)
-                        Text("Zonas con mayor demanda y tiempos").foregroundColor(.white.opacity(0.85)).font(.footnote)
-                        Spacer()
+            VStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06))
+                    GeometryReader { geo in
+                        let w = geo.size.width
+                        let h = geo.size.height
+                        let cols = 3
+                        let rows = 2
+                        let cw = (w - 24) / CGFloat(cols)
+                        let ch = (h - 24) / CGFloat(rows)
+                        ZStack {
+                            ForEach(Array(zones.enumerated()), id: \.offset) { idx, z in
+                                let col = idx % cols
+                                let row = idx / cols
+                                let x = CGFloat(col) * (cw + 6) + 6
+                                let y = CGFloat(row) * (ch + 6) + 6
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(colorForIntensity(z.intensity).opacity(0.25))
+                                    .overlay(
+                                        VStack(spacing: 4) {
+                                            Text(z.name).foregroundColor(.white).font(.caption.bold()).lineLimit(1)
+                                            Text(String(format: "%.0f%%", z.intensity * 100)).foregroundColor(colorForIntensity(z.intensity)).font(.caption.bold())
+                                        }
+                                    )
+                                    .frame(width: cw, height: ch)
+                                    .position(x: x + cw/2, y: y + ch/2)
+                            }
+                        }
                     }
-                    .padding()
-                )
+                }
+                .frame(height: 200)
+                HStack(spacing: 12) {
+                    Circle().fill(Color.green.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Alta demanda").foregroundColor(.white).font(.caption)
+                    Circle().fill(Color.orange.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Media").foregroundColor(.white).font(.caption)
+                    Circle().fill(Color.red.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Baja").foregroundColor(.white).font(.caption)
+                    Spacer()
+                }
+            }
         }
     }
 
@@ -234,11 +321,11 @@ struct RestaurantDashboardView: View {
 
     private struct ReviewItem: Identifiable { let id = UUID(); let user: String; let text: String; let rating: Int }
     private var reviewsItems: [ReviewItem] {
-        [
-            .init(user: "@pizzalovers", text: "Excelente sabor y rapidez", rating: 5),
-            .init(user: "@sushimaster", text: "Muy bueno, el roll podría ser más grande", rating: 4),
-            .init(user: "@foodie", text: "Tiempos algo largos en pico", rating: 3)
-        ]
+        (1...20).map { i in
+            let users = ["@pizzalovers", "@sushimaster", "@foodie", "@burgerhouse", "@tacoselrey", "@saladbar", "@dessertheaven", "@tacoexpress", "@bbqkingdom", "@greendelight"]
+            let texts = ["Excelente sabor y rapidez", "Muy bueno, porción podría ser mayor", "Tiempo de espera alto en pico", "Servicio amable", "Entrega puntual", "Salsa increíble", "Repetiría", "Buen precio", "Empaque mejorable", "Gran experiencia"]
+            return .init(user: users[i % users.count], text: texts[i % texts.count], rating: (i % 5) + 1)
+        }
     }
 
     private func reviewRow(_ r: ReviewItem) -> some View {
@@ -431,10 +518,10 @@ struct RestaurantDashboardView: View {
                     branchPerformance
                     demandMap
                     menuStock
-                    reviews
                     teamShifts
                     promotions
                     alerts
+                    reviews
                 }
                 .padding()
                 .padding(.bottom, bottomInset)
