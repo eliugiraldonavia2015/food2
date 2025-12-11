@@ -18,8 +18,12 @@ struct RestaurantDashboardView: View {
                 .foregroundColor(.white)
                 .font(.headline.weight(.bold))
             Spacer()
-            filterPill(icon: "mappin.and.ellipse", text: selectedLocation) { showLocationPicker.toggle() }
-            filterPill(icon: "calendar", text: selectedRange) { showRangePicker.toggle() }
+            VStack(alignment: .trailing, spacing: 8) {
+                filterPill(icon: "mappin.and.ellipse", text: selectedLocation) { showLocationPicker.toggle() }
+                    .frame(maxWidth: 260, alignment: .trailing)
+                filterPill(icon: "calendar", text: selectedRange) { showRangePicker.toggle() }
+                    .frame(maxWidth: 260, alignment: .trailing)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 10)
@@ -43,13 +47,13 @@ struct RestaurantDashboardView: View {
                 Text(text)
                     .foregroundColor(.white)
                     .font(.footnote)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Image(systemName: "chevron.down").foregroundColor(.white.opacity(0.8))
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .frame(minHeight: 32)
+            .frame(minHeight: 36)
         }
         .background(Color.white.opacity(0.06))
         .clipShape(Capsule())
