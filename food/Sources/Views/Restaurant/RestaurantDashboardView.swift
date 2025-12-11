@@ -96,7 +96,7 @@ struct RestaurantDashboardView: View {
 
     private func orderRow(_ it: OrderItem) -> some View {
         HStack(spacing: 12) {
-            Circle().fill(colorForState(it.state).opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: iconForType(it.type)).foregroundColor(colorForState(it.state)))
+            Circle().fill(colorForState(it.state).opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: iconForState(it.state)).foregroundColor(colorForState(it.state)))
             VStack(alignment: .leading, spacing: 4) {
                 Text(it.title).foregroundColor(.white).font(.subheadline.bold()).lineLimit(1)
                 HStack(spacing: 8) {
@@ -124,8 +124,18 @@ struct RestaurantDashboardView: View {
         case .pendiente: return .orange
         case .enCocina: return .green
         case .listo: return .blue
-        case .enEntrega: return .orange
+        case .enEntrega: return .purple
         case .despachado: return .gray
+        }
+    }
+
+    private func iconForState(_ s: OrderState) -> String {
+        switch s {
+        case .pendiente: return "fork.knife"
+        case .enCocina: return "fork.knife"
+        case .listo: return "bag.fill"
+        case .enEntrega: return "bicycle"
+        case .despachado: return "checkmark.circle.fill"
         }
     }
 
