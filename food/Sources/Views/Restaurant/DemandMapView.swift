@@ -7,10 +7,11 @@ struct DemandMapView: UIViewRepresentable {
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            if let poly = overlay as? MKPolygon, let title = poly.title ?? "" {
+            if let poly = overlay as? MKPolygon {
                 let r = MKPolygonRenderer(polygon: poly)
                 r.lineWidth = 0
                 r.strokeColor = .clear
+                let title = poly.title ?? "low"
                 r.fillColor = DemandMapView.colorFor(title)
                 return r
             }
