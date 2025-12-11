@@ -25,11 +25,16 @@ struct MainTabView: View {
             // CONTENIDO PRINCIPAL
             Group {
                 switch selected {
-                case .feed: FeedView(bottomInset: tabBarHeight, onGlobalShowComments: { count, url in
-                        commentsCount = count
-                        currentFeedImageUrl = url
-                        withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
-                    }, isCommentsOverlayActive: showCommentsOverlay)
+                case .feed:
+                    if (auth.user?.role ?? "client") == "restaurant" {
+                        RestaurantDashboardView(bottomInset: tabBarHeight)
+                    } else {
+                        FeedView(bottomInset: tabBarHeight, onGlobalShowComments: { count, url in
+                            commentsCount = count
+                            currentFeedImageUrl = url
+                            withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
+                        }, isCommentsOverlayActive: showCommentsOverlay)
+                    }
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
