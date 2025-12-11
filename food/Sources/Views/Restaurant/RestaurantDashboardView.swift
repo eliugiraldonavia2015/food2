@@ -7,6 +7,8 @@ struct RestaurantDashboardView: View {
     @State private var selectedRange: String = "Hoy"
     @State private var showLocationPicker = false
     @State private var showRangePicker = false
+    @State private var selectedCity: DemandMapView.City = .guayaquil
+    @State private var showCityPicker = false
     private let locations: [String] = ["Todos", "Sucursal Centro", "Condesa", "Roma", "Polanco"]
     private let ranges: [String] = ["Hoy", "Semana", "Mes", "Personalizado"]
 
@@ -161,6 +163,9 @@ struct RestaurantDashboardView: View {
                 }
             } label: {
                 HStack {
+                    Text(emojiForState(state))
+                        .font(.subheadline)
+                        .padding(.trailing, 6)
                     Text(state.rawValue).foregroundColor(.white).font(.subheadline.bold())
                     Spacer()
                     Text("\(items.count)").foregroundColor(.white.opacity(0.8)).font(.caption.bold())
@@ -170,6 +175,16 @@ struct RestaurantDashboardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .accentColor(.white)
+        }
+    }
+
+    private func emojiForState(_ s: OrderState) -> String {
+        switch s {
+        case .pendiente: return "🍴"
+        case .enCocina: return "🍽️"
+        case .listo: return "🛍️"
+        case .enEntrega: return "🚴"
+        case .despachado: return "✅"
         }
     }
 
@@ -246,46 +261,24 @@ struct RestaurantDashboardView: View {
     private var demandMap: some View {
         VStack(spacing: 12) {
             sectionTitle("Mapa de demanda")
-            VStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06))
-                    GeometryReader { geo in
-                        let w = geo.size.width
-                        let h = geo.size.height
-                        let cols = 3
-                        let rows = 2
-                        let cw = (w - 24) / CGFloat(cols)
-                        let ch = (h - 24) / CGFloat(rows)
-                        ZStack {
-                            ForEach(Array(zones.enumerated()), id: \.offset) { idx, z in
-                                let col = idx % cols
-                                let row = idx / cols
-                                let x = CGFloat(col) * (cw + 6) + 6
-                                let y = CGFloat(row) * (ch + 6) + 6
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(colorForIntensity(z.intensity).opacity(0.25))
-                                    .overlay(
-                                        VStack(spacing: 4) {
-                                            Text(z.name).foregroundColor(.white).font(.caption.bold()).lineLimit(1)
-                                            Text(String(format: "%.0f%%", z.intensity * 100)).foregroundColor(colorForIntensity(z.intensity)).font(.caption.bold())
-                                        }
-                                    )
-                                    .frame(width: cw, height: ch)
-                                    .position(x: x + cw/2, y: y + ch/2)
-                            }
-                        }
-                    }
-                }
-                .frame(height: 200)
-                HStack(spacing: 12) {
-                    Circle().fill(Color.green.opacity(0.25)).frame(width: 14, height: 14)
-                    Text("Alta demanda").foregroundColor(.white).font(.caption)
-                    Circle().fill(Color.orange.opacity(0.25)).frame(width: 14, height: 14)
-                    Text("Media").foregroundColor(.white).font(.caption)
-                    Circle().fill(Color.red.opacity(0.25)).frame(width: 14, height: 14)
-                    Text("Baja").foregroundColor(.white).font(.caption)
-                    Spacer()
-                }
+            HStack(spacing: 8) {
+                filterPill(icon: "mappin", text: selectedCity.rawValue) { showCityPicker.toggle() }
+                Spacer()
+            }
+            ZStack {
+                RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06))
+                DemandMapView(city: selectedCity)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .frame(height: 220)
+            HStack(spacing: 12) {
+                Circle().fill(Color.green.opacity(0.25)).frame(width: 14, height: 14)
+                Text("Alta demanda").foregroundColor(.white).font(.caption)
+                Circle().fill(Color.orange.opacity(0.25)).frame(width: 14, height: 14)
+                Text("Media").foregroundColor(.white).font(.caption)
+                Circle().fill(Color.red.opacity(0.25)).frame(width: 14, height: 14)
+                Text("Baja").foregroundColor(.white).font(.caption)
+                Spacer()
             }
         }
     }
@@ -482,7 +475,42 @@ struct RestaurantDashboardView: View {
         ZStack(alignment: .top) {
             if showLocationPicker { pickerSheet(title: "Selecciona local", items: locations, selected: $selectedLocation, onClose: { showLocationPicker = false }) }
             if showRangePicker { pickerSheet(title: "Rango de tiempo", items: ranges, selected: $selectedRange, onClose: { showRangePicker = false }) }
+            if showCityPicker { cityPicker }
         }
+    }
+
+    private var cityPicker: some View {
+        let items = DemandMapView.City.allCases.map { $0.rawValue }
+        return VStack(spacing: 12) {
+            Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
+            Text("Selecciona ciudad").foregroundColor(.white).font(.headline.bold())
+            VStack(spacing: 8) {
+                ForEach(items, id: \.self) { it in
+                    Button {
+                        selectedCity = DemandMapView.City(rawValue: it) ?? .guayaquil
+                        showCityPicker = false
+                    } label: {
+                        HStack {
+                            Text(it).foregroundColor(.white).font(.subheadline)
+                            Spacer()
+                            if selectedCity.rawValue == it { Image(systemName: "checkmark").foregroundColor(.green) }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.06))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Button(action: { showCityPicker = false }) {
+                Text("Cerrar").fontWeight(.semibold).frame(maxWidth: .infinity).padding().background(Color.red).foregroundColor(.white).clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 12)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .background(Color.black.opacity(0.6).ignoresSafeArea())
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     private func pickerSheet(title: String, items: [String], selected: Binding<String>, onClose: @escaping () -> Void) -> some View {
