@@ -286,7 +286,9 @@ struct RestaurantDashboardView: View {
     private var branchPerformance: some View {
         VStack(spacing: 12) {
             sectionTitle("Rendimiento por local")
-            ForEach(branchItems) { item in branchRow(item) }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(branchItems) { item in branchRow(item) }
+            }
         }
     }
 
