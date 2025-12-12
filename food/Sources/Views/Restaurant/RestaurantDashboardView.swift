@@ -70,7 +70,6 @@ struct RestaurantDashboardView: View {
                 }
                 Spacer()
             }
-            .allowsHitTesting(false)
         }
         
         
@@ -554,8 +553,10 @@ struct RestaurantDashboardView: View {
                 .padding(8)
             }
         }
+        .frame(height: CGFloat(min(items.count, 4) * 56))
         .mask(RoundedRectangle(cornerRadius: 16))
         .zIndex(1000)
+        .allowsHitTesting(true)
     }
 
     private var cityDropdownPanel: some View {
