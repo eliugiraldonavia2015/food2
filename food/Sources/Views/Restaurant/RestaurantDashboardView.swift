@@ -526,7 +526,9 @@ struct RestaurantDashboardView: View {
 
     private func dropdownPanel(items: [String], selected: String, onSelect: @escaping (String) -> Void) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 16).fill(Color.black)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.black)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.06), lineWidth: 1))
             ScrollView {
                 VStack(spacing: 6) {
                     ForEach(items, id: \.self) { it in
@@ -538,6 +540,8 @@ struct RestaurantDashboardView: View {
                             }
                             .padding(.vertical, 12)
                             .padding(.horizontal, 16)
+                            .background(Color.white.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                         }
                         .buttonStyle(.plain)
                     }
@@ -547,6 +551,7 @@ struct RestaurantDashboardView: View {
         }
         .frame(height: CGFloat(min(items.count, 4) * 56))
         .mask(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
         .zIndex(1000)
         .allowsHitTesting(true)
     }
@@ -640,6 +645,7 @@ struct RestaurantDashboardView: View {
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.7)
                 .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 96)
+                .transition(.move(edge: .top).combined(with: .opacity))
                 .zIndex(1000)
             } else if showRangePicker {
                 dropdownPanel(items: ranges, selected: selectedRange) { it in
@@ -648,6 +654,7 @@ struct RestaurantDashboardView: View {
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.7)
                 .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 96)
+                .transition(.move(edge: .top).combined(with: .opacity))
                 .zIndex(1000)
             }
             
