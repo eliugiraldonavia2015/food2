@@ -1,6 +1,11 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
+private struct FilterBarYKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
 struct RestaurantDashboardView: View {
     let bottomInset: CGFloat
     @State private var selectedLocation: String = "Todos"
@@ -9,6 +14,7 @@ struct RestaurantDashboardView: View {
     @State private var showRangePicker = false
     @State private var selectedCity: DemandMapView.City = .guayaquil
     @State private var showCityPicker = false
+    @State private var filterBarY: CGFloat = 0
     private let locations: [String] = ["Todos", "Sucursal Centro", "Condesa", "Roma", "Polanco"]
     private let ranges: [String] = ["Hoy", "Semana", "Mes", "Personalizado"]
 
@@ -48,6 +54,11 @@ struct RestaurantDashboardView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: FilterBarYKey.self, value: proxy.frame(in: .global).maxY)
+            }
+        )
         
         
             
@@ -648,7 +659,7 @@ struct RestaurantDashboardView: View {
                 }
                 Spacer()
             }
-            .padding(.top, 76)
+            .padding(.top, max(0, filterBarY + 8))
             .padding(.horizontal)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -679,6 +690,7 @@ struct RestaurantDashboardView: View {
             
             
         }
+        .onPreferenceChange(FilterBarYKey.self) { filterBarY = $0 }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
