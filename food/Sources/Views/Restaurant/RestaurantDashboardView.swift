@@ -13,16 +13,19 @@ struct RestaurantDashboardView: View {
     private let ranges: [String] = ["Hoy", "Semana", "Mes", "Personalizado"]
 
     private func header() -> some View {
-        HStack(spacing: 10) {
-            Text("Panel Restaurante")
-                .foregroundColor(.white)
-                .font(.headline.weight(.bold))
-            Spacer()
-            VStack(alignment: .trailing, spacing: 8) {
+        VStack(spacing: 8) {
+            HStack {
+                Spacer()
+                Text("Panel Restaurante")
+                    .foregroundColor(.white)
+                    .font(.headline.weight(.bold))
+                Spacer()
+            }
+            HStack(spacing: 10) {
                 filterPill(icon: "mappin.and.ellipse", text: selectedLocation) { showLocationPicker.toggle() }
-                    .frame(maxWidth: 260, alignment: .trailing)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 filterPill(icon: "calendar", text: selectedRange) { showRangePicker.toggle() }
-                    .frame(maxWidth: 260, alignment: .trailing)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(.horizontal)
