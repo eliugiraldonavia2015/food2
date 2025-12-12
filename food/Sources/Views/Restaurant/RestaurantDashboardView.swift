@@ -667,8 +667,8 @@ struct RestaurantDashboardView: View {
             if showLocationPicker || showRangePicker {
                 pickersOverlay
             }
-            .background(Color.black.ignoresSafeArea())
         }
+        .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
 }
