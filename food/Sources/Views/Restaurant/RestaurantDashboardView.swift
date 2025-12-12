@@ -505,9 +505,7 @@ struct RestaurantDashboardView: View {
         }
     }
 
-    private var pickersOverlay: some View {
-        ZStack(alignment: .top) { }
-    }
+    private var pickersOverlay: some View { EmptyView() }
 
     private var locationDropdownPanel: some View {
         ScrollView {
@@ -648,7 +646,6 @@ struct RestaurantDashboardView: View {
                 .padding(.bottom, bottomInset)
             }
             .background(Color.black.ignoresSafeArea())
-            pickersOverlay
         }
         .preferredColorScheme(.dark)
     }
