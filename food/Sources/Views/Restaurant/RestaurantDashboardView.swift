@@ -48,23 +48,7 @@ struct RestaurantDashboardView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer()
             }
-            .overlay(alignment: .top) {
-                HStack {
-                    Spacer()
-                    if showLocationPicker {
-                        locationDropdownPanel
-                            .padding(.top, 60)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(100)
-                    } else if showRangePicker {
-                        rangeDropdownPanel
-                            .padding(.top, 60)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(100)
-                    }
-                    Spacer()
-                }
-            }
+            
         }
         .padding(.horizontal)
         .padding(.top, 10)
@@ -521,7 +505,28 @@ struct RestaurantDashboardView: View {
         }
     }
 
-    private var pickersOverlay: some View { EmptyView() }
+    private var pickersOverlay: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack {
+                HStack {
+                    Spacer()
+                    if showLocationPicker {
+                        locationDropdownPanel
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(100)
+                    } else if showRangePicker {
+                        rangeDropdownPanel
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(100)
+                    }
+                }
+                .padding(.top, 60)
+                .padding(.horizontal)
+                Spacer()
+            }
+        }
+    }
 
     private var locationDropdownPanel: some View {
         VStack(spacing: 8) {
@@ -658,6 +663,9 @@ struct RestaurantDashboardView: View {
                 }
                 .padding()
                 .padding(.bottom, bottomInset)
+            }
+            if showLocationPicker || showRangePicker {
+                pickersOverlay
             }
             .background(Color.black.ignoresSafeArea())
         }
