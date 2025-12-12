@@ -1,6 +1,11 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
+private struct FilterBarFrameKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) { value = nextValue() }
+}
+
 struct RestaurantDashboardView: View {
     let bottomInset: CGFloat
     @State private var selectedLocation: String = "Todos"
@@ -9,6 +14,7 @@ struct RestaurantDashboardView: View {
     @State private var showRangePicker = false
     @State private var selectedCity: DemandMapView.City = .guayaquil
     @State private var showCityPicker = false
+    @State private var filterBarFrame: CGRect = .zero
     private let locations: [String] = ["Todos", "Sucursal Centro", "Condesa", "Roma", "Polanco"]
     private let ranges: [String] = ["Hoy", "Semana", "Mes", "Personalizado"]
 
@@ -48,29 +54,11 @@ struct RestaurantDashboardView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
-        .overlay(alignment: .top) {
-            HStack {
-                Spacer()
-                if showLocationPicker {
-                    dropdownPanel(items: locations, selected: selectedLocation) { it in
-                        selectedLocation = it
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
-                    }
-                    .frame(width: UIScreen.main.bounds.width * 0.7)
-                    .padding(.top, 52)
-                    .zIndex(100)
-                } else if showRangePicker {
-                    dropdownPanel(items: ranges, selected: selectedRange) { it in
-                        selectedRange = it
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
-                    }
-                    .frame(width: UIScreen.main.bounds.width * 0.7)
-                    .padding(.top, 52)
-                    .zIndex(100)
-                }
-                Spacer()
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: FilterBarFrameKey.self, value: proxy.frame(in: .global))
             }
-        }
+        )
         
         
             
@@ -641,10 +629,27 @@ struct RestaurantDashboardView: View {
                 .padding()
                 .padding(.bottom, bottomInset)
             }
-            
+            if showLocationPicker {
+                dropdownPanel(items: locations, selected: selectedLocation) { it in
+                    selectedLocation = it
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
+                }
+                .frame(width: UIScreen.main.bounds.width * 0.7)
+                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 26)
+                .zIndex(1000)
+            } else if showRangePicker {
+                dropdownPanel(items: ranges, selected: selectedRange) { it in
+                    selectedRange = it
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
+                }
+                .frame(width: UIScreen.main.bounds.width * 0.7)
+                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 26)
+                .zIndex(1000)
+            }
             
             
         }
+        .onPreferenceChange(FilterBarFrameKey.self) { filterBarFrame = $0 }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
