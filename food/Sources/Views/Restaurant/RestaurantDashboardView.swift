@@ -196,11 +196,11 @@ struct RestaurantDashboardView: View {
         let items = makeOrders(for: state)
         let isOpen = Binding<Bool>(
             get: { expandedStates.contains(state) },
-            set: { v in withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { if v { expandedStates.insert(state) } else { expandedStates.remove(state) } } }
+            set: { v in withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { if v { expandedStates = Set([state]) } else { expandedStates.remove(state) } } }
         )
         return VStack(spacing: 8) {
             DisclosureGroup(isExpanded: isOpen) {
-                let visibleCount = min(items.count, 8)
+                let visibleCount = min(items.count, 5)
                 let containerHeight = CGFloat(visibleCount) * 72 + CGFloat(max(visibleCount - 1, 0)) * 8
                 ScrollView {
                     VStack(spacing: 8) {
