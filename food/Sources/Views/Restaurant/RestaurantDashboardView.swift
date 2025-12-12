@@ -257,7 +257,7 @@ struct RestaurantDashboardView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(b.name).foregroundColor(.white).font(.subheadline.bold()).lineLimit(1).minimumScaleFactor(0.85)
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
                     pill("Órdenes", "\(b.orders)")
                     pill("Ingresos", b.revenue)
                     pill("Ticket", b.avgTicket)
@@ -277,8 +277,8 @@ struct RestaurantDashboardView: View {
             Text(title).foregroundColor(.white.opacity(0.8)).font(.caption).lineLimit(1).minimumScaleFactor(0.85)
             Text(value).foregroundColor(.green).font(.caption.bold()).lineLimit(1)
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
         .background(Color.white.opacity(0.06))
         .clipShape(Capsule())
     }
