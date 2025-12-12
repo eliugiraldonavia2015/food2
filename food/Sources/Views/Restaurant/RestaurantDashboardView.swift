@@ -328,7 +328,7 @@ struct RestaurantDashboardView: View {
             }
             if showCityPicker {
                 cityDropdownPanel
-                    .padding(.top, 46)
+                    .padding(.top, 96)
                     .zIndex(1000)
             }
         }
