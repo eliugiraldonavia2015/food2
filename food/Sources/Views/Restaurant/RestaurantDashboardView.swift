@@ -635,7 +635,7 @@ struct RestaurantDashboardView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.7)
-                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 64)
+                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 192)
                 .zIndex(1000)
             } else if showRangePicker {
                 dropdownPanel(items: ranges, selected: selectedRange) { it in
@@ -643,7 +643,7 @@ struct RestaurantDashboardView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.7)
-                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 64)
+                .position(x: UIScreen.main.bounds.width * 0.5, y: filterBarFrame.maxY + 192)
                 .zIndex(1000)
             }
             
