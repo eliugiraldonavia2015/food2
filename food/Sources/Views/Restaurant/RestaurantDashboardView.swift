@@ -648,6 +648,15 @@ struct RestaurantDashboardView: View {
                             showRangePicker = false
                         }
                     }
+                    .gesture(
+                        DragGesture(minimumDistance: 2)
+                            .onChanged { _ in
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                    showLocationPicker = false
+                                    showRangePicker = false
+                                }
+                            }
+                    )
                     .zIndex(900)
             }
             if showLocationPicker {
