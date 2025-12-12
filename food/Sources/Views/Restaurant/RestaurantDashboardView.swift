@@ -200,9 +200,14 @@ struct RestaurantDashboardView: View {
         )
         return VStack(spacing: 8) {
             DisclosureGroup(isExpanded: isOpen) {
-                VStack(spacing: 8) {
-                    ForEach(items) { item in orderRow(item) }
+                let visibleCount = min(items.count, 8)
+                let containerHeight = CGFloat(visibleCount) * 72 + CGFloat(max(visibleCount - 1, 0)) * 8
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(items) { item in orderRow(item) }
+                    }
                 }
+                .frame(height: containerHeight)
             } label: {
                 HStack {
                     stateIconBadge(state)
