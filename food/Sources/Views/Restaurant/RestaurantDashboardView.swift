@@ -534,32 +534,28 @@ struct RestaurantDashboardView: View {
     
 
     private func dropdownPanel(items: [String], selected: String, onSelect: @escaping (String) -> Void) -> some View {
-        VStack(spacing: 6) {
-            ForEach(items, id: \.self) { it in
-                Button {
-                    onSelect(it)
-                } label: {
-                    HStack {
-                        Text(it)
-                            .foregroundColor(.white)
-                            .font(.subheadline)
-                        Spacer()
-                        if selected == it { Image(systemName: "checkmark").foregroundColor(.green) }
+        ZStack {
+            RoundedRectangle(cornerRadius: 16).fill(Color.black)
+            ScrollView {
+                VStack(spacing: 6) {
+                    ForEach(items, id: \.self) { it in
+                        Button { onSelect(it) } label: {
+                            HStack {
+                                Text(it).foregroundColor(.white).font(.subheadline)
+                                Spacer()
+                                if selected == it { Image(systemName: "checkmark").foregroundColor(.green) }
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
-                    .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .buttonStyle(.plain)
+                .padding(8)
             }
         }
-        .padding(8)
-        .background(Color.black)
-        .opacity(1)
-        .blendMode(.normal)
-        .compositingGroup()
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .mask(RoundedRectangle(cornerRadius: 16))
+        .zIndex(1000)
     }
 
     private var cityDropdownPanel: some View {
