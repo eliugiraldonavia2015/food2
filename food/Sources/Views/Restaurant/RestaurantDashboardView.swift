@@ -301,31 +301,35 @@ struct RestaurantDashboardView: View {
         return .red
     }
     private var demandMap: some View {
-        VStack(spacing: 12) {
-            sectionTitle("Mapa de demanda")
-            HStack(spacing: 8) {
-                Spacer()
-                filterPill(icon: "mappin", text: selectedCity.rawValue) { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showCityPicker.toggle() } }
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer()
+        ZStack(alignment: .top) {
+            VStack(spacing: 12) {
+                sectionTitle("Mapa de demanda")
+                HStack(spacing: 8) {
+                    Spacer()
+                    filterPill(icon: "mappin", text: selectedCity.rawValue) { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showCityPicker.toggle() } }
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                }
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06))
+                    DemandMapView(city: selectedCity)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .frame(height: 220)
+                HStack(spacing: 12) {
+                    Circle().fill(Color.green.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Alta demanda").foregroundColor(.white).font(.caption)
+                    Circle().fill(Color.orange.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Media").foregroundColor(.white).font(.caption)
+                    Circle().fill(Color.red.opacity(0.25)).frame(width: 14, height: 14)
+                    Text("Baja").foregroundColor(.white).font(.caption)
+                    Spacer()
+                }
             }
-            .overlay(alignment: .top) {
-                if showCityPicker { cityDropdownPanel.padding(.top, 46).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
-            }
-            ZStack {
-                RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06))
-                DemandMapView(city: selectedCity)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .frame(height: 220)
-            HStack(spacing: 12) {
-                Circle().fill(Color.green.opacity(0.25)).frame(width: 14, height: 14)
-                Text("Alta demanda").foregroundColor(.white).font(.caption)
-                Circle().fill(Color.orange.opacity(0.25)).frame(width: 14, height: 14)
-                Text("Media").foregroundColor(.white).font(.caption)
-                Circle().fill(Color.red.opacity(0.25)).frame(width: 14, height: 14)
-                Text("Baja").foregroundColor(.white).font(.caption)
-                Spacer()
+            if showCityPicker {
+                cityDropdownPanel
+                    .padding(.top, 46)
+                    .zIndex(1000)
             }
         }
     }
