@@ -638,27 +638,28 @@ struct RestaurantDashboardView: View {
                 .padding()
                 .padding(.bottom, bottomInset)
             }
-            if showLocationPicker || showRangePicker {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                            showLocationPicker = false
-                            showRangePicker = false
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 2)
+                    .onChanged { _ in
+                        if showLocationPicker || showRangePicker {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                showLocationPicker = false
+                                showRangePicker = false
+                            }
                         }
                     }
-                    .gesture(
-                        DragGesture(minimumDistance: 2)
-                            .onChanged { _ in
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                                    showLocationPicker = false
-                                    showRangePicker = false
-                                }
+            )
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded {
+                        if showLocationPicker || showRangePicker {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                showLocationPicker = false
+                                showRangePicker = false
                             }
-                    )
-                    .zIndex(900)
-            }
+                        }
+                    }
+            )
             if showLocationPicker {
                 dropdownPanel(items: locations, selected: selectedLocation) { it in
                     selectedLocation = it
