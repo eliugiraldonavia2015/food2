@@ -524,7 +524,7 @@ struct RestaurantDashboardView: View {
                         }
                         .padding(.vertical, 10)
                         .padding(.horizontal, 14)
-                        .background(Color.white.opacity(0.12))
+                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
@@ -533,8 +533,7 @@ struct RestaurantDashboardView: View {
             .padding(8)
         }
         .frame(height: CGFloat(min(locations.count, 4) * 56))
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
@@ -554,7 +553,7 @@ struct RestaurantDashboardView: View {
                         }
                         .padding(.vertical, 10)
                         .padding(.horizontal, 14)
-                        .background(Color.white.opacity(0.12))
+                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
@@ -563,8 +562,7 @@ struct RestaurantDashboardView: View {
             .padding(8)
         }
         .frame(height: CGFloat(min(ranges.count, 4) * 56))
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
