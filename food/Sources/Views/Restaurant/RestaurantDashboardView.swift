@@ -257,7 +257,7 @@ struct RestaurantDashboardView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(b.name).foregroundColor(.white).font(.subheadline.bold()).lineLimit(1).minimumScaleFactor(0.85)
-                HStack(spacing: 10) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                     pill("Órdenes", "\(b.orders)")
                     pill("Ingresos", b.revenue)
                     pill("Ticket", b.avgTicket)
