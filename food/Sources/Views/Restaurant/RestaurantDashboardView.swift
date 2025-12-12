@@ -48,25 +48,7 @@ struct RestaurantDashboardView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
-        .overlay(alignment: .top) {
-            HStack {
-                Spacer()
-                if showLocationPicker {
-                    locationDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .padding(.top, 60)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                } else if showRangePicker {
-                    rangeDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .padding(.top, 60)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                }
-                Spacer()
-            }
-        }
+        
         
             
         }
@@ -690,6 +672,9 @@ struct RestaurantDashboardView: View {
                 }
                 .padding()
                 .padding(.bottom, bottomInset)
+            }
+            if showLocationPicker || showRangePicker {
+                filterPanelOverlay
             }
             
             
