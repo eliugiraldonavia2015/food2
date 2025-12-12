@@ -24,9 +24,27 @@ struct RestaurantDashboardView: View {
             .padding(.bottom, 6)
             HStack(spacing: 16) {
                 Spacer()
-                filterPill(icon: "mappin.and.ellipse", text: selectedLocation) { showLocationPicker.toggle() }
+                filterPill(icon: "mappin.and.ellipse", text: selectedLocation) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                        if showLocationPicker {
+                            showLocationPicker = false
+                        } else {
+                            showRangePicker = false
+                            showLocationPicker = true
+                        }
+                    }
+                }
                     .fixedSize(horizontal: false, vertical: true)
-                filterPill(icon: "calendar", text: selectedRange) { showRangePicker.toggle() }
+                filterPill(icon: "calendar", text: selectedRange) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                        if showRangePicker {
+                            showRangePicker = false
+                        } else {
+                            showLocationPicker = false
+                            showRangePicker = true
+                        }
+                    }
+                }
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer()
             }
@@ -623,7 +641,7 @@ struct RestaurantDashboardView: View {
             .padding(.bottom, 12)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .background(Color.black.opacity(0.6).ignoresSafeArea())
+        .background(Color.black.ignoresSafeArea())
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
