@@ -527,72 +527,62 @@ struct RestaurantDashboardView: View {
     
 
     private var locationDropdownPanel: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.black)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                )
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(locations, id: \.self) { it in
-                        Button {
-                            selectedLocation = it
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
-                        } label: {
-                            HStack {
-                                Text(it).foregroundColor(.white).font(.subheadline)
-                                Spacer()
-                                if selectedLocation == it { Image(systemName: "checkmark").foregroundColor(.green) }
-                            }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 14)
-                            .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(locations, id: \.self) { it in
+                    Button {
+                        selectedLocation = it
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
+                    } label: {
+                        HStack {
+                            Text(it).foregroundColor(.white).font(.subheadline)
+                            Spacer()
+                            if selectedLocation == it { Image(systemName: "checkmark").foregroundColor(.green) }
                         }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14)
+                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(8)
             }
+            .padding(8)
         }
         .frame(width: UIScreen.main.bounds.width * 0.7, height: CGFloat(min(locations.count, 4) * 56))
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
     private var rangeDropdownPanel: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.black)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                )
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(ranges, id: \.self) { it in
-                        Button {
-                            selectedRange = it
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
-                        } label: {
-                            HStack {
-                                Text(it).foregroundColor(.white).font(.subheadline)
-                                Spacer()
-                                if selectedRange == it { Image(systemName: "checkmark").foregroundColor(.green) }
-                            }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 14)
-                            .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(ranges, id: \.self) { it in
+                    Button {
+                        selectedRange = it
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
+                    } label: {
+                        HStack {
+                            Text(it).foregroundColor(.white).font(.subheadline)
+                            Spacer()
+                            if selectedRange == it { Image(systemName: "checkmark").foregroundColor(.green) }
                         }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14)
+                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(8)
             }
+            .padding(8)
         }
         .frame(width: UIScreen.main.bounds.width * 0.7, height: CGFloat(min(ranges.count, 4) * 56))
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.6), radius: 16, x: 0, y: 8)
     }
 
