@@ -22,32 +22,51 @@ struct RestaurantDashboardView: View {
                 Spacer()
             }
             .padding(.bottom, 6)
-            HStack(spacing: 16) {
+        HStack(spacing: 16) {
+            Spacer()
+            filterPill(icon: "mappin.and.ellipse", text: selectedLocation) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                    if showLocationPicker {
+                        showLocationPicker = false
+                    } else {
+                        showRangePicker = false
+                        showLocationPicker = true
+                    }
+                }
+            }
+                .fixedSize(horizontal: false, vertical: true)
+            filterPill(icon: "calendar", text: selectedRange) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                    if showRangePicker {
+                        showRangePicker = false
+                    } else {
+                        showLocationPicker = false
+                        showRangePicker = true
+                    }
+                }
+            }
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+        }
+        .overlay(alignment: .top) {
+            HStack {
                 Spacer()
-                filterPill(icon: "mappin.and.ellipse", text: selectedLocation) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                        if showLocationPicker {
-                            showLocationPicker = false
-                        } else {
-                            showRangePicker = false
-                            showLocationPicker = true
-                        }
-                    }
+                if showLocationPicker {
+                    locationDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .padding(.top, 110)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
+                } else if showRangePicker {
+                    rangeDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .padding(.top, 110)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
                 }
-                    .fixedSize(horizontal: false, vertical: true)
-                filterPill(icon: "calendar", text: selectedRange) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                        if showRangePicker {
-                            showRangePicker = false
-                        } else {
-                            showLocationPicker = false
-                            showRangePicker = true
-                        }
-                    }
-                }
-                    .fixedSize(horizontal: false, vertical: true)
                 Spacer()
             }
+        }
             
         }
         .padding(.horizontal)
@@ -505,29 +524,7 @@ struct RestaurantDashboardView: View {
         }
     }
 
-    private var pickersOverlay: some View {
-        VStack {
-            HStack {
-                Spacer()
-                if showLocationPicker {
-                    locationDropdownPanel
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                        .allowsHitTesting(true)
-                } else if showRangePicker {
-                    rangeDropdownPanel
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                        .allowsHitTesting(true)
-                }
-                Spacer()
-            }
-            .padding(.top, 90)
-            .padding(.horizontal)
-            Spacer()
-        }
-        .allowsHitTesting(false)
-    }
+    
 
     private var locationDropdownPanel: some View {
         ScrollView {
@@ -553,7 +550,7 @@ struct RestaurantDashboardView: View {
             .padding(8)
         }
         .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7, height: 280)
+        .frame(width: UIScreen.main.bounds.width * 0.7, height: CGFloat(min(locations.count, 4) * 56))
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
@@ -584,7 +581,7 @@ struct RestaurantDashboardView: View {
             .padding(8)
         }
         .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7, height: 280)
+        .frame(width: UIScreen.main.bounds.width * 0.7, height: CGFloat(min(ranges.count, 4) * 56))
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
@@ -671,9 +668,7 @@ struct RestaurantDashboardView: View {
                 .padding()
                 .padding(.bottom, bottomInset)
             }
-            if showLocationPicker || showRangePicker {
-                pickersOverlay
-            }
+            
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
