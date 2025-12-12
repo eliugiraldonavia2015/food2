@@ -70,6 +70,7 @@ struct RestaurantDashboardView: View {
                 }
                 Spacer()
             }
+            .allowsHitTesting(false)
         }
         
         
@@ -555,6 +556,9 @@ struct RestaurantDashboardView: View {
         }
         .padding(8)
         .background(Color.black)
+        .opacity(1)
+        .blendMode(.normal)
+        .compositingGroup()
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
