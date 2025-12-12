@@ -506,25 +506,22 @@ struct RestaurantDashboardView: View {
     }
 
     private var pickersOverlay: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            VStack {
-                HStack {
-                    Spacer()
-                    if showLocationPicker {
-                        locationDropdownPanel
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(100)
-                    } else if showRangePicker {
-                        rangeDropdownPanel
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(100)
-                    }
-                }
-                .padding(.top, 60)
-                .padding(.horizontal)
+        VStack {
+            HStack {
                 Spacer()
+                if showLocationPicker {
+                    locationDropdownPanel
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
+                } else if showRangePicker {
+                    rangeDropdownPanel
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
+                }
             }
+            .padding(.top, 60)
+            .padding(.horizontal)
+            Spacer()
         }
     }
 
