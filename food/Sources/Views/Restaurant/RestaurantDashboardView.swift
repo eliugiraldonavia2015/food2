@@ -31,9 +31,22 @@ struct RestaurantDashboardView: View {
                 Spacer()
             }
             .overlay(alignment: .top) {
-                ZStack(alignment: .top) {
-                    if showLocationPicker { locationDropdownPanel.padding(.top, 52).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
-                    if showRangePicker { rangeDropdownPanel.padding(.top, 52).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
+                HStack {
+                    Spacer()
+                    if showLocationPicker {
+                        locationDropdownPanel
+                            .frame(width: UIScreen.main.bounds.width * 0.8)
+                            .padding(.top, 60)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(100)
+                    } else if showRangePicker {
+                        rangeDropdownPanel
+                            .frame(width: UIScreen.main.bounds.width * 0.8)
+                            .padding(.top, 60)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(100)
+                    }
+                    Spacer()
                 }
             }
         }
@@ -517,8 +530,7 @@ struct RestaurantDashboardView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7)
+        .padding(8)
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
@@ -545,8 +557,7 @@ struct RestaurantDashboardView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7)
+        .padding(8)
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
