@@ -513,40 +513,47 @@ struct RestaurantDashboardView: View {
                     locationDropdownPanel
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .zIndex(100)
+                        .allowsHitTesting(true)
                 } else if showRangePicker {
                     rangeDropdownPanel
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .zIndex(100)
+                        .allowsHitTesting(true)
                 }
+                Spacer()
             }
-            .padding(.top, 60)
+            .padding(.top, 90)
             .padding(.horizontal)
             Spacer()
         }
+        .allowsHitTesting(false)
     }
 
     private var locationDropdownPanel: some View {
-        VStack(spacing: 8) {
-            ForEach(locations, id: \.self) { it in
-                Button {
-                    selectedLocation = it
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
-                } label: {
-                    HStack {
-                        Text(it).foregroundColor(.white).font(.subheadline)
-                        Spacer()
-                        if selectedLocation == it { Image(systemName: "checkmark").foregroundColor(.green) }
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(locations, id: \.self) { it in
+                    Button {
+                        selectedLocation = it
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showLocationPicker = false }
+                    } label: {
+                        HStack {
+                            Text(it).foregroundColor(.white).font(.subheadline)
+                            Spacer()
+                            if selectedLocation == it { Image(systemName: "checkmark").foregroundColor(.green) }
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 14)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(8)
         }
         .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7)
+        .frame(width: UIScreen.main.bounds.width * 0.7, height: 280)
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
@@ -554,27 +561,30 @@ struct RestaurantDashboardView: View {
     }
 
     private var rangeDropdownPanel: some View {
-        VStack(spacing: 8) {
-            ForEach(ranges, id: \.self) { it in
-                Button {
-                    selectedRange = it
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
-                } label: {
-                    HStack {
-                        Text(it).foregroundColor(.white).font(.subheadline)
-                        Spacer()
-                        if selectedRange == it { Image(systemName: "checkmark").foregroundColor(.green) }
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(ranges, id: \.self) { it in
+                    Button {
+                        selectedRange = it
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { showRangePicker = false }
+                    } label: {
+                        HStack {
+                            Text(it).foregroundColor(.white).font(.subheadline)
+                            Spacer()
+                            if selectedRange == it { Image(systemName: "checkmark").foregroundColor(.green) }
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 14)
-                    .background(Color.white.opacity(0.08))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(8)
         }
         .frame(maxWidth: .infinity)
-        .frame(width: UIScreen.main.bounds.width * 0.7)
+        .frame(width: UIScreen.main.bounds.width * 0.7, height: 280)
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.06), lineWidth: 1))
