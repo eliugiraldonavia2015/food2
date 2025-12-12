@@ -507,6 +507,27 @@ struct RestaurantDashboardView: View {
 
     private var pickersOverlay: some View {
         ZStack(alignment: .top) {
+            if showLocationPicker {
+                HStack {
+                    Spacer()
+                    locationDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.85)
+                        .padding(.top, 100)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1000)
+                    Spacer()
+                }
+            } else if showRangePicker {
+                HStack {
+                    Spacer()
+                    rangeDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.85)
+                        .padding(.top, 100)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1000)
+                    Spacer()
+                }
+            }
         }
     }
 
