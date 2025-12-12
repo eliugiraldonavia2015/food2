@@ -48,25 +48,7 @@ struct RestaurantDashboardView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
-        .overlay(alignment: .top) {
-            HStack {
-                Spacer()
-                if showLocationPicker {
-                    locationDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .padding(.top, 76)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                } else if showRangePicker {
-                    rangeDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .padding(.top, 76)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                }
-                Spacer()
-            }
-        }
+        
             
         }
         .padding(.horizontal)
@@ -666,6 +648,9 @@ struct RestaurantDashboardView: View {
                 .padding()
                 .padding(.bottom, bottomInset)
             }
+            if showLocationPicker || showRangePicker {
+                filterPanelOverlay
+            }
             
         }
         .background(Color.black.ignoresSafeArea())
@@ -673,3 +658,26 @@ struct RestaurantDashboardView: View {
     }
 }
 
+    private var filterPanelOverlay: some View {
+        VStack {
+            HStack {
+                Spacer()
+                if showLocationPicker {
+                    locationDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .zIndex(1000)
+                        .allowsHitTesting(true)
+                } else if showRangePicker {
+                    rangeDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .zIndex(1000)
+                        .allowsHitTesting(true)
+                }
+                Spacer()
+            }
+            .padding(.top, 76)
+            .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .allowsHitTesting(false)
+    }
