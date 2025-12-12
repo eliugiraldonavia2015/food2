@@ -541,7 +541,7 @@ struct RestaurantDashboardView: View {
                         }
                         .padding(.vertical, 10)
                         .padding(.horizontal, 14)
-                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
+                        .background(Color.black)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
@@ -571,7 +571,7 @@ struct RestaurantDashboardView: View {
                         }
                         .padding(.vertical, 10)
                         .padding(.horizontal, 14)
-                        .background(Color(.sRGB, red: 0.16, green: 0.16, blue: 0.16, opacity: 1))
+                        .background(Color.black)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
