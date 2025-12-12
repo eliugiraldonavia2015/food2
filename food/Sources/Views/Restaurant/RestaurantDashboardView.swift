@@ -630,6 +630,30 @@ struct RestaurantDashboardView: View {
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
+    private var filterPanelOverlay: some View {
+        VStack {
+            HStack {
+                Spacer()
+                if showLocationPicker {
+                    locationDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .zIndex(1000)
+                        .allowsHitTesting(true)
+                } else if showRangePicker {
+                    rangeDropdownPanel
+                        .frame(width: UIScreen.main.bounds.width * 0.7)
+                        .zIndex(1000)
+                        .allowsHitTesting(true)
+                }
+                Spacer()
+            }
+            .padding(.top, 76)
+            .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .allowsHitTesting(false)
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView {
@@ -657,27 +681,3 @@ struct RestaurantDashboardView: View {
         .preferredColorScheme(.dark)
     }
 }
-
-    private var filterPanelOverlay: some View {
-        VStack {
-            HStack {
-                Spacer()
-                if showLocationPicker {
-                    locationDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .zIndex(1000)
-                        .allowsHitTesting(true)
-                } else if showRangePicker {
-                    rangeDropdownPanel
-                        .frame(width: UIScreen.main.bounds.width * 0.7)
-                        .zIndex(1000)
-                        .allowsHitTesting(true)
-                }
-                Spacer()
-            }
-            .padding(.top, 76)
-            .padding(.horizontal)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .allowsHitTesting(false)
-    }
