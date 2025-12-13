@@ -442,18 +442,13 @@ struct ChatView: View {
             RoundedRectangle(cornerRadius: 18)
                 .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(height: 180)
-            HStack {
-                Spacer()
-                WebImage(url: URL(string: orderImageUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .scaledToFill()
-                    .frame(height: 180)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 12)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                Spacer()
-            }
+            WebImage(url: URL(string: orderImageUrl))
+                .resizable()
+                .indicator(.activity)
+                .scaledToFill()
+                .frame(maxWidth: .infinity, height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .clipped()
         }
         .zIndex(0)
         .padding(.horizontal, 12)
@@ -473,7 +468,7 @@ struct ChatView: View {
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .offset(y: -18)
-        .zIndex(1)
+        .zIndex(2)
         .padding(.horizontal, 12)
     }
 
