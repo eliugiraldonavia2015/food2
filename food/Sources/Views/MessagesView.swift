@@ -295,18 +295,24 @@ struct ChatView: View {
         Button {
             withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = true }
         } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    WebImage(url: URL(string: orderImageUrl))
-                        .resizable()
-                        .indicator(.activity)
-                        .scaledToFill()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+            HStack(alignment: .center, spacing: 16) {
+                VStack(spacing: 0) {
+                    Spacer()
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        WebImage(url: URL(string: orderImageUrl))
+                            .resizable()
+                            .indicator(.activity)
+                            .scaledToFill()
+                            .frame(width: 33, height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                    .frame(width: 33, height: 50)
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+                    Spacer()
                 }
-                .frame(width: 33, height: 50)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+                .frame(width: 33, height: 56)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Text("Orden Activa")
@@ -319,6 +325,7 @@ struct ChatView: View {
                             .font(.footnote)
                             .lineLimit(1)
                     }
+                    .padding(.leading, 6)
                     HStack(spacing: 6) {
                         Image(systemName: "barcode.viewfinder")
                             .foregroundColor(.green)
