@@ -325,7 +325,7 @@ struct ChatView: View {
                             .font(.footnote)
                             .lineLimit(1)
                     }
-                    .padding(.leading, 12)
+                    .padding(.leading, 0)
                     HStack(spacing: 6) {
                         Image(systemName: "barcode.viewfinder")
                             .foregroundColor(.green)
