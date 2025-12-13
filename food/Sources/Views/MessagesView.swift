@@ -446,7 +446,8 @@ struct ChatView: View {
                 .resizable()
                 .indicator(.activity)
                 .scaledToFill()
-                .frame(maxWidth: .infinity, height: 180)
+                .frame(height: 180)
+                .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .clipped()
         }
