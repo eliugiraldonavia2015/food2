@@ -355,6 +355,7 @@ struct ChatView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     orderTopBlock
+                    orderInfoPanel
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Detalles del plato")
                             .foregroundColor(.white)
@@ -450,10 +451,6 @@ struct ChatView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .clipped()
         }
-        .overlay(alignment: .bottom) {
-            orderInfoPanel
-                .offset(y: -18)
-        }
         .zIndex(0)
         .padding(.horizontal, 12)
     }
@@ -471,6 +468,8 @@ struct ChatView: View {
         .padding()
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .offset(y: -18)
+        .zIndex(2)
         .padding(.horizontal, 12)
     }
 
