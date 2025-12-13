@@ -1,12 +1,24 @@
 import SwiftUI
+import SDWebImageSwiftUI
 
 struct MessagesListView: View {
+    @ObservedObject private var auth = AuthService.shared
     @State private var searchText: String = ""
 
     private var filteredConversations: [Conversation] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if q.isEmpty { return Conversation.sample }
-        return Conversation.sample.filter { $0.title.localizedCaseInsensitiveContains(q) || $0.subtitle.localizedCaseInsensitiveContains(q) }
+        let base = conversations
+        if q.isEmpty { return base }
+        return base.filter { $0.title.localizedCaseInsensitiveContains(q) || $0.subtitle.localizedCaseInsensitiveContains(q) }
+    }
+
+    private var conversations: [Conversation] {
+        let role = auth.user?.role ?? "client"
+        if role == "restaurant" {
+            return Conversation.restaurantSample
+        } else {
+            return Conversation.sample
+        }
     }
 
     var body: some View {
@@ -133,28 +145,51 @@ struct ConversationRow: View {
 struct ChatView: View {
     let conversation: Conversation
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var auth = AuthService.shared
     @State private var composerText: String = ""
     @State private var messages: [Message] = Message.sample
+    @State private var showOrderSheet: Bool = false
+    @State private var orderTitle: String = "Pizza Margherita"
+    @State private var orderImageUrl: String = "https://images.unsplash.com/photo-1601924638867-3ec3b1f7c2d7"
+    @State private var orderPrice: String = "$15.99"
+    @State private var orderSubtitle: String = "Mozzarella fresca, albahaca y tomate"
+    @State private var orderTrackingCode: String = "TRK-84721"
 
     var body: some View {
-        VStack(spacing: 0) {
-            chatHeader
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(messages) { msg in
-                            MessageBubble(message: msg)
-                                .id(msg.id)
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                chatHeader
+                if (auth.user?.role ?? "client") == "restaurant" {
+                    orderAnchor
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                }
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 10) {
+                            ForEach(messages) { msg in
+                                MessageBubble(message: msg)
+                                    .id(msg.id)
+                            }
                         }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
+                    .onChange(of: messages.count) { _ in
+                        if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
+                    }
                 }
-                .onChange(of: messages.count) { _ in
-                    if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
-                }
+                composer
             }
-            composer
+            .blur(radius: showOrderSheet ? 8 : 0)
+            .allowsHitTesting(!showOrderSheet)
+
+            if showOrderSheet {
+                Color.black.opacity(0.6).ignoresSafeArea()
+                    .transition(.opacity)
+                orderBottomSheet
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
@@ -162,19 +197,40 @@ struct ChatView: View {
     }
 
     private var chatHeader: some View {
-        HStack(spacing: 12) {
-            Button { dismiss() } label: {
-                Image(systemName: "chevron.left")
-                    .foregroundColor(.white)
-                    .font(.system(size: 22, weight: .semibold))
+        VStack(spacing: 10) {
+            HStack(spacing: 12) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.white)
+                        .font(.system(size: 22, weight: .semibold))
+                }
+                ZStack(alignment: .bottomTrailing) {
+                    Circle()
+                        .fill(Color.white.opacity(0.10))
+                        .frame(width: 40, height: 40)
+                        .overlay(Image(systemName: conversation.avatarSystemName).foregroundColor(.white))
+                        .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    Circle()
+                        .fill(conversation.isOnline ? Color.green : Color.gray)
+                        .frame(width: 9, height: 9)
+                        .overlay(Circle().stroke(Color.black, lineWidth: 2))
+                        .offset(x: 2, y: 2)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(conversation.title)
+                        .foregroundColor(.white)
+                        .font(.system(size: 18, weight: .bold))
+                    Text(conversation.subtitle)
+                        .foregroundColor(.white.opacity(0.7))
+                        .font(.caption)
+                        .lineLimit(1)
+                }
+                Spacer()
             }
-            Text(conversation.title)
-                .foregroundColor(.white)
-                .font(.system(size: 22, weight: .bold))
-            Spacer()
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
         .background(Color.black)
     }
 
@@ -206,6 +262,140 @@ struct ChatView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+    }
+
+    private var orderAnchor: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = true }
+        } label: {
+            HStack(spacing: 12) {
+                WebImage(url: URL(string: orderImageUrl))
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 52, height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Text("Orden Activa")
+                            .foregroundColor(.white)
+                            .font(.subheadline.bold())
+                        Text("•")
+                            .foregroundColor(.gray)
+                        Text(orderTitle)
+                            .foregroundColor(.white.opacity(0.9))
+                            .font(.footnote)
+                            .lineLimit(1)
+                    }
+                    HStack(spacing: 6) {
+                        Image(systemName: "barcode.viewfinder")
+                            .foregroundColor(.green)
+                        Text("Seguimiento \(orderTrackingCode)")
+                            .foregroundColor(.green)
+                            .font(.caption.bold())
+                    }
+                }
+                Spacer()
+                Image(systemName: "chevron.up")
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var orderBottomSheet: some View {
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(spacing: 0) {
+                    orderTopBlock
+                    orderInfoPanel
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Detalles del plato")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.06))
+                            .frame(height: 100)
+                            .overlay(
+                                Text("Mozzarella fresca, albahaca, salsa de tomate. Masa delgada.")
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .font(.footnote)
+                                    .padding(12), alignment: .topLeading
+                            )
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 56)
+                }
+            }
+            .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
+            .safeAreaInset(edge: .bottom) {
+                sheetActionBar.padding(.horizontal, 16)
+                    .padding(.top, 0)
+                    .padding(.bottom, 0)
+                    .background(Color.black)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: UIScreen.main.bounds.height * 0.7)
+            .background(Color.black)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+    }
+
+    private var orderTopBlock: some View {
+        ZStack(alignment: .topTrailing) {
+            WebImage(url: URL(string: orderImageUrl))
+                .resizable()
+                .scaledToFill()
+                .frame(height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+            Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
+                Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
+                    .overlay(Image(systemName: "xmark").foregroundColor(.white))
+                    .padding(10)
+            }
+        }
+        .padding(.horizontal, 12)
+    }
+
+    private var orderInfoPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(orderTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
+            Text(orderSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
+            Text(orderPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
+            HStack(spacing: 6) {
+                Image(systemName: "barcode.viewfinder").foregroundColor(.green)
+                Text("Código \(orderTrackingCode)").foregroundColor(.green).font(.caption.bold())
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
+        .offset(y: -18)
+        .padding(.horizontal, 12)
+    }
+
+    private var sheetCloseButton: some View {
+        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
+            Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
+                .overlay(Image(systemName: "xmark").foregroundColor(.white))
+        }
+    }
+
+    private var sheetActionBar: some View {
+        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
+            Text("Cerrar")
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(Color.green)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
     }
 }
 
@@ -263,6 +453,19 @@ struct Conversation: Identifiable, Hashable {
         Conversation(title: "Tacos El Rey", subtitle: "¡Tu pedido está listo!", timestamp: "Hace 5 min", unreadCount: 2, avatarSystemName: "person.crop.circle.fill", isOnline: true),
         Conversation(title: "Pizza Lovers", subtitle: "Gracias por tu preferencia", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
         Conversation(title: "Sushi House", subtitle: "Promo 2x1 hoy", timestamp: "Ayer", unreadCount: 1, avatarSystemName: "leaf.circle", isOnline: false)
+    ]
+
+    static let restaurantSample: [Conversation] = [
+        Conversation(title: "Juan Pérez", subtitle: "¿Sigue disponible la promo?", timestamp: "Hace 3 min", unreadCount: 1, avatarSystemName: "person.crop.circle.fill", isOnline: true),
+        Conversation(title: "María López", subtitle: "Gracias por la atención", timestamp: "Hace 12 min", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
+        Conversation(title: "Carlos Gómez", subtitle: "Confirmo el pedido #84721", timestamp: "Hace 28 min", unreadCount: 2, avatarSystemName: "person.crop.circle", isOnline: false),
+        Conversation(title: "Ana Rodríguez", subtitle: "¿Tiempo estimado de entrega?", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
+        Conversation(title: "Luis Hernández", subtitle: "Sin cebolla por favor", timestamp: "Ayer", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
+        Conversation(title: "Sofía Martínez", subtitle: "Excelente servicio 🙌", timestamp: "Ayer", unreadCount: 3, avatarSystemName: "person.crop.circle.fill", isOnline: true),
+        Conversation(title: "Miguel Torres", subtitle: "¿Aceptan pago en efectivo?", timestamp: "Ayer", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
+        Conversation(title: "Paula Sánchez", subtitle: "Necesito factura", timestamp: "Hace 2 días", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
+        Conversation(title: "Diego Ramírez", subtitle: "Agreguen salsa extra", timestamp: "Hace 2 días", unreadCount: 1, avatarSystemName: "person.crop.circle", isOnline: false),
+        Conversation(title: "Lucía Fernández", subtitle: "¿Tienen opción sin gluten?", timestamp: "Hace 3 días", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true)
     ]
 }
 
