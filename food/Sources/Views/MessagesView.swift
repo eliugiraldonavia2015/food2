@@ -1,24 +1,29 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
+final class MessagesStore: ObservableObject {
+    @Published var conversations: [Conversation] = []
+    func loadConversations(for role: String) {
+        conversations = role == "restaurant" ? Conversation.restaurantSample : Conversation.sample
+    }
+    func updateLastMessage(id: UUID, text: String) {
+        if let idx = conversations.firstIndex(where: { $0.id == id }) {
+            conversations[idx].subtitle = text
+            conversations[idx].timestamp = "Ahora"
+        }
+    }
+}
+
 struct MessagesListView: View {
     @ObservedObject private var auth = AuthService.shared
+    @StateObject private var store = MessagesStore()
     @State private var searchText: String = ""
 
     private var filteredConversations: [Conversation] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let base = conversations
+        let base = store.conversations
         if q.isEmpty { return base }
         return base.filter { $0.title.localizedCaseInsensitiveContains(q) || $0.subtitle.localizedCaseInsensitiveContains(q) }
-    }
-
-    private var conversations: [Conversation] {
-        let role = auth.user?.role ?? "client"
-        if role == "restaurant" {
-            return Conversation.restaurantSample
-        } else {
-            return Conversation.sample
-        }
     }
 
     var body: some View {
@@ -43,11 +48,19 @@ struct MessagesListView: View {
             }
             .background(Color.black.ignoresSafeArea())
             .navigationDestination(for: Conversation.self) { convo in
-                ChatView(conversation: convo)
+                ChatView(conversation: convo, store: store)
             }
         }
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            let role = auth.user?.role ?? "client"
+            store.loadConversations(for: role)
+        }
+        .onChange(of: auth.user?.role) { _ in
+            let role = auth.user?.role ?? "client"
+            store.loadConversations(for: role)
+        }
     }
 
     private var header: some View {
@@ -144,10 +157,11 @@ struct ConversationRow: View {
 
 struct ChatView: View {
     let conversation: Conversation
+    @ObservedObject var store: MessagesStore
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var auth = AuthService.shared
     @State private var composerText: String = ""
-    @State private var messages: [Message] = Message.sample
+    @State private var messages: [Message] = []
     @State private var showOrderSheet: Bool = false
     @State private var orderTitle: String = "Pizza Margherita"
     @State private var orderImageUrl: String = "https://images.unsplash.com/photo-1546069901-5ec6a79120b0"
@@ -198,6 +212,13 @@ struct ChatView: View {
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            messages = [
+                Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: true, time: "Hace 14 min", status: .delivered),
+                Message(text: "Sí, estará listo en 10 minutos.", isMe: false, time: "Hace 12 min", status: nil),
+                Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
+            ]
+        }
     }
 
     private var chatHeader: some View {
@@ -253,6 +274,7 @@ struct ChatView: View {
                 let txt = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !txt.isEmpty else { return }
                 messages.append(Message(text: txt, isMe: true, time: "Ahora", status: .sent))
+                store.updateLastMessage(id: conversation.id, text: txt)
                 composerText = ""
             } label: {
                 Image(systemName: "paperplane.fill")
@@ -408,16 +430,22 @@ struct ChatView: View {
     }
 
     private var orderTopBlock: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             RoundedRectangle(cornerRadius: 18)
                 .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .frame(height: 180)
-            WebImage(url: URL(string: orderImageUrl))
-                .resizable()
-                .indicator(.activity)
-                .scaledToFill()
-                .frame(height: 180)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+            HStack {
+                Spacer()
+                WebImage(url: URL(string: orderImageUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .scaledToFill()
+                    .frame(height: 180)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 12)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                Spacer()
+            }
         }
         .zIndex(0)
         .padding(.horizontal, 12)
@@ -539,8 +567,8 @@ struct MessageBubble: View {
 struct Conversation: Identifiable, Hashable {
     let id = UUID()
     let title: String
-    let subtitle: String
-    let timestamp: String
+    var subtitle: String
+    var timestamp: String
     let unreadCount: Int?
     let avatarSystemName: String
     let isOnline: Bool
