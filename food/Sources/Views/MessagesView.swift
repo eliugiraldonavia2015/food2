@@ -469,7 +469,8 @@ struct ChatView: View {
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .offset(y: -18)
-        .zIndex(2)
+        .compositingGroup()
+        .zIndex(999)
         .padding(.horizontal, 12)
     }
 
