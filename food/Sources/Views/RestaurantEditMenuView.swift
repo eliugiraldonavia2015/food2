@@ -17,8 +17,17 @@ struct RestaurantEditMenuView: View {
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
-    @State private var selectedSides: Set<String> = []
-    @State private var selectedDrinks: Set<String> = []
+    private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
+    @State private var sideItems: [EditableItem] = [
+        .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
+        .init(title: "Aros de Cebolla", price: "+ $3", editing: false),
+        .init(title: "Ensalada César", price: "+ $2", editing: false)
+    ]
+    @State private var drinkItems: [EditableItem] = [
+        .init(title: "Coca-Cola", price: "+ $1.5", editing: false),
+        .init(title: "Limonada", price: "+ $2", editing: false),
+        .init(title: "Té Helado", price: "+ $1.8", editing: false)
+    ]
     private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
     private let menuData: [String: [MenuItem]] = [
         "Popular": [
@@ -265,15 +274,15 @@ struct RestaurantEditMenuView: View {
                     dishInfoPanel
                     VStack(alignment: .leading, spacing: 16) {
                         sectionTitle("Acompañamiento recomendado")
-                        Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                        optionRow("Papas Fritas", "+ $2.5", selection: $selectedSides)
-                        optionRow("Aros de Cebolla", "+ $3", selection: $selectedSides)
-                        optionRow("Ensalada César", "+ $2", selection: $selectedSides)
+                        ForEach($sideItems) { $it in
+                            editableRow(item: $it)
+                        }
+                        addItemRow(forDrinks: false)
                         sectionTitle("Bebidas recomendadas")
-                        Text("Elige máximo 3 opciones").foregroundColor(.white.opacity(0.7)).font(.caption)
-                        optionRow("Coca-Cola", "+ $1.5", selection: $selectedDrinks)
-                        optionRow("Limonada", "+ $2", selection: $selectedDrinks)
-                        optionRow("Té Helado", "+ $1.8", selection: $selectedDrinks)
+                        ForEach($drinkItems) { $it in
+                            editableRow(item: $it)
+                        }
+                        addItemRow(forDrinks: true)
                         sectionTitle("Notas especiales")
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.white.opacity(0.06))
@@ -346,31 +355,75 @@ struct RestaurantEditMenuView: View {
         )
     }
 
-    private func optionRow(_ title: String, _ price: String, selection: Binding<Set<String>>) -> some View {
-        let isSelected = selection.wrappedValue.contains(title)
-        return HStack {
-            HStack(spacing: 10) {
-                if isSelected {
-                    Circle().fill(Color.green).frame(width: 18, height: 18)
-                        .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundColor(.black))
-                } else {
-                    Circle().stroke(Color.green, lineWidth: 2).frame(width: 18, height: 18)
-                }
-                Text(title).foregroundColor(.white).font(.system(size: 16))
+    private func editableRow(item: Binding<EditableItem>) -> some View {
+        HStack {
+            Button(action: { item.wrappedValue.editing = true }) {
+                Text("Editar")
+                    .foregroundColor(.black)
+                    .font(.system(size: 14, weight: .bold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.green)
+                    .clipShape(Capsule())
             }
-            Spacer()
-            Text(price).foregroundColor(.green).font(.system(size: 16, weight: .semibold))
+            .buttonStyle(.plain)
+            if item.wrappedValue.editing {
+                TextField("Nombre", text: item.title)
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
+                Spacer()
+                TextField("Precio", text: item.price)
+                    .foregroundColor(.green)
+                    .font(.system(size: 16, weight: .semibold))
+                Button(action: { item.wrappedValue.editing = false }) {
+                    Text("Guardar")
+                        .foregroundColor(.black)
+                        .font(.system(size: 14, weight: .bold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.green)
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(item.wrappedValue.title)
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
+                Spacer()
+                Text(item.wrappedValue.price)
+                    .foregroundColor(.green)
+                    .font(.system(size: 16, weight: .semibold))
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
-        .onTapGesture {
-            if isSelected {
-                selection.wrappedValue.remove(title)
+    }
+
+    private func addItemRow(forDrinks: Bool) -> some View {
+        Button(action: {
+            let new = EditableItem(title: "", price: "", editing: true)
+            if forDrinks {
+                drinkItems.append(new)
             } else {
-                if selection.wrappedValue.count < 3 { selection.wrappedValue.insert(title) }
+                sideItems.append(new)
             }
+        }) {
+            HStack {
+                Text("Añadir item")
+                    .foregroundColor(.black)
+                    .font(.system(size: 14, weight: .bold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.green)
+                    .clipShape(Capsule())
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
         }
+        .buttonStyle(.plain)
     }
 
     private var sheetCloseButton: some View {
