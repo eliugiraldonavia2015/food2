@@ -425,7 +425,7 @@ struct ChatView: View {
             .safeAreaInset(edge: .bottom) {
                 sheetActionBar.padding(.horizontal, 16)
                     .padding(.top, 0)
-                    .padding(.bottom, 0)
+                    .padding(.bottom, 12)
                     .background(Color.black)
             }
             .frame(maxWidth: .infinity)
