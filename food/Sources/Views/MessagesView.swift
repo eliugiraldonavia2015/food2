@@ -295,7 +295,7 @@ struct ChatView: View {
         Button {
             withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = true }
         } label: {
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .center, spacing: 20) {
                 VStack(spacing: 0) {
                     Spacer()
                     ZStack {
@@ -305,14 +305,14 @@ struct ChatView: View {
                             .resizable()
                             .indicator(.activity)
                             .scaledToFill()
-                            .frame(width: 33, height: 50)
+                            .frame(width: 50, height: 50)
                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
-                    .frame(width: 33, height: 50)
+                    .frame(width: 50, height: 50)
                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                     Spacer()
                 }
-                .frame(width: 33, height: 56)
+                .frame(width: 50, height: 56)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Text("Orden Activa")
@@ -325,7 +325,7 @@ struct ChatView: View {
                             .font(.footnote)
                             .lineLimit(1)
                     }
-                    .padding(.leading, 6)
+                    .padding(.leading, 12)
                     HStack(spacing: 6) {
                         Image(systemName: "barcode.viewfinder")
                             .foregroundColor(.green)
