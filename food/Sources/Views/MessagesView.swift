@@ -150,7 +150,7 @@ struct ChatView: View {
     @State private var messages: [Message] = Message.sample
     @State private var showOrderSheet: Bool = false
     @State private var orderTitle: String = "Pizza Margherita"
-    @State private var orderImageUrl: String = "https://images.unsplash.com/photo-1601924638867-3ec3b1f7c2d7"
+    @State private var orderImageUrl: String = "https://images.unsplash.com/photo-1546069901-5ec6a79120b0"
     @State private var orderPrice: String = "$15.99"
     @State private var orderSubtitle: String = "Mozzarella fresca, albahaca y tomate"
     @State private var orderTrackingCode: String = "TRK-84721"
@@ -278,6 +278,7 @@ struct ChatView: View {
                         .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
                     WebImage(url: URL(string: orderImageUrl))
                         .resizable()
+                        .indicator(.activity)
                         .scaledToFill()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
@@ -413,10 +414,12 @@ struct ChatView: View {
                 .frame(height: 180)
             WebImage(url: URL(string: orderImageUrl))
                 .resizable()
+                .indicator(.activity)
                 .scaledToFill()
                 .frame(height: 180)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
         }
+        .zIndex(0)
         .padding(.horizontal, 12)
     }
 
@@ -434,6 +437,7 @@ struct ChatView: View {
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .offset(y: -18)
+        .zIndex(1)
         .padding(.horizontal, 12)
     }
 
