@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import Combine
 
 final class MessagesStore: ObservableObject {
     @Published var conversations: [Conversation] = []
