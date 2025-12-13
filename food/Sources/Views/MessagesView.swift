@@ -273,18 +273,16 @@ struct ChatView: View {
             withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = true }
         } label: {
             HStack(spacing: 12) {
-                WebImage(url: URL(string: orderImageUrl))
-                    .placeholder {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12).fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            Image(systemName: "fork.knife").foregroundColor(.white.opacity(0.9))
-                        }
-                    }
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 52, height: 52)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    WebImage(url: URL(string: orderImageUrl))
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .frame(width: 52, height: 52)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Text("Orden Activa")
@@ -410,13 +408,10 @@ struct ChatView: View {
 
     private var orderTopBlock: some View {
         ZStack(alignment: .topTrailing) {
+            RoundedRectangle(cornerRadius: 18)
+                .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(height: 180)
             WebImage(url: URL(string: orderImageUrl))
-                .placeholder {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        Image(systemName: "fork.knife").foregroundColor(.white.opacity(0.9))
-                    }
-                }
                 .resizable()
                 .scaledToFill()
                 .frame(height: 180)
