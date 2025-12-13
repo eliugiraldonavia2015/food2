@@ -305,7 +305,7 @@ struct ChatView: View {
                         .scaledToFill()
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .frame(width: 52, height: 52)
+                .frame(width: 40, height: 40)
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
