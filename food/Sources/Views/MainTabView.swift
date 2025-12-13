@@ -552,14 +552,13 @@ private struct ProfileScreen: View {
             EditProfileView(onClose: { showEditProfile = false })
         }
         .fullScreenCover(isPresented: $showEditMenu) {
-            FullMenuView(
+            RestaurantEditMenuView(
                 restaurantName: auth.user?.username ?? "Mi Restaurante",
                 coverUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
                 avatarUrl: auth.user?.photoURL?.absoluteString ?? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
                 location: auth.user?.location ?? "CDMX, México",
                 branchName: nil,
-                distanceKm: 2.3,
-                isEditing: true
+                distanceKm: 2.3
             )
         }
     }
