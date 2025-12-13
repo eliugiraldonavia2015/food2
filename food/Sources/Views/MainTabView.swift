@@ -480,6 +480,7 @@ private struct ProfileScreen: View {
     @State private var selectedSegment: Int = 0
     @State private var showSettings: Bool = false
     @State private var showEditProfile: Bool = false
+    @State private var showEditMenu: Bool = false
 
     private let imageUrls: [String] = [
         "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
@@ -532,7 +533,7 @@ private struct ProfileScreen: View {
 
                 HStack(spacing: 12) {
                     primaryFilledButton(title: "Editar Perfil")
-                    primaryOutlinedButton(title: "Compartir Perfil")
+                    primaryOutlinedButton(title: (auth.user?.role ?? "client") == "restaurant" ? "Editar Menú" : "Compartir Perfil")
                 }
 
                 segmentedControl()
@@ -549,6 +550,17 @@ private struct ProfileScreen: View {
         }
         .fullScreenCover(isPresented: $showEditProfile) {
             EditProfileView(onClose: { showEditProfile = false })
+        }
+        .fullScreenCover(isPresented: $showEditMenu) {
+            FullMenuView(
+                restaurantName: auth.user?.username ?? "Mi Restaurante",
+                coverUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
+                avatarUrl: auth.user?.photoURL?.absoluteString ?? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+                location: auth.user?.location ?? "CDMX, México",
+                branchName: nil,
+                distanceKm: 2.3,
+                isEditing: true
+            )
         }
     }
 
@@ -632,7 +644,12 @@ private struct ProfileScreen: View {
     }
 
     private func primaryOutlinedButton(title: String) -> some View {
-        Button(action: {}) {
+        Button(action: {
+            let isRestaurant = (auth.user?.role ?? "client") == "restaurant"
+            if isRestaurant, title == "Editar Menú" {
+                showEditMenu = true
+            }
+        }) {
             Text(title)
                 .foregroundColor(.white)
                 .font(.callout)

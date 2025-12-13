@@ -8,6 +8,7 @@ struct FullMenuView: View {
     let location: String
     let branchName: String?
     let distanceKm: Double?
+    let isEditing: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
     private let tabs = ["Todo","Popular","Combos","Entradas","Especiales","Sopas"]
@@ -64,13 +65,15 @@ struct FullMenuView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     header
-                    infoRow
-                    branchDistance
-                        .overlay(alignment: .topLeading) {
-                            if showLocationList { locationList.padding(.top, 88).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
-                        }
-                        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
-                        .zIndex(showLocationList ? 10 : 0)
+                    if !isEditing {
+                        infoRow
+                        branchDistance
+                            .overlay(alignment: .topLeading) {
+                                if showLocationList { locationList.padding(.top, 88).transition(.move(edge: .top).combined(with: .opacity)).zIndex(2) }
+                            }
+                            .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
+                            .zIndex(showLocationList ? 10 : 0)
+                    }
                     categoryTabs
                     sectionsStack
                     Spacer(minLength: 80)
@@ -81,7 +84,13 @@ struct FullMenuView: View {
             .ignoresSafeArea(edges: .top)
             .blur(radius: showDishSheet ? 8 : 0)
             .allowsHitTesting(!showDishSheet)
-            if !showDishSheet { checkoutBar }
+            if !showDishSheet {
+                if isEditing {
+                    saveBar
+                } else {
+                    checkoutBar
+                }
+            }
             topBar
             if showDishSheet { dishBottomSheet }
         }
@@ -404,6 +413,24 @@ struct FullMenuView: View {
             Spacer()
             Button(action: {}) {
                 Text("Ir al Checkout • $15.99")
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .bold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Color.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .ignoresSafeArea(edges: .bottom)
+    }
+
+    private var saveBar: some View {
+        VStack {
+            Spacer()
+            Button(action: {}) {
+                Text("Guardar")
                     .foregroundColor(.black)
                     .font(.system(size: 16, weight: .bold))
                     .frame(maxWidth: .infinity)
