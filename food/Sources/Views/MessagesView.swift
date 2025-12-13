@@ -154,6 +154,10 @@ struct ChatView: View {
     @State private var orderPrice: String = "$15.99"
     @State private var orderSubtitle: String = "Mozzarella fresca, albahaca y tomate"
     @State private var orderTrackingCode: String = "TRK-84721"
+    @State private var chosenSides: [(String, String)] = [("Papas Fritas", "$2.5"), ("Aros de Cebolla", "$3.0")]
+    @State private var chosenDrinks: [String] = ["Limonada 500ml", "Coca-Cola"]
+    @State private var shippingTo: String = "Av. Michoacán 78, Condesa"
+    @State private var orderElapsed: String = "Hace 12 min"
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -270,11 +274,17 @@ struct ChatView: View {
         } label: {
             HStack(spacing: 12) {
                 WebImage(url: URL(string: orderImageUrl))
+                    .placeholder {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12).fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            Image(systemName: "fork.knife").foregroundColor(.white.opacity(0.9))
+                        }
+                    }
                     .resizable()
                     .scaledToFill()
                     .frame(width: 52, height: 52)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Text("Orden Activa")
@@ -300,9 +310,13 @@ struct ChatView: View {
                     .foregroundColor(.white.opacity(0.8))
             }
             .padding(12)
-            .background(Color.white.opacity(0.06))
+            .background(
+                LinearGradient(colors: [Color.white.opacity(0.06), Color.white.opacity(0.10)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14).stroke(LinearGradient(colors: [Color.white.opacity(0.14), Color.green.opacity(0.25)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -326,6 +340,53 @@ struct ChatView: View {
                                     .font(.footnote)
                                     .padding(12), alignment: .topLeading
                             )
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Acompañamientos")
+                                .foregroundColor(.white)
+                                .font(.subheadline.bold())
+                            ForEach(chosenSides, id: \.0) { side in
+                                HStack {
+                                    Text(side.0).foregroundColor(.white).font(.footnote)
+                                    Spacer()
+                                    Text("+ \(side.1)").foregroundColor(.green).font(.footnote.bold())
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Bebidas")
+                                .foregroundColor(.white)
+                                .font(.subheadline.bold())
+                            WrapTags(items: chosenDrinks)
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Envío")
+                                .foregroundColor(.white)
+                                .font(.subheadline.bold())
+                            HStack(spacing: 10) {
+                                Image(systemName: "mappin.and.ellipse").foregroundColor(.green)
+                                Text(shippingTo).foregroundColor(.white).font(.footnote)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
+                        }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Pedido")
+                                .foregroundColor(.white)
+                                .font(.subheadline.bold())
+                            HStack(spacing: 10) {
+                                Image(systemName: "clock").foregroundColor(.green)
+                                Text("Realizado \(orderElapsed)").foregroundColor(.white).font(.footnote)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.bottom, 56)
@@ -350,15 +411,16 @@ struct ChatView: View {
     private var orderTopBlock: some View {
         ZStack(alignment: .topTrailing) {
             WebImage(url: URL(string: orderImageUrl))
+                .placeholder {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18).fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        Image(systemName: "fork.knife").foregroundColor(.white.opacity(0.9))
+                    }
+                }
                 .resizable()
                 .scaledToFill()
                 .frame(height: 180)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
-            Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
-                Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
-                    .overlay(Image(systemName: "xmark").foregroundColor(.white))
-                    .padding(10)
-            }
         }
         .padding(.horizontal, 12)
     }
@@ -374,7 +436,8 @@ struct ChatView: View {
             }
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .offset(y: -18)
         .padding(.horizontal, 12)
     }
@@ -395,6 +458,40 @@ struct ChatView: View {
                 .padding(.vertical, 20)
                 .background(Color.green)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+    }
+}
+
+struct WrapTags: View {
+    let items: [String]
+    private let spacing: CGFloat = 8
+    var body: some View {
+        var totalWidth: CGFloat = 0
+        var rows: [[String]] = [[]]
+        for item in items {
+            let itemWidth = (item.count > 0 ? CGFloat(item.count) * 7.5 : 40) + 24
+            if totalWidth + itemWidth + spacing > UIScreen.main.bounds.width - 32 {
+                rows.append([item])
+                totalWidth = itemWidth + spacing
+            } else {
+                rows[rows.count - 1].append(item)
+                totalWidth += itemWidth + spacing
+            }
+        }
+        return VStack(alignment: .leading, spacing: spacing) {
+            ForEach(0..<rows.count, id: \.self) { r in
+                HStack(spacing: spacing) {
+                    ForEach(rows[r], id: \.self) { label in
+                        Text(label)
+                            .foregroundColor(.white)
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.06))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
         }
     }
 }
