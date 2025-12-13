@@ -8,7 +8,7 @@ struct FullMenuView: View {
     let location: String
     let branchName: String?
     let distanceKm: Double?
-    let isEditing: Bool = false
+    let isEditing: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
     private let tabs = ["Todo","Popular","Combos","Entradas","Especiales","Sopas"]
@@ -50,6 +50,24 @@ struct FullMenuView: View {
             .init(title: "Caldo", url: "https://images.unsplash.com/photo-1504754524776-8f4f37710ca2")
         ]
     ]
+
+    init(
+        restaurantName: String,
+        coverUrl: String,
+        avatarUrl: String,
+        location: String,
+        branchName: String?,
+        distanceKm: Double?,
+        isEditing: Bool = false
+    ) {
+        self.restaurantName = restaurantName
+        self.coverUrl = coverUrl
+        self.avatarUrl = avatarUrl
+        self.location = location
+        self.branchName = branchName
+        self.distanceKm = distanceKm
+        self.isEditing = isEditing
+    }
     private var allItems: [MenuItem] { Array(menuData.values.joined()) }
     private struct LocationItem: Identifiable { let id = UUID(); let name: String; let address: String; let distanceKm: Double }
     private let locations: [LocationItem] = [
