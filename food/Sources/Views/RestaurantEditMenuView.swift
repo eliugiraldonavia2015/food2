@@ -17,6 +17,7 @@ struct RestaurantEditMenuView: View {
     @State private var sheetPrice: String = "$15.99"
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
+    @State private var isEditingInfo: Bool = false
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -340,14 +341,47 @@ struct RestaurantEditMenuView: View {
 
     private var dishInfoPanel: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(sheetTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
-            Text(sheetSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
-            Text(sheetPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
+            if isEditingInfo {
+                TextField("Nombre del plato", text: $sheetTitle)
+                    .foregroundColor(.white)
+                    .font(.system(size: 22, weight: .bold))
+                TextField("Descripción", text: $sheetSubtitle)
+                    .foregroundColor(.white.opacity(0.9))
+                    .font(.system(size: 14))
+                TextField("Precio", text: $sheetPrice)
+                    .foregroundColor(.green)
+                    .font(.system(size: 20, weight: .bold))
+                HStack {
+                    Spacer()
+                    Button(action: { isEditingInfo = false }) {
+                        Text("Guardar")
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.green)
+                            .clipShape(Capsule())
+                    }
+                }
+            } else {
+                Text(sheetTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
+                Text(sheetSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
+                Text(sheetPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
+            }
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 18).fill(Color.black))
         .offset(y: -18)
         .padding(.horizontal, 12)
+        .overlay(alignment: .topTrailing) {
+            Button(action: { isEditingInfo.toggle() }) {
+                Circle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(width: 28, height: 28)
+                    .overlay(Image(systemName: "pencil").foregroundColor(.gray))
+            }
+            .padding(8)
+        }
         .background(
             GeometryReader { geo in
                 Color.clear.preference(key: PriceFrameKey.self, value: geo.frame(in: .named("dishScroll")))
