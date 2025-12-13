@@ -380,8 +380,8 @@ struct RestaurantEditMenuView: View {
                     .frame(width: 28, height: 28)
                     .overlay(Image(systemName: "pencil").foregroundColor(.gray))
             }
-            .padding(6)
-            .offset(x: -8, y: -6)
+            .padding(4)
+            .offset(x: -14, y: -10)
         }
         .background(
             GeometryReader { geo in
