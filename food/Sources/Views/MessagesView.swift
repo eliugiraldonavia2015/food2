@@ -466,7 +466,7 @@ struct ChatView: View {
             }
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color(red: 0.16, green: 0.16, blue: 0.16)))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color(red: 0.12, green: 0.12, blue: 0.12)))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
         .offset(y: -18)
         .compositingGroup()
