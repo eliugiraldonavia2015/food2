@@ -131,7 +131,7 @@ private struct StartupSplashView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 160, height: 160)
+                    .frame(width: 220, height: 220)
             }
         }
     }
