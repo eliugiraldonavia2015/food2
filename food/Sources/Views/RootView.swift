@@ -127,16 +127,35 @@ private struct StartupSplashView: View {
         ZStack {
             Color(red: 241/255, green: 28/255, blue: 46/255)
                 .ignoresSafeArea()
-            Group {
-                if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
-                   let uiImage = UIImage(contentsOfFile: url.path) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 160, height: 160)
-                }
+            if let uiImage = loadSplashImage() {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
             }
         }
+    }
+
+    private func loadSplashImage() -> UIImage? {
+        if let img = UIImage(named: "favfavicon-removebg-preview") {
+            return img
+        }
+        if let url = Bundle.main.url(forResource: "favfavicon-removebg-preview", withExtension: "png"),
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
+        if let img = UIImage(named: "favfavicon") {
+            return img
+        }
+        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
+        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
+        return nil
     }
 }
 
