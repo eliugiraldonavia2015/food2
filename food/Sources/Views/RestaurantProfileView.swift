@@ -130,6 +130,7 @@ struct RestaurantProfileView: View {
                 }
         )
         .background(Color.black.ignoresSafeArea())
+        .tint(.green)
         .preferredColorScheme(.dark)
         .ignoresSafeArea(edges: .top)
         .fullScreenCover(isPresented: $showFullMenu) {

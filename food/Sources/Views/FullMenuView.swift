@@ -113,6 +113,7 @@ struct FullMenuView: View {
             if showDishSheet { dishBottomSheet }
         }
         .preferredColorScheme(.dark)
+        .tint(.green)
         .onAppear {
             selectedBranchName = (branchName ?? location)
         }
