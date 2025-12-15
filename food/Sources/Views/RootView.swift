@@ -124,8 +124,12 @@ struct RootView: View {
 private struct StartupSplashView: View {
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
-            BrandLogoView()
+            Color(red: 241/255, green: 28/255, blue: 46/255)
+                .ignoresSafeArea()
+            Image("favfavicon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 160, height: 160)
         }
     }
 }
