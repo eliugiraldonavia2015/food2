@@ -47,7 +47,7 @@ struct RootView: View {
                     }
                 } else {
                     if showStartupSplash {
-                        Color.black
+                        Color(red: 241/255, green: 28/255, blue: 46/255)
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
