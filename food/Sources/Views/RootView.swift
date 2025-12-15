@@ -1,5 +1,6 @@
 // Sources/Views/RootView.swift
 import SwiftUI
+import UIKit
 import Firebase
 import FirebaseAuth
 
@@ -126,10 +127,15 @@ private struct StartupSplashView: View {
         ZStack {
             Color(red: 241/255, green: 28/255, blue: 46/255)
                 .ignoresSafeArea()
-            Image("favfavicon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 160, height: 160)
+            Group {
+                if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
+                   let uiImage = UIImage(contentsOfFile: url.path) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 160, height: 160)
+                }
+            }
         }
     }
 }
