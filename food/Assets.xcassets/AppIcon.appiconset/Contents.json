@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "logoicon.png",
+      "filename" : "favfavicon_1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "logoicon.png",
+      "filename" : "favfavicon_1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "logoicon.png",
+      "filename" : "favfavicon_1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
