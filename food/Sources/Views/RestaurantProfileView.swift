@@ -129,8 +129,8 @@ struct RestaurantProfileView: View {
                     }
                 }
         )
-        .background(Color.black.ignoresSafeArea())
-        .preferredColorScheme(.dark)
+        .background(Color.white.ignoresSafeArea())
+        .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .fullScreenCover(isPresented: $showFullMenu) {
             FullMenuView(
@@ -301,10 +301,10 @@ struct RestaurantProfileView: View {
                 }
                 VStack(spacing: 2) {
                     Text(formatCount(currentData.followers))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 24, weight: .bold))
                     Text("Seguidores")
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundColor(.black.opacity(0.85))
                         .font(.system(size: 13))
                 }
             }
@@ -325,12 +325,12 @@ struct RestaurantProfileView: View {
                 }
                 Button(action: {}) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill").foregroundColor(.white)
-                        Text("Mensaje").foregroundColor(.white).font(.system(size: 16, weight: .semibold))
+                        Image(systemName: "paperplane.fill").foregroundColor(.black)
+                        Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.white.opacity(0.08))
+                    .background(Color.black.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
             }
@@ -344,17 +344,17 @@ struct RestaurantProfileView: View {
             ZStack {
                 HStack {
                     Image(systemName: "line.3.horizontal")
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                     Spacer()
                 }
                 Text("Ver Menú Completo")
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .font(.system(size: 16, weight: .semibold))
             }
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
-            .background(Color.black)
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.8), lineWidth: 1))
+            .background(Color.white)
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.black.opacity(0.2), lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 18))
         }
     }
@@ -463,7 +463,7 @@ struct RestaurantProfileView: View {
 
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.white).font(.headline)
+            Text(title).foregroundColor(.black).font(.headline)
             Spacer()
         }
     }

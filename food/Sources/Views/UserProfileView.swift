@@ -100,8 +100,9 @@ struct UserProfileView: View {
                 }
         )
         .background(Color.black.ignoresSafeArea())
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
+        .background(Color.white.ignoresSafeArea())
     }
 
     private var header: some View {
@@ -192,23 +193,23 @@ struct UserProfileView: View {
                 .offset(y: -22)
             VStack(spacing: 6) {
                 Text(currentData.name)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .font(.system(size: 26, weight: .bold))
                 Text("@\(currentData.username)")
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.black.opacity(0.85))
                     .font(.system(size: 16))
                 HStack(spacing: 10) {
                     HStack(spacing: 6) {
-                        Image(systemName: "mappin.and.ellipse").foregroundColor(.white.opacity(0.9))
-                        Text(currentData.location).foregroundColor(.white).font(.system(size: 14))
+                        Image(systemName: "mappin.and.ellipse").foregroundColor(.black.opacity(0.9))
+                        Text(currentData.location).foregroundColor(.black).font(.system(size: 14))
                     }
                 }
                 VStack(spacing: 2) {
                     Text(formatCount(currentData.followers))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 24, weight: .bold))
                     Text("Seguidores")
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundColor(.black.opacity(0.85))
                         .font(.system(size: 13))
                 }
             }
@@ -229,12 +230,12 @@ struct UserProfileView: View {
                 }
                 Button(action: {}) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill").foregroundColor(.white)
-                        Text("Mensaje").foregroundColor(.white).font(.system(size: 16, weight: .semibold))
+                        Image(systemName: "paperplane.fill").foregroundColor(.black)
+                        Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.white.opacity(0.08))
+                    .background(Color.black.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
             }
@@ -245,10 +246,10 @@ struct UserProfileView: View {
 
     private var descriptionCard: some View {
         Text(currentData.bio)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .font(.subheadline)
             .padding()
-            .background(Color.white.opacity(0.06))
+            .background(Color.black.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
@@ -275,7 +276,7 @@ struct UserProfileView: View {
 
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.white).font(.headline)
+            Text(title).foregroundColor(.black).font(.headline)
             Spacer()
         }
     }
