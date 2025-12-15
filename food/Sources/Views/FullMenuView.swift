@@ -79,7 +79,7 @@ struct FullMenuView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.black.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 16) {
                     header
@@ -112,7 +112,7 @@ struct FullMenuView: View {
             topBar
             if showDishSheet { dishBottomSheet }
         }
-        .preferredColorScheme(.light)
+        .preferredColorScheme(.dark)
         .onAppear {
             selectedBranchName = (branchName ?? location)
         }
@@ -196,11 +196,11 @@ struct FullMenuView: View {
                 Image(systemName: system)
                     .foregroundColor(tint)
                 Text(title)
-                    .foregroundColor(.black.opacity(0.8))
+                    .foregroundColor(.white.opacity(0.8))
                     .font(.caption)
             }
             Text(value)
-                .foregroundColor(.black)
+                .foregroundColor(.white)
                 .font(.system(size: 16, weight: .semibold))
         }
         .frame(maxWidth: .infinity)
@@ -212,31 +212,31 @@ struct FullMenuView: View {
                 .fill(Color.white.opacity(0.06))
                 .frame(height: 84)
                 .overlay(
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Sucursal seleccionada")
-                        .foregroundColor(.black.opacity(0.8))
-                        .font(.caption)
-                    Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
-                        .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text("Distancia")
-                        .foregroundColor(.black.opacity(0.8))
-                        .font(.caption)
-                    HStack(spacing: 6) {
-                        Text(String(format: "%.1f km", distanceKm ?? 2.3))
-                            .foregroundColor(.green)
-                            .font(.system(size: 16, weight: .semibold))
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.black.opacity(0.8))
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Sucursal seleccionada")
+                                .foregroundColor(.white.opacity(0.8))
+                                .font(.caption)
+                            Text(selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName)
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 6) {
+                            Text("Distancia")
+                                .foregroundColor(.white.opacity(0.8))
+                                .font(.caption)
+                            HStack(spacing: 6) {
+                                Text(String(format: "%.1f km", distanceKm ?? 2.3))
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 16, weight: .semibold))
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
                     }
-                }
-            }
-            .padding(.horizontal, 16)
-        )
+                    .padding(.horizontal, 16)
+                )
         }
     }
 
@@ -318,11 +318,11 @@ struct FullMenuView: View {
                 ForEach(tabs, id: \.self) { t in
                     Button(action: { withAnimation(.easeInOut(duration: 0.2)) { activeTab = t } }) {
                         Text(t)
-                            .foregroundColor(.black)
+                            .foregroundColor(activeTab == t ? .black : .white)
                             .font(.system(size: 14, weight: .semibold))
                             .padding(.vertical, 10)
                             .padding(.horizontal, 14)
-                            .background(activeTab == t ? Color.green : Color.black.opacity(0.06))
+                            .background(activeTab == t ? Color.green : Color.white.opacity(0.08))
                             .clipShape(Capsule())
                     }
                 }
@@ -332,7 +332,7 @@ struct FullMenuView: View {
     }
 
     private func sectionTitle(_ t: String) -> some View {
-        HStack { Text(t).foregroundColor(.black).font(.headline); Spacer() }
+        HStack { Text(t).foregroundColor(.white).font(.headline); Spacer() }
     }
 
     private var sectionsStack: some View {
@@ -385,7 +385,7 @@ struct FullMenuView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("$5,00")
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .font(.system(size: 18, weight: .bold))
                     Text("$10,80")
                         .foregroundColor(.gray)
@@ -393,12 +393,12 @@ struct FullMenuView: View {
                         .strikethrough()
                 }
                 Text(title)
-                    .foregroundColor(.black.opacity(0.7))
+                    .foregroundColor(.gray)
                     .font(.system(size: 13))
                     .lineLimit(2)
                 HStack(spacing: 6) {
                     Text(merchant)
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .font(.system(size: 12))
                     Text("•")
                         .foregroundColor(.gray)
@@ -406,17 +406,17 @@ struct FullMenuView: View {
                         .foregroundColor(.gray)
                         .font(.system(size: 12))
                     Text(time)
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .font(.system(size: 12))
                 }
             }
             .padding(10)
             .frame(width: 180, alignment: .leading)
-            .background(Color.black.opacity(0.06))
+            .background(Color.white.opacity(0.12))
         }
         .frame(width: 180)
         .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.black.opacity(0.12), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.22), lineWidth: 1))
         .onTapGesture {
             sheetTitle = title
             sheetImageUrl = url
