@@ -43,7 +43,6 @@ struct RootView: View {
                     } else {
                         // 🏠 Pantalla principal
                         MainTabView()
-                            .transition(.opacity)
                     }
                 } else {
                     if showStartupSplash {
