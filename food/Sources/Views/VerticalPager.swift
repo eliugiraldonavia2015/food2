@@ -28,7 +28,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         let scroll = UIScrollView()
         scroll.showsVerticalScrollIndicator = false
         scroll.alwaysBounceVertical = false
-        scroll.isPagingEnabled = true
+        scroll.isPagingEnabled = false
         scroll.decelerationRate = .fast
         scroll.delaysContentTouches = false
         scroll.contentInsetAdjustmentBehavior = .never
@@ -85,7 +85,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
         let upThreshold: CGFloat = 0.15
-        let downThreshold: CGFloat = 0.15
+        let downThreshold: CGFloat = 0.85
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -164,11 +164,11 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             if velocity.y > 0 {
                 next = base + (frac >= downThreshold ? 1 : 0)
             } else if velocity.y < 0 {
-                next = base - ((1 - frac) >= upThreshold ? 1 : 0)
+                next = base - (frac <= upThreshold ? 1 : 0)
             } else {
                 if frac >= downThreshold {
                     next = base + 1
-                } else if (1 - frac) >= upThreshold {
+                } else if frac <= upThreshold {
                     next = base - 1
                 } else {
                     next = base
