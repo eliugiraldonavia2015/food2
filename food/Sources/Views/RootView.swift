@@ -12,16 +12,6 @@ struct RootView: View {
     
     var body: some View {
         ZStack {
-            let shouldShowStartupSplash = showStartupSplash || !auth.hasResolvedAuth
-            
-            if shouldShowStartupSplash {
-                Color(red: 49/255, green: 209/255, blue: 87/255)
-                    .ignoresSafeArea()
-            } else {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-            }
-            
             Group {
                 if auth.isAuthenticated {
                     if showRoleSelection {
@@ -53,10 +43,11 @@ struct RootView: View {
                     } else {
                         // 🏠 Pantalla principal
                         MainTabView()
+                            .transition(.opacity)
                     }
                 } else {
-                    if shouldShowStartupSplash {
-                        EmptyView()
+                    if showStartupSplash {
+                        Color(red: 49/255, green: 209/255, blue: 87/255)
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
@@ -75,16 +66,22 @@ struct RootView: View {
                     .scaleEffect(1.5)
             }
             
-            if shouldShowStartupSplash {
-                StartupSplashView(imageName: "faviconremovedbackground")
+            if showStartupSplash {
+                StartupSplashView()
                     .transition(.opacity)
                     .zIndex(1000)
             }
         }
+        .background(showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color(.systemBackground))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated, let uid = auth.user?.uid else { return }
+            if showStartupSplash {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStartupSplash = false
+                }
+            }
             
             // 🔍 Verificar si el usuario ya completó el onboarding
             OnboardingService.shared.hasCompletedOnboarding(uid: uid) { completed in
@@ -99,16 +96,6 @@ struct RootView: View {
                     }
                 }
             }
-        }
-        .onChange(of: auth.hasResolvedAuth) { _, resolved in
-            if resolved && showStartupSplash {
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    showStartupSplash = false
-                }
-            }
-        }
-        .onAppear {
-            auth.refreshAuthState()
         }
     }
     
@@ -137,7 +124,6 @@ struct RootView: View {
 }
 
 private struct StartupSplashView: View {
-    let imageName: String
     var body: some View {
         ZStack {
             Color(red: 49/255, green: 209/255, blue: 87/255)
@@ -145,24 +131,31 @@ private struct StartupSplashView: View {
             if let uiImage = loadSplashImage() {
                 Image(uiImage: uiImage)
                     .resizable()
-                    .renderingMode(.original)
                     .scaledToFit()
                     .frame(width: 220, height: 220)
             }
         }
     }
+
     private func loadSplashImage() -> UIImage? {
-        if let img = UIImage(named: imageName) { return img }
-        if let url = Bundle.main.url(forResource: imageName, withExtension: "png"),
-           let img = UIImage(contentsOfFile: url.path) { return img }
-        if let img = UIImage(named: "favfavicon") { return img }
-        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
-           let img = UIImage(contentsOfFile: url.path) { return img }
-        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
-           let img = UIImage(contentsOfFile: url.path) { return img }
-        if let img = UIImage(named: "favfavicon-removebg-preview") { return img }
+        if let img = UIImage(named: "favfavicon-removebg-preview") {
+            return img
+        }
         if let url = Bundle.main.url(forResource: "favfavicon-removebg-preview", withExtension: "png"),
-           let img = UIImage(contentsOfFile: url.path) { return img }
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
+        if let img = UIImage(named: "favfavicon") {
+            return img
+        }
+        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
+        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
+           let img = UIImage(contentsOfFile: url.path) {
+            return img
+        }
         return nil
     }
 }
