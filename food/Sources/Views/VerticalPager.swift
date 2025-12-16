@@ -28,7 +28,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         let scroll = UIScrollView()
         scroll.showsVerticalScrollIndicator = false
         scroll.alwaysBounceVertical = false
-        scroll.isPagingEnabled = false
+        scroll.isPagingEnabled = true
         scroll.decelerationRate = .fast
         scroll.delaysContentTouches = false
         scroll.contentInsetAdjustmentBehavior = .never
@@ -85,7 +85,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
         let upThreshold: CGFloat = 0.15
-        let downThreshold: CGFloat = 0.85
+        let downThreshold: CGFloat = 0.15
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -164,11 +164,11 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             if velocity.y > 0 {
                 next = base + (frac >= downThreshold ? 1 : 0)
             } else if velocity.y < 0 {
-                next = base - (frac <= upThreshold ? 1 : 0)
+                next = base - ((1 - frac) >= upThreshold ? 1 : 0)
             } else {
                 if frac >= downThreshold {
                     next = base + 1
-                } else if frac <= upThreshold {
+                } else if (1 - frac) >= upThreshold {
                     next = base - 1
                 } else {
                     next = base
@@ -184,7 +184,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let pageHeight = lastSize.height
             guard pageHeight > 0 else { return }
-            let idx = max(0, min(Int(floor(scrollView.contentOffset.y / pageHeight)), lastCount > 0 ? lastCount - 1 : 0))
+            var idx = Int(round(scrollView.contentOffset.y / pageHeight))
+            idx = max(0, min(idx, lastCount > 0 ? lastCount - 1 : 0))
             isAnimating = false
             DispatchQueue.main.async { self.parent.index = idx }
         }
