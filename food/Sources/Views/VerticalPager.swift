@@ -84,8 +84,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var isAnimating = false
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
-        let upThreshold: CGFloat = 0.5
-        let downThreshold: CGFloat = 0.5
+        let upThreshold: CGFloat = 0.15
+        let downThreshold: CGFloat = 0.15
 
         init(_ parent: VerticalPager) { self.parent = parent }
 
@@ -154,8 +154,28 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
 
         func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
             let pageHeight = lastSize.height
+            guard pageHeight > 0 else { return }
             let y = scrollView.contentOffset.y
-            let next = Int(round(y / pageHeight))
+            let fraction = y / pageHeight
+            let base = Int(floor(fraction))
+            let frac = fraction - CGFloat(base)
+            var next = base
+            
+            if velocity.y > 0 {
+                next = base + (frac >= downThreshold ? 1 : 0)
+            } else if velocity.y < 0 {
+                next = base - ((1 - frac) >= upThreshold ? 1 : 0)
+            } else {
+                if frac >= downThreshold {
+                    next = base + 1
+                } else if (1 - frac) >= upThreshold {
+                    next = base - 1
+                } else {
+                    next = base
+                }
+            }
+            
+            next = max(0, min(next, lastCount > 0 ? lastCount - 1 : 0))
             let target = CGPoint(x: 0, y: CGFloat(next) * pageHeight)
             targetContentOffset.pointee = target
             isAnimating = true
@@ -163,7 +183,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
 
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let pageHeight = lastSize.height
-            let idx = Int(round(scrollView.contentOffset.y / pageHeight))
+            guard pageHeight > 0 else { return }
+            let idx = max(0, min(Int(floor(scrollView.contentOffset.y / pageHeight)), lastCount > 0 ? lastCount - 1 : 0))
             isAnimating = false
             DispatchQueue.main.async { self.parent.index = idx }
         }
