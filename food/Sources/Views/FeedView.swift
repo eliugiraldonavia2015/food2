@@ -744,20 +744,33 @@ struct FeedView: View {
             VStack(spacing: 24) {
                 // Like button
                 VStack(spacing: 6) {
-                    Button(action: {
-                        isLiked.toggle()
-                        likesCount += isLiked ? 1 : -1
-                        hapticLight.prepare()
-                        hapticLight.impactOccurred()
-                    }) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(isLiked ? .red : .white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                            .scaleEffect(isLiked ? 1.1 : 1.0)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isLiked)
+                    ZStack {
+                        Button(action: {
+                            isLiked.toggle()
+                            likesCount += isLiked ? 1 : -1
+                            hapticLight.prepare()
+                            hapticLight.impactOccurred()
+                        }) {
+                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(isLiked ? .red : .white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                                .scaleEffect(isLiked ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isLiked)
+                        }
+                        Color.clear
+                            .frame(width: 48, height: 48)
+                            .contentShape(Rectangle())
+                            .highPriorityGesture(
+                                TapGesture().onEnded {
+                                    isLiked.toggle()
+                                    likesCount += isLiked ? 1 : -1
+                                    hapticLight.prepare()
+                                    hapticLight.impactOccurred()
+                                }
+                            )
                     }
                     Text(formatCount(likesCount))
                         .foregroundColor(.white)
@@ -766,13 +779,23 @@ struct FeedView: View {
                 
                 // Comment button
                 VStack(spacing: 6) {
-                    Button(action: onShowComments) {
-                        Image(systemName: "bubble.left")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                    ZStack {
+                        Button(action: onShowComments) {
+                            Image(systemName: "bubble.left")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Color.clear
+                            .frame(width: 48, height: 48)
+                            .contentShape(Rectangle())
+                            .highPriorityGesture(
+                                TapGesture().onEnded {
+                                    onShowComments()
+                                }
+                            )
                     }
                     Text(formatCount(item.comments))
                         .foregroundColor(.white)
@@ -780,21 +803,35 @@ struct FeedView: View {
                 }
                 
                 // Bookmark button
-                Button(action: {
-                    isBookmarked.toggle()
-                    hapticMedium.prepare()
-                    hapticMedium.impactOccurred()
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
-                    presentToast(isBookmarked ? .saved : .removed)
-                }) {
-                    Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 28)
-                        .foregroundColor(isBookmarked ? bookmarkOrange : .white)
-                        .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        .scaleEffect(isBookmarked ? 1.06 : 1.0)
-                        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isBookmarked)
+                ZStack {
+                    Button(action: {
+                        isBookmarked.toggle()
+                        hapticMedium.prepare()
+                        hapticMedium.impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
+                        presentToast(isBookmarked ? .saved : .removed)
+                    }) {
+                        Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 28)
+                            .foregroundColor(isBookmarked ? bookmarkOrange : .white)
+                            .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                            .scaleEffect(isBookmarked ? 1.06 : 1.0)
+                            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isBookmarked)
+                    }
+                    Color.clear
+                        .frame(width: 48, height: 48)
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            TapGesture().onEnded {
+                                isBookmarked.toggle()
+                                hapticMedium.prepare()
+                                hapticMedium.impactOccurred()
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
+                                presentToast(isBookmarked ? .saved : .removed)
+                            }
+                        )
                 }
                 
                 // Share button
@@ -808,34 +845,42 @@ struct FeedView: View {
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
                         }
-                        .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
-                            if pressing {
-                                isPressingShare = true
-                                quickShareWork?.cancel()
-                                let work = DispatchWorkItem {
-                                    if isPressingShare && !showQuickShare {
-                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
-                                    }
-                                }
-                                quickShareWork = work
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
-                            } else {
-                                isPressingShare = false
-                                quickShareWork?.cancel()
-                                if showQuickShare {
-                                    if let h = quickHighlighted {
-                                        quickSent = [h]
-                                        hapticMedium.prepare()
-                                        hapticMedium.impactOccurred()
-                                    }
-                                    withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
-                                    quickHighlighted = nil
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { quickSent.removeAll() }
-                                }
-                            }
-                        }) {}
                         .frame(width: 44, height: 44)
                         .overlay(alignment: .center) { if showQuickShare { quickShareRadial } }
+                        Color.clear
+                            .frame(width: 48, height: 48)
+                            .contentShape(Rectangle())
+                            .highPriorityGesture(
+                                TapGesture().onEnded {
+                                    onShowShare()
+                                }
+                            )
+                            .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
+                                if pressing {
+                                    isPressingShare = true
+                                    quickShareWork?.cancel()
+                                    let work = DispatchWorkItem {
+                                        if isPressingShare && !showQuickShare {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showQuickShare = true }
+                                        }
+                                    }
+                                    quickShareWork = work
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+                                } else {
+                                    isPressingShare = false
+                                    quickShareWork?.cancel()
+                                    if showQuickShare {
+                                        if let h = quickHighlighted {
+                                            quickSent = [h]
+                                            hapticMedium.prepare()
+                                            hapticMedium.impactOccurred()
+                                        }
+                                        withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
+                                        quickHighlighted = nil
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { quickSent.removeAll() }
+                                    }
+                                }
+                            }) {}
                     }
                     .simultaneousGesture(
                         DragGesture(minimumDistance: 0)
