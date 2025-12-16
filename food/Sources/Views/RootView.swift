@@ -47,7 +47,7 @@ struct RootView: View {
                     }
                 } else {
                     if showStartupSplash {
-                        Color(red: 241/255, green: 28/255, blue: 46/255)
+                        Color(red: 49/255, green: 209/255, blue: 87/255)
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
@@ -72,7 +72,7 @@ struct RootView: View {
                     .zIndex(1000)
             }
         }
-        .background(showStartupSplash ? Color(red: 241/255, green: 28/255, blue: 46/255) : Color(.systemBackground))
+        .background(showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color(.systemBackground))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
@@ -126,7 +126,7 @@ struct RootView: View {
 private struct StartupSplashView: View {
     var body: some View {
         ZStack {
-            Color(red: 241/255, green: 28/255, blue: 46/255)
+            Color(red: 49/255, green: 209/255, blue: 87/255)
                 .ignoresSafeArea()
             if let uiImage = loadSplashImage() {
                 Image(uiImage: uiImage)

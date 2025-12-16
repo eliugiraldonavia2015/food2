@@ -35,7 +35,6 @@ struct RestaurantProfileView: View {
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 340
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
-    private let accentRed: Color = Color(red: 241/255, green: 28/255, blue: 46/255)
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
@@ -266,7 +265,7 @@ struct RestaurantProfileView: View {
                 .scaledToFill()
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(accentRed, lineWidth: 2))
+                .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 .offset(y: -22)
             VStack(spacing: 6) {
                 Text(currentData.name)
@@ -294,7 +293,7 @@ struct RestaurantProfileView: View {
                         .background(Color.white.opacity(0.08))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                     Text(currentData.category)
-                        .foregroundColor(.white)
+                        .foregroundColor(.green)
                         .font(.system(size: 14, weight: .semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
@@ -322,7 +321,7 @@ struct RestaurantProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(accentRed)
+                    .background(Color.green)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 Button(action: {}) {
@@ -374,7 +373,7 @@ struct RestaurantProfileView: View {
         Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
             HStack(spacing: 10) {
                 Image(systemName: "mappin")
-                    .foregroundColor(accentRed)
+                    .foregroundColor(.green)
                     .font(.system(size: 18))
                 Text(selectedBranchName.isEmpty ? currentData.branch : selectedBranchName)
                     .foregroundColor(.white)

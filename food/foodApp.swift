@@ -15,7 +15,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) -> Bool {
         FirebaseApp.configure()
         print("[AppDelegate] ✅ Firebase configurado")
-        UIWindow.appearance().backgroundColor = UIColor(red: 241/255, green: 28/255, blue: 46/255, alpha: 1)
+        UIWindow.appearance().backgroundColor = UIColor(red: 49/255, green: 209/255, blue: 87/255, alpha: 1)
 
         // Queremos recibir APNs (silent push) para Phone Auth
         UNUserNotificationCenter.current().delegate = self
