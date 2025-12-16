@@ -138,10 +138,10 @@ private struct StartupSplashView: View {
     }
 
     private func loadSplashImage() -> UIImage? {
-        if let img = UIImage(named: "favfavicon-removebg-preview") {
+        if let img = UIImage(named: "faviconremovedbackground") {
             return img
         }
-        if let url = Bundle.main.url(forResource: "favfavicon-removebg-preview", withExtension: "png"),
+        if let url = Bundle.main.url(forResource: "faviconremovedbackground", withExtension: "png"),
            let img = UIImage(contentsOfFile: url.path) {
             return img
         }
