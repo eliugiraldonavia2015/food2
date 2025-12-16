@@ -12,6 +12,16 @@ struct RootView: View {
     
     var body: some View {
         ZStack {
+            let shouldShowStartupSplash = showStartupSplash || !auth.hasResolvedAuth
+            
+            if shouldShowStartupSplash {
+                Color(red: 49/255, green: 209/255, blue: 87/255)
+                    .ignoresSafeArea()
+            } else {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+            }
+            
             Group {
                 if auth.isAuthenticated {
                     if showRoleSelection {
@@ -45,7 +55,7 @@ struct RootView: View {
                         MainTabView()
                     }
                 } else {
-                    if showStartupSplash {
+                    if shouldShowStartupSplash {
                         EmptyView()
                     } else {
                         // 🔐 Pantalla de login
@@ -65,25 +75,16 @@ struct RootView: View {
                     .scaleEffect(1.5)
             }
             
-            if showStartupSplash {
-                StartupSplashView(onFinish: {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        showStartupSplash = false
-                    }
-                }, imageName: "faviconremovedbackground")
-                .zIndex(1000)
+            if shouldShowStartupSplash {
+                StartupSplashView(imageName: "faviconremovedbackground")
+                    .transition(.opacity)
+                    .zIndex(1000)
             }
         }
-        .background(Color.black.ignoresSafeArea())
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated, let uid = auth.user?.uid else { return }
-            if showStartupSplash {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showStartupSplash = false
-                }
-            }
             
             // 🔍 Verificar si el usuario ya completó el onboarding
             OnboardingService.shared.hasCompletedOnboarding(uid: uid) { completed in
@@ -98,6 +99,16 @@ struct RootView: View {
                     }
                 }
             }
+        }
+        .onChange(of: auth.hasResolvedAuth) { _, resolved in
+            if resolved && showStartupSplash {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showStartupSplash = false
+                }
+            }
+        }
+        .onAppear {
+            auth.refreshAuthState()
         }
     }
     
@@ -126,9 +137,7 @@ struct RootView: View {
 }
 
 private struct StartupSplashView: View {
-    let onFinish: () -> Void
     let imageName: String
-    @State private var opacity: Double = 0
     var body: some View {
         ZStack {
             Color(red: 49/255, green: 209/255, blue: 87/255)
@@ -136,16 +145,9 @@ private struct StartupSplashView: View {
             if let uiImage = loadSplashImage() {
                 Image(uiImage: uiImage)
                     .resizable()
+                    .renderingMode(.original)
                     .scaledToFit()
                     .frame(width: 220, height: 220)
-            }
-        }
-        .opacity(opacity)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.35)) { opacity = 1 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                withAnimation(.easeInOut(duration: 0.35)) { opacity = 0 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onFinish() }
             }
         }
     }
