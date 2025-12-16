@@ -76,7 +76,7 @@ struct RootView: View {
                 .zIndex(1000)
             }
         }
-        .background(Color(.systemBackground))
+        .background((showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color.black).ignoresSafeArea())
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
