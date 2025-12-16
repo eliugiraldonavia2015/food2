@@ -521,6 +521,9 @@ struct FeedView: View {
         @State private var likesCount: Int
         @State private var isFollowing = false
         @State private var bottomSectionHeight: CGFloat = 0
+        @State private var hapticLight = UIImpactFeedbackGenerator(style: .light)
+        @State private var hapticMedium = UIImpactFeedbackGenerator(style: .medium)
+        @State private var hapticHeavy = UIImpactFeedbackGenerator(style: .heavy)
         
         // Animation State
         @State private var showLikeHeart = false
@@ -572,15 +575,10 @@ struct FeedView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
                         .clipped()
+                        .onTapGesture(count: 2) { handleDoubleTap() }
                     Spacer(minLength: 0)
                 }
                 .frame(width: size.width, height: size.height)
-
-                // CAPA DE GESTOS (TRANSPARENTE)
-                Color.black.opacity(0.001)
-                    .frame(width: size.width, height: size.height)
-                    .contentShape(Rectangle())
-                    .onTapGesture(count: 2) { handleDoubleTap() }
 
                 if !isCommentsOverlayActive {
                     LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
@@ -605,14 +603,18 @@ struct FeedView: View {
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.25), value: isCommentsOverlayActive)
+            .onAppear {
+                hapticLight.prepare()
+                hapticMedium.prepare()
+                hapticHeavy.prepare()
+            }
         }
-        
+
         private func handleDoubleTap() {
             guard !isCommentsOverlayActive else { return }
-            // Feedback háptico
-            let generator = UIImpactFeedbackGenerator(style: .heavy)
-            generator.impactOccurred()
-            
+            hapticHeavy.prepare()
+            hapticHeavy.impactOccurred()
+
             // Configurar animación aleatoria
             heartAngle = Double.random(in: -15...15)
             heartScale = 0.5
@@ -745,9 +747,8 @@ struct FeedView: View {
                     Button(action: {
                         isLiked.toggle()
                         likesCount += isLiked ? 1 : -1
-                        // Feedback ligero para tap normal
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
+                        hapticLight.prepare()
+                        hapticLight.impactOccurred()
                     }) {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .resizable()
@@ -781,8 +782,8 @@ struct FeedView: View {
                 // Bookmark button
                 Button(action: {
                     isBookmarked.toggle()
-                    let gen = UIImpactFeedbackGenerator(style: .medium)
-                    gen.impactOccurred()
+                    hapticMedium.prepare()
+                    hapticMedium.impactOccurred()
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { }
                     presentToast(isBookmarked ? .saved : .removed)
                 }) {
@@ -824,8 +825,8 @@ struct FeedView: View {
                                 if showQuickShare {
                                     if let h = quickHighlighted {
                                         quickSent = [h]
-                                        let gen = UIImpactFeedbackGenerator(style: .medium)
-                                        gen.impactOccurred()
+                                        hapticMedium.prepare()
+                                        hapticMedium.impactOccurred()
                                     }
                                     withAnimation(.easeOut(duration: 0.2)) { showQuickShare = false }
                                     quickHighlighted = nil
