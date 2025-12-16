@@ -84,7 +84,8 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         var isAnimating = false
         var lastSize: CGSize = .zero
         var lastCount: Int = 0
-        let upThreshold: CGFloat = 0.15
+        var startOffsetY: CGFloat = 0
+        let upThreshold: CGFloat = 0.20
         let downThreshold: CGFloat = 0.15
 
         init(_ parent: VerticalPager) { self.parent = parent }
@@ -152,27 +153,35 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             }
         }
 
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            startOffsetY = scrollView.contentOffset.y
+        }
+        
         func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
             let pageHeight = lastSize.height
             guard pageHeight > 0 else { return }
             let y = scrollView.contentOffset.y
+            let current = parent.index
             let fraction = y / pageHeight
-            let base = Int(floor(fraction))
-            let frac = fraction - CGFloat(base)
-            var next = base
+            var progress = fraction - CGFloat(current)
+            progress = max(0, min(progress, 1))
+            let deltaPages = max(-1, min(1, (y - startOffsetY) / pageHeight))
             
-            if velocity.y > 0 {
-                next = base + (frac >= downThreshold ? 1 : 0)
-            } else if velocity.y < 0 {
-                next = base - ((1 - frac) >= upThreshold ? 1 : 0)
+            var next = current
+            var dir = 0
+            if velocity.y < 0 { dir = -1 }
+            else if velocity.y > 0 { dir = 1 }
+            else if deltaPages < 0 { dir = -1 }
+            else if deltaPages > 0 { dir = 1 }
+            
+            if dir == -1 {
+                next = progress <= upThreshold ? current - 1 : current
+            } else if dir == 1 {
+                next = progress >= (1 - downThreshold) ? current + 1 : current
             } else {
-                if frac >= downThreshold {
-                    next = base + 1
-                } else if (1 - frac) >= upThreshold {
-                    next = base - 1
-                } else {
-                    next = base
-                }
+                if progress >= (1 - downThreshold) { next = current + 1 }
+                else if progress <= upThreshold { next = current - 1 }
+                else { next = current }
             }
             
             next = max(0, min(next, lastCount > 0 ? lastCount - 1 : 0))
