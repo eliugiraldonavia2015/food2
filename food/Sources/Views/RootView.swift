@@ -72,11 +72,10 @@ struct RootView: View {
                         showStartupSplash = false
                     }
                 }, imageName: "faviconremovedbackground")
-                .transition(.opacity)
                 .zIndex(1000)
             }
         }
-        .background((showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color.black).ignoresSafeArea())
+        .background(Color.black.ignoresSafeArea())
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
