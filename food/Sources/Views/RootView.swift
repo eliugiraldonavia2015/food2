@@ -47,7 +47,7 @@ struct RootView: View {
                     }
                 } else {
                     if showStartupSplash {
-                        Color(red: 49/255, green: 209/255, blue: 87/255)
+                        EmptyView()
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
@@ -76,7 +76,7 @@ struct RootView: View {
                 .zIndex(1000)
             }
         }
-        .background(showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color(.systemBackground))
+        .background(Color(.systemBackground))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
@@ -140,9 +140,9 @@ private struct StartupSplashView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 220, height: 220)
-                    .opacity(opacity)
             }
         }
+        .opacity(opacity)
         .onAppear {
             withAnimation(.easeInOut(duration: 0.35)) { opacity = 1 }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
