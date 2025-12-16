@@ -177,9 +177,9 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             if dir == -1 {
                 next = progress <= upThreshold ? current - 1 : current
             } else if dir == 1 {
-                next = progress >= (1 - downThreshold) ? current + 1 : current
+                next = progress >= downThreshold ? current + 1 : current
             } else {
-                if progress >= (1 - downThreshold) { next = current + 1 }
+                if progress >= downThreshold { next = current + 1 }
                 else if progress <= upThreshold { next = current - 1 }
                 else { next = current }
             }
