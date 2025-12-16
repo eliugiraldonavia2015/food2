@@ -837,7 +837,7 @@ struct FeedView: View {
                         .frame(width: 44, height: 44)
                         .overlay(alignment: .center) { if showQuickShare { quickShareRadial } }
                     }
-                    .gesture(
+                    .simultaneousGesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
                                 guard showQuickShare else { return }
@@ -958,7 +958,6 @@ struct FeedView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
 
