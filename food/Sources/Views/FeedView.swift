@@ -916,7 +916,7 @@ struct FeedView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .padding(.top, size.height * 0.59)
+            .padding(.top, size.height * 0.55)
             .padding(.trailing, 16)
             .overlay(alignment: .bottom) {
                 if showSavedToast && !isCommentsOverlayActive { savedToast }
