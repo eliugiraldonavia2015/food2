@@ -44,28 +44,10 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black.ignoresSafeArea())
             .padding(.bottom, tabBarHeight) // ← ESPACIO FIJO para el tab bar
-
-            if showShopLoading {
-                VStack(spacing: 10) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(.green)
-                        .scaleEffect(1.2)
-                    Text("Abriendo Tienda")
-                        .foregroundColor(.white)
-                        .font(.footnote)
-                }
-                .padding()
-                .background(Color.black.opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(0.3), radius: 12)
-                .transition(.opacity)
-                .zIndex(3)
-            }
+            
 
             if showShop {
-                FoodDiscoveryView(onClose: { withAnimation { showShop = false } })
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                FoodDiscoveryView(onClose: { showShop = false })
                     .zIndex(2)
             }
 
@@ -90,8 +72,7 @@ struct MainTabView: View {
                     .zIndex(7)
             }
         }
-        .animation(.easeInOut, value: showShopLoading)
-        .animation(.easeInOut, value: showShop)
+        
         .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
@@ -150,14 +131,9 @@ struct MainTabView: View {
 
     private var cartButton: some View {
         centerAccentButton(icon: "cart.fill", title: "Carrito", color: .green) {
-            withAnimation { showShopLoading = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                withAnimation {
-                    showShopLoading = false
-                    showShop = true
-                    inDiscoveryMode = true
-                }
-            }
+            showShopLoading = false
+            showShop = true
+            inDiscoveryMode = true
         }
         .frame(maxWidth: .infinity)
     }
