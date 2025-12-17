@@ -81,18 +81,22 @@ struct RestaurantEditMenuView: View {
                     catalogItems = items
                 }
             }
-            MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+            MenuService.shared.listEnabledSections(restaurantId: effectiveRestaurantId) { res in
                 if case .success(let secs) = res {
                     sections = secs
                     let names = secs.map { $0.name }
                     tabs = ["Todo"] + names
-                    MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: false) { itemsRes in
+                    MenuService.shared.listMenuItems(restaurantId: effectiveRestaurantId, publishedOnly: false) { itemsRes in
                         if case .success(let items) = itemsRes {
                             var grouped: [String: [UIItem]] = [:]
                             for it in items {
                                 let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
                                 let secName = secs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
                                 grouped[secName, default: []].append(ui)
+                            }
+                            for s in secs {
+                                let secName = s.name
+                                if grouped[secName] == nil { grouped[secName] = [] }
                             }
                             menuData = grouped
                         }
@@ -598,7 +602,7 @@ struct RestaurantEditMenuView: View {
                 let toEnable = catalogItems.filter { missingNames.contains($0.name) }
                 let rid = effectiveRestaurantId
                 let enableCompletion: (Error?) -> Void = { _ in
-                    MenuService.shared.listEnabledSections(restaurantId: rid) { res in
+                    MenuService.shared.listEnabledSections(restaurantId: effectiveRestaurantId) { res in
                         let loadedSecs = (try? res.get()) ?? sections
                         sections = loadedSecs
                         tabs = ["Todo"] + loadedSecs.map { $0.name }
@@ -609,6 +613,10 @@ struct RestaurantEditMenuView: View {
                                     let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
                                     let secName = loadedSecs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
                                     grouped[secName, default: []].append(ui)
+                                }
+                                for s in loadedSecs {
+                                    let secName = s.name
+                                    if grouped[secName] == nil { grouped[secName] = [] }
                                 }
                                 menuData = grouped
                             }
@@ -690,6 +698,10 @@ struct RestaurantEditMenuView: View {
                                     sections = secs
                                     let names = secs.map { $0.name }
                                     tabs = ["Todo"] + names
+                                    for s in secs {
+                                        let secName = s.name
+                                        if menuData[secName] == nil { menuData[secName] = [] }
+                                    }
                                 }
                                 isSavingSections = false
                                 showEnableSections = false
