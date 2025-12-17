@@ -34,6 +34,12 @@ struct RestaurantEditMenuView: View {
     @State private var selectedItemId: String = ""
     @State private var isSavingAll: Bool = false
     @State private var showSaveToast: Bool = false
+    @State private var showErrorToast: Bool = false
+    @State private var errorMessage: String = ""
+    private var effectiveRestaurantId: String {
+        if !restaurantId.isEmpty { return restaurantId }
+        return AuthService.shared.user?.uid ?? restaurantId
+    }
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -99,6 +105,16 @@ struct RestaurantEditMenuView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
                     Text("Cambios guardados").foregroundColor(.white).font(.system(size: 14, weight: .semibold))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(Color.black.opacity(0.9))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .padding(.bottom, 12)
+            } else if showErrorToast {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.red)
+                    Text(errorMessage).foregroundColor(.white).font(.system(size: 14, weight: .semibold))
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
@@ -428,13 +444,19 @@ struct RestaurantEditMenuView: View {
                     Button(action: {
                         let price = Double(sheetPrice.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: ".")) ?? 0.0
                         let imgs = sheetImageUrl.isEmpty ? [] : [sheetImageUrl]
-                        MenuService.shared.updateMenuItem(restaurantId: restaurantId, itemId: selectedItemId, name: sheetTitle, description: sheetSubtitle, price: price, imageUrls: imgs, isPublished: nil) { _ in
-                            for key in menuData.keys {
-                                if let idx = menuData[key]?.firstIndex(where: { $0.itemId == selectedItemId }) {
-                                    menuData[key]?[idx] = UIItem(title: sheetTitle, url: sheetImageUrl, itemId: selectedItemId)
+                        MenuService.shared.updateMenuItem(restaurantId: effectiveRestaurantId, itemId: selectedItemId, name: sheetTitle, description: sheetSubtitle, price: price, imageUrls: imgs, isPublished: nil) { e in
+                            if let e = e {
+                                errorMessage = "Error guardando plato: \(e.localizedDescription)"
+                                showErrorToast = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
+                            } else {
+                                for key in menuData.keys {
+                                    if let idx = menuData[key]?.firstIndex(where: { $0.itemId == selectedItemId }) {
+                                        menuData[key]?[idx] = UIItem(title: sheetTitle, url: sheetImageUrl, itemId: selectedItemId)
+                                    }
                                 }
+                                isEditingInfo = false
                             }
-                            isEditingInfo = false
                         }
                     }) {
                         Text("Guardar")
@@ -569,24 +591,46 @@ struct RestaurantEditMenuView: View {
             Button(action: {
                 guard !isSavingAll else { return }
                 isSavingAll = true
-                MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
-                    let loadedSecs = (try? res.get()) ?? sections
-                    sections = loadedSecs
-                    tabs = ["Todo"] + loadedSecs.map { $0.name }
-                    MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: false) { itemsRes in
-                        if case .success(let items) = itemsRes {
-                            var grouped: [String: [UIItem]] = [:]
-                            for it in items {
-                                let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
-                                let secName = loadedSecs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
-                                grouped[secName, default: []].append(ui)
+                // Asegurar que se persistan las secciones seleccionadas en tabs aunque la hoja se haya cerrado
+                let targetNames = tabs.filter { $0 != "Todo" }
+                let existingNames = Set(sections.map { $0.name })
+                let missingNames = targetNames.filter { !existingNames.contains($0) }
+                let toEnable = catalogItems.filter { missingNames.contains($0.name) }
+                let rid = effectiveRestaurantId
+                let enableCompletion: (Error?) -> Void = { _ in
+                    MenuService.shared.listEnabledSections(restaurantId: rid) { res in
+                        let loadedSecs = (try? res.get()) ?? sections
+                        sections = loadedSecs
+                        tabs = ["Todo"] + loadedSecs.map { $0.name }
+                        MenuService.shared.listMenuItems(restaurantId: rid, publishedOnly: false) { itemsRes in
+                            if case .success(let items) = itemsRes {
+                                var grouped: [String: [UIItem]] = [:]
+                                for it in items {
+                                    let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
+                                    let secName = loadedSecs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
+                                    grouped[secName, default: []].append(ui)
+                                }
+                                menuData = grouped
                             }
-                            menuData = grouped
+                            isSavingAll = false
+                            showSaveToast = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { showSaveToast = false }
                         }
-                        isSavingAll = false
-                        showSaveToast = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { showSaveToast = false }
                     }
+                }
+                if !toEnable.isEmpty {
+                    MenuService.shared.enableSections(restaurantId: rid, catalogItems: toEnable, completion: { e in
+                        if let e = e {
+                            errorMessage = "Error guardando secciones: \(e.localizedDescription)"
+                            showErrorToast = true
+                            isSavingAll = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
+                        } else {
+                            enableCompletion(nil)
+                        }
+                    })
+                } else {
+                    enableCompletion(nil)
                 }
             }) {
                 Text(isSavingAll ? "Guardando…" : "Guardar")
@@ -634,8 +678,14 @@ struct RestaurantEditMenuView: View {
                         isSavingSections = true
                         let picked = catalogItems.filter { selectedCatalogIds.contains($0.id) }
                         tabs = ["Todo"] + picked.map { $0.name }
-                        MenuService.shared.enableSections(restaurantId: restaurantId, catalogItems: picked) { _ in
-                            MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+                        MenuService.shared.enableSections(restaurantId: effectiveRestaurantId, catalogItems: picked) { e in
+                            if let e = e {
+                                errorMessage = "Error guardando secciones: \(e.localizedDescription)"
+                                showErrorToast = true
+                                isSavingSections = false
+                                return
+                            }
+                            MenuService.shared.listEnabledSections(restaurantId: effectiveRestaurantId) { res in
                                 if case .success(let secs) = res {
                                     sections = secs
                                     let names = secs.map { $0.name }
@@ -643,6 +693,7 @@ struct RestaurantEditMenuView: View {
                                 }
                                 isSavingSections = false
                                 showEnableSections = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
                             }
                         }
                     }
@@ -695,18 +746,22 @@ struct RestaurantEditMenuView: View {
                         let price = Double(newItemPrice) ?? 0.0
                         let img = newItemImageUrl.isEmpty ? [] : [newItemImageUrl]
                         let secId = newItemSectionId.isEmpty ? sections.first?.id ?? "" : newItemSectionId
-                        MenuService.shared.createMenuItem(restaurantId: restaurantId, sectionId: secId, name: newItemName, description: newItemDescription, price: price, currency: "USD", imageUrls: img, categoryCanonical: sections.first(where: { $0.id == secId })?.id, tags: [], isPublished: newItemPublish) { res in
+                        MenuService.shared.createMenuItem(restaurantId: effectiveRestaurantId, sectionId: secId, name: newItemName, description: newItemDescription, price: price, currency: "USD", imageUrls: img, categoryCanonical: sections.first(where: { $0.id == secId })?.id, tags: [], isPublished: newItemPublish) { res in
                             if case .success(let item) = res {
-                        let ui = UIItem(title: item.name, url: item.imageUrls.first ?? "", itemId: item.id)
-                        let secName = sections.first(where: { $0.id == item.sectionId })?.name ?? "Otros"
-                        menuData[secName, default: []].append(ui)
-                        newItemName = ""
-                        newItemDescription = ""
-                        newItemPrice = ""
+                                let ui = UIItem(title: item.name, url: item.imageUrls.first ?? "", itemId: item.id)
+                                let secName = sections.first(where: { $0.id == item.sectionId })?.name ?? "Otros"
+                                menuData[secName, default: []].append(ui)
+                                newItemName = ""
+                                newItemDescription = ""
+                                newItemPrice = ""
                                 newItemImageUrl = ""
                                 newItemSectionId = ""
                                 newItemPublish = true
                                 showAddItem = false
+                            } else if case .failure(let e) = res {
+                                errorMessage = "Error creando plato: \(e.localizedDescription)"
+                                showErrorToast = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
                             }
                         }
                     }
