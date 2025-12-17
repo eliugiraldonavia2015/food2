@@ -19,6 +19,17 @@ struct RestaurantEditMenuView: View {
     @State private var sheetSubtitle: String = "Pizza con mozzarella fresca"
     @State private var priceFrame: CGRect = .zero
     @State private var isEditingInfo: Bool = false
+    @State private var showEnableSections = false
+    @State private var showAddItem = false
+    @State private var catalogItems: [SectionCatalogItem] = []
+    @State private var selectedCatalogIds: Set<String> = []
+    @State private var sections: [MenuSection] = []
+    @State private var newItemName: String = ""
+    @State private var newItemDescription: String = ""
+    @State private var newItemPrice: String = ""
+    @State private var newItemImageUrl: String = ""
+    @State private var newItemSectionId: String = ""
+    @State private var newItemPublish: Bool = true
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -55,8 +66,14 @@ struct RestaurantEditMenuView: View {
         }
         .preferredColorScheme(.dark)
         .onAppear {
+            MenuService.shared.getSectionCatalog { res in
+                if case .success(let items) = res {
+                    catalogItems = items
+                }
+            }
             MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
                 if case .success(let secs) = res {
+                    sections = secs
                     let names = secs.map { $0.name }
                     tabs = ["Todo"] + names
                     MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: false) { itemsRes in
@@ -251,12 +268,34 @@ struct RestaurantEditMenuView: View {
                         .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
                 }
                 Spacer()
+                HStack(spacing: 8) {
+                    Button(action: { showEnableSections = true }) {
+                        Text("Habilitar Secciones")
+                            .foregroundColor(.black)
+                            .font(.system(size: 12, weight: .bold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    Button(action: { showAddItem = true }) {
+                        Text("Añadir Plato")
+                            .foregroundColor(.black)
+                            .font(.system(size: 12, weight: .bold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
             }
             .padding(.leading, 12)
             .padding(.trailing, 26)
             .padding(.top, 8)
             Spacer()
         }
+        .sheet(isPresented: $showEnableSections) { enableSectionsSheet }
+        .sheet(isPresented: $showAddItem) { addItemSheet }
     }
 
     private var dishBottomSheet: some View {
@@ -488,6 +527,103 @@ struct RestaurantEditMenuView: View {
             .padding(.bottom, 16)
         }
         .ignoresSafeArea(edges: .bottom)
+    }
+    
+    private var enableSectionsSheet: some View {
+        NavigationView {
+            List {
+                ForEach(catalogItems, id: \.id) { item in
+                    HStack {
+                        Text(item.name).foregroundColor(.white)
+                        Spacer()
+                        let isOn = selectedCatalogIds.contains(item.id)
+                        Button(action: {
+                            if isOn { selectedCatalogIds.remove(item.id) } else { selectedCatalogIds.insert(item.id) }
+                        }) {
+                            Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(isOn ? .green : .white.opacity(0.6))
+                        }
+                    }
+                    .listRowBackground(Color.black)
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
+            .navigationBarTitle("Secciones del catálogo", displayMode: .inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cerrar") { showEnableSections = false }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Guardar") {
+                        let picked = catalogItems.filter { selectedCatalogIds.contains($0.id) }
+                        MenuService.shared.enableSections(restaurantId: restaurantId, catalogItems: picked) { e in
+                            MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+                                if case .success(let secs) = res {
+                                    sections = secs
+                                    let names = secs.map { $0.name }
+                                    tabs = ["Todo"] + names
+                                }
+                                showEnableSections = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+    
+    private var addItemSheet: some View {
+        NavigationView {
+            Form {
+                Section {
+                    TextField("Nombre", text: $newItemName)
+                    TextField("Descripción", text: $newItemDescription)
+                    TextField("Precio", text: $newItemPrice)
+                        .keyboardType(.decimalPad)
+                    TextField("Imagen URL", text: $newItemImageUrl)
+                    Toggle("Publicar ahora", isOn: $newItemPublish)
+                }
+                Section {
+                    Picker("Sección", selection: $newItemSectionId) {
+                        ForEach(sections, id: \.id) { s in
+                            Text(s.name).tag(s.id)
+                        }
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
+            .navigationBarTitle("Nuevo plato", displayMode: .inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cerrar") { showAddItem = false }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Guardar") {
+                        let price = Double(newItemPrice) ?? 0.0
+                        let img = newItemImageUrl.isEmpty ? [] : [newItemImageUrl]
+                        let secId = newItemSectionId.isEmpty ? sections.first?.id ?? "" : newItemSectionId
+                        MenuService.shared.createMenuItem(restaurantId: restaurantId, sectionId: secId, name: newItemName, description: newItemDescription, price: price, currency: "USD", imageUrls: img, categoryCanonical: sections.first(where: { $0.id == secId })?.id, tags: [], isPublished: newItemPublish) { res in
+                            if case .success(let item) = res {
+                                let ui = UIItem(title: item.name, url: item.imageUrls.first ?? "")
+                                let secName = sections.first(where: { $0.id == item.sectionId })?.name ?? "Otros"
+                                menuData[secName, default: []].append(ui)
+                                newItemName = ""
+                                newItemDescription = ""
+                                newItemPrice = ""
+                                newItemImageUrl = ""
+                                newItemSectionId = ""
+                                newItemPublish = true
+                                showAddItem = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 
     private struct PriceFrameKey: PreferenceKey {

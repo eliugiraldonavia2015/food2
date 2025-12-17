@@ -56,6 +56,34 @@ public final class MenuService {
         ]
     }
     
+    public func seedSectionCatalogIfMissing(completion: @escaping (Error?) -> Void) {
+        db.collection(AppConstants.Firebase.sectionCatalogCollection)
+            .limit(to: 1)
+            .getDocuments { snap, err in
+                if let err = err {
+                    completion(err)
+                    return
+                }
+                if let snap = snap, !snap.isEmpty {
+                    completion(nil)
+                    return
+                }
+                let items = self.defaultCatalog()
+                let batch = self.db.batch()
+                for it in items {
+                    let ref = self.db.collection(AppConstants.Firebase.sectionCatalogCollection).document(it.id)
+                    batch.setData([
+                        "name": it.name,
+                        "slug": it.slug,
+                        "icon": it.icon ?? "",
+                        "sortOrder": it.sortOrder,
+                        "isActive": it.isActive
+                    ], forDocument: ref, merge: true)
+                }
+                batch.commit { e in completion(e) }
+            }
+    }
+    
     public func getOrCreateRestaurantPrefix(restaurantId: String, restaurantName: String, completion: @escaping (Result<String, Error>) -> Void) {
         restaurantsRef().document(restaurantId).getDocument { doc, err in
             if let err = err {
