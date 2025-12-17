@@ -135,6 +135,7 @@ struct RestaurantProfileView: View {
         .ignoresSafeArea(edges: .top)
         .fullScreenCover(isPresented: $showFullMenu) {
             FullMenuView(
+                restaurantId: currentData.username.replacingOccurrences(of: " ", with: "").lowercased(),
                 restaurantName: currentData.name,
                 coverUrl: currentData.coverUrl,
                 avatarUrl: currentData.avatarUrl,

@@ -529,6 +529,7 @@ private struct ProfileScreen: View {
         }
         .fullScreenCover(isPresented: $showEditMenu) {
             RestaurantEditMenuView(
+                restaurantId: auth.user?.uid ?? (auth.user?.username ?? "rest").replacingOccurrences(of: " ", with: "").lowercased(),
                 restaurantName: auth.user?.username ?? "Mi Restaurante",
                 coverUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
                 avatarUrl: auth.user?.photoURL?.absoluteString ?? "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",

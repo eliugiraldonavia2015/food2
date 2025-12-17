@@ -24,7 +24,7 @@ public final class MenuService {
         db.collection(AppConstants.Firebase.sectionCatalogCollection)
             .order(by: "sortOrder")
             .getDocuments { snap, err in
-                if let err = err {
+                if err != nil {
                     completion(.success(self.defaultCatalog()))
                     return
                 }
