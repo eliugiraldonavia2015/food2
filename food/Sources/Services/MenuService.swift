@@ -277,6 +277,19 @@ public final class MenuService {
             }
     }
     
+    public func updateMenuItem(restaurantId: String, itemId: String, name: String?, description: String?, price: Double?, imageUrls: [String]?, isPublished: Bool?, completion: @escaping (Error?) -> Void) {
+        var update: [String: Any] = [:]
+        if let name = name { update["name"] = name }
+        if let description = description { update["description"] = description }
+        if let price = price { update["price"] = price }
+        if let imageUrls = imageUrls { update["imageUrls"] = imageUrls }
+        if let isPublished = isPublished { update["isPublished"] = isPublished }
+        update["updatedAt"] = Timestamp(date: Date())
+        restaurantItemsRef(restaurantId).document(itemId).updateData(update) { e in
+            completion(e)
+        }
+    }
+    
     public func ensureDemoData(restaurantId: String, restaurantName: String, completion: @escaping (Error?) -> Void) {
         getOrCreateRestaurantPrefix(restaurantId: restaurantId, restaurantName: restaurantName) { _ in
             self.listEnabledSections(restaurantId: restaurantId) { res in

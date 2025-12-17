@@ -31,6 +31,7 @@ struct RestaurantEditMenuView: View {
     @State private var newItemSectionId: String = ""
     @State private var newItemPublish: Bool = true
     @State private var isSavingSections: Bool = false
+    @State private var selectedItemId: String = ""
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -42,7 +43,7 @@ struct RestaurantEditMenuView: View {
         .init(title: "Limonada", price: "+ $2", editing: false),
         .init(title: "Té Helado", price: "+ $1.8", editing: false)
     ]
-    private struct UIItem: Identifiable { let id = UUID(); let title: String; let url: String }
+    private struct UIItem: Identifiable { let id = UUID(); let title: String; let url: String; let itemId: String }
     @State private var menuData: [String: [UIItem]] = [:]
     private var allItems: [UIItem] { Array(menuData.values.joined()) }
 
@@ -81,7 +82,7 @@ struct RestaurantEditMenuView: View {
                         if case .success(let items) = itemsRes {
                             var grouped: [String: [UIItem]] = [:]
                             for it in items {
-                                let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "")
+                                let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
                                 let secName = secs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
                                 grouped[secName, default: []].append(ui)
                             }
@@ -172,9 +173,10 @@ struct RestaurantEditMenuView: View {
 
     private var sectionsStack: some View {
         VStack(spacing: 20) {
-            section("Todo", items: allItems)
-            ForEach(tabs.filter { $0 != "Todo" }, id: \.self) { t in
-                section(t, items: menuData[t] ?? [])
+            if activeTab == "Todo" {
+                section("Todo", items: allItems)
+            } else {
+                section(activeTab, items: menuData[activeTab] ?? [])
             }
         }
     }
@@ -182,34 +184,40 @@ struct RestaurantEditMenuView: View {
     private func section(_ title: String, items: [UIItem]) -> some View {
         VStack(spacing: 12) {
             sectionTitle(title)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(items) { it in
-                        optionDealCard(title: it.title, url: it.url, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
-                    }
-                    if items.isEmpty {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.06))
-                                .frame(width: 220, height: 110)
-                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
-                            VStack(spacing: 6) {
-                                Text("No hay items todavía")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text("Añade platos a esta sección")
-                                    .foregroundColor(.white.opacity(0.7))
-                                    .font(.caption)
-                            }
+            if items.isEmpty {
+                HStack {
+                    Spacer()
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.06))
+                            .frame(width: 260, height: 120)
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                        VStack(spacing: 6) {
+                            Text("No hay items todavía")
+                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Añade platos a esta sección")
+                                .foregroundColor(.white.opacity(0.7))
+                                .font(.caption)
                         }
                     }
+                    Spacer()
                 }
-                .padding(.horizontal, 2)
+                .padding(.top, 4)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(items) { it in
+                            optionDealCard(title: it.title, url: it.url, itemId: it.itemId, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
             }
         }
     }
 
-    private func optionDealCard(title: String, url: String, merchant: String, time: String) -> some View {
+    private func optionDealCard(title: String, url: String, itemId: String, merchant: String, time: String) -> some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 WebImage(url: URL(string: url))
@@ -271,6 +279,7 @@ struct RestaurantEditMenuView: View {
             sheetImageUrl = url
             sheetPrice = "$15.99"
             sheetSubtitle = "Pizza con mozzarella fresca"
+            selectedItemId = itemId
             withAnimation(.easeOut(duration: 0.25)) { showDishSheet = true }
         }
     }
@@ -401,7 +410,18 @@ struct RestaurantEditMenuView: View {
                     .font(.system(size: 20, weight: .bold))
                 HStack {
                     Spacer()
-                    Button(action: { isEditingInfo = false }) {
+                    Button(action: {
+                        let price = Double(sheetPrice.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: ".")) ?? 0.0
+                        let imgs = sheetImageUrl.isEmpty ? [] : [sheetImageUrl]
+                        MenuService.shared.updateMenuItem(restaurantId: restaurantId, itemId: selectedItemId, name: sheetTitle, description: sheetSubtitle, price: price, imageUrls: imgs, isPublished: nil) { _ in
+                            for key in menuData.keys {
+                                if let idx = menuData[key]?.firstIndex(where: { $0.itemId == selectedItemId }) {
+                                    menuData[key]?[idx] = UIItem(title: sheetTitle, url: sheetImageUrl, itemId: selectedItemId)
+                                }
+                            }
+                            isEditingInfo = false
+                        }
+                    }) {
                         Text("Guardar")
                             .foregroundColor(.black)
                             .font(.system(size: 14, weight: .bold))
@@ -640,12 +660,12 @@ struct RestaurantEditMenuView: View {
                         let secId = newItemSectionId.isEmpty ? sections.first?.id ?? "" : newItemSectionId
                         MenuService.shared.createMenuItem(restaurantId: restaurantId, sectionId: secId, name: newItemName, description: newItemDescription, price: price, currency: "USD", imageUrls: img, categoryCanonical: sections.first(where: { $0.id == secId })?.id, tags: [], isPublished: newItemPublish) { res in
                             if case .success(let item) = res {
-                                let ui = UIItem(title: item.name, url: item.imageUrls.first ?? "")
-                                let secName = sections.first(where: { $0.id == item.sectionId })?.name ?? "Otros"
-                                menuData[secName, default: []].append(ui)
-                                newItemName = ""
-                                newItemDescription = ""
-                                newItemPrice = ""
+                        let ui = UIItem(title: item.name, url: item.imageUrls.first ?? "", itemId: item.id)
+                        let secName = sections.first(where: { $0.id == item.sectionId })?.name ?? "Otros"
+                        menuData[secName, default: []].append(ui)
+                        newItemName = ""
+                        newItemDescription = ""
+                        newItemPrice = ""
                                 newItemImageUrl = ""
                                 newItemSectionId = ""
                                 newItemPublish = true
