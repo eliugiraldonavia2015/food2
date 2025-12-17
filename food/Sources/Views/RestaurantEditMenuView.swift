@@ -32,6 +32,8 @@ struct RestaurantEditMenuView: View {
     @State private var newItemPublish: Bool = true
     @State private var isSavingSections: Bool = false
     @State private var selectedItemId: String = ""
+    @State private var isSavingAll: Bool = false
+    @State private var showSaveToast: Bool = false
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -90,6 +92,19 @@ struct RestaurantEditMenuView: View {
                         }
                     }
                 }
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if showSaveToast {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+                    Text("Cambios guardados").foregroundColor(.white).font(.system(size: 14, weight: .semibold))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(Color.black.opacity(0.9))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .padding(.bottom, 12)
             }
         }
     }
@@ -551,8 +566,30 @@ struct RestaurantEditMenuView: View {
     private var saveBar: some View {
         VStack {
             Spacer()
-            Button(action: {}) {
-                Text("Guardar")
+            Button(action: {
+                guard !isSavingAll else { return }
+                isSavingAll = true
+                MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+                    let loadedSecs = (try? res.get()) ?? sections
+                    sections = loadedSecs
+                    tabs = ["Todo"] + loadedSecs.map { $0.name }
+                    MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: false) { itemsRes in
+                        if case .success(let items) = itemsRes {
+                            var grouped: [String: [UIItem]] = [:]
+                            for it in items {
+                                let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
+                                let secName = loadedSecs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
+                                grouped[secName, default: []].append(ui)
+                            }
+                            menuData = grouped
+                        }
+                        isSavingAll = false
+                        showSaveToast = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { showSaveToast = false }
+                    }
+                }
+            }) {
+                Text(isSavingAll ? "Guardando…" : "Guardar")
                     .foregroundColor(.black)
                     .font(.system(size: 16, weight: .bold))
                     .frame(maxWidth: .infinity)
