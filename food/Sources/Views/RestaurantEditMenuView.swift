@@ -95,6 +95,7 @@ struct RestaurantEditMenuView: View {
                                 grouped[secName, default: []].append(ui)
                             }
                             menuData = grouped
+                            selectedCatalogIds = Set(secs.map { $0.id })
                         }
                     }
                 }
@@ -599,15 +600,19 @@ struct RestaurantEditMenuView: View {
                 let rid = effectiveRestaurantId
                 let enableCompletion: (Error?) -> Void = { _ in
                     MenuService.shared.listEnabledSections(restaurantId: rid) { res in
-                        let loadedSecs = (try? res.get()) ?? sections
-                        sections = loadedSecs
-                        tabs = ["Todo"] + loadedSecs.map { $0.name }
+                        var nextSections = sections
+                        if case .success(let fetched) = res, !fetched.isEmpty {
+                            nextSections = fetched
+                        }
+                        sections = nextSections
+                        tabs = ["Todo"] + nextSections.map { $0.name }
+                        selectedCatalogIds = Set(nextSections.map { $0.id })
                         MenuService.shared.listMenuItems(restaurantId: rid, publishedOnly: false) { itemsRes in
                             if case .success(let items) = itemsRes {
                                 var grouped: [String: [UIItem]] = [:]
                                 for it in items {
                                     let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
-                                    let secName = loadedSecs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
+                                    let secName = nextSections.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
                                     grouped[secName, default: []].append(ui)
                                 }
                                 menuData = grouped
@@ -690,6 +695,7 @@ struct RestaurantEditMenuView: View {
                                     sections = secs
                                     let names = secs.map { $0.name }
                                     tabs = ["Todo"] + names
+                                    selectedCatalogIds = Set(secs.map { $0.id })
                                 }
                                 isSavingSections = false
                                 showEnableSections = false
@@ -698,6 +704,9 @@ struct RestaurantEditMenuView: View {
                         }
                     }
                 }
+            }
+            .onAppear {
+                selectedCatalogIds = Set(sections.map { $0.id })
             }
             .overlay(alignment: .bottom) {
                 if isSavingSections {
