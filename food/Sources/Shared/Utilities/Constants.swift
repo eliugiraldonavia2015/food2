@@ -20,6 +20,11 @@ public enum AppConstants {
         
         /// Colección de usuarios
         public static let usersCollection = "users"
+        
+        public static let restaurantsCollection = "restaurants"
+        public static let sectionCatalogCollection = "section_catalog"
+        public static let menuSectionsCollection = "menu_sections"
+        public static let menuItemsCollection = "menu_items"
     }
     
     /// Configuración de imágenes

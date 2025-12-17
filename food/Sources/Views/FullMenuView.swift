@@ -2,6 +2,7 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct FullMenuView: View {
+    let restaurantId: String
     let restaurantName: String
     let coverUrl: String
     let avatarUrl: String
@@ -11,7 +12,7 @@ struct FullMenuView: View {
     let isEditing: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
-    private let tabs = ["Todo","Popular","Combos","Entradas","Especiales","Sopas"]
+    @State private var tabs: [String] = ["Todo"]
     @State private var showLocationList = false
     @State private var selectedBranchName: String = ""
     @State private var showDishSheet = false
@@ -22,36 +23,11 @@ struct FullMenuView: View {
     @State private var priceFrame: CGRect = .zero
     @State private var selectedSides: Set<String> = []
     @State private var selectedDrinks: Set<String> = []
-    private struct MenuItem: Identifiable { let id = UUID(); let title: String; let url: String }
-    private let menuData: [String: [MenuItem]] = [
-        "Popular": [
-            .init(title: "Pizza", url: "https://images.unsplash.com/photo-1601924638867-3ec3b1f7c2d7"),
-            .init(title: "Burger", url: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
-            .init(title: "Pasta", url: "https://images.unsplash.com/photo-1525755662778-989d0524087e")
-        ],
-        "Combos": [
-            .init(title: "Combo Taco", url: "https://images.unsplash.com/photo-1612872086026-3b72c8585f63"),
-            .init(title: "Combo Sushi", url: "https://images.unsplash.com/photo-1553621042-f6e147245754"),
-            .init(title: "Combo Burger", url: "https://images.unsplash.com/photo-1550547660-d9450f859349")
-        ],
-        "Entradas": [
-            .init(title: "Nachos", url: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90"),
-            .init(title: "Edamame", url: "https://images.unsplash.com/photo-1551218808-94e220e084d2"),
-            .init(title: "Aros", url: "https://images.unsplash.com/photo-1554118811-1e0d58224f24")
-        ],
-        "Especiales": [
-            .init(title: "Chef Roll", url: "https://images.unsplash.com/photo-1546069901-5ec6a79120b0"),
-            .init(title: "Trufa Pasta", url: "https://images.unsplash.com/photo-1525755662778-989d0524087e"),
-            .init(title: "BBQ", url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd")
-        ],
-        "Sopas": [
-            .init(title: "Ramen", url: "https://images.unsplash.com/photo-1543353071-873f17a7a5c0"),
-            .init(title: "Miso", url: "https://images.unsplash.com/photo-1525755662778-989d0524087e"),
-            .init(title: "Caldo", url: "https://images.unsplash.com/photo-1504754524776-8f4f37710ca2")
-        ]
-    ]
+    private struct UIItem: Identifiable { let id = UUID(); let title: String; let url: String }
+    @State private var menuData: [String: [UIItem]] = [:]
 
     init(
+        restaurantId: String,
         restaurantName: String,
         coverUrl: String,
         avatarUrl: String,
@@ -60,6 +36,7 @@ struct FullMenuView: View {
         distanceKm: Double?,
         isEditing: Bool = false
     ) {
+        self.restaurantId = restaurantId
         self.restaurantName = restaurantName
         self.coverUrl = coverUrl
         self.avatarUrl = avatarUrl
@@ -68,7 +45,7 @@ struct FullMenuView: View {
         self.distanceKm = distanceKm
         self.isEditing = isEditing
     }
-    private var allItems: [MenuItem] { Array(menuData.values.joined()) }
+    private var allItems: [UIItem] { Array(menuData.values.joined()) }
     private struct LocationItem: Identifiable { let id = UUID(); let name: String; let address: String; let distanceKm: Double }
     private let locations: [LocationItem] = [
         .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 3194.7),
@@ -116,6 +93,25 @@ struct FullMenuView: View {
         .tint(.green)
         .onAppear {
             selectedBranchName = (branchName ?? location)
+            MenuService.shared.ensureDemoData(restaurantId: restaurantId, restaurantName: restaurantName) { _ in
+                MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+                    if case .success(let secs) = res {
+                        let names = secs.map { $0.name }
+                        tabs = ["Todo"] + names
+                        MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: true) { itemsRes in
+                            if case .success(let items) = itemsRes {
+                                var grouped: [String: [UIItem]] = [:]
+                                for it in items {
+                                    let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "")
+                                    let secName = secs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
+                                    grouped[secName, default: []].append(ui)
+                                }
+                                menuData = grouped
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -339,15 +335,13 @@ struct FullMenuView: View {
     private var sectionsStack: some View {
         VStack(spacing: 20) {
             section("Todo", items: allItems)
-            section("Popular", items: menuData["Popular"] ?? [])
-            section("Combos", items: menuData["Combos"] ?? [])
-            section("Entradas", items: menuData["Entradas"] ?? [])
-            section("Especiales", items: menuData["Especiales"] ?? [])
-            section("Sopas", items: menuData["Sopas"] ?? [])
+            ForEach(tabs.filter { $0 != "Todo" }, id: \.self) { t in
+                section(t, items: menuData[t] ?? [])
+            }
         }
     }
 
-    private func section(_ title: String, items: [MenuItem]) -> some View {
+    private func section(_ title: String, items: [UIItem]) -> some View {
         VStack(spacing: 12) {
             sectionTitle(title)
             ScrollView(.horizontal, showsIndicators: false) {

@@ -395,7 +395,9 @@ struct FeedView: View {
         }
         .fullScreenCover(isPresented: $showMenu) {
             let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            let rid = item.username.replacingOccurrences(of: " ", with: "").lowercased()
             FullMenuView(
+                restaurantId: rid,
                 restaurantName: item.username,
                 coverUrl: item.backgroundUrl,
                 avatarUrl: item.avatarUrl,
