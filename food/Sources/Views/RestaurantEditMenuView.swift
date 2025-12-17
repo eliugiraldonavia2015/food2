@@ -30,6 +30,7 @@ struct RestaurantEditMenuView: View {
     @State private var newItemImageUrl: String = ""
     @State private var newItemSectionId: String = ""
     @State private var newItemPublish: Bool = true
+    @State private var isSavingSections: Bool = false
     private struct EditableItem: Identifiable { let id = UUID(); var title: String; var price: String; var editing: Bool }
     @State private var sideItems: [EditableItem] = [
         .init(title: "Papas Fritas", price: "+ $2.5", editing: false),
@@ -185,6 +186,22 @@ struct RestaurantEditMenuView: View {
                 HStack(spacing: 16) {
                     ForEach(items) { it in
                         optionDealCard(title: it.title, url: it.url, merchant: restaurantName, time: String(format: "%.0f min", (distanceKm ?? 48)))
+                    }
+                    if items.isEmpty {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.06))
+                                .frame(width: 220, height: 110)
+                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                            VStack(spacing: 6) {
+                                Text("No hay items todavía")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Añade platos a esta sección")
+                                    .foregroundColor(.white.opacity(0.7))
+                                    .font(.caption)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 2)
@@ -555,19 +572,35 @@ struct RestaurantEditMenuView: View {
                     Button("Cerrar") { showEnableSections = false }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Guardar") {
+                    Button(isSavingSections ? "Guardando…" : "Guardar") {
+                        guard !isSavingSections else { return }
+                        isSavingSections = true
                         let picked = catalogItems.filter { selectedCatalogIds.contains($0.id) }
-                        MenuService.shared.enableSections(restaurantId: restaurantId, catalogItems: picked) { e in
+                        tabs = ["Todo"] + picked.map { $0.name }
+                        MenuService.shared.enableSections(restaurantId: restaurantId, catalogItems: picked) { _ in
                             MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
                                 if case .success(let secs) = res {
                                     sections = secs
                                     let names = secs.map { $0.name }
                                     tabs = ["Todo"] + names
                                 }
+                                isSavingSections = false
                                 showEnableSections = false
                             }
                         }
                     }
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if isSavingSections {
+                    HStack(spacing: 8) {
+                        ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .green))
+                        Text("Guardando secciones…").foregroundColor(.white).font(.caption)
+                    }
+                    .padding(10)
+                    .background(Color.black.opacity(0.8))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.bottom, 12)
                 }
             }
         }
