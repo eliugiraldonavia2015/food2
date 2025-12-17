@@ -81,12 +81,12 @@ struct RestaurantEditMenuView: View {
                     catalogItems = items
                 }
             }
-            MenuService.shared.listEnabledSections(restaurantId: restaurantId) { res in
+            MenuService.shared.listEnabledSections(restaurantId: effectiveRestaurantId) { res in
                 if case .success(let secs) = res {
                     sections = secs
                     let names = secs.map { $0.name }
                     tabs = ["Todo"] + names
-                    MenuService.shared.listMenuItems(restaurantId: restaurantId, publishedOnly: false) { itemsRes in
+                    MenuService.shared.listMenuItems(restaurantId: effectiveRestaurantId, publishedOnly: false) { itemsRes in
                         if case .success(let items) = itemsRes {
                             var grouped: [String: [UIItem]] = [:]
                             for it in items {
