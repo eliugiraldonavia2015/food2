@@ -11,6 +11,7 @@ public final class DatabaseService {
     
     // MARK: - Private constants
     private let usersCollection = "users"
+    private let usernamesCollection = "usernames"
     
     private init() {
         // ✅ Usa la misma base de datos central
@@ -66,36 +67,34 @@ public final class DatabaseService {
         }
     }
     
-    // MARK: - Obtener email por username
+    // MARK: - Obtener email por username usando índice público
     public func getEmailForUsername(username: String, completion: @escaping (String?) -> Void) {
-        db.collection(usersCollection)
-            .whereField("username", isEqualTo: username)
-            .getDocuments { snapshot, error in
+        db.collection(usernamesCollection)
+            .document(username)
+            .getDocument { snapshot, error in
                 if let error = error {
-                    print("[Database] ❌ Error checking username: \(error.localizedDescription)")
+                    print("[Database] ❌ Error checking username index: \(error.localizedDescription)")
                     completion(nil)
                     return
                 }
-                guard let document = snapshot?.documents.first else {
+                guard let data = snapshot?.data() else {
                     completion(nil)
                     return
                 }
-                completion(document.get("email") as? String)
+                completion(data["email"] as? String)
             }
     }
     
     // MARK: - Verificar disponibilidad de username (CORREGIDO)
     public func isUsernameAvailable(_ username: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-        db.collection(usersCollection)
-            .whereField("username", isEqualTo: username)
-            .getDocuments { snapshot, error in
+        db.collection(usernamesCollection)
+            .document(username)
+            .getDocument { snapshot, error in
                 if let error = error {
-                    print("[Database] ❌ Error checking username availability: \(error.localizedDescription)")
                     completion(.failure(error))
                     return
                 }
-                
-                let isAvailable = snapshot?.isEmpty ?? true
+                let isAvailable = (snapshot == nil) || (snapshot?.exists == false)
                 completion(.success(isAvailable))
             }
     }
@@ -109,6 +108,18 @@ public final class DatabaseService {
         db.collection(usersCollection).document(uid).updateData(updateData) { error in
             if let error = error {
                 print("[Database] ⚠️ Error updating last login: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // MARK: - Crear índice de username
+    public func createUsernameIndex(username: String, uid: String, email: String?) {
+        guard !username.isEmpty else { return }
+        var data: [String: Any] = ["uid": uid]
+        if let email = email { data["email"] = email }
+        db.collection(usernamesCollection).document(username).setData(data) { error in
+            if let error = error {
+                print("[Database] ⚠️ Error creating username index: \(error.localizedDescription)")
             }
         }
     }

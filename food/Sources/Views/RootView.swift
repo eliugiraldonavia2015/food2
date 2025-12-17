@@ -76,48 +76,35 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
-            guard isAuthenticated, let uid = auth.user?.uid else { return }
+            guard isAuthenticated else { return }
             if showStartupSplash {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     showStartupSplash = false
                 }
             }
             
-            // 🔍 Verificar si el usuario ya completó el onboarding
-            OnboardingService.shared.hasCompletedOnboarding(uid: uid) { completed in
-                DispatchQueue.main.async {
-                    if !completed {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            self.showOnboarding = true
-                        }
-                    } else {
-                        // Solo verificar rol si el onboarding está completo
-                        self.checkUserRole()
-                    }
+            let completed = auth.user?.onboardingCompleted ?? false
+            if !completed {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    self.showOnboarding = true
                 }
+            } else {
+                self.checkUserRole()
             }
         }
     }
     
-    // ✅ CORRECCIÓN: Lógica mejorada para verificar rol del usuario
     private func checkUserRole() {
-        guard let uid = auth.user?.uid else { return }
-        
-        DatabaseService.shared.db.collection("users").document(uid).getDocument { snapshot, error in
-            DispatchQueue.main.async {
-                if let data = snapshot?.data(), let role = data["role"] as? String, !role.isEmpty {
-                    // Usuario tiene rol, ir directamente al Feed
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        self.showRoleSelection = false
-                        self.showOnboarding = false
-                    }
-                } else {
-                    // Usuario necesita seleccionar rol
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        self.showRoleSelection = true
-                        self.showOnboarding = false
-                    }
-                }
+        let role = auth.user?.role ?? ""
+        if !role.isEmpty {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                self.showRoleSelection = false
+                self.showOnboarding = false
+            }
+        } else {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                self.showRoleSelection = true
+                self.showOnboarding = false
             }
         }
     }

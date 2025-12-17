@@ -80,10 +80,10 @@ public struct AppUser: Identifiable {
     public let phoneNumber: String?
     public let photoURL: URL?
     public let interests: [String]?
-    // ✅ NUEVO: Campo para rol
-    public let role: String? // "client", "rider", "restaurant"
+    public let role: String?
     public let bio: String?
     public let location: String?
+    public let onboardingCompleted: Bool?
     
     public init(
         uid: String,
@@ -95,7 +95,8 @@ public struct AppUser: Identifiable {
         interests: [String]? = nil,
         role: String? = nil,
         bio: String? = nil,
-        location: String? = nil
+        location: String? = nil,
+        onboardingCompleted: Bool? = nil
     ) {
         self.uid = uid
         self.email = email
@@ -107,6 +108,7 @@ public struct AppUser: Identifiable {
         self.role = role
         self.bio = bio
         self.location = location
+        self.onboardingCompleted = onboardingCompleted
     }
     
     // ✅ Inicializador de compatibilidad
@@ -128,7 +130,8 @@ public struct AppUser: Identifiable {
             interests: nil,
             role: nil,
             bio: nil,
-            location: nil
+            location: nil,
+            onboardingCompleted: nil
         )
     }
 }
@@ -392,15 +395,20 @@ extension AuthService {
             email: nil,
             username: tempUsername
         )
+        DatabaseService.shared.createUsernameIndex(username: tempUsername, uid: user.uid, email: nil)
         
-        // ✅ Usar el inicializador corregido sin role (usa el inicializador de compatibilidad)
         self.user = AppUser(
             uid: user.uid,
             email: nil,
             name: tempName,
             username: tempUsername,
             phoneNumber: phoneNumber,
-            photoURL: nil
+            photoURL: nil,
+            interests: nil,
+            role: nil,
+            bio: nil,
+            location: nil,
+            onboardingCompleted: false
         )
         self.isAuthenticated = true
     }
@@ -601,6 +609,7 @@ extension AuthService {
                     username: username,
                     role: role
                 )
+                DatabaseService.shared.createUsernameIndex(username: username, uid: user.uid, email: email)
                 
                 // ✅ Actualizar intereses DESPUÉS usando función existente
                 if let interests = interests {
@@ -1013,34 +1022,35 @@ extension AuthService {
                     }
                 }
                 
-                // ✅ Obtener intereses y rol usando función segura
-                self.fetchUserInterests(uid: firebaseUser.uid) { interests in
-                    // Obtener rol del usuario
-                    DatabaseService.shared.fetchUser(uid: firebaseUser.uid) { result in
-                        var userRole: String? = nil
-                        var bio: String? = nil
-                        var location: String? = nil
-                        if case .success(let userData) = result {
-                            userRole = userData["role"] as? String
-                            bio = userData["bio"] as? String
-                            location = userData["location"] as? String
-                        }
-                        self.user = AppUser(
-                            uid: firebaseUser.uid,
-                            email: firebaseUser.email,
-                            name: firebaseUser.displayName,
-                            username: self.extractUsernameFromName(firebaseUser.displayName),
-                            phoneNumber: firebaseUser.phoneNumber,
-                            photoURL: firebaseUser.photoURL,
-                            interests: interests,
-                            role: userRole,
-                            bio: bio,
-                            location: location
-                        )
-                        self.isAuthenticated = true
-                        self.isLoading = false
-                        self.hasResolvedAuth = true
+                DatabaseService.shared.fetchUser(uid: firebaseUser.uid) { result in
+                    var interests: [String]? = nil
+                    var userRole: String? = nil
+                    var bio: String? = nil
+                    var location: String? = nil
+                    var onboardingCompleted: Bool? = nil
+                    if case .success(let userData) = result {
+                        interests = userData["interests"] as? [String]
+                        userRole = userData["role"] as? String
+                        bio = userData["bio"] as? String
+                        location = userData["location"] as? String
+                        onboardingCompleted = userData["onboardingCompleted"] as? Bool
                     }
+                    self.user = AppUser(
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        name: firebaseUser.displayName,
+                        username: self.extractUsernameFromName(firebaseUser.displayName),
+                        phoneNumber: firebaseUser.phoneNumber,
+                        photoURL: firebaseUser.photoURL,
+                        interests: interests,
+                        role: userRole,
+                        bio: bio,
+                        location: location,
+                        onboardingCompleted: onboardingCompleted
+                    )
+                    self.isAuthenticated = true
+                    self.isLoading = false
+                    self.hasResolvedAuth = true
                 }
             } else {
                 self.user = nil
