@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import FirebaseFirestore
 
 struct RestaurantEditMenuView: View {
     let restaurantId: String
@@ -36,6 +37,7 @@ struct RestaurantEditMenuView: View {
     @State private var showSaveToast: Bool = false
     @State private var showErrorToast: Bool = false
     @State private var errorMessage: String = ""
+    @State private var sectionsListener: ListenerRegistration?
     private var effectiveRestaurantId: String {
         if !restaurantId.isEmpty { return restaurantId }
         return AuthService.shared.user?.uid ?? restaurantId
@@ -100,6 +102,28 @@ struct RestaurantEditMenuView: View {
                     }
                 }
             }
+            sectionsListener = MenuService.shared.observeEnabledSections(restaurantId: effectiveRestaurantId) { result in
+                if case .success(let secs) = result {
+                    sections = secs
+                    tabs = ["Todo"] + secs.map { $0.name }
+                    selectedCatalogIds = Set(secs.map { $0.id })
+                    MenuService.shared.listMenuItems(restaurantId: effectiveRestaurantId, publishedOnly: false) { itemsRes in
+                        if case .success(let items) = itemsRes {
+                            var grouped: [String: [UIItem]] = [:]
+                            for it in items {
+                                let secName = secs.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
+                                let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
+                                grouped[secName, default: []].append(ui)
+                            }
+                            menuData = grouped
+                        }
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            sectionsListener?.remove()
+            sectionsListener = nil
         }
         .overlay(alignment: .bottom) {
             if showSaveToast {
@@ -623,17 +647,17 @@ struct RestaurantEditMenuView: View {
                         }
                     }
                 }
-                if !toEnable.isEmpty {
-                    MenuService.shared.enableSections(restaurantId: rid, catalogItems: toEnable, completion: { e in
+                if !toEnable.isEmpty || !sections.isEmpty {
+                    let selected = catalogItems.filter { targetNames.contains($0.name) }
+                    MenuService.shared.applySectionSelection(restaurantId: rid, selectedCatalogItems: selected) { e in
                         if let e = e {
                             errorMessage = "Error guardando secciones: \(e.localizedDescription)"
                             showErrorToast = true
                             isSavingAll = false
                             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
-                        } else {
-                            enableCompletion(nil)
                         }
-                    })
+                        enableCompletion(nil)
+                    }
                 } else {
                     enableCompletion(nil)
                 }
@@ -683,7 +707,7 @@ struct RestaurantEditMenuView: View {
                         isSavingSections = true
                         let picked = catalogItems.filter { selectedCatalogIds.contains($0.id) }
                         tabs = ["Todo"] + picked.map { $0.name }
-                        MenuService.shared.enableSections(restaurantId: effectiveRestaurantId, catalogItems: picked) { e in
+                        MenuService.shared.applySectionSelection(restaurantId: effectiveRestaurantId, selectedCatalogItems: picked) { e in
                             if let e = e {
                                 errorMessage = "Error guardando secciones: \(e.localizedDescription)"
                                 showErrorToast = true

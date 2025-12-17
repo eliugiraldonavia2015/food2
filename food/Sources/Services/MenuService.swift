@@ -277,6 +277,73 @@ public final class MenuService {
             }
     }
     
+    public func observeEnabledSections(restaurantId: String, handler: @escaping (Result<[MenuSection], Error>) -> Void) -> ListenerRegistration {
+        return restaurantSectionsRef(restaurantId)
+            .whereField("isActive", isEqualTo: true)
+            .order(by: "sortOrder")
+            .addSnapshotListener { snap, err in
+                if let err = err {
+                    handler(.failure(err))
+                    return
+                }
+                let sections: [MenuSection] = snap?.documents.compactMap { d in
+                    let id = d.documentID
+                    let name = d.get("name") as? String ?? ""
+                    let description = d.get("description") as? String
+                    let sortOrder = d.get("sortOrder") as? Int ?? 0
+                    let createdAt = (d.get("createdAt") as? Timestamp)?.dateValue() ?? Date()
+                    let updatedAt = (d.get("updatedAt") as? Timestamp)?.dateValue() ?? Date()
+                    return MenuSection(id: id, restaurantId: restaurantId, catalogId: id, name: name, description: description, sortOrder: sortOrder, isActive: true, createdAt: createdAt, updatedAt: updatedAt)
+                } ?? []
+                handler(.success(sections))
+            }
+    }
+    
+    public func disableSections(restaurantId: String, sectionIds: [String], completion: @escaping (Error?) -> Void) {
+        guard !sectionIds.isEmpty else { completion(nil); return }
+        let batch = db.batch()
+        for sid in sectionIds {
+            let ref = restaurantSectionsRef(restaurantId).document(sid)
+            batch.setData(["isActive": false, "updatedAt": Timestamp(date: Date())], forDocument: ref, merge: true)
+        }
+        batch.commit { e in completion(e) }
+    }
+    
+    public func applySectionSelection(restaurantId: String, selectedCatalogItems: [SectionCatalogItem], completion: @escaping (Error?) -> Void) {
+        let batch = db.batch()
+        let now = Timestamp(date: Date())
+        let selectedIds = Set(selectedCatalogItems.map { $0.id })
+        for item in selectedCatalogItems {
+            let ref = restaurantSectionsRef(restaurantId).document(item.id)
+            let data: [String: Any] = [
+                "id": item.id,
+                "restaurantId": restaurantId,
+                "catalogId": item.id,
+                "name": item.name,
+                "description": "",
+                "sortOrder": item.sortOrder,
+                "isActive": true,
+                "updatedAt": now
+            ]
+            batch.setData(data, forDocument: ref, merge: true)
+        }
+        restaurantSectionsRef(restaurantId)
+            .whereField("isActive", isEqualTo: true)
+            .getDocuments { snap, err in
+                if let err = err {
+                    completion(err)
+                    return
+                }
+                let currentlyEnabled = Set(snap?.documents.map { $0.documentID } ?? [])
+                let toDisable = Array(currentlyEnabled.subtracting(selectedIds))
+                for sid in toDisable {
+                    let ref = self.restaurantSectionsRef(restaurantId).document(sid)
+                    batch.setData(["isActive": false, "updatedAt": now], forDocument: ref, merge: true)
+                }
+                batch.commit { e in completion(e) }
+            }
+    }
+    
     public func updateMenuItem(restaurantId: String, itemId: String, name: String?, description: String?, price: Double?, imageUrls: [String]?, isPublished: Bool?, completion: @escaping (Error?) -> Void) {
         var update: [String: Any] = [:]
         if let name = name { update["name"] = name }
