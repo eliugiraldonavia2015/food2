@@ -230,7 +230,9 @@ struct RestaurantEditMenuView: View {
     private var sectionsStack: some View {
         VStack(spacing: 20) {
             if activeTab == "Todo" {
-                section("Todo", items: allItems)
+                ForEach(sections, id: \.id) { sec in
+                    section(sec.name, items: menuData[sec.name] ?? [])
+                }
             } else {
                 section(activeTab, items: menuData[activeTab] ?? [])
             }
