@@ -38,6 +38,7 @@ struct RestaurantEditMenuView: View {
     @State private var showErrorToast: Bool = false
     @State private var errorMessage: String = ""
     @State private var sectionsListener: ListenerRegistration?
+    @State private var isSyncingSections: Bool = false
     private var effectiveRestaurantId: String {
         if !restaurantId.isEmpty { return restaurantId }
         return AuthService.shared.user?.uid ?? restaurantId
@@ -118,6 +119,7 @@ struct RestaurantEditMenuView: View {
                             menuData = grouped
                         }
                     }
+                    isSyncingSections = false
                 }
             }
         }
@@ -146,6 +148,20 @@ struct RestaurantEditMenuView: View {
                 .background(Color.black.opacity(0.9))
                 .clipShape(RoundedRectangle(cornerRadius: 14))
                 .padding(.bottom, 12)
+            }
+        }
+        .overlay {
+            if isSyncingSections {
+                ZStack {
+                    Color.black.opacity(0.35).ignoresSafeArea()
+                    VStack(spacing: 10) {
+                        ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .green))
+                        Text("Sincronizando secciones…").foregroundColor(.white).font(.caption)
+                    }
+                    .padding(12)
+                    .background(Color.black.opacity(0.8))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
             }
         }
     }
@@ -360,6 +376,7 @@ struct RestaurantEditMenuView: View {
                             .background(Color.green)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    .disabled(isSyncingSections)
                     Button(action: { showAddItem = true }) {
                         Text("Añadir Plato")
                             .foregroundColor(.black)
@@ -369,6 +386,7 @@ struct RestaurantEditMenuView: View {
                             .background(Color.green)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    .disabled(isSyncingSections)
                 }
             }
             .padding(.leading, 12)
@@ -616,50 +634,22 @@ struct RestaurantEditMenuView: View {
             Button(action: {
                 guard !isSavingAll else { return }
                 isSavingAll = true
-                // Asegurar que se persistan las secciones seleccionadas en tabs aunque la hoja se haya cerrado
-                let targetNames = tabs.filter { $0 != "Todo" }
-                let existingNames = Set(sections.map { $0.name })
-                let missingNames = targetNames.filter { !existingNames.contains($0) }
-                let toEnable = catalogItems.filter { missingNames.contains($0.name) }
                 let rid = effectiveRestaurantId
-                let enableCompletion: (Error?) -> Void = { _ in
-                    MenuService.shared.listEnabledSections(restaurantId: rid) { res in
-                        var nextSections = sections
-                        if case .success(let fetched) = res, !fetched.isEmpty {
-                            nextSections = fetched
-                        }
-                        sections = nextSections
-                        tabs = ["Todo"] + nextSections.map { $0.name }
-                        selectedCatalogIds = Set(nextSections.map { $0.id })
-                        MenuService.shared.listMenuItems(restaurantId: rid, publishedOnly: false) { itemsRes in
-                            if case .success(let items) = itemsRes {
-                                var grouped: [String: [UIItem]] = [:]
-                                for it in items {
-                                    let ui = UIItem(title: it.name, url: it.imageUrls.first ?? "", itemId: it.id)
-                                    let secName = nextSections.first(where: { $0.id == it.sectionId })?.name ?? "Otros"
-                                    grouped[secName, default: []].append(ui)
-                                }
-                                menuData = grouped
-                            }
-                            isSavingAll = false
-                            showSaveToast = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { showSaveToast = false }
-                        }
+                // Estado local inmediato
+                let targetNames = tabs.filter { $0 != "Todo" }
+                let selected = catalogItems.filter { targetNames.contains($0.name) }
+                tabs = ["Todo"] + selected.map { $0.name }
+                selectedCatalogIds = Set(selected.map { $0.id })
+                isSyncingSections = true
+                MenuService.shared.applySectionSelection(restaurantId: rid, selectedCatalogItems: selected) { e in
+                    if let e = e {
+                        errorMessage = "Error guardando secciones: \(e.localizedDescription)"
+                        showErrorToast = true
+                    } else {
+                        showSaveToast = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { showSaveToast = false }
                     }
-                }
-                if !toEnable.isEmpty || !sections.isEmpty {
-                    let selected = catalogItems.filter { targetNames.contains($0.name) }
-                    MenuService.shared.applySectionSelection(restaurantId: rid, selectedCatalogItems: selected) { e in
-                        if let e = e {
-                            errorMessage = "Error guardando secciones: \(e.localizedDescription)"
-                            showErrorToast = true
-                            isSavingAll = false
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { showErrorToast = false }
-                        }
-                        enableCompletion(nil)
-                    }
-                } else {
-                    enableCompletion(nil)
+                    isSavingAll = false
                 }
             }) {
                 Text(isSavingAll ? "Guardando…" : "Guardar")
@@ -707,6 +697,7 @@ struct RestaurantEditMenuView: View {
                         isSavingSections = true
                         let picked = catalogItems.filter { selectedCatalogIds.contains($0.id) }
                         tabs = ["Todo"] + picked.map { $0.name }
+                        isSyncingSections = true
                         MenuService.shared.applySectionSelection(restaurantId: effectiveRestaurantId, selectedCatalogItems: picked) { e in
                             if let e = e {
                                 errorMessage = "Error guardando secciones: \(e.localizedDescription)"
