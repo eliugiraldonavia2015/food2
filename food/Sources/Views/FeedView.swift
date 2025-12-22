@@ -20,8 +20,37 @@ struct FeedView: View {
         let likes: Int
         let comments: Int
         let shares: Int
-        let videoUrl: String? = nil
-        let posterUrl: String? = nil
+        let videoUrl: String?
+        let posterUrl: String?
+        init(
+            backgroundUrl: String,
+            username: String,
+            label: Label,
+            hasStories: Bool,
+            avatarUrl: String,
+            title: String,
+            description: String,
+            soundTitle: String,
+            likes: Int,
+            comments: Int,
+            shares: Int,
+            videoUrl: String? = nil,
+            posterUrl: String? = nil
+        ) {
+            self.backgroundUrl = backgroundUrl
+            self.username = username
+            self.label = label
+            self.hasStories = hasStories
+            self.avatarUrl = avatarUrl
+            self.title = title
+            self.description = description
+            self.soundTitle = soundTitle
+            self.likes = likes
+            self.comments = comments
+            self.shares = shares
+            self.videoUrl = videoUrl
+            self.posterUrl = posterUrl
+        }
     }
 
     private let forYouItems: [FeedItem] = [
