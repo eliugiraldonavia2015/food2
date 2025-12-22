@@ -306,6 +306,8 @@ struct FeedView: View {
                         bottomInset: bottomInset,
                         expandedDescriptions: $expandedDescriptions,
                         isCommentsOverlayActive: isCommentsOverlayActive,
+                        isActive: idx == selectedVM.currentIndex,
+                        isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
                         onShowProfile: {
                             if item.label == .foodieReview {
                                 showUserProfile = true
@@ -544,6 +546,8 @@ struct FeedView: View {
         let bottomInset: CGFloat
         @Binding var expandedDescriptions: Set<UUID>
         let isCommentsOverlayActive: Bool
+        let isActive: Bool
+        let isScreenActive: Bool
         
         // Callbacks
         let onShowProfile: () -> Void
@@ -567,6 +571,8 @@ struct FeedView: View {
         @State private var heartOpacity: Double = 0
         @State private var heartAngle: Double = 0
         @State private var player: AVPlayer? = nil
+        @State private var isPaused: Bool = false
+        @State private var isMuted: Bool = true
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -642,8 +648,8 @@ struct FeedView: View {
                 hapticHeavy.prepare()
                 if let u = item.videoUrl, let url = URL(string: u) {
                     let p = AVPlayer(url: url)
-                    p.isMuted = true
-                    p.play()
+                    p.isMuted = isMuted
+                    if isActive && isScreenActive && !isPaused { p.play() } else { p.pause() }
                     NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
                         p.seek(to: .zero)
                         p.play()
@@ -656,6 +662,12 @@ struct FeedView: View {
                     p.pause()
                 }
                 player = nil
+            }
+            .onChange(of: isActive) { _, _ in updatePlayback() }
+            .onChange(of: isScreenActive) { _, _ in updatePlayback() }
+            .onChange(of: isPaused) { _, _ in updatePlayback() }
+            .onChange(of: isMuted) { _, _ in
+                if let p = player { p.isMuted = !isActive || isPaused ? true : isMuted }
             }
         }
 
@@ -791,6 +803,42 @@ struct FeedView: View {
         
         private var rightColumn: some View {
             VStack(spacing: 24) {
+                if item.videoUrl != nil {
+                    VStack(spacing: 6) {
+                        Button(action: {
+                            isPaused.toggle()
+                            hapticLight.prepare()
+                            hapticLight.impactOccurred()
+                        }) {
+                            Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Text(isPaused ? "Play" : "Pausa")
+                            .foregroundColor(.white)
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    VStack(spacing: 6) {
+                        Button(action: {
+                            isMuted.toggle()
+                            hapticLight.prepare()
+                            hapticLight.impactOccurred()
+                        }) {
+                            Image(systemName: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
+                        }
+                        Text(isMuted ? "Silencio" : "Audio")
+                            .foregroundColor(.white)
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                }
                 // Like button
                 VStack(spacing: 6) {
                     ZStack {
@@ -971,7 +1019,7 @@ struct FeedView: View {
                 if showSavedToast && !isCommentsOverlayActive { savedToast }
             }
         }
-        
+
         private func quickTargetOffsets() -> [UUID: CGPoint] {
             var map: [UUID: CGPoint] = [:]
             if quickPeople.count >= 3 {
@@ -1006,6 +1054,17 @@ struct FeedView: View {
                         .transition(.fade(duration: 0.5))
                         .aspectRatio(contentMode: .fill)
                 }
+            }
+        }
+
+        private func updatePlayback() {
+            guard let p = player else { return }
+            if isActive && isScreenActive && !isPaused {
+                p.isMuted = isMuted
+                p.play()
+            } else {
+                p.pause()
+                p.isMuted = true
             }
         }
 
