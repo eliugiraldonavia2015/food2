@@ -617,6 +617,15 @@ struct FeedView: View {
                         .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
                         .clipped()
                         .onTapGesture(count: 2) { handleDoubleTap() }
+                        .onTapGesture {
+                            guard item.videoUrl != nil else { return }
+                            isPaused.toggle()
+                            if isPaused {
+                                withAnimation(.easeIn(duration: 0.15)) { showPlayOverlay = true }
+                            } else {
+                                withAnimation(.easeOut(duration: 0.15)) { showPlayOverlay = false }
+                            }
+                        }
                     Spacer(minLength: 0)
                 }
                 .frame(width: size.width, height: size.height)
@@ -669,7 +678,7 @@ struct FeedView: View {
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
             .onChange(of: isMuted) { _, _ in
-                if let p = player { p.isMuted = !isActive || isPaused ? true : isMuted }
+                if let p = player { p.isMuted = true }
             }
         }
 
@@ -805,42 +814,7 @@ struct FeedView: View {
         
         private var rightColumn: some View {
             VStack(spacing: 24) {
-                if item.videoUrl != nil {
-                    VStack(spacing: 6) {
-                        Button(action: {
-                            isPaused.toggle()
-                            hapticLight.prepare()
-                            hapticLight.impactOccurred()
-                        }) {
-                            Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        }
-                        Text(isPaused ? "Play" : "Pausa")
-                            .foregroundColor(.white)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    VStack(spacing: 6) {
-                        Button(action: {
-                            isMuted.toggle()
-                            hapticLight.prepare()
-                            hapticLight.impactOccurred()
-                        }) {
-                            Image(systemName: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 28, height: 28)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 2)
-                        }
-                        Text(isMuted ? "Silencio" : "Audio")
-                            .foregroundColor(.white)
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                }
+                // Eliminado: controles de pausa/audio en columna derecha para no afectar el layout
                 // Like button
                 VStack(spacing: 6) {
                     ZStack {
@@ -1048,6 +1022,14 @@ struct FeedView: View {
                         }
                         VideoPlayer(player: player)
                             .disabled(true)
+                        if isPaused {
+                            Image(systemName: "play.fill")
+                                .foregroundColor(.white)
+                                .font(.system(size: 80, weight: .bold))
+                                .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 3)
+                                .transition(.opacity)
+                                .opacity(1.0)
+                        }
                     }
                 } else {
                     WebImage(url: URL(string: item.backgroundUrl))
@@ -1062,7 +1044,7 @@ struct FeedView: View {
         private func updatePlayback() {
             guard let p = player else { return }
             if isActive && isScreenActive && !isPaused {
-                p.isMuted = isMuted
+                p.isMuted = true
                 p.play()
             } else {
                 p.pause()
