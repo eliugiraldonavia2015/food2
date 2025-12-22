@@ -572,7 +572,7 @@ struct FeedView: View {
         @State private var heartAngle: Double = 0
         @State private var player: AVPlayer? = nil
         @State private var isPaused: Bool = false
-        @State private var isMuted: Bool = true
+        @State private var isMuted: Bool = false
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -657,7 +657,7 @@ struct FeedView: View {
                 hapticHeavy.prepare()
                 if let u = item.videoUrl, let url = URL(string: u) {
                     let p = AVPlayer(url: url)
-                    p.isMuted = isMuted
+                    p.isMuted = !(isActive && isScreenActive && !isPaused)
                     if isActive && isScreenActive && !isPaused { p.play() } else { p.pause() }
                     NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
                         p.seek(to: .zero)
@@ -672,12 +672,19 @@ struct FeedView: View {
                 }
                 player = nil
             }
-            .onChange(of: isActive) { _, _ in updatePlayback() }
+            .onChange(of: isActive) { oldValue, newValue in
+                if !newValue {
+                    if let p = player {
+                        p.pause()
+                        p.seek(to: .zero)
+                    }
+                    isPaused = false
+                }
+                updatePlayback()
+            }
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
-            .onChange(of: isMuted) { _, _ in
-                if let p = player { p.isMuted = true }
-            }
+            .onChange(of: isMuted) { _, _ in updatePlayback() }
         }
 
         private func handleDoubleTap() {
@@ -1042,7 +1049,7 @@ struct FeedView: View {
         private func updatePlayback() {
             guard let p = player else { return }
             if isActive && isScreenActive && !isPaused {
-                p.isMuted = true
+                p.isMuted = false
                 p.play()
             } else {
                 p.pause()
