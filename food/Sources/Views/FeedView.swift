@@ -619,12 +619,7 @@ struct FeedView: View {
                         .onTapGesture(count: 2) { handleDoubleTap() }
                         .onTapGesture {
                             guard item.videoUrl != nil else { return }
-                            isPaused.toggle()
-                            if isPaused {
-                                withAnimation(.easeIn(duration: 0.15)) { showPlayOverlay = true }
-                            } else {
-                                withAnimation(.easeOut(duration: 0.15)) { showPlayOverlay = false }
-                            }
+                            withAnimation(.easeInOut(duration: 0.15)) { isPaused.toggle() }
                         }
                     Spacer(minLength: 0)
                 }
