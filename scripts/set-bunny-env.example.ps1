@@ -1,0 +1,4 @@
+$env:BUNNY_STORAGE_ACCESS_KEY="REPLACE_WITH_YOUR_ACCESS_KEY"
+$env:BUNNY_STORAGE_HOST="https://storage.bunnycdn.com"
+$env:BUNNY_STORAGE_ZONE_NAME="foodtook-videos"
+$env:BUNNY_CDN_BASE_URL="https://YOUR_PULL_ZONE_HOSTNAME"

@@ -30,5 +30,9 @@
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
+	<key>BUNNY_CDN_BASE_URL</key>
+	<string>https://foodtook-videos-cdn.b-cdn.net</string>
+	<key>BUNNY_STORAGE_ZONE_NAME</key>
+	<string>foodtook-videos</string>
 </dict>
 </plist>

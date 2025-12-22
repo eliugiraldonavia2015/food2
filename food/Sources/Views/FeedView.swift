@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import AVKit
 
 struct FeedView: View {
     let bottomInset: CGFloat
@@ -19,6 +20,8 @@ struct FeedView: View {
         let likes: Int
         let comments: Int
         let shares: Int
+        let videoUrl: String? = nil
+        let posterUrl: String? = nil
     }
 
     private let forYouItems: [FeedItem] = [
@@ -62,7 +65,9 @@ struct FeedView: View {
             soundTitle: "Tokyo Vibes • Sushi Flow",
             likes: 23100,
             comments: 890,
-            shares: 430
+            shares: 430,
+            videoUrl: "https://vz-eb3c7132-8b5.b-cdn.net/0f36fe06-1355-4596-a707-5bbf19b9e08c/playlist.m3u8",
+            posterUrl: "https://vz-eb3c7132-8b5.b-cdn.net/0f36fe06-1355-4596-a707-5bbf19b9e08c/thumbnail_76c09eff.jpg"
         ),
         // 4. Foodie Review sin historias
         .init(
@@ -532,6 +537,7 @@ struct FeedView: View {
         @State private var heartScale: CGFloat = 0.5
         @State private var heartOpacity: Double = 0
         @State private var heartAngle: Double = 0
+        @State private var player: AVPlayer? = nil
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -570,11 +576,7 @@ struct FeedView: View {
         var body: some View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
-                    WebImage(url: URL(string: item.backgroundUrl))
-                        .resizable()
-                        .indicator(.activity)
-                        .transition(.fade(duration: 0.5))
-                        .aspectRatio(contentMode: .fill)
+                    mediaView
                         .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
                         .clipped()
                         .onTapGesture(count: 2) { handleDoubleTap() }
@@ -609,6 +611,22 @@ struct FeedView: View {
                 hapticLight.prepare()
                 hapticMedium.prepare()
                 hapticHeavy.prepare()
+                if let u = item.videoUrl, let url = URL(string: u) {
+                    let p = AVPlayer(url: url)
+                    p.isMuted = true
+                    p.play()
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
+                        p.seek(to: .zero)
+                        p.play()
+                    }
+                    player = p
+                }
+            }
+            .onDisappear {
+                if let p = player {
+                    p.pause()
+                }
+                player = nil
             }
         }
 
@@ -933,6 +951,33 @@ struct FeedView: View {
                 map[quickPeople[2].id] = CGPoint(x: -72, y: 48)
             }
             return map
+        }
+
+        private var mediaView: some View {
+            Group {
+                if let u = item.videoUrl, player != nil {
+                    ZStack {
+                        if let poster = item.posterUrl, let pu = URL(string: poster) {
+                            AsyncImage(url: pu) { phase in
+                                switch phase {
+                                case .success(let image): image.resizable().aspectRatio(contentMode: .fill)
+                                case .empty: Color.black
+                                case .failure(_): Color.black
+                                @unknown default: Color.black
+                                }
+                            }
+                        }
+                        VideoPlayer(player: player)
+                            .disabled(true)
+                    }
+                } else {
+                    WebImage(url: URL(string: item.backgroundUrl))
+                        .resizable()
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.5))
+                        .aspectRatio(contentMode: .fill)
+                }
+            }
         }
 
         private var quickShareRadial: some View {
