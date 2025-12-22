@@ -594,12 +594,14 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
             self._expandedDescriptions = expandedDescriptions
             self.isCommentsOverlayActive = isCommentsOverlayActive
+            self.isActive = isActive
+            self.isScreenActive = isScreenActive
             self.onShowProfile = onShowProfile
             self.onShowMenu = onShowMenu
             self.onShowComments = onShowComments
