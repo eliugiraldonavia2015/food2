@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import AVFoundation
 
 struct UploadVideoView: View {
     let onClose: () -> Void
@@ -11,6 +12,9 @@ struct UploadVideoView: View {
     @State private var thumbnailURL: URL? = nil
     @State private var isUploading: Bool = false
     @State private var showSuccess: Bool = false
+    @State private var errorText: String? = nil
+    @ObservedObject private var auth = AuthService.shared
+    @State private var isRestaurant: Bool = false
 
     private let categories = ["Promoción", "Detrás de cámaras", "Reseña", "Evento"]
 
@@ -67,12 +71,10 @@ struct UploadVideoView: View {
                     }
 
                     primaryFilledButton(title: isUploading ? "Publicando…" : "Publicar Video") {
+                        guard isRestaurant else { return }
                         guard selectedVideo != nil, !title.isEmpty else { return }
                         isUploading = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                            isUploading = false
-                            showSuccess = true
-                        }
+                        publishSelectedVideo()
                     }
                     .disabled(isUploading)
                 }
@@ -81,6 +83,27 @@ struct UploadVideoView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .overlay(alignment: .top) { if showSuccess { successBanner("Video publicado correctamente") } }
+        .overlay(alignment: .top) {
+            if let e = errorText {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.yellow)
+                    Text(e).foregroundColor(.white).font(.system(size: 14, weight: .semibold))
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .onAppear {
+            isRestaurant = (auth.user?.role ?? "client") == "restaurant"
+        }
     }
 
     private func header() -> some View {
@@ -175,6 +198,50 @@ struct UploadVideoView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    private func publishSelectedVideo() {
+        guard let item = selectedVideo else { isUploading = false; return }
+        Task {
+            do {
+                if let data = try await item.loadTransferable(type: Data.self) {
+                    let tmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
+                    try data.write(to: tmp)
+                    VideoCompressor.compress(inputURL: tmp, variant: .hevc720) { result in
+                        switch result {
+                        case .success(let out720):
+                            let ulid = UUID().uuidString.lowercased()
+                            let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
+                            BunnyUploader.upload(fileURL: out720, ulid: ulid, accessKey: accessKey) { r in
+                                DispatchQueue.main.async {
+                                    isUploading = false
+                                    switch r {
+                                    case .success(_):
+                                        showSuccess = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                    case .failure(let err):
+                                        errorText = err.localizedDescription
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                                    }
+                                }
+                            }
+                        case .failure(let err):
+                            DispatchQueue.main.async {
+                                isUploading = false
+                                errorText = err.localizedDescription
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                            }
+                        }
+                    }
+                } else {
+                    isUploading = false
+                }
+            } catch {
+                isUploading = false
+                errorText = error.localizedDescription
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+            }
+        }
     }
 }
 
