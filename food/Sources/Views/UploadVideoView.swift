@@ -204,9 +204,17 @@ struct UploadVideoView: View {
         guard let item = selectedVideo else { isUploading = false; return }
         Task {
             do {
+                var tmp: URL?
                 if let pickedURL = try await item.loadTransferable(type: URL.self) {
-                    let tmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
-                    try FileManager.default.copyItem(at: pickedURL, to: tmp)
+                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
+                    try FileManager.default.copyItem(at: pickedURL, to: t)
+                    tmp = t
+                } else if let data = try await item.loadTransferable(type: Data.self) {
+                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
+                    try data.write(to: t)
+                    tmp = t
+                }
+                if let tmp = tmp {
                     let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
                     if accessKey.isEmpty {
                         isUploading = false
@@ -222,9 +230,21 @@ struct UploadVideoView: View {
                                 DispatchQueue.main.async {
                                     isUploading = false
                                     switch r {
-                                    case .success(_):
-                                        showSuccess = true
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                    case .success(let url):
+                                        var req = URLRequest(url: url)
+                                        req.httpMethod = "HEAD"
+                                        URLSession.shared.dataTask(with: req) { _, resp, _ in
+                                            DispatchQueue.main.async {
+                                                let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+                                                if (200...299).contains(code) {
+                                                    showSuccess = true
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                                } else {
+                                                    errorText = "Verificación CDN falló (\(code))"
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                                                }
+                                            }
+                                        }.resume()
                                     case .failure(let err):
                                         errorText = err.localizedDescription
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
@@ -240,9 +260,21 @@ struct UploadVideoView: View {
                                         DispatchQueue.main.async {
                                             isUploading = false
                                             switch r {
-                                            case .success(_):
-                                                showSuccess = true
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                            case .success(let url):
+                                                var req = URLRequest(url: url)
+                                                req.httpMethod = "HEAD"
+                                                URLSession.shared.dataTask(with: req) { _, resp, _ in
+                                                    DispatchQueue.main.async {
+                                                        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+                                                        if (200...299).contains(code) {
+                                                            showSuccess = true
+                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                                        } else {
+                                                            errorText = "Verificación CDN falló (\(code))"
+                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                                                        }
+                                                    }
+                                                }.resume()
                                             case .failure(let err):
                                                 errorText = err.localizedDescription
                                                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
