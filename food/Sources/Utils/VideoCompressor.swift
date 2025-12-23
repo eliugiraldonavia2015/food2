@@ -51,6 +51,7 @@ final class VideoCompressor {
                 try? FileManager.default.removeItem(at: outURL)
             }
             let writer = try AVAssetWriter(outputURL: outURL, fileType: .mp4)
+            let hevcProfile = "HEVC_Main_AutoLevel"
             let videoSettings: [String: Any] = [
                 AVVideoCodecKey: variant == .hevc720 ? AVVideoCodecType.hevc : AVVideoCodecType.h264,
                 AVVideoWidthKey: Int(renderSize.width),
@@ -58,7 +59,7 @@ final class VideoCompressor {
                 AVVideoCompressionPropertiesKey: [
                     AVVideoAverageBitRateKey: variant == .hevc720 ? 1_500_000 : 700_000,
                     AVVideoMaxKeyFrameIntervalDurationKey: 3.0,
-                    AVVideoProfileLevelKey: variant == .hevc720 ? AVVideoProfileLevelHEVCMainAutoLevel : AVVideoProfileLevelH264HighAutoLevel
+                    AVVideoProfileLevelKey: variant == .hevc720 ? hevcProfile : AVVideoProfileLevelH264HighAutoLevel
                 ]
             ]
             let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
