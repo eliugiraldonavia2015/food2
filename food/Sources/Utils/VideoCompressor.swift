@@ -42,8 +42,12 @@ final class VideoCompressor {
             if let a = audioTrack {
                 let out = AVAssetReaderAudioMixOutput(audioTracks: [a], audioSettings: nil)
                 out.alwaysCopiesSampleData = false
-                if reader.canAdd(out) { reader.add(out) }
-                audioOutput = out
+                if reader.canAdd(out) {
+                    reader.add(out)
+                    audioOutput = out
+                } else {
+                    audioOutput = nil
+                }
             }
             let fileName = UUID().uuidString + ".mp4"
             let outURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
@@ -58,7 +62,7 @@ final class VideoCompressor {
                 AVVideoHeightKey: Int(renderSize.height),
                 AVVideoCompressionPropertiesKey: [
                     AVVideoAverageBitRateKey: variant == .hevc720 ? 1_500_000 : 700_000,
-                    AVVideoMaxKeyFrameIntervalDurationKey: 3.0,
+                    AVVideoMaxKeyFrameIntervalKey: 90,
                     AVVideoProfileLevelKey: variant == .hevc720 ? hevcProfile : AVVideoProfileLevelH264HighAutoLevel
                 ]
             ]
