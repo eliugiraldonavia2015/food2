@@ -204,14 +204,20 @@ struct UploadVideoView: View {
         guard let item = selectedVideo else { isUploading = false; return }
         Task {
             do {
-                if let data = try await item.loadTransferable(type: Data.self) {
+                if let pickedURL = try await item.loadTransferable(type: URL.self) {
                     let tmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
-                    try data.write(to: tmp)
+                    try FileManager.default.copyItem(at: pickedURL, to: tmp)
+                    let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
+                    if accessKey.isEmpty {
+                        isUploading = false
+                        errorText = "Falta BUNNY_STORAGE_ACCESS_KEY"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                        return
+                    }
                     VideoCompressor.compress(inputURL: tmp, variant: .hevc720) { result in
                         switch result {
                         case .success(let out720):
                             let ulid = UUID().uuidString.lowercased()
-                            let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
                             BunnyUploader.upload(fileURL: out720, ulid: ulid, accessKey: accessKey) { r in
                                 DispatchQueue.main.async {
                                     isUploading = false
@@ -225,16 +231,38 @@ struct UploadVideoView: View {
                                     }
                                 }
                             }
-                        case .failure(let err):
-                            DispatchQueue.main.async {
-                                isUploading = false
-                                errorText = err.localizedDescription
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                        case .failure(_):
+                            VideoCompressor.compress(inputURL: tmp, variant: .h264360) { fallback in
+                                switch fallback {
+                                case .success(let out360):
+                                    let ulid = UUID().uuidString.lowercased()
+                                    BunnyUploader.upload(fileURL: out360, ulid: ulid, accessKey: accessKey) { r in
+                                        DispatchQueue.main.async {
+                                            isUploading = false
+                                            switch r {
+                                            case .success(_):
+                                                showSuccess = true
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                                            case .failure(let err):
+                                                errorText = err.localizedDescription
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                                            }
+                                        }
+                                    }
+                                case .failure(let err2):
+                                    DispatchQueue.main.async {
+                                        isUploading = false
+                                        errorText = err2.localizedDescription
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                                    }
+                                }
                             }
                         }
                     }
                 } else {
                     isUploading = false
+                    errorText = "No se pudo leer el video seleccionado"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
                 }
             } catch {
                 isUploading = false
