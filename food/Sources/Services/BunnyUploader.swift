@@ -8,10 +8,41 @@ public final class BunnyUploader {
             return
         }
         let path = BunnyConfig.rawStoragePath(for: ulid)
-        func attempt(host: String, fallback: Bool) {
+        func attempt(host rawHost: String, fallback: Bool) {
+            let host = rawHost.replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let fixedHost = host.contains("bunnycdm.com") ? host.replacingOccurrences(of: "bunnycdm.com", with: "bunnycdn.com") : host
             guard let url = URL(string: "https://\(host)/\(zone)/\(path)") else {
-                completion(.failure(NSError(domain: "BunnyUploader", code: -2, userInfo: [NSLocalizedDescriptionKey: "URL inválida"])))
-                return
+                if !fallback {
+                    guard let alt = URL(string: "https://\(fixedHost)/\(zone)/\(path)") else {
+                        attempt(host: "storage.bunnycdn.com", fallback: true)
+                        return
+                    }
+                    var req = URLRequest(url: alt)
+                    req.httpMethod = "PUT"
+                    req.setValue(accessKey, forHTTPHeaderField: "AccessKey")
+                    req.setValue("video/mp4", forHTTPHeaderField: "Content-Type")
+                    URLSession.shared.uploadTask(with: req, fromFile: fileURL) { data, resp, err in
+                        if let err = err {
+                            completion(.failure(err)); return
+                        }
+                        guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                            let code = (resp as? HTTPURLResponse)?.statusCode ?? -3
+                            let body = String(data: data ?? Data(), encoding: .utf8) ?? ""
+                            completion(.failure(NSError(domain: "BunnyUploader", code: code, userInfo: [NSLocalizedDescriptionKey: "Respuesta \(code) \(body)"])))
+                            return
+                        }
+                        let cdn = BunnyConfig.cdnBaseURLString
+                        if !cdn.isEmpty, let final = URL(string: "\(cdn)/\(path)") {
+                            completion(.success(final))
+                        } else {
+                            completion(.success(alt))
+                        }
+                    }.resume()
+                    return
+                } else {
+                    completion(.failure(NSError(domain: "BunnyUploader", code: -2, userInfo: [NSLocalizedDescriptionKey: "URL inválida"])))
+                    return
+                }
             }
             var req = URLRequest(url: url)
             req.httpMethod = "PUT"
