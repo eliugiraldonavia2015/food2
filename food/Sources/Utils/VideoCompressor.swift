@@ -38,15 +38,12 @@ final class VideoCompressor {
             videoOutput.videoComposition = composition
             videoOutput.alwaysCopiesSampleData = false
             reader.add(videoOutput)
-            var audioOutput: AVAssetReaderAudioMixOutput?
+            var audioOutput: AVAssetReaderTrackOutput?
             if let a = audioTrack {
-                let out = AVAssetReaderAudioMixOutput(audioTracks: [a], audioSettings: nil)
-                out.alwaysCopiesSampleData = false
+                let out = AVAssetReaderTrackOutput(track: a, outputSettings: nil)
                 if reader.canAdd(out) {
                     reader.add(out)
                     audioOutput = out
-                } else {
-                    audioOutput = nil
                 }
             }
             let fileName = UUID().uuidString + ".mp4"
@@ -82,7 +79,10 @@ final class VideoCompressor {
                 ai.expectsMediaDataInRealTime = false
                 if writer.canAdd(ai) { writer.add(ai); audioInput = ai }
             }
-            reader.startReading()
+            if !reader.startReading() {
+                completion(.failure(NSError(domain: "VideoCompressor", code: -3, userInfo: [NSLocalizedDescriptionKey: "No se pudo iniciar lectura"])))
+                return
+            }
             writer.startWriting()
             writer.startSession(atSourceTime: .zero)
             let queue = DispatchQueue(label: "vc.write")
