@@ -8,7 +8,8 @@ public final class BunnyUploader {
             return
         }
         let path = BunnyConfig.rawStoragePath(for: ulid)
-        guard let url = URL(string: "https://storage.bunnycdn.com/\(zone)/\(path)") else {
+        let host = BunnyConfig.storageHost
+        guard let url = URL(string: "https://\(host)/\(zone)/\(path)") else {
             completion(.failure(NSError(domain: "BunnyUploader", code: -2, userInfo: [NSLocalizedDescriptionKey: "URL inválida"])))
             return
         }
@@ -16,14 +17,15 @@ public final class BunnyUploader {
         req.httpMethod = "PUT"
         req.setValue(accessKey, forHTTPHeaderField: "AccessKey")
         req.setValue("video/mp4", forHTTPHeaderField: "Content-Type")
-        URLSession.shared.uploadTask(with: req, fromFile: fileURL) { _, resp, err in
+        URLSession.shared.uploadTask(with: req, fromFile: fileURL) { data, resp, err in
             if let err = err {
                 completion(.failure(err))
                 return
             }
             guard let http = resp as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
                 let code = (resp as? HTTPURLResponse)?.statusCode ?? -3
-                completion(.failure(NSError(domain: "BunnyUploader", code: code, userInfo: [NSLocalizedDescriptionKey: "Respuesta no OK"])))
+                let body = String(data: data ?? Data(), encoding: .utf8) ?? ""
+                completion(.failure(NSError(domain: "BunnyUploader", code: code, userInfo: [NSLocalizedDescriptionKey: "Respuesta \(code) \(body)"])))
                 return
             }
             let cdn = BunnyConfig.cdnBaseURLString
