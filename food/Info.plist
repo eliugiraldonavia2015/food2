@@ -34,5 +34,7 @@
 	<string>https://foodtook-videos-cdn.b-cdn.net</string>
 	<key>BUNNY_STORAGE_ZONE_NAME</key>
 	<string>foodtook-videos</string>
+	<key>BUNNY_STORAGE_HOST</key>
+	<string>storage.bunnycdn.com</string>
 </dict>
 </plist>
