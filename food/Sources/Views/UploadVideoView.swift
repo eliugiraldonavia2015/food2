@@ -201,107 +201,110 @@ struct UploadVideoView: View {
     }
 
     private func publishSelectedVideo() {
-        guard let item = selectedVideo else { isUploading = false; return }
+        print("🎬 [UploadVideoView] Iniciando proceso de publicación...")
+        guard let item = selectedVideo else {
+            print("❌ [UploadVideoView] No hay video seleccionado")
+            isUploading = false
+            return
+        }
+        
         Task {
             do {
+                print("📂 [UploadVideoView] Cargando datos del video...")
                 var tmp: URL?
                 if let pickedURL = try await item.loadTransferable(type: URL.self) {
                     let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
                     try FileManager.default.copyItem(at: pickedURL, to: t)
                     tmp = t
+                    print("✅ [UploadVideoView] Video cargado desde URL: \(t.path)")
                 } else if let data = try await item.loadTransferable(type: Data.self) {
                     let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
                     try data.write(to: t)
                     tmp = t
+                    print("✅ [UploadVideoView] Video cargado desde Data: \(t.path)")
                 }
-                if let tmp = tmp {
-                    let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
-                    if accessKey.isEmpty {
+                
+                guard let tmp = tmp else {
+                    print("❌ [UploadVideoView] Falló la carga del archivo temporal")
+                    DispatchQueue.main.async {
                         isUploading = false
-                        errorText = "Falta BUNNY_STORAGE_ACCESS_KEY"
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                        return
+                        errorText = "No se pudo procesar el archivo de video"
                     }
-                    VideoCompressor.compress(inputURL: tmp, variant: .hevc720) { result in
-                        switch result {
-                        case .success(let out720):
-                            let ulid = UUID().uuidString.lowercased()
-                            BunnyUploader.upload(fileURL: out720, ulid: ulid, accessKey: accessKey) { r in
+                    return
+                }
+
+                let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
+                print("🔑 [UploadVideoView] AccessKey length: \(accessKey.count)")
+                
+                if accessKey.isEmpty {
+                    print("❌ [UploadVideoView] AccessKey vacía")
+                    DispatchQueue.main.async {
+                        isUploading = false
+                        errorText = "Falta configuración: BUNNY_STORAGE_ACCESS_KEY"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
+                    }
+                    return
+                }
+                
+                print("🔄 [UploadVideoView] Iniciando compresión (HEVC 720p)...")
+                VideoCompressor.compress(inputURL: tmp, variant: .hevc720) { result in
+                    switch result {
+                    case .success(let out720):
+                        print("✅ [UploadVideoView] Compresión exitosa: \(out720.path)")
+                        self.uploadToBunny(fileURL: out720, accessKey: accessKey)
+                    case .failure(let error):
+                        print("⚠️ [UploadVideoView] Falló compresión HEVC: \(error.localizedDescription). Intentando fallback H.264...")
+                        VideoCompressor.compress(inputURL: tmp, variant: .h264360) { fallback in
+                            switch fallback {
+                            case .success(let out360):
+                                print("✅ [UploadVideoView] Compresión fallback exitosa: \(out360.path)")
+                                self.uploadToBunny(fileURL: out360, accessKey: accessKey)
+                            case .failure(let err2):
+                                print("❌ [UploadVideoView] Falló compresión fallback: \(err2.localizedDescription)")
                                 DispatchQueue.main.async {
                                     isUploading = false
-                                    switch r {
-                                    case .success(let url):
-                                        var req = URLRequest(url: url)
-                                        req.httpMethod = "HEAD"
-                                        URLSession.shared.dataTask(with: req) { _, resp, _ in
-                                            DispatchQueue.main.async {
-                                                let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
-                                                if (200...299).contains(code) {
-                                                    showSuccess = true
-                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
-                                                } else {
-                                                    errorText = "Verificación CDN falló (\(code))"
-                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                                                }
-                                            }
-                                        }.resume()
-                                    case .failure(let err):
-                                        errorText = err.localizedDescription
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                                    }
-                                }
-                            }
-                        case .failure(_):
-                            VideoCompressor.compress(inputURL: tmp, variant: .h264360) { fallback in
-                                switch fallback {
-                                case .success(let out360):
-                                    let ulid = UUID().uuidString.lowercased()
-                                    BunnyUploader.upload(fileURL: out360, ulid: ulid, accessKey: accessKey) { r in
-                                        DispatchQueue.main.async {
-                                            isUploading = false
-                                            switch r {
-                                            case .success(let url):
-                                                var req = URLRequest(url: url)
-                                                req.httpMethod = "HEAD"
-                                                URLSession.shared.dataTask(with: req) { _, resp, _ in
-                                                    DispatchQueue.main.async {
-                                                        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
-                                                        if (200...299).contains(code) {
-                                                            showSuccess = true
-                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
-                                                        } else {
-                                                            errorText = "Verificación CDN falló (\(code))"
-                                                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                                                        }
-                                                    }
-                                                }.resume()
-                                            case .failure(let err):
-                                                errorText = err.localizedDescription
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                                            }
-                                        }
-                                    }
-                                case .failure(let err2):
-                                    DispatchQueue.main.async {
-                                        isUploading = false
-                                        errorText = err2.localizedDescription
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
-                                    }
+                                    errorText = "Error comprimiendo video: \(err2.localizedDescription)"
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
                                 }
                             }
                         }
                     }
-                } else {
-                    isUploading = false
-                    errorText = "No se pudo leer el video seleccionado"
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
                 }
             } catch {
+                print("❌ [UploadVideoView] Excepción general: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    isUploading = false
+                    errorText = "Error interno: \(error.localizedDescription)"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
+                }
+            }
+        }
+    }
+    
+    private func uploadToBunny(fileURL: URL, accessKey: String) {
+        let ulid = UUID().uuidString.lowercased()
+        print("🚀 [UploadVideoView] Iniciando subida a Bunny. ULID: \(ulid)")
+        
+        BunnyUploader.upload(fileURL: fileURL, ulid: ulid, accessKey: accessKey) { r in
+            DispatchQueue.main.async {
                 isUploading = false
-                errorText = error.localizedDescription
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { errorText = nil }
+                switch r {
+                case .success(let url):
+                    print("✅ [UploadVideoView] Subida completada: \(url)")
+                    showSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
+                    
+                    // Verificación CDN en background
+                    var req = URLRequest(url: url)
+                    req.httpMethod = "HEAD"
+                    URLSession.shared.dataTask(with: req).resume()
+                    
+                case .failure(let err):
+                    print("❌ [UploadVideoView] Error de subida: \(err.localizedDescription)")
+                    errorText = err.localizedDescription // Muestra el error detallado de BunnyUploader
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { errorText = nil } // Más tiempo para leer
+                }
             }
         }
     }
 }
-
