@@ -61,11 +61,17 @@ final class ProVideoCompressor {
                 
                 // --- 1. CONFIGURACIÓN DEL LECTOR (READER) ---
                 // Lee los frames descomprimidos del archivo original.
+                // MEJORA PRO: Usamos formato YUV (420v) en lugar de BGRA.
+                // 1. Es el formato nativo de video (evita conversiones costosas de color).
+                // 2. Compatible con videos HDR/Dolby Vision de iPhone modernos.
                 let reader = try AVAssetReader(asset: asset)
                 let readerOutputSettings: [String: Any] = [
-                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA // Formato estándar para procesamiento
+                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
                 ]
                 let readerOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: readerOutputSettings)
+                // Siempre copiar frames para evitar problemas de memoria
+                readerOutput.alwaysCopiesSampleData = false 
+                
                 if reader.canAdd(readerOutput) { reader.add(readerOutput) } else { throw NSError(domain: "ProCompressor", code: -2) }
                 
                 // Configurar Audio Reader (si existe audio).
@@ -136,8 +142,12 @@ final class ProVideoCompressor {
                 }
                 
                 // --- 4. INICIO DEL PROCESO DE TRANSCODIFICACIÓN ---
-                reader.startReading()
-                writer.startWriting()
+                if !reader.startReading() {
+                    throw reader.error ?? NSError(domain: "ProCompressor", code: -6, userInfo: [NSLocalizedDescriptionKey: "No se pudo iniciar la lectura del video (startReading falló)."])
+                }
+                if !writer.startWriting() {
+                     throw writer.error ?? NSError(domain: "ProCompressor", code: -7, userInfo: [NSLocalizedDescriptionKey: "No se pudo iniciar la escritura del video (startWriting falló)."])
+                }
                 writer.startSession(atSourceTime: .zero)
                 
                 // Colas seriales para procesar buffers en orden.
@@ -148,10 +158,22 @@ final class ProVideoCompressor {
                 // Procesamiento de Video
                 group.enter()
                 writerInput.requestMediaDataWhenReady(on: videoQueue) {
+                    // MEJORA PRO: Bucle robusto
                     while writerInput.isReadyForMoreMediaData {
+                        // Verificar estado del reader antes de pedir más
+                        if reader.status == .failed {
+                            print("❌ Reader falló durante video: \(String(describing: reader.error))")
+                            writerInput.markAsFinished()
+                            group.leave()
+                            return
+                        }
+                        
                         if let buffer = readerOutput.copyNextSampleBuffer() {
-                            writerInput.append(buffer)
+                            if writerInput.readyForMoreMediaData {
+                                writerInput.append(buffer)
+                            }
                         } else {
+                            // Fin del stream o error
                             writerInput.markAsFinished()
                             group.leave()
                             break
@@ -164,8 +186,16 @@ final class ProVideoCompressor {
                     group.enter()
                     aInput.requestMediaDataWhenReady(on: audioQueue) {
                         while aInput.isReadyForMoreMediaData {
+                            if reader.status == .failed {
+                                aInput.markAsFinished()
+                                group.leave()
+                                return
+                            }
+                            
                             if let buffer = aOutput.copyNextSampleBuffer() {
-                                aInput.append(buffer)
+                                if aInput.readyForMoreMediaData {
+                                    aInput.append(buffer)
+                                }
                             } else {
                                 aInput.markAsFinished()
                                 group.leave()
