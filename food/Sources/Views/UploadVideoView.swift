@@ -10,7 +10,14 @@ struct UploadVideoView: View {
     @State private var tags: String = ""
     @State private var selectedVideo: PhotosPickerItem? = nil
     @State private var thumbnailURL: URL? = nil
+    
+    // Estados de proceso
     @State private var isUploading: Bool = false
+    @State private var isCompressing: Bool = false
+    @State private var compressionFinished: Bool = false
+    @State private var compressedVideoURL: URL? = nil
+    @State private var originalVideoURL: URL? = nil // Backup por si falla compresión
+    
     @State private var showSuccess: Bool = false
     @State private var errorText: String? = nil
     @ObservedObject private var auth = AuthService.shared
@@ -23,20 +30,41 @@ struct UploadVideoView: View {
             header()
             ScrollView {
                 VStack(spacing: 12) {
+                    // SELECCIÓN DE VIDEO CON OVERLAY DE ESTADO
                     PhotosPicker(selection: $selectedVideo, matching: .videos) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color.white.opacity(0.06))
                                 .frame(height: 160)
+                            
                             VStack(spacing: 8) {
-                                Image(systemName: "video.badge.plus")
-                                    .foregroundColor(.green)
-                                    .font(.system(size: 28, weight: .bold))
-                                Text(selectedVideo == nil ? "Selecciona un video" : "Video seleccionado")
-                                    .foregroundColor(.white)
-                                    .font(.subheadline.bold())
+                                if isCompressing {
+                                    ProgressView()
+                                        .tint(.green)
+                                        .scaleEffect(1.5)
+                                    Text("Optimizando video...")
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .font(.caption)
+                                } else if compressionFinished {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                        .font(.system(size: 32))
+                                    Text("Video listo para subir")
+                                        .foregroundColor(.green)
+                                        .font(.caption.bold())
+                                } else {
+                                    Image(systemName: "video.badge.plus")
+                                        .foregroundColor(.green)
+                                        .font(.system(size: 28, weight: .bold))
+                                    Text(selectedVideo == nil ? "Selecciona un video" : "Video seleccionado")
+                                        .foregroundColor(.white)
+                                        .font(.subheadline.bold())
+                                }
                             }
                         }
+                    }
+                    .onChange(of: selectedVideo) { _ in
+                        startBackgroundCompression()
                     }
 
                     textField("Título", text: $title)
@@ -70,13 +98,14 @@ struct UploadVideoView: View {
                         }
                     }
 
-                    primaryFilledButton(title: isUploading ? "Publicando…" : "Publicar Video") {
+                    // BOTÓN DE PUBLICAR INTELIGENTE
+                    primaryFilledButton(title: buttonTitle) {
                         guard isRestaurant else { return }
                         guard selectedVideo != nil, !title.isEmpty else { return }
-                        isUploading = true
-                        publishSelectedVideo()
+                        initiateUpload()
                     }
-                    .disabled(isUploading)
+                    .disabled(isUploading || (isCompressing && compressedVideoURL == nil))
+                    .opacity(isUploading ? 0.6 : 1.0)
                 }
                 .padding()
             }
@@ -85,27 +114,145 @@ struct UploadVideoView: View {
         .overlay(alignment: .top) { if showSuccess { successBanner("Video publicado correctamente") } }
         .overlay(alignment: .top) {
             if let e = errorText {
-                HStack(spacing: 12) {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.yellow)
-                    Text(e).foregroundColor(.white).font(.system(size: 14, weight: .semibold))
-                    Spacer()
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
-                .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                errorBanner(e)
             }
         }
         .onAppear {
             isRestaurant = (auth.user?.role ?? "client") == "restaurant"
         }
     }
+    
+    // Texto dinámico del botón
+    private var buttonTitle: String {
+        if isUploading { return "Subiendo..." }
+        if isCompressing { return "Procesando..." }
+        return "Publicar Video"
+    }
 
+    private func startBackgroundCompression() {
+        guard let item = selectedVideo else { return }
+        
+        // Reset states
+        isCompressing = true
+        compressionFinished = false
+        compressedVideoURL = nil
+        originalVideoURL = nil
+        errorText = nil
+        
+        Task {
+            do {
+                print("🎬 [Background] Cargando video original...")
+                var tmp: URL?
+                if let pickedURL = try await item.loadTransferable(type: URL.self) {
+                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
+                    try FileManager.default.copyItem(at: pickedURL, to: t)
+                    tmp = t
+                } else if let data = try await item.loadTransferable(type: Data.self) {
+                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
+                    try data.write(to: t)
+                    tmp = t
+                }
+                
+                guard let inputURL = tmp else {
+                    print("❌ [Background] Error cargando video")
+                    await MainActor.run { isCompressing = false }
+                    return
+                }
+                
+                self.originalVideoURL = inputURL
+                
+                // Analizar tamaño
+                let resources = try inputURL.resourceValues(forKeys: [.fileSizeKey])
+                let fileSize = resources.fileSize ?? 0
+                let fileSizeMB = Double(fileSize) / 1024.0 / 1024.0
+                print("📦 [Background] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
+                
+                // Determinar Nivel PRO
+                let quality: ProQualityLevel
+                if fileSizeMB < 10.0 { quality = .nano }
+                else if fileSizeMB < 30.0 { quality = .qhd_540p }
+                else if fileSizeMB < 60.0 { quality = .hd_720p }
+                else { quality = .hd_720p_hq }
+                
+                print("🔄 [Background] Iniciando compresión PRO (\(quality))...")
+                
+                ProVideoCompressor.compress(inputURL: inputURL, level: quality) { result in
+                    Task { @MainActor in
+                        self.isCompressing = false
+                        switch result {
+                        case .success(let outURL):
+                            // Smart Check para Nano
+                            let outSize = (try? FileManager.default.attributesOfItem(atPath: outURL.path)[.size] as? Int) ?? 0
+                            let outMB = Double(outSize) / 1024.0 / 1024.0
+                            
+                            if quality == .nano && outMB >= fileSizeMB {
+                                print("↩️ [Background] Smart Check: Usando original (Nano ineficiente)")
+                                self.compressedVideoURL = inputURL
+                            } else {
+                                print("✅ [Background] Compresión lista: \(String(format: "%.2f", outMB)) MB")
+                                self.compressedVideoURL = outURL
+                            }
+                            self.compressionFinished = true
+                            
+                        case .failure(let error):
+                            print("⚠️ [Background] Falló compresión: \(error.localizedDescription). Usando original.")
+                            self.compressedVideoURL = inputURL
+                            self.compressionFinished = true
+                        }
+                    }
+                }
+            } catch {
+                print("❌ [Background] Error fatal: \(error)")
+                await MainActor.run { isCompressing = false }
+            }
+        }
+    }
+    
+    private func initiateUpload() {
+        // Si la compresión ya terminó, usamos el URL guardado
+        // Si no (raro porque bloqueamos el botón), usamos el original como fallback
+        guard let fileToUpload = compressedVideoURL ?? originalVideoURL else {
+            errorText = "El video aún se está procesando"
+            return
+        }
+        
+        let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
+        if accessKey.isEmpty {
+            errorText = "Error de configuración: Falta AccessKey"
+            return
+        }
+        
+        isUploading = true
+        
+        // Subida directa (Zero-Wait)
+        let ulid = UUID().uuidString.lowercased()
+        print("🚀 [Upload] Iniciando subida inmediata. ULID: \(ulid)")
+        
+        BunnyUploader.upload(fileURL: fileToUpload, ulid: ulid, accessKey: accessKey) { result in
+            DispatchQueue.main.async {
+                self.isUploading = false
+                switch result {
+                case .success(let url):
+                    print("✅ [Upload] Éxito total: \(url)")
+                    self.showSuccess = true
+                    // Disparar HEAD request silencioso
+                    var req = URLRequest(url: url)
+                    req.httpMethod = "HEAD"
+                    URLSession.shared.dataTask(with: req).resume()
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        self.showSuccess = false
+                        self.onClose()
+                    }
+                case .failure(let error):
+                    self.errorText = error.localizedDescription
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { self.errorText = nil }
+                }
+            }
+        }
+    }
+
+    // MARK: - UI Components (Helpers)
     private func header() -> some View {
         HStack {
             Button(action: onClose) {
@@ -199,139 +346,21 @@ struct UploadVideoView: View {
         .padding(.top, 8)
         .transition(.move(edge: .top).combined(with: .opacity))
     }
-
-    private func publishSelectedVideo() {
-        print("🎬 [UploadVideoView] Iniciando proceso de publicación...")
-        guard let item = selectedVideo else {
-            print("❌ [UploadVideoView] No hay video seleccionado")
-            isUploading = false
-            return
-        }
-        
-        Task {
-            do {
-                print("📂 [UploadVideoView] Cargando datos del video...")
-                var tmp: URL?
-                if let pickedURL = try await item.loadTransferable(type: URL.self) {
-                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
-                    try FileManager.default.copyItem(at: pickedURL, to: t)
-                    tmp = t
-                    print("✅ [UploadVideoView] Video cargado desde URL: \(t.path)")
-                } else if let data = try await item.loadTransferable(type: Data.self) {
-                    let t = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString + ".mp4")
-                    try data.write(to: t)
-                    tmp = t
-                    print("✅ [UploadVideoView] Video cargado desde Data: \(t.path)")
-                }
-                
-                guard let tmp = tmp else {
-                    print("❌ [UploadVideoView] Falló la carga del archivo temporal")
-                    DispatchQueue.main.async {
-                        isUploading = false
-                        errorText = "No se pudo procesar el archivo de video"
-                    }
-                    return
-                }
-
-                let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
-                print("🔑 [UploadVideoView] AccessKey length: \(accessKey.count)")
-                
-                if accessKey.isEmpty {
-                    print("❌ [UploadVideoView] AccessKey vacía")
-                    DispatchQueue.main.async {
-                        isUploading = false
-                        errorText = "Falta configuración: BUNNY_STORAGE_ACCESS_KEY"
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
-                    }
-                    return
-                }
-                
-                // Verificar tamaño del archivo
-                let resources = try tmp.resourceValues(forKeys: [.fileSizeKey])
-                let fileSize = resources.fileSize ?? 0
-                let fileSizeMB = Double(fileSize) / 1024.0 / 1024.0
-                print("📦 [UploadVideoView] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
-                
-                // --- ESTRATEGIA PRO DE 4 NIVELES + SMART CHECK ---
-                let quality: ProQualityLevel
-                
-                if fileSizeMB < 10.0 {
-                    // Nivel 1: Nano (Intentar HEVC 1Mbps)
-                    print("🧪 [UploadVideoView] Nivel 1: Nano (<10MB). Probando Smart Compression...")
-                    quality = .nano
-                } else if fileSizeMB < 30.0 {
-                    // Nivel 2: qHD 540p (Mini) - Calidad nítida base
-                    print("📱 [UploadVideoView] Nivel 2: qHD 540p (Balance)")
-                    quality = .qhd_540p
-                } else if fileSizeMB < 60.0 {
-                    // Nivel 3: HD 720p (Estándar) - HEVC Estándar
-                    print("⚡️ [UploadVideoView] Nivel 3: HD 720p (Estándar)")
-                    quality = .hd_720p
-                } else {
-                    // Nivel 4: HD 720p HQ (Alta) - HEVC Premium
-                    print("💎 [UploadVideoView] Nivel 4: HD 720p HQ (Premium)")
-                    quality = .hd_720p_hq
-                }
-                
-                print("🔄 [UploadVideoView] Iniciando compresión PRO con nivel: \(quality)")
-                
-                ProVideoCompressor.compress(inputURL: tmp, level: quality) { result in
-                    switch result {
-                    case .success(let outURL):
-                        // Calcular ahorro y aplicar Smart Check para Nano
-                        let outSize = (try? FileManager.default.attributesOfItem(atPath: outURL.path)[.size] as? Int) ?? 0
-                        let outMB = Double(outSize) / 1024.0 / 1024.0
-                        let saving = fileSizeMB > 0 ? (1.0 - (outMB / fileSizeMB)) * 100 : 0
-                        print("✅ [UploadVideoView] Resultado PRO: \(String(format: "%.2f", outMB)) MB (Ahorro: \(String(format: "%.0f", saving))%)")
-                        
-                        // Smart Check: Si el resultado es mayor que el original (y era nivel Nano), usar original
-                        if quality == .nano && outMB >= fileSizeMB {
-                            print("↩️ [UploadVideoView] Smart Check: Compresión no eficiente. Usando original.")
-                            self.uploadToBunny(fileURL: tmp, accessKey: accessKey)
-                        } else {
-                            self.uploadToBunny(fileURL: outURL, accessKey: accessKey)
-                        }
-                        
-                    case .failure(let error):
-                        print("⚠️ [UploadVideoView] Falló compresión PRO: \(error.localizedDescription). Intentando pass-through de seguridad...")
-                        self.uploadToBunny(fileURL: tmp, accessKey: accessKey)
-                    }
-                }
-            } catch {
-                print("❌ [UploadVideoView] Excepción general: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    isUploading = false
-                    errorText = "Error interno: \(error.localizedDescription)"
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
-                }
-            }
-        }
-    }
     
-    private func uploadToBunny(fileURL: URL, accessKey: String) {
-        let ulid = UUID().uuidString.lowercased()
-        print("🚀 [UploadVideoView] Iniciando subida a Bunny. ULID: \(ulid)")
-        
-        BunnyUploader.upload(fileURL: fileURL, ulid: ulid, accessKey: accessKey) { r in
-            DispatchQueue.main.async {
-                isUploading = false
-                switch r {
-                case .success(let url):
-                    print("✅ [UploadVideoView] Subida completada: \(url)")
-                    showSuccess = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { showSuccess = false; onClose() }
-                    
-                    // Verificación CDN en background
-                    var req = URLRequest(url: url)
-                    req.httpMethod = "HEAD"
-                    URLSession.shared.dataTask(with: req).resume()
-                    
-                case .failure(let err):
-                    print("❌ [UploadVideoView] Error de subida: \(err.localizedDescription)")
-                    errorText = err.localizedDescription // Muestra el error detallado de BunnyUploader
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) { errorText = nil } // Más tiempo para leer
-                }
-            }
+    private func errorBanner(_ text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.yellow)
+            Text(text).foregroundColor(.white).font(.system(size: 14, weight: .semibold))
+            Spacer()
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
