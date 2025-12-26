@@ -42,6 +42,51 @@ enum ProQualityLevel {
 /// A diferencia de AVAssetExportSession (presets), este motor permite control total sobre el bitrate.
 final class ProVideoCompressor {
     
+    /// Analiza científicamente si un video ya está optimizado (Eficiencia de Bitrate/Pixel).
+    /// Retorna TRUE si el video NO debe ser recomprimido.
+    static func isVideoAlreadyOptimized(inputURL: URL) async -> Bool {
+        let asset = AVAsset(url: inputURL)
+        guard let track = try? await asset.loadTracks(withMediaType: .video).first else { return false }
+        
+        // 1. Extraer Métricas Clave
+        guard let bitrate = try? await track.load(.estimatedDataRate),
+              let size = try? await track.load(.naturalSize),
+              let frameRate = try? await track.load(.nominalFrameRate) else {
+            return false // Ante la duda, comprimir
+        }
+        
+        let width = abs(size.width)
+        let height = abs(size.height)
+        let pixels = width * height
+        let fps = frameRate > 0 ? frameRate : 30.0
+        
+        // 2. Reglas de Límite Absoluto (Política de la App)
+        // Si pesa más de 2.5 Mbps, es demasiado para nuestra app, independientemente de su eficiencia.
+        // Queremos todo bajo 2.0 - 2.5 Mbps.
+        if bitrate > 2_500_000 {
+            print("🔍 [Analyzer] Bitrate alto (\(Int(bitrate/1000)) kbps). Requiere compresión.")
+            return false
+        }
+        
+        // 3. Cálculo de Densidad (Bits Per Pixel)
+        // BPP = Bitrate / (Pixels * FPS)
+        // TikTok/Instagram suelen estar en 0.05 - 0.1 BPP.
+        let bpp = Double(bitrate) / (Double(pixels) * Double(fps))
+        
+        print("🔍 [Analyzer] BPP: \(String(format: "%.4f", bpp)) | Bitrate: \(Int(bitrate/1000))k | Res: \(Int(width))x\(Int(height))")
+        
+        // 4. Matriz de Decisión Científica
+        // Un BPP < 0.1 indica que el video ya está muy comprimido.
+        // Recomprimir algo con BPP 0.05 a menudo aumenta el tamaño debido al overhead del contenedor y headers,
+        // o destruye la calidad visual sin ganar espacio.
+        if bpp < 0.1 {
+            print("✅ [Analyzer] Video ya es eficiente (BPP < 0.1). Saltando compresión.")
+            return true
+        }
+        
+        return false
+    }
+
     static func compress(inputURL: URL, level: ProQualityLevel, completion: @escaping (Result<URL, Error>) -> Void) {
         // 1. Pass-through: Retornar original inmediatamente.
         if case .passThrough = level {

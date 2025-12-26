@@ -167,6 +167,20 @@ struct UploadVideoView: View {
                 let fileSizeMB = Double(fileSize) / 1024.0 / 1024.0
                 print("📦 [Background] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
                 
+                // PASO 0: Análisis Científico de Eficiencia
+                // Si el video ya viene de TikTok/Instagram, probablemente ya esté optimizado al máximo.
+                let isAlreadyEfficient = await ProVideoCompressor.isVideoAlreadyOptimized(inputURL: inputURL)
+                
+                if isAlreadyEfficient {
+                    print("⚡️ [Background] Video detectado como Ultra-Eficiente. Saltando re-compresión.")
+                    await MainActor.run {
+                        self.compressedVideoURL = inputURL
+                        self.isCompressing = false
+                        self.compressionFinished = true
+                    }
+                    return
+                }
+                
                 // Determinar Nivel PRO
                 let quality: ProQualityLevel
                 if fileSizeMB < 10.0 { quality = .nano }
