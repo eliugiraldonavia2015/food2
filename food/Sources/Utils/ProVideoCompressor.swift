@@ -169,7 +169,7 @@ final class ProVideoCompressor {
                         }
                         
                         if let buffer = readerOutput.copyNextSampleBuffer() {
-                            if writerInput.readyForMoreMediaData {
+                            if writerInput.isReadyForMoreMediaData {
                                 writerInput.append(buffer)
                             }
                         } else {
@@ -193,7 +193,7 @@ final class ProVideoCompressor {
                             }
                             
                             if let buffer = aOutput.copyNextSampleBuffer() {
-                                if aInput.readyForMoreMediaData {
+                                if aInput.isReadyForMoreMediaData {
                                     aInput.append(buffer)
                                 }
                             } else {
