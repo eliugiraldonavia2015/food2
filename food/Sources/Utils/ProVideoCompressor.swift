@@ -99,7 +99,7 @@ final class ProVideoCompressor {
                         AVVideoAverageBitRateKey: config.bitrate,
                         
                         // Perfil: Usamos Main/High para mejor eficiencia.
-                        AVVideoProfileLevelKey: config.useHEVC ? kVTProfileLevel_HEVC_Main_AutoLevel : AVVideoProfileLevelH264HighAutoLevel,
+                        AVVideoProfileLevelKey: config.useHEVC ? (kVTProfileLevel_HEVC_Main_AutoLevel as String) : AVVideoProfileLevelH264HighAutoLevel,
                         
                         // Keyframe Interval (GOP): Forzamos un keyframe cada 2 segundos (60 frames @ 30fps).
                         // Esto es CRÍTICO para HLS y streaming adaptativo.
