@@ -246,28 +246,55 @@ struct UploadVideoView: View {
                     return
                 }
                 
-                print("🔄 [UploadVideoView] Iniciando compresión (HEVC 720p)...")
-                VideoCompressor.compress(inputURL: tmp, variant: .hevc720) { result in
+                // Verificar tamaño del archivo
+                let resources = try tmp.resourceValues(forKeys: [.fileSizeKey])
+                let fileSize = resources.fileSize ?? 0
+                let fileSizeMB = Double(fileSize) / 1024.0 / 1024.0
+                print("📦 [UploadVideoView] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
+                
+                // --- ESTRATEGIA PRO DE 4 NIVELES + SMART CHECK ---
+                let quality: ProQualityLevel
+                
+                if fileSizeMB < 10.0 {
+                    // Nivel 1: Nano (Intentar HEVC 1Mbps)
+                    print("🧪 [UploadVideoView] Nivel 1: Nano (<10MB). Probando Smart Compression...")
+                    quality = .nano
+                } else if fileSizeMB < 30.0 {
+                    // Nivel 2: qHD 540p (Mini) - Calidad nítida base
+                    print("📱 [UploadVideoView] Nivel 2: qHD 540p (Balance)")
+                    quality = .qhd_540p
+                } else if fileSizeMB < 60.0 {
+                    // Nivel 3: HD 720p (Estándar) - HEVC Estándar
+                    print("⚡️ [UploadVideoView] Nivel 3: HD 720p (Estándar)")
+                    quality = .hd_720p
+                } else {
+                    // Nivel 4: HD 720p HQ (Alta) - HEVC Premium
+                    print("💎 [UploadVideoView] Nivel 4: HD 720p HQ (Premium)")
+                    quality = .hd_720p_hq
+                }
+                
+                print("🔄 [UploadVideoView] Iniciando compresión PRO con nivel: \(quality)")
+                
+                ProVideoCompressor.compress(inputURL: tmp, level: quality) { result in
                     switch result {
-                    case .success(let out720):
-                        print("✅ [UploadVideoView] Compresión exitosa: \(out720.path)")
-                        self.uploadToBunny(fileURL: out720, accessKey: accessKey)
-                    case .failure(let error):
-                        print("⚠️ [UploadVideoView] Falló compresión HEVC: \(error.localizedDescription). Intentando fallback H.264...")
-                        VideoCompressor.compress(inputURL: tmp, variant: .h264360) { fallback in
-                            switch fallback {
-                            case .success(let out360):
-                                print("✅ [UploadVideoView] Compresión fallback exitosa: \(out360.path)")
-                                self.uploadToBunny(fileURL: out360, accessKey: accessKey)
-                            case .failure(let err2):
-                                print("❌ [UploadVideoView] Falló compresión fallback: \(err2.localizedDescription)")
-                                DispatchQueue.main.async {
-                                    isUploading = false
-                                    errorText = "Error comprimiendo video: \(err2.localizedDescription)"
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { errorText = nil }
-                                }
-                            }
+                    case .success(let outURL):
+                        // Calcular ahorro y aplicar Smart Check para Nano
+                        let outSize = (try? FileManager.default.attributesOfItem(atPath: outURL.path)[.size] as? Int) ?? 0
+                        let outMB = Double(outSize) / 1024.0 / 1024.0
+                        let saving = fileSizeMB > 0 ? (1.0 - (outMB / fileSizeMB)) * 100 : 0
+                        print("✅ [UploadVideoView] Resultado PRO: \(String(format: "%.2f", outMB)) MB (Ahorro: \(String(format: "%.0f", saving))%)")
+                        
+                        // Smart Check: Si el resultado es mayor que el original (y era nivel Nano), usar original
+                        if quality == .nano && outMB >= fileSizeMB {
+                            print("↩️ [UploadVideoView] Smart Check: Compresión no eficiente. Usando original.")
+                            self.uploadToBunny(fileURL: tmp, accessKey: accessKey)
+                        } else {
+                            self.uploadToBunny(fileURL: outURL, accessKey: accessKey)
                         }
+                        
+                    case .failure(let error):
+                        print("⚠️ [UploadVideoView] Falló compresión PRO: \(error.localizedDescription). Intentando pass-through de seguridad...")
+                        self.uploadToBunny(fileURL: tmp, accessKey: accessKey)
                     }
                 }
             } catch {
