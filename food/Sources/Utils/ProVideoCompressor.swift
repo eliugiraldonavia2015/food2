@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import UIKit
+import VideoToolbox
 
 /// Niveles de calidad PRO ajustados para Food App (mínimo 540p, cero pixelación).
 /// Cada nivel define una resolución y un bitrate objetivo para balancear peso vs calidad.
