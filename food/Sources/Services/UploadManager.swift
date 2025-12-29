@@ -6,11 +6,16 @@ import CoreMedia
 final class UploadManager: ObservableObject {
     static let shared = UploadManager()
     
+    // Estado Visible (Overlay)
     @Published var isProcessing: Bool = false
     @Published var progress: Double = 0.0
     @Published var statusMessage: String = ""
     @Published var isCompleted: Bool = false
     @Published var error: String? = nil
+    
+    // Estado Interno (Background Preparation)
+    private var pendingCompressionTask: Task<URL, Never>?
+    private var preparedVideoURL: URL?
     
     // Pesos relativos para la barra de progreso
     private let compressionWeight = 0.4 // 40% del tiempo
@@ -21,52 +26,73 @@ final class UploadManager: ObservableObject {
     
     private init() {}
     
-    func startUploadProcess(inputURL: URL, title: String, description: String) {
-        resetState()
-        self.isProcessing = true
-        self.statusMessage = "Analizando video..."
+    /// Inicia la optimización en background silenciosamente (al seleccionar el video)
+    func prepareVideo(inputURL: URL) {
+        // Cancelar tarea anterior si existía
+        pendingCompressionTask?.cancel()
+        preparedVideoURL = nil
+        compressionProgress = 0.0
         
-        Task {
-            // 1. Análisis y Compresión
+        print("🎬 [UploadManager] Iniciando preparación en background...")
+        
+        pendingCompressionTask = Task {
             let optimalLayer = await ProVideoCompressor.calculateOptimalLayer(for: inputURL)
-            
-            var videoToUpload: URL
             
             switch optimalLayer {
             case .passThrough:
-                print("⚡️ [UploadManager] Video eficiente. Saltando compresión.")
-                videoToUpload = inputURL
+                print("⚡️ [UploadManager] Video eficiente. Preparación lista.")
                 self.compressionProgress = 1.0
-                self.updateTotalProgress()
+                return inputURL
                 
             case .custom(let config):
-                self.statusMessage = "Optimizando video (\(config.height)p)..."
+                print("🔄 [UploadManager] Comprimiendo a \(config.height)p en background...")
+                var resultURL = inputURL
                 
-                // Variable local para capturar el resultado de la continuación
-                var compressedURL: URL = inputURL
-                
+                // Usamos un semáforo asíncrono simple
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     ProVideoCompressor.compress(inputURL: inputURL, level: optimalLayer, onProgress: { p in
-                        DispatchQueue.main.async {
-                            self.compressionProgress = p
-                            self.updateTotalProgress()
-                        }
+                        self.compressionProgress = p
+                        // No actualizamos UI aquí porque es silencioso, pero guardamos el progreso
+                        // para cuando se haga visible
                     }) { result in
                         switch result {
                         case .success(let url):
-                            compressedURL = url
+                            print("✅ [UploadManager] Compresión background terminada.")
+                            resultURL = url
                         case .failure(let error):
-                            print("⚠️ Falló compresión, usando original: \(error)")
-                            compressedURL = inputURL
+                            print("⚠️ [UploadManager] Falló compresión background: \(error)")
+                            resultURL = inputURL
                         }
                         continuation.resume()
                     }
                 }
-                videoToUpload = compressedURL
+                return resultURL
             }
+        }
+    }
+    
+    /// Inicia la subida visible (al tocar Publicar)
+    func commitUpload(title: String, description: String) {
+        guard let compressionTask = pendingCompressionTask else {
+            print("❌ [UploadManager] No hay video preparado.")
+            return
+        }
+        
+        resetState()
+        self.isProcessing = true
+        self.statusMessage = "Procesando video..."
+        
+        Task {
+            // 1. Esperar o recuperar resultado de compresión
+            let videoToUpload = await compressionTask.value
+            
+            // Si la compresión ya había terminado, compressionProgress ya será 1.0
+            // Si no, habrá llegado hasta donde estaba. Forzamos 1.0 visualmente ahora.
+            self.compressionProgress = 1.0
+            self.updateTotalProgress()
             
             // 2. Subida a Bunny
-            self.statusMessage = "Subiendo a la nube..."
+            self.statusMessage = "Subiendo video..."
             let ulid = UUID().uuidString.lowercased()
             let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
             
@@ -86,10 +112,10 @@ final class UploadManager: ObservableObject {
                     case .success(_):
                         self.uploadProgress = 1.0
                         self.updateTotalProgress()
-                        self.statusMessage = "¡Publicado con éxito!"
+                        self.statusMessage = "¡Publicado!"
                         self.isCompleted = true
                         
-                        // Generar y subir thumbnail (background, no bloqueante)
+                        // Generar y subir thumbnail
                         self.handleThumbnail(videoURL: videoToUpload, ulid: ulid, accessKey: accessKey)
                         
                         // Ocultar overlay después de unos segundos
@@ -98,7 +124,7 @@ final class UploadManager: ObservableObject {
                         }
                         
                     case .failure(let err):
-                        self.error = "Error al subir: \(err.localizedDescription)"
+                        self.error = "Error: \(err.localizedDescription)"
                         self.isProcessing = false
                     }
                 }
@@ -107,8 +133,11 @@ final class UploadManager: ObservableObject {
     }
     
     private func updateTotalProgress() {
+        // Si estamos en fase visible (isProcessing=true), mostramos el progreso acumulado.
+        // Si la compresión se hizo en background (antes de commit), al hacer commit
+        // compressionProgress ya será 1.0, así que la barra empezará al 40% (compressionWeight).
         let total = (compressionProgress * compressionWeight) + (uploadProgress * uploadWeight)
-        self.progress = min(total, 0.99) // 1.0 solo al finalizar
+        self.progress = min(total, 0.99)
     }
     
     private func resetState() {
@@ -117,8 +146,8 @@ final class UploadManager: ObservableObject {
         statusMessage = ""
         isCompleted = false
         error = nil
-        compressionProgress = 0.0
         uploadProgress = 0.0
+        // No reseteamos compressionProgress aquí porque lo necesitamos para el cálculo inicial
     }
     
     private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String) {
