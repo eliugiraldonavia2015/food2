@@ -30,7 +30,7 @@ final class ProVideoCompressor {
         let resources = try? inputURL.resourceValues(forKeys: [.fileSizeKey])
         let fileSize = Double(resources?.fileSize ?? 0)
         let duration = try? await asset.load(.duration).seconds ?? 0
-        let transform = try await track.load(.preferredTransform) // Vital para orientación
+        let transform = (try? await track.load(.preferredTransform)) ?? .identity // Vital para orientación (con fallback)
         
         guard duration > 0, fileSize > 0,
               let size = try? await track.load(.naturalSize),
