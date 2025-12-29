@@ -28,15 +28,20 @@ public final class BunnyUploader {
             }
         }
     }
+    
+    // Delegado privado para capturar progreso de subida
+    private class ProgressDelegate: NSObject, URLSessionTaskDelegate {
+        var onProgress: ((Double) -> Void)?
+        
+        func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+            let progress = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
+            onProgress?(progress)
+        }
+    }
 
-    /// Sube un video a la carpeta raw/
-    public static func upload(fileURL: URL, ulid: String, accessKey: String, completion: @escaping (Result<URL, Error>) -> Void) {
+    /// Sube un video a la carpeta raw/ con reporte de progreso
+    public static func upload(fileURL: URL, ulid: String, accessKey: String, onProgress: @escaping (Double) -> Void = { _ in }, completion: @escaping (Result<URL, Error>) -> Void) {
         let path = BunnyConfig.rawStoragePath(for: ulid)
-        
-        // Convertir URL a Data (Streamed request sería mejor, pero para simplificar reusamos la lógica)
-        // Nota: URLSession.uploadTask(with:fromFile:) es más eficiente que cargar Data en memoria.
-        // Por eso mantenemos una implementación específica para archivos grandes (Videos).
-        
         let zone = BunnyConfig.storageZoneName
         let host = BunnyConfig.storageHost
         
@@ -60,7 +65,13 @@ public final class BunnyUploader {
         print("\n🚀 [BunnyUploader] Subiendo VIDEO...")
         print("🌐 Destino: \(url.absoluteString)")
         
-        let task = URLSession.shared.uploadTask(with: request, fromFile: fileURL) { data, response, error in
+        // Crear sesión con delegado para progreso
+        let delegate = ProgressDelegate()
+        delegate.onProgress = onProgress
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: OperationQueue.main)
+        
+        let task = session.uploadTask(with: request, fromFile: fileURL) { data, response, error in
+            session.finishTasksAndInvalidate() // Limpiar sesión
             handleResponse(data: data, response: response, error: error, path: path, originalURL: url, completion: completion)
         }
         task.resume()

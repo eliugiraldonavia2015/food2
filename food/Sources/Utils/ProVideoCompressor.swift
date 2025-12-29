@@ -26,30 +26,31 @@ final class ProVideoCompressor {
         let asset = AVAsset(url: inputURL)
         guard let track = try? await asset.loadTracks(withMediaType: .video).first else { return .passThrough }
         
-        // 1. Obtener Datos Reales y Orientación
+        // 1. Obtener Datos Reales y Orientación de forma segura y explícita
         let resourcesOrNil = try? inputURL.resourceValues(forKeys: [.fileSizeKey])
         let fileSizeInt = resourcesOrNil?.fileSize ?? 0
         let fileSize = Double(fileSizeInt)
         
+        // Carga segura de propiedades asíncronas con valores por defecto
         let durationSeconds = (try? await asset.load(.duration))?.seconds ?? 0.0
         let duration = Double(durationSeconds)
         
         let transform = (try? await track.load(.preferredTransform)) ?? .identity
+        let size = (try? await track.load(.naturalSize)) ?? CGSize.zero
+        let nominalFrameRate = (try? await track.load(.nominalFrameRate)) ?? 30.0
         
-        guard duration > 0, fileSize > 0,
-              let size = try? await track.load(.naturalSize),
-              let frameRate = try? await track.load(.nominalFrameRate) else {
-            return .passThrough // No se pudo analizar
+        // Validación lógica simple (sin unwrapping complejo)
+        if duration <= 0 || fileSize <= 0 || size.width == 0 || size.height == 0 {
+            return .passThrough // Datos insuficientes
         }
         
         let realBitrate = (fileSize * 8) / duration
         
         // Detectar dimensiones visuales reales (teniendo en cuenta rotación)
-        // Si el video está rotado 90° (vertical), width/height físicos están invertidos respecto a lo que ve el ojo.
         let isPortrait = abs(transform.b) == 1.0 && abs(transform.c) == 1.0
         let renderWidth = isPortrait ? Int(abs(size.height)) : Int(abs(size.width))
         let renderHeight = isPortrait ? Int(abs(size.width)) : Int(abs(size.height))
-        let fps = frameRate > 0 ? frameRate : 30.0
+        let fps = nominalFrameRate > 0 ? nominalFrameRate : 30.0
         
         print("🔍 [Analyzer] Input: \(renderWidth)x\(renderHeight) (Portrait: \(isPortrait)) @ \(Int(realBitrate/1000)) kbps")
         
@@ -126,12 +127,14 @@ final class ProVideoCompressor {
         return .custom(config)
     }
 
-    static func compress(inputURL: URL, level: ProQualityLevel, completion: @escaping (Result<URL, Error>) -> Void) {
+    // Callback de progreso añadido
+    static func compress(inputURL: URL, level: ProQualityLevel, onProgress: @escaping (Double) -> Void = { _ in }, completion: @escaping (Result<URL, Error>) -> Void) {
         
         // Extraer configuración o salir
         let config: ProCompressionConfig
         switch level {
         case .passThrough:
+            onProgress(1.0)
             completion(.success(inputURL))
             return
         case .custom(let c):
@@ -145,6 +148,9 @@ final class ProVideoCompressor {
                 guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
                     throw NSError(domain: "ProCompressor", code: -1, userInfo: [NSLocalizedDescriptionKey: "No video track"])
                 }
+                
+                // Duración total para calcular progreso
+                let totalDuration = try await asset.load(.duration).seconds
                 
                 // --- 1. CONFIGURACIÓN DEL LECTOR (READER) ---
                 let reader = try AVAssetReader(asset: asset)
@@ -234,6 +240,12 @@ final class ProVideoCompressor {
                         }
                         
                         if let buffer = readerOutput.copyNextSampleBuffer() {
+                            // Calcular progreso
+                            let timestamp = CMSampleBufferGetPresentationTimeStamp(buffer).seconds
+                            if totalDuration > 0 {
+                                onProgress(timestamp / totalDuration)
+                            }
+                            
                             if writerInput.isReadyForMoreMediaData {
                                 writerInput.append(buffer)
                             }
@@ -273,6 +285,7 @@ final class ProVideoCompressor {
                 group.notify(queue: .global()) {
                     writer.finishWriting {
                         if writer.status == .completed {
+                            onProgress(1.0)
                             completion(.success(outURL))
                         } else {
                             completion(.failure(writer.error ?? NSError(domain: "ProCompressor", code: -3)))
