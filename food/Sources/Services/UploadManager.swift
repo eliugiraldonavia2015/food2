@@ -24,6 +24,10 @@ final class UploadManager: ObservableObject {
     private var compressionProgress: Double = 0.0
     private var uploadProgress: Double = 0.0
     
+    // Simulación de Progreso (Smart Fake)
+    private var progressTimer: Timer?
+    private var simulatedProgress: Double = 0.0
+    
     private init() {}
     
     /// Inicia la optimización en background silenciosamente (al seleccionar el video)
@@ -48,12 +52,10 @@ final class UploadManager: ObservableObject {
                 print("🔄 [UploadManager] Comprimiendo a \(config.height)p en background...")
                 var resultURL = inputURL
                 
-                // Usamos un semáforo asíncrono simple
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     ProVideoCompressor.compress(inputURL: inputURL, level: optimalLayer, onProgress: { p in
                         self.compressionProgress = p
-                        // No actualizamos UI aquí porque es silencioso, pero guardamos el progreso
-                        // para cuando se haga visible
+                        // No actualizamos UI aquí (silencioso)
                     }) { result in
                         switch result {
                         case .success(let url):
@@ -82,12 +84,14 @@ final class UploadManager: ObservableObject {
         self.isProcessing = true
         self.statusMessage = "Procesando video..."
         
+        // Iniciar simulación visual para evitar que se quede en 0%
+        startSimulation()
+        
         Task {
             // 1. Esperar o recuperar resultado de compresión
             let videoToUpload = await compressionTask.value
             
-            // Si la compresión ya había terminado, compressionProgress ya será 1.0
-            // Si no, habrá llegado hasta donde estaba. Forzamos 1.0 visualmente ahora.
+            // Compresión terminada (real o simulada llegó al tope de su peso)
             self.compressionProgress = 1.0
             self.updateTotalProgress()
             
@@ -97,7 +101,7 @@ final class UploadManager: ObservableObject {
             let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
             
             guard !accessKey.isEmpty else {
-                DispatchQueue.main.async { self.error = "Falta AccessKey"; self.isProcessing = false }
+                DispatchQueue.main.async { self.error = "Falta AccessKey"; self.stopSimulation(); self.isProcessing = false }
                 return
             }
             
@@ -108,12 +112,17 @@ final class UploadManager: ObservableObject {
                 }
             }) { result in
                 DispatchQueue.main.async {
+                    self.stopSimulation()
+                    
                     switch result {
                     case .success(_):
                         self.uploadProgress = 1.0
                         self.updateTotalProgress()
                         self.statusMessage = "¡Publicado!"
                         self.isCompleted = true
+                        
+                        // Forzar 100% visual
+                        self.progress = 1.0
                         
                         // Generar y subir thumbnail
                         self.handleThumbnail(videoURL: videoToUpload, ulid: ulid, accessKey: accessKey)
@@ -132,12 +141,43 @@ final class UploadManager: ObservableObject {
         }
     }
     
+    private func startSimulation() {
+        stopSimulation()
+        simulatedProgress = 0.0
+        // Timer en hilo principal
+        DispatchQueue.main.async {
+            self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                // Incremento logarítmico simulado hasta 85%
+                if self.simulatedProgress < 0.85 {
+                    // Más rápido al principio, más lento al final
+                    let increment = (0.9 - self.simulatedProgress) * 0.05
+                    self.simulatedProgress += increment
+                    self.updateTotalProgress()
+                }
+            }
+        }
+    }
+    
+    private func stopSimulation() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+    }
+    
     private func updateTotalProgress() {
-        // Si estamos en fase visible (isProcessing=true), mostramos el progreso acumulado.
-        // Si la compresión se hizo en background (antes de commit), al hacer commit
-        // compressionProgress ya será 1.0, así que la barra empezará al 40% (compressionWeight).
-        let total = (compressionProgress * compressionWeight) + (uploadProgress * uploadWeight)
-        self.progress = min(total, 0.99)
+        // Cálculo Real
+        let realTotal = (compressionProgress * compressionWeight) + (uploadProgress * uploadWeight)
+        
+        // Híbrido: El mayor entre Real y Simulado
+        // Esto garantiza que nunca retroceda y que siempre avance algo
+        let hybridProgress = max(realTotal, simulatedProgress)
+        
+        // Cap en 99% hasta que isCompleted sea true
+        if isCompleted {
+            self.progress = 1.0
+        } else {
+            self.progress = min(hybridProgress, 0.99)
+        }
     }
     
     private func resetState() {
@@ -147,7 +187,7 @@ final class UploadManager: ObservableObject {
         isCompleted = false
         error = nil
         uploadProgress = 0.0
-        // No reseteamos compressionProgress aquí porque lo necesitamos para el cálculo inicial
+        stopSimulation()
     }
     
     private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String) {
