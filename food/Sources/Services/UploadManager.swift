@@ -16,6 +16,7 @@ final class UploadManager: ObservableObject {
     // Estado Interno (Background Preparation)
     private var pendingCompressionTask: Task<URL, Never>?
     private var preparedVideoURL: URL?
+    private var currentVideoDuration: Double = 60.0 // Valor por defecto seguro
     
     // Pesos relativos para la barra de progreso
     private let compressionWeight = 0.4 // 40% del tiempo
@@ -24,7 +25,7 @@ final class UploadManager: ObservableObject {
     private var compressionProgress: Double = 0.0
     private var uploadProgress: Double = 0.0
     
-    // Simulación de Progreso (Smart Fake)
+    // Simulación de Progreso (Smart Fake Adaptativo)
     private var progressTimer: Timer?
     private var simulatedProgress: Double = 0.0
     
@@ -38,6 +39,15 @@ final class UploadManager: ObservableObject {
         compressionProgress = 0.0
         
         print("🎬 [UploadManager] Iniciando preparación en background...")
+        
+        // Obtener duración para estimación de progreso
+        let asset = AVAsset(url: inputURL)
+        Task {
+            if let duration = try? await asset.load(.duration).seconds, duration > 0 {
+                self.currentVideoDuration = duration
+                print("⏱ [UploadManager] Duración detectada: \(Int(duration))s")
+            }
+        }
         
         pendingCompressionTask = Task {
             let optimalLayer = await ProVideoCompressor.calculateOptimalLayer(for: inputURL)
@@ -84,7 +94,7 @@ final class UploadManager: ObservableObject {
         self.isProcessing = true
         self.statusMessage = "Procesando video..."
         
-        // Iniciar simulación visual para evitar que se quede en 0%
+        // Iniciar simulación visual adaptativa
         startSimulation()
         
         Task {
@@ -144,15 +154,32 @@ final class UploadManager: ObservableObject {
     private func startSimulation() {
         stopSimulation()
         simulatedProgress = 0.0
-        // Timer en hilo principal
+        
+        // Cálculo de Tiempo Estimado Total (Compresión + Subida)
+        // Estimamos: Compresión = 50% de duración real, Subida = 20% de duración real
+        // Ejemplo: Video 60s -> Estimado 30s + 12s = 42s totales.
+        let estimatedTotalSeconds = max(currentVideoDuration * 0.7, 5.0) // Mínimo 5s
+        
+        // Queremos llegar al 99% en ese tiempo estimado
+        // Incremento por segundo = 0.99 / estimatedTotalSeconds
+        // El timer corre cada 0.1s para suavidad
+        let updateInterval = 0.1
+        let incrementPerTick = (0.99 / estimatedTotalSeconds) * updateInterval
+        
+        print("⏳ [UploadManager] Simulación iniciada. Duración Video: \(Int(currentVideoDuration))s. ETA: \(Int(estimatedTotalSeconds))s")
+        
         DispatchQueue.main.async {
-            self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            self.progressTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
-                // Incremento logarítmico simulado hasta 85%
-                if self.simulatedProgress < 0.85 {
-                    // Más rápido al principio, más lento al final
-                    let increment = (0.9 - self.simulatedProgress) * 0.05
-                    self.simulatedProgress += increment
+                
+                // Si aún no llegamos al tope de simulación (99%)
+                if self.simulatedProgress < 0.99 {
+                    // Factor de desaceleración al acercarse al final (Easing Out)
+                    // Si estamos cerca del 99%, avanzamos más lento
+                    let remaining = 0.99 - self.simulatedProgress
+                    let factor = remaining < 0.1 ? 0.5 : 1.0
+                    
+                    self.simulatedProgress += (incrementPerTick * factor)
                     self.updateTotalProgress()
                 }
             }
