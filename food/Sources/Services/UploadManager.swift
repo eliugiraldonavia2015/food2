@@ -1,5 +1,7 @@
 import SwiftUI
 import Combine
+import AVFoundation
+import CoreMedia
 
 final class UploadManager: ObservableObject {
     static let shared = UploadManager()
@@ -28,7 +30,7 @@ final class UploadManager: ObservableObject {
             // 1. Análisis y Compresión
             let optimalLayer = await ProVideoCompressor.calculateOptimalLayer(for: inputURL)
             
-            let videoToUpload: URL
+            var videoToUpload: URL
             
             switch optimalLayer {
             case .passThrough:
@@ -40,7 +42,10 @@ final class UploadManager: ObservableObject {
             case .custom(let config):
                 self.statusMessage = "Optimizando video (\(config.height)p)..."
                 
-                await withCheckedContinuation { continuation in
+                // Variable local para capturar el resultado de la continuación
+                var compressedURL: URL = inputURL
+                
+                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     ProVideoCompressor.compress(inputURL: inputURL, level: optimalLayer, onProgress: { p in
                         DispatchQueue.main.async {
                             self.compressionProgress = p
@@ -49,15 +54,15 @@ final class UploadManager: ObservableObject {
                     }) { result in
                         switch result {
                         case .success(let url):
-                            videoToUpload = url
-                            continuation.resume()
+                            compressedURL = url
                         case .failure(let error):
                             print("⚠️ Falló compresión, usando original: \(error)")
-                            videoToUpload = inputURL
-                            continuation.resume()
+                            compressedURL = inputURL
                         }
+                        continuation.resume()
                     }
                 }
+                videoToUpload = compressedURL
             }
             
             // 2. Subida a Bunny
@@ -69,8 +74,6 @@ final class UploadManager: ObservableObject {
                 DispatchQueue.main.async { self.error = "Falta AccessKey"; self.isProcessing = false }
                 return
             }
-            
-            // Nota: BunnyUploader ya soporta reporte de progreso.
             
             BunnyUploader.upload(fileURL: videoToUpload, ulid: ulid, accessKey: accessKey, onProgress: { p in
                 DispatchQueue.main.async {
@@ -119,11 +122,10 @@ final class UploadManager: ObservableObject {
     }
     
     private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String) {
-        // Lógica de thumbnail (simplificada para el manager)
         let asset = AVAsset(url: videoURL)
         let gen = AVAssetImageGenerator(asset: asset)
         gen.appliesPreferredTrackTransform = true
-        if let cgImage = try? gen.copyCGImage(at: .zero, actualTime: nil) {
+        if let cgImage = try? gen.copyCGImage(at: CMTime.zero, actualTime: nil) {
             let uiImage = UIImage(cgImage: cgImage)
             BunnyUploader.uploadThumbnail(image: uiImage, ulid: ulid, accessKey: accessKey) { _ in }
         }
