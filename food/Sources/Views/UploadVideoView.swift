@@ -168,49 +168,41 @@ struct UploadVideoView: View {
                 print("📦 [Background] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
                 
                 // PASO 0: Análisis Científico de Eficiencia
-                let isAlreadyEfficient = await ProVideoCompressor.isVideoAlreadyOptimized(inputURL: inputURL)
+                // Usamos el nuevo algoritmo adaptativo para decidir qué hacer
+                let optimalLayer = await ProVideoCompressor.calculateOptimalLayer(for: inputURL)
                 
-                if isAlreadyEfficient {
-                    print("⚡️ [Background] Video detectado como Ultra-Eficiente. Saltando re-compresión.")
+                switch optimalLayer {
+                case .passThrough:
+                    print("⚡️ [Background] Video detectado como eficiente. Saltando re-compresión.")
                     await MainActor.run {
                         self.compressedVideoURL = inputURL
                         self.isCompressing = false
                         self.compressionFinished = true
                     }
                     return
-                }
-                
-                // Determinar Nivel PRO
-                let quality: ProQualityLevel
-                if fileSizeMB < 10.0 { quality = .nano }
-                else if fileSizeMB < 30.0 { quality = .qhd_540p }
-                else if fileSizeMB < 60.0 { quality = .hd_720p }
-                else { quality = .hd_720p_hq }
-                
-                print("🔄 [Background] Iniciando compresión PRO (\(quality))...")
-                
-                ProVideoCompressor.compress(inputURL: inputURL, level: quality) { result in
-                    Task { @MainActor in
-                        self.isCompressing = false
-                        switch result {
-                        case .success(let outURL):
-                            // Smart Check para Nano
-                            let outSize = (try? FileManager.default.attributesOfItem(atPath: outURL.path)[.size] as? Int) ?? 0
-                            let outMB = Double(outSize) / 1024.0 / 1024.0
-                            
-                            if quality == .nano && outMB >= fileSizeMB {
-                                print("↩️ [Background] Smart Check: Usando original (Nano ineficiente)")
-                                self.compressedVideoURL = inputURL
-                            } else {
+                    
+                case .custom(let config):
+                    print("🔄 [Background] Iniciando compresión PRO Adaptativa...")
+                    print("🎯 Target: \(config.width)x\(config.height) @ \(config.bitrate/1000) kbps")
+                    
+                    ProVideoCompressor.compress(inputURL: inputURL, level: optimalLayer) { result in
+                        Task { @MainActor in
+                            self.isCompressing = false
+                            switch result {
+                            case .success(let outURL):
+                                // Smart Check para Nano (Opcional, ya que calculateOptimalLayer ya hizo cálculos)
+                                let outSize = (try? FileManager.default.attributesOfItem(atPath: outURL.path)[.size] as? Int) ?? 0
+                                let outMB = Double(outSize) / 1024.0 / 1024.0
+                                
                                 print("✅ [Background] Compresión lista: \(String(format: "%.2f", outMB)) MB")
                                 self.compressedVideoURL = outURL
+                                self.compressionFinished = true
+                                
+                            case .failure(let error):
+                                print("⚠️ [Background] Falló compresión: \(error.localizedDescription). Usando original.")
+                                self.compressedVideoURL = inputURL
+                                self.compressionFinished = true
                             }
-                            self.compressionFinished = true
-                            
-                        case .failure(let error):
-                            print("⚠️ [Background] Falló compresión: \(error.localizedDescription). Usando original.")
-                            self.compressedVideoURL = inputURL
-                            self.compressionFinished = true
                         }
                     }
                 }
