@@ -168,7 +168,6 @@ struct UploadVideoView: View {
                 print("📦 [Background] Tamaño original: \(String(format: "%.2f", fileSizeMB)) MB")
                 
                 // PASO 0: Análisis Científico de Eficiencia
-                // Si el video ya viene de TikTok/Instagram, probablemente ya esté optimizado al máximo.
                 let isAlreadyEfficient = await ProVideoCompressor.isVideoAlreadyOptimized(inputURL: inputURL)
                 
                 if isAlreadyEfficient {
@@ -248,8 +247,17 @@ struct UploadVideoView: View {
                 switch result {
                 case .success(let url):
                     print("✅ [Upload] Éxito total: \(url)")
+                    
+                    // SUBIR THUMBNAIL (Fondo)
+                    if let thumb = self.generateThumbnail(url: fileToUpload) {
+                        print("🖼 [Upload] Generando y subiendo thumbnail...")
+                        BunnyUploader.uploadThumbnail(image: thumb, ulid: ulid, accessKey: accessKey) { _ in
+                            print("✅ [Upload] Thumbnail completado")
+                        }
+                    }
+                    
                     self.showSuccess = true
-                    // Disparar HEAD request silencioso
+                    // Disparar HEAD request silencioso para calentar CDN
                     var req = URLRequest(url: url)
                     req.httpMethod = "HEAD"
                     URLSession.shared.dataTask(with: req).resume()
@@ -263,6 +271,19 @@ struct UploadVideoView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { self.errorText = nil }
                 }
             }
+        }
+    }
+    
+    private func generateThumbnail(url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        do {
+            let cgImage = try generator.copyCGImage(at: .zero, actualTime: nil)
+            return UIImage(cgImage: cgImage)
+        } catch {
+            print("❌ Error generando thumbnail: \(error)")
+            return nil
         }
     }
 
