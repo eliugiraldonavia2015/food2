@@ -75,6 +75,14 @@ struct MainTabView: View {
                 uploadPickerOverlay
                     .zIndex(7)
             }
+            
+            // Overlay Global de Subida (Siempre visible por encima de todo)
+            VStack {
+                UploadStatusOverlay()
+                Spacer()
+            }
+            .zIndex(100)
+            .ignoresSafeArea(.keyboard)
         }
         
         .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
