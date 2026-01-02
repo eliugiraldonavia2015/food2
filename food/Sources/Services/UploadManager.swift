@@ -111,7 +111,7 @@ final class UploadManager: ObservableObject {
             // Nueva estrategia de nombrado: {environment}_v_{ulid}
             // Ej: prod_v_01H8X7Z...
             let envPrefix = "prod" // Podrías cambiar esto a "dev" o leerlo de config
-            let uniqueId = ULID.generate().lowercased()
+            let uniqueId = ULID.new().lowercased()
             let fileId = "\(envPrefix)_v_\(uniqueId)"
             
             let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
