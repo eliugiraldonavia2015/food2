@@ -2,11 +2,13 @@ import SwiftUI
 
 public struct UploadStatusOverlay: View {
     @ObservedObject var manager = UploadManager.shared
+    @State private var offset: CGFloat = 0
+    @State private var isHiddenTemporarily = false
     
     public init() {}
     
     public var body: some View {
-        if manager.isProcessing || manager.isCompleted {
+        if (manager.isProcessing || manager.isCompleted) && !isHiddenTemporarily {
             VStack {
                 HStack(spacing: 12) {
                     // Icono de estado
@@ -78,11 +80,49 @@ public struct UploadStatusOverlay: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
+                // Gesto de Swipe Up para ocultar temporalmente
+                .offset(y: offset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { gesture in
+                            if gesture.translation.height < 0 {
+                                offset = gesture.translation.height
+                            }
+                        }
+                        .onEnded { gesture in
+                            if gesture.translation.height < -20 {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    isHiddenTemporarily = true
+                                    offset = 0
+                                }
+                            } else {
+                                withAnimation {
+                                    offset = 0
+                                }
+                            }
+                        }
+                )
             }
             .padding(.horizontal)
             .padding(.top, 8) // Espacio seguro superior
             .transition(.move(edge: .top).combined(with: .opacity))
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: manager.isProcessing)
+            .onChange(of: manager.isCompleted) { _, completed in
+                if completed && isHiddenTemporarily {
+                    // Si estaba oculto y terminó, mostrar de nuevo para feedback
+                    withAnimation {
+                        isHiddenTemporarily = false
+                    }
+                    // Programar notificación local (simulada)
+                    scheduleLocalNotification()
+                }
+            }
         }
+    }
+    
+    private func scheduleLocalNotification() {
+        // En una app real usaríamos UserNotifications
+        // Aquí solo aseguramos que el usuario vea el check verde
+        print("🔔 Notificación: Tu video se ha subido correctamente")
     }
 }
