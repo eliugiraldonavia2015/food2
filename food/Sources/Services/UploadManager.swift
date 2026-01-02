@@ -86,27 +86,31 @@ final class UploadManager: ObservableObject {
     /// Inicia la subida visible (al tocar Publicar)
     func commitUpload(title: String, description: String) {
         guard let compressionTask = pendingCompressionTask else {
-            print("❌ [UploadManager] No hay video preparado.")
+            print("❌ [UploadManager] No hay video preparado. Intentando recuperar input original...")
             return
         }
         
+        // Reset state
         resetState()
-        self.isProcessing = true
-        self.statusMessage = "Procesando video..."
         
-        // Iniciar simulación visual adaptativa
-        startSimulation()
+        // IMPORTANT: Trigger UI updates on Main Thread immediately
+        DispatchQueue.main.async {
+            self.isProcessing = true
+            self.statusMessage = "Procesando video..."
+            // Iniciar simulación visual adaptativa
+            self.startSimulation()
+        }
         
         Task {
             // 1. Esperar o recuperar resultado de compresión
             let videoToUpload = await compressionTask.value
             
             // Compresión terminada (real o simulada llegó al tope de su peso)
-            self.compressionProgress = 1.0
-            self.updateTotalProgress()
-            
-            // 2. Subida a Bunny
-            self.statusMessage = "Subiendo video..."
+            await MainActor.run {
+                self.compressionProgress = 1.0
+                self.updateTotalProgress()
+                self.statusMessage = "Subiendo video..."
+            }
             
             // Nueva estrategia de nombrado: {environment}_v_{ulid}
             // Ej: prod_v_01H8X7Z...
@@ -114,10 +118,18 @@ final class UploadManager: ObservableObject {
             let uniqueId = ULID.new().lowercased()
             let fileId = "\(envPrefix)_v_\(uniqueId)"
             
+            // Debug logs
+            print("🚀 [UploadManager] Starting upload for: \(fileId)")
+            
             let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
             
             guard !accessKey.isEmpty else {
-                DispatchQueue.main.async { self.error = "Falta AccessKey"; self.stopSimulation(); self.isProcessing = false }
+                print("❌ [UploadManager] Missing Access Key")
+                await MainActor.run {
+                    self.error = "Falta AccessKey (Revisar Config)"
+                    self.stopSimulation()
+                    self.isProcessing = false
+                }
                 return
             }
             
@@ -132,8 +144,10 @@ final class UploadManager: ObservableObject {
                     
                     switch result {
                     case .success(let videoUrl):
+                        print("✅ [UploadManager] Video uploaded: \(videoUrl)")
                         self.uploadProgress = 1.0
                         self.updateTotalProgress()
+                        self.statusMessage = "Finalizando..."
                         
                         // Generar y subir thumbnail
                         self.handleThumbnail(videoURL: videoToUpload, ulid: fileId, accessKey: accessKey) { thumbUrl in
@@ -148,6 +162,7 @@ final class UploadManager: ObservableObject {
                         }
                         
                     case .failure(let err):
+                        print("❌ [UploadManager] Upload failed: \(err)")
                         self.error = "Error: \(err.localizedDescription)"
                         self.isProcessing = false
                     }
