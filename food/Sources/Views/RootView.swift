@@ -70,6 +70,8 @@ struct RootView: View {
             }
             
             // 🚀 Overlay de Subida de Video (Zero-Wait)
+            // NOTA: Usamos el componente público definido en Components/UploadStatusOverlay.swift
+            // No redeclaramos una estructura interna aquí para evitar conflictos.
             UploadStatusOverlay()
                 .padding(.top, 40) // Espacio para Dynamic Island / Notch
                 .zIndex(500)
@@ -117,60 +119,7 @@ struct RootView: View {
         }
     }
 }
-
-// Componente Visual de Progreso (TikTok Style)
-private struct UploadStatusOverlay: View {
-    @ObservedObject var manager = UploadManager.shared
-    
-    var body: some View {
-        if manager.isProcessing || manager.isCompleted {
-            HStack(spacing: 12) {
-                // Círculo de Progreso Animado
-                ZStack {
-                    Circle()
-                        .stroke(Color.white.opacity(0.2), lineWidth: 4)
-                    Circle()
-                        .trim(from: 0, to: manager.progress)
-                        .stroke(Color.green, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear, value: manager.progress)
-                    
-                    if manager.isCompleted {
-                        Image(systemName: "checkmark")
-                            .font(.caption2.bold())
-                            .foregroundColor(.green)
-                    } else {
-                        Text("\(Int(manager.progress * 100))%")
-                            .font(.caption2.bold())
-                            .foregroundColor(.white)
-                    }
-                }
-                .frame(width: 36, height: 36)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(manager.isCompleted ? "Publicado" : "Subiendo video")
-                        .font(.subheadline.bold())
-                        .foregroundColor(.white)
-                    
-                    if !manager.isCompleted {
-                        Text(manager.statusMessage) // "Optimizando..." o "Subiendo..."
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(12)
-            .background(Color.black.opacity(0.9))
-            .cornerRadius(12)
-            .padding(.horizontal)
-            .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
-            .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.spring(), value: manager.isProcessing)
-        }
-    }
-}
+// Se eliminó la redeclaración de UploadStatusOverlay para usar la versión pública compartida
 
 private struct StartupSplashView: View {
     var body: some View {
