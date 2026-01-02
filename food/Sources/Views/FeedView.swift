@@ -456,7 +456,11 @@ struct FeedView: View {
             if showComments {
                 let idx = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
                 let item = currentItems[idx]
-                CommentsOverlayView(count: item.comments, onClose: { showComments = false })
+                CommentsOverlayView(
+                    count: item.comments,
+                    onClose: { showComments = false },
+                    videoId: item.videoId // ✅ Pasamos el ID real
+                )
             }
             if showShare {
                 ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
@@ -619,6 +623,10 @@ struct FeedView: View {
                 hapticLight.prepare()
                 hapticMedium.prepare()
                 hapticHeavy.prepare()
+                
+                // Verificar si ya le di like
+                checkLikeStatus()
+                
                 if let u = item.videoUrl, let url = URL(string: u) {
                     let p = AVPlayer(url: url)
                     p.isMuted = !(isActive && isScreenActive && !isPaused)
@@ -651,6 +659,15 @@ struct FeedView: View {
             .onChange(of: isMuted) { _, _ in updatePlayback() }
         }
 
+        private func checkLikeStatus() {
+            guard let videoId = item.videoId, let userId = AuthService.shared.user?.uid else { return }
+            DatabaseService.shared.checkIfUserLiked(videoId: videoId, userId: userId) { liked in
+                DispatchQueue.main.async {
+                    self.isLiked = liked
+                }
+            }
+        }
+
         private func handleDoubleTap() {
             guard !isCommentsOverlayActive else { return }
             hapticHeavy.prepare()
@@ -664,8 +681,7 @@ struct FeedView: View {
             
             // Actualizar estado de like si es necesario
             if !isLiked {
-                isLiked = true
-                likesCount += 1
+                toggleLike()
             }
             
             // Secuencia de animación
@@ -685,6 +701,25 @@ struct FeedView: View {
             // Limpiar vista
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 showLikeHeart = false
+            }
+        }
+        
+        private func toggleLike() {
+            guard let videoId = item.videoId, let userId = AuthService.shared.user?.uid else {
+                // Si no hay sesión o video ID real, solo hacemos toggle visual local
+                isLiked.toggle()
+                likesCount += isLiked ? 1 : -1
+                return
+            }
+            
+            // Optimistic update
+            isLiked.toggle()
+            likesCount += isLiked ? 1 : -1
+            
+            if isLiked {
+                DatabaseService.shared.likeVideo(videoId: videoId, userId: userId) { _ in }
+            } else {
+                DatabaseService.shared.unlikeVideo(videoId: videoId, userId: userId) { _ in }
             }
         }
         
@@ -788,8 +823,7 @@ struct FeedView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Button(action: {
-                            isLiked.toggle()
-                            likesCount += isLiked ? 1 : -1
+                            toggleLike()
                             hapticLight.prepare()
                             hapticLight.impactOccurred()
                         }) {
@@ -807,8 +841,7 @@ struct FeedView: View {
                             .contentShape(Rectangle())
                             .highPriorityGesture(
                                 TapGesture().onEnded {
-                                    isLiked.toggle()
-                                    likesCount += isLiked ? 1 : -1
+                                    toggleLike()
                                     hapticLight.prepare()
                                     hapticLight.impactOccurred()
                                 }

@@ -1,128 +1,214 @@
 import SwiftUI
 
 struct CommentsOverlayView: View {
-    struct Comment: Identifiable {
-        let id = UUID()
-        let avatar: String
-        let username: String
-        let text: String
-        let time: String
-        var likes: Int
-    }
-
     let count: Int
     let onClose: () -> Void
-
-    @State private var inputText: String = ""
-    @State private var comments: [Comment] = [
-        .init(avatar: "👩", username: "@foodlover", text: "¡Se ve increíble! 😍 ¿Dónde puedo conseguirlo?", time: "2h", likes: 145),
-        .init(avatar: "👨‍🍳", username: "@chefmaster", text: "La presentación es espectacular 🧑‍🍳✨", time: "5h", likes: 89),
-        .init(avatar: "🧕", username: "@tastytraveler", text: "Definitivamente tengo que probarlo 😋", time: "1d", likes: 234)
-    ]
-
+    let videoId: String? // ID real del video
+    
+    // State
+    @State private var commentText: String = ""
+    @State private var comments: [Comment] = [] // Lista local para UI
+    @State private var isLoading = false
+    
+    // Modelo de comentario
+    struct Comment: Identifiable {
+        let id: String
+        let userId: String
+        let username: String
+        let text: String
+        let timestamp: Date
+        let avatarUrl: String
+    }
+    
     var body: some View {
         ZStack(alignment: .bottom) {
-            sheet
-                .frame(maxWidth: .infinity)
-                .frame(height: UIScreen.main.bounds.height * 0.65)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .transition(.move(edge: .bottom))
-        }
-        .transition(.move(edge: .bottom))
-    }
-
-    private var sheet: some View {
-        VStack(spacing: 0) {
-            header
-            Divider().background(Color.white.opacity(0.08))
-            ScrollView {
-                LazyVStack(spacing: 14) {
-                    ForEach(comments.indices, id: \.self) { i in
-                        commentRow(comments[i])
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-            }
-            inputBar
-        }
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
-        .ignoresSafeArea(edges: .bottom)
-    }
-
-    private var header: some View {
-        HStack {
-            Text("\(count) comentarios")
-                .foregroundColor(.white)
-                .font(.system(size: 20, weight: .bold))
-            Spacer()
-            Button(action: onClose) {
-                ZStack {
-                    Circle().fill(Color.white.opacity(0.08)).frame(width: 34, height: 34)
-                    Image(systemName: "xmark")
+            // Fondo oscuro semitransparente
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onClose)
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Spacer()
+                    Text("\(count) comentarios")
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
-                        .font(.system(size: 16, weight: .bold))
+                    Spacer()
+                    
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+                
+                // Lista de comentarios
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        if isLoading {
+                            ProgressView().padding()
+                        } else if comments.isEmpty {
+                            Text("Sé el primero en comentar 👇")
+                                .foregroundColor(.gray)
+                                .padding(.top, 40)
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            ForEach(comments) { comment in
+                                CommentRow(comment: comment)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
+                
+                // Input Bar
+                VStack(spacing: 0) {
+                    Divider().background(Color.white.opacity(0.15))
+                    HStack(spacing: 12) {
+                        // Avatar usuario actual (placeholder)
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 32, height: 32)
+                            
+                        HStack {
+                            TextField("Añadir comentario...", text: $commentText)
+                                .foregroundColor(.white)
+                                .accentColor(.white)
+                            
+                            if !commentText.isEmpty {
+                                Button(action: sendComment) {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                }
+                .background(Color.black.opacity(0.9))
+            }
+            .frame(height: UIScreen.main.bounds.height * 0.65)
+            .background(Color(red: 0.1, green: 0.1, blue: 0.1))
+            .cornerRadius(16, corners: [.topLeft, .topRight])
+            .transition(.move(edge: .bottom))
+        }
+        .onAppear(perform: loadComments)
+    }
+    
+    private func loadComments() {
+        guard let vid = videoId else { return }
+        isLoading = true
+        
+        DatabaseService.shared.fetchComments(videoId: vid) { result in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                switch result {
+                case .success(let fetched):
+                    self.comments = fetched
+                case .failure(let err):
+                    print("Error loading comments: \(err.localizedDescription)")
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
-
-    private func commentRow(_ c: Comment) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle().fill(Color.white.opacity(0.12)).frame(width: 40, height: 40)
-                Text(c.avatar).font(.system(size: 22))
+    
+    private func sendComment() {
+        guard let vid = videoId, !commentText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        guard let user = AuthService.shared.user else { return } // Validar auth
+        
+        let text = commentText
+        commentText = "" // Limpiar input inmediatamente
+        
+        // Optimistic UI: Mostrar comentario localmente
+        let tempComment = Comment(
+            id: UUID().uuidString,
+            userId: user.uid,
+            username: user.username ?? "Yo",
+            text: text,
+            timestamp: Date(),
+            avatarUrl: user.photoURL?.absoluteString ?? ""
+        )
+        withAnimation {
+            comments.insert(tempComment, at: 0)
+        }
+        
+        DatabaseService.shared.postComment(videoId: vid, text: text, userId: user.uid) { error in
+            if let error = error {
+                print("Error sending comment: \(error)")
+                // TODO: Revertir optimistic UI si falla
             }
-            VStack(alignment: .leading, spacing: 8) {
-                Text(c.username)
+        }
+    }
+}
+
+// Subvista para cada fila de comentario
+struct CommentRow: View {
+    let comment: CommentsOverlayView.Comment
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Circle() // Avatar
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    AsyncImage(url: URL(string: comment.avatarUrl)) { img in
+                        img.resizable().aspectRatio(contentMode: .fill)
+                    } placeholder: { Color.clear }
+                )
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(comment.username)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Text(comment.text)
+                    .font(.system(size: 14))
                     .foregroundColor(.white)
-                    .font(.system(size: 14, weight: .semibold))
-                Text(c.text)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.08)))
-                HStack(spacing: 16) {
-                    Text(c.time).foregroundColor(.white.opacity(0.6)).font(.system(size: 12))
-                    HStack(spacing: 6) {
-                        Image(systemName: "heart").foregroundColor(.white.opacity(0.7)).font(.system(size: 12))
-                        Text("\(c.likes)").foregroundColor(.white.opacity(0.7)).font(.system(size: 12))
-                    }
-                    Text("Responder").foregroundColor(.white.opacity(0.7)).font(.system(size: 12))
-                }
+                    .lineLimit(nil)
+                
+                Text(timeAgo(comment.timestamp))
+                    .font(.system(size: 10))
+                    .foregroundColor(.gray)
             }
             Spacer()
         }
     }
-
-    private var inputBar: some View {
-        HStack(spacing: 10) {
-            TextField("Añade un comentario...", text: $inputText)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(RoundedRectangle(cornerRadius: 22).fill(Color.white.opacity(0.08)))
-                .foregroundColor(.white)
-            Button(action: send) {
-                ZStack {
-                    Circle().fill(Color.green).frame(width: 38, height: 38)
-                    Image(systemName: "paperplane.fill").foregroundColor(.black).font(.system(size: 14, weight: .bold))
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.95))
+    
+    func timeAgo(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
+}
 
-    private func send() {
-        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        comments.append(.init(avatar: "🙂", username: "@tú", text: text, time: "ahora", likes: 0))
-        inputText = ""
+// Extension para esquinas redondeadas parciales
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
 

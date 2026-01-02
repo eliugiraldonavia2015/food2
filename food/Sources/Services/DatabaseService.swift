@@ -229,6 +229,178 @@ public final class DatabaseService {
         }
     }
     
+    // MARK: - Likes Management
+    
+    /// Da like a un video
+    /// Esto crea un documento en `videos/{videoId}/likes/{userId}` y actualiza el contador localmente
+    /// (Idealmente el contador total se actualiza con Cloud Functions para consistencia)
+    public func likeVideo(videoId: String, userId: String, completion: @escaping (Error?) -> Void) {
+        let likeRef = db.collection("videos").document(videoId).collection("likes").document(userId)
+        let videoRef = db.collection("videos").document(videoId)
+        
+        let batch = db.batch()
+        
+        // 1. Crear documento de like
+        batch.setData([
+            "userId": userId,
+            "createdAt": Timestamp(date: Date())
+        ], forDocument: likeRef)
+        
+        // 2. Incrementar contador en video (Optimista)
+        batch.updateData([
+            "likes": FieldValue.increment(Int64(1))
+        ], forDocument: videoRef)
+        
+        batch.commit { error in
+            if let error = error {
+                print("[Database] ❌ Error liking video: \(error.localizedDescription)")
+            } else {
+                print("[Database] ❤️ Video liked: \(videoId)")
+            }
+            completion(error)
+        }
+    }
+    
+    /// Quita like a un video
+    public func unlikeVideo(videoId: String, userId: String, completion: @escaping (Error?) -> Void) {
+        let likeRef = db.collection("videos").document(videoId).collection("likes").document(userId)
+        let videoRef = db.collection("videos").document(videoId)
+        
+        let batch = db.batch()
+        
+        // 1. Borrar documento de like
+        batch.deleteDocument(likeRef)
+        
+        // 2. Decrementar contador en video (Optimista)
+        batch.updateData([
+            "likes": FieldValue.increment(Int64(-1))
+        ], forDocument: videoRef)
+        
+        batch.commit { error in
+            if let error = error {
+                print("[Database] ❌ Error unliking video: \(error.localizedDescription)")
+            } else {
+                print("[Database] 💔 Video unliked: \(videoId)")
+            }
+            completion(error)
+        }
+    }
+    
+    /// Verifica si el usuario actual ya dio like al video
+    public func checkIfUserLiked(videoId: String, userId: String, completion: @escaping (Bool) -> Void) {
+        db.collection("videos").document(videoId).collection("likes").document(userId).getDocument { snapshot, error in
+            if let error = error {
+                print("[Database] ⚠️ Error checking like status: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            completion(snapshot?.exists ?? false)
+        }
+    }
+    
+    // MARK: - Comments Management
+    
+    /// Publica un comentario en un video
+    public func postComment(videoId: String, text: String, userId: String, completion: @escaping (Error?) -> Void) {
+        let commentsRef = db.collection("videos").document(videoId).collection("comments")
+        let videoRef = db.collection("videos").document(videoId)
+        
+        let batch = db.batch()
+        
+        // 1. Crear documento de comentario (Auto ID)
+        let newCommentRef = commentsRef.document()
+        batch.setData([
+            "id": newCommentRef.documentID,
+            "userId": userId,
+            "text": text,
+            "createdAt": Timestamp(date: Date()),
+            "likes": 0
+        ], forDocument: newCommentRef)
+        
+        // 2. Incrementar contador en video
+        batch.updateData([
+            "comments": FieldValue.increment(Int64(1))
+        ], forDocument: videoRef)
+        
+        batch.commit { error in
+            if let error = error {
+                print("[Database] ❌ Error posting comment: \(error.localizedDescription)")
+            } else {
+                print("[Database] 💬 Comment posted on: \(videoId)")
+            }
+            completion(error)
+        }
+    }
+    
+    /// Obtiene los comentarios de un video
+    public func fetchComments(videoId: String, completion: @escaping (Result<[CommentsOverlayView.Comment], Error>) -> Void) {
+        db.collection("videos").document(videoId).collection("comments")
+            .order(by: "createdAt", descending: true)
+            .limit(to: 50)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let docs = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+                
+                // Necesitamos hacer fetch de los usuarios para mostrar nombres/fotos
+                // Para simplificar y hacerlo rápido, usaremos un DispatchGroup o similar
+                // Por ahora, asumiremos que tenemos un método rápido o cacheado,
+                // o simplemente devolvemos los datos crudos y dejamos que la vista resuelva el usuario (mejor opción)
+                
+                // NOTA: Para una implementación real eficiente, deberíamos guardar snapshot del autor en el comentario
+                // o tener un cache de usuarios. Aquí haremos una implementación básica que podría requerir mejoras.
+                
+                let group = DispatchGroup()
+                var comments: [CommentsOverlayView.Comment] = []
+                
+                for doc in docs {
+                    group.enter()
+                    let data = doc.data()
+                    let userId = data["userId"] as? String ?? ""
+                    let text = data["text"] as? String ?? ""
+                    let timestamp = (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
+                    let id = doc.documentID
+                    
+                    // Fetch user info
+                    self.fetchUser(uid: userId) { result in
+                        var username = "Usuario"
+                        var photoUrl = ""
+                        
+                        if case .success(let userData) = result {
+                            username = userData["username"] as? String ?? "Usuario"
+                            photoUrl = userData["photoURL"] as? String ?? ""
+                        }
+                        
+                        let comment = CommentsOverlayView.Comment(
+                            id: id,
+                            userId: userId,
+                            username: username,
+                            text: text,
+                            timestamp: timestamp,
+                            avatarUrl: photoUrl
+                        )
+                        
+                        DispatchQueue.main.async {
+                            comments.append(comment)
+                            group.leave()
+                        }
+                    }
+                }
+                
+                group.notify(queue: .main) {
+                    // Ordenar de nuevo porque los callbacks asíncronos pueden desordenar
+                    comments.sort(by: { $0.timestamp > $1.timestamp })
+                    completion(.success(comments))
+                }
+            }
+    }
+    
     // MARK: - Onboarding Related
     public func updateUserInterests(
         uid: String,
