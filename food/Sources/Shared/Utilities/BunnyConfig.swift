@@ -25,7 +25,9 @@ public struct BunnyConfig {
         return URL(string: "\(cdnBaseURLString)/thumbs/\(ulid).jpg")
     }
     
-    public static func rawStoragePath(for ulid: String) -> String {
-        "raw/\(ulid).mp4"
+    public static func rawStoragePath(for fileId: String) -> String {
+        // fileId ya incluye el nombre completo ej: "prod_v_01H..."
+        // Así que simplemente lo concatenamos con la carpeta raw/
+        "raw/\(fileId).mp4"
     }
 }

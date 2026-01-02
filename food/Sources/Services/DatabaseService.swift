@@ -217,6 +217,18 @@ public final class DatabaseService {
         }
     }
     
+    // MARK: - Video Management
+    public func createVideoDocument(video: Video, completion: @escaping (Error?) -> Void) {
+        db.collection("videos").document(video.id).setData(video.dictionary) { error in
+            if let error = error {
+                print("[Database] ❌ Error creating video document: \(error.localizedDescription)")
+            } else {
+                print("[Database] ✅ Video document created successfully: \(video.id)")
+            }
+            completion(error)
+        }
+    }
+    
     // MARK: - Onboarding Related
     public func updateUserInterests(
         uid: String,

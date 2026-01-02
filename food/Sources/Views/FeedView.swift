@@ -6,54 +6,18 @@ struct FeedView: View {
     let bottomInset: CGFloat
     let onGlobalShowComments: ((Int, String) -> Void)?
     let isCommentsOverlayActive: Bool
-    private struct FeedItem: Identifiable {
-        enum Label { case sponsored, foodieReview, none }
-        let id = UUID()
-        let backgroundUrl: String
-        let username: String
-        let label: Label
-        let hasStories: Bool
-        let avatarUrl: String
-        let title: String
-        let description: String
-        let soundTitle: String
-        let likes: Int
-        let comments: Int
-        let shares: Int
-        let videoUrl: String?
-        let posterUrl: String?
-        init(
-            backgroundUrl: String,
-            username: String,
-            label: Label,
-            hasStories: Bool,
-            avatarUrl: String,
-            title: String,
-            description: String,
-            soundTitle: String,
-            likes: Int,
-            comments: Int,
-            shares: Int,
-            videoUrl: String? = nil,
-            posterUrl: String? = nil
-        ) {
-            self.backgroundUrl = backgroundUrl
-            self.username = username
-            self.label = label
-            self.hasStories = hasStories
-            self.avatarUrl = avatarUrl
-            self.title = title
-            self.description = description
-            self.soundTitle = soundTitle
-            self.likes = likes
-            self.comments = comments
-            self.shares = shares
-            self.videoUrl = videoUrl
-            self.posterUrl = posterUrl
+    // MARK: - Propiedades Computadas para el Feed Híbrido
+    // Combina los datos mockeados (legacy) con los videos reales de Firestore
+    private var forYouItems: [FeedItem] {
+        // Si hay videos reales cargados, los mostramos PRIMERO
+        if !forYouVM.videos.isEmpty {
+            return forYouVM.videos + legacyForYouItems
         }
+        return legacyForYouItems
     }
 
-    private let forYouItems: [FeedItem] = [
+    // Renombramos la lista estática original para no perderla (útil para demos)
+    private let legacyForYouItems: [FeedItem] = [
         // 1. Foodie Review con historias (círculo verde)
         .init(
             backgroundUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",

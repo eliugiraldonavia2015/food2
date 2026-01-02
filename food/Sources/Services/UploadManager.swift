@@ -107,7 +107,13 @@ final class UploadManager: ObservableObject {
             
             // 2. Subida a Bunny
             self.statusMessage = "Subiendo video..."
-            let ulid = UUID().uuidString.lowercased()
+            
+            // Nueva estrategia de nombrado: {environment}_v_{ulid}
+            // Ej: prod_v_01H8X7Z...
+            let envPrefix = "prod" // Podrías cambiar esto a "dev" o leerlo de config
+            let uniqueId = ULID.generate().lowercased()
+            let fileId = "\(envPrefix)_v_\(uniqueId)"
+            
             let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
             
             guard !accessKey.isEmpty else {
@@ -115,7 +121,7 @@ final class UploadManager: ObservableObject {
                 return
             }
             
-            BunnyUploader.upload(fileURL: videoToUpload, ulid: ulid, accessKey: accessKey, onProgress: { p in
+            BunnyUploader.upload(fileURL: videoToUpload, ulid: fileId, accessKey: accessKey, onProgress: { p in
                 DispatchQueue.main.async {
                     self.uploadProgress = p
                     self.updateTotalProgress()
@@ -125,25 +131,60 @@ final class UploadManager: ObservableObject {
                     self.stopSimulation()
                     
                     switch result {
-                    case .success(_):
+                    case .success(let videoUrl):
                         self.uploadProgress = 1.0
                         self.updateTotalProgress()
-                        self.statusMessage = "¡Publicado!"
-                        self.isCompleted = true
-                        
-                        // Forzar 100% visual
-                        self.progress = 1.0
                         
                         // Generar y subir thumbnail
-                        self.handleThumbnail(videoURL: videoToUpload, ulid: ulid, accessKey: accessKey)
-                        
-                        // Ocultar overlay después de unos segundos
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                            self.isProcessing = false
+                        self.handleThumbnail(videoURL: videoToUpload, ulid: fileId, accessKey: accessKey) { thumbUrl in
+                            // Guardar en Firestore
+                            self.saveToFirestore(
+                                fileId: fileId,
+                                title: title,
+                                description: description,
+                                videoUrl: videoUrl.absoluteString,
+                                thumbnailUrl: thumbUrl?.absoluteString ?? ""
+                            )
                         }
                         
                     case .failure(let err):
                         self.error = "Error: \(err.localizedDescription)"
+                        self.isProcessing = false
+                    }
+                }
+            }
+        }
+    }
+    
+    private func saveToFirestore(fileId: String, title: String, description: String, videoUrl: String, thumbnailUrl: String) {
+        guard let userId = AuthService.shared.user?.uid else {
+            self.error = "Usuario no autenticado"
+            self.isProcessing = false
+            return
+        }
+        
+        let newVideo = Video(
+            id: fileId,
+            userId: userId,
+            title: title,
+            description: description,
+            videoUrl: videoUrl,
+            thumbnailUrl: thumbnailUrl,
+            duration: self.currentVideoDuration
+        )
+        
+        DatabaseService.shared.createVideoDocument(video: newVideo) { error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self.error = "Error guardando datos: \(error.localizedDescription)"
+                    self.isProcessing = false
+                } else {
+                    self.statusMessage = "¡Publicado!"
+                    self.isCompleted = true
+                    self.progress = 1.0
+                    
+                    // Ocultar overlay después de unos segundos
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                         self.isProcessing = false
                     }
                 }
@@ -217,13 +258,20 @@ final class UploadManager: ObservableObject {
         stopSimulation()
     }
     
-    private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String) {
+    private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String, completion: @escaping (URL?) -> Void) {
         let asset = AVAsset(url: videoURL)
         let gen = AVAssetImageGenerator(asset: asset)
         gen.appliesPreferredTrackTransform = true
         if let cgImage = try? gen.copyCGImage(at: CMTime.zero, actualTime: nil) {
             let uiImage = UIImage(cgImage: cgImage)
-            BunnyUploader.uploadThumbnail(image: uiImage, ulid: ulid, accessKey: accessKey) { _ in }
+            BunnyUploader.uploadThumbnail(image: uiImage, ulid: ulid, accessKey: accessKey) { result in
+                switch result {
+                case .success(let url): completion(url)
+                case .failure: completion(nil)
+                }
+            }
+        } else {
+            completion(nil)
         }
     }
 }
