@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CommentsOverlayView: View {
+public struct CommentsOverlayView: View {
     let count: Int
     let onClose: () -> Void
     let videoId: String? // ID real del video
@@ -10,17 +10,32 @@ struct CommentsOverlayView: View {
     @State private var comments: [Comment] = [] // Lista local para UI
     @State private var isLoading = false
     
-    // Modelo de comentario
-    struct Comment: Identifiable {
-        let id: String
-        let userId: String
-        let username: String
-        let text: String
-        let timestamp: Date
-        let avatarUrl: String
+    // Modelo de comentario PÚBLICO
+    public struct Comment: Identifiable {
+        public let id: String
+        public let userId: String
+        public let username: String
+        public let text: String
+        public let timestamp: Date
+        public let avatarUrl: String
+        
+        public init(id: String, userId: String, username: String, text: String, timestamp: Date, avatarUrl: String) {
+            self.id = id
+            self.userId = userId
+            self.username = username
+            self.text = text
+            self.timestamp = timestamp
+            self.avatarUrl = avatarUrl
+        }
     }
     
-    var body: some View {
+    public init(count: Int, onClose: @escaping () -> Void, videoId: String?) {
+        self.count = count
+        self.onClose = onClose
+        self.videoId = videoId
+    }
+    
+    public var body: some View {
         ZStack(alignment: .bottom) {
             // Fondo oscuro semitransparente
             Color.black.opacity(0.4)
