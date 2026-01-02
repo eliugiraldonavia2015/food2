@@ -64,7 +64,11 @@ struct MainTabView: View {
 
             // Overlay de comentarios por encima del tab bar
             if selected == .feed, showCommentsOverlay {
-                CommentsOverlayView(count: commentsCount, onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } })
+                CommentsOverlayView(
+                    count: commentsCount,
+                    onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } },
+                    videoId: nil // En el contexto global no tenemos el ID, se pasa solo para cerrar o mostrar
+                )
                     .zIndex(6)
             }
             if showUploadPicker {
