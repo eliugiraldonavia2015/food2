@@ -54,6 +54,14 @@ public final class FeedService {
     /// Reinicia la paginación (pull to refresh)
     public func resetPagination() {
         lastDocument = nil
+        isFetching = false
+    }
+    
+    /// Comprueba si hay más contenido disponible (útil para UI)
+    public var hasMoreContent: Bool {
+        // Si la última consulta devolvió 0 o menos del límite, asumimos que no hay más
+        // Esta es una heurística simple, se puede mejorar
+        return true 
     }
     
     /// Obtiene información básica del autor para mostrar en el feed

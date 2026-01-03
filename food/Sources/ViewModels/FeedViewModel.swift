@@ -10,7 +10,10 @@ final class FeedViewModel: ObservableObject {
     @Published var isLoading = false
     
     @Published var currentIndex: Int {
-        didSet { UserDefaults.standard.set(currentIndex, forKey: storageKey) }
+        didSet { 
+            UserDefaults.standard.set(currentIndex, forKey: storageKey) 
+            checkPaginationThreshold()
+        }
     }
 
     init(storageKey: String) {
@@ -18,13 +21,24 @@ final class FeedViewModel: ObservableObject {
         self.currentIndex = UserDefaults.standard.object(forKey: storageKey) as? Int ?? 0
         
         // 🚀 Carga inicial automática
-        loadRecentVideos()
+        loadRecentVideos(reset: true)
     }
     
     /// Carga videos frescos desde Firestore y los hidrata con perfiles de usuario
-    func loadRecentVideos() {
+    func loadRecentVideos(reset: Bool = false) {
         guard !isLoading else { return }
+        
+        // Si no hay más contenido, no intentamos cargar más
+        if !reset && !FeedService.shared.hasMoreContent { return }
+        
         isLoading = true
+        
+        if reset {
+            FeedService.shared.resetPagination()
+            // No borramos 'videos' aquí para evitar parpadeo visual, 
+            // se maneja en el callback si es necesario, o se puede hacer un replace.
+            // Para "Pull to Refresh" idealmente reemplazamos todo.
+        }
         
         FeedService.shared.fetchRecentVideos { [weak self] result in
             guard let self = self else { return }
@@ -48,8 +62,13 @@ final class FeedViewModel: ObservableObject {
                         
                         // 4. Actualizar UI
                         if !newItems.isEmpty {
-                            self.videos.append(contentsOf: newItems)
-                            self.prefetch(urls: newItems.prefix(3).map { $0.backgroundUrl })
+                            if reset {
+                                self.videos = newItems
+                            } else {
+                                self.videos.append(contentsOf: newItems)
+                            }
+                            // Prefetch de las nuevas miniaturas
+                            self.prefetch(urls: newItems.map { $0.backgroundUrl })
                         }
                     }
                 }
@@ -60,6 +79,14 @@ final class FeedViewModel: ObservableObject {
                     print("⚠️ Error cargando feed: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+    
+    private func checkPaginationThreshold() {
+        // Umbral: Cargar más cuando faltan 3 videos para el final
+        let threshold = 3
+        if currentIndex >= (videos.count - threshold) {
+            loadRecentVideos(reset: false)
         }
     }
     

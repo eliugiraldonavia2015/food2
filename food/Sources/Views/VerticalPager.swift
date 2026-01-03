@@ -3,31 +3,26 @@ import SwiftUI
 struct VerticalPager<Content: View>: UIViewRepresentable {
     let count: Int
     @Binding var index: Int
-    let pageHeight: CGFloat? // Nueva: altura específica opcional para cada página
+    let pageHeight: CGFloat?
     let content: (CGSize, Int) -> Content
+    var onPullToRefresh: (() -> Void)? = nil // Callback para refresh
     
-    // Inicializador compatible hacia atrás
-    init(count: Int, index: Binding<Int>, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
-        self.count = count
-        self._index = index
-        self.pageHeight = nil
-        self.content = content
-    }
-    
-    // Nuevo inicializador con altura específica
-    init(count: Int, index: Binding<Int>, pageHeight: CGFloat, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
+    init(count: Int, index: Binding<Int>, pageHeight: CGFloat? = nil, onPullToRefresh: (() -> Void)? = nil, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
         self.count = count
         self._index = index
         self.pageHeight = pageHeight
+        self.onPullToRefresh = onPullToRefresh
         self.content = content
     }
-
+    
+    // ... (rest of initializers if needed, but the main one covers most cases)
+    
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> UIScrollView {
         let scroll = UIScrollView()
         scroll.showsVerticalScrollIndicator = false
-        scroll.alwaysBounceVertical = false
+        scroll.alwaysBounceVertical = true // Necesario para pull-to-refresh
         scroll.isPagingEnabled = true
         scroll.decelerationRate = .fast
         scroll.delaysContentTouches = false
@@ -36,6 +31,15 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.scrollIndicatorInsets = .zero
         scroll.automaticallyAdjustsScrollIndicatorInsets = false
         scroll.delegate = context.coordinator
+        
+        // Agregar Refresh Control nativo (Estilo iOS) o customizado
+        if let _ = onPullToRefresh {
+            let refreshControl = UIRefreshControl()
+            refreshControl.tintColor = .white
+            refreshControl.addTarget(context.coordinator, action: #selector(Coordinator.handleRefresh), for: .valueChanged)
+            scroll.refreshControl = refreshControl
+        }
+        
         context.coordinator.install(in: scroll)
         return scroll
     }
@@ -201,6 +205,20 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         
         func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
             isAnimating = false
+        }
+        
+        @objc func handleRefresh(_ sender: UIRefreshControl) {
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            
+            // Ejecutar callback
+            parent.onPullToRefresh?()
+            
+            // Terminar animación después de un delay simulado (o cuando el padre quiera, pero aquí lo cerramos rápido para UX)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                sender.endRefreshing()
+            }
         }
     }
 }

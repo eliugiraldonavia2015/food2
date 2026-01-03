@@ -263,7 +263,15 @@ struct FeedView: View {
             
             ZStack {
                 // PAGER PRINCIPAL
-                VerticalPager(count: currentItems.count, index: selectedIndexBinding, pageHeight: totalHeight) { size, idx in
+                VerticalPager(
+                    count: currentItems.count,
+                    index: selectedIndexBinding,
+                    pageHeight: totalHeight,
+                    onPullToRefresh: {
+                        // Acción de refresco
+                        selectedVM.loadRecentVideos(reset: true)
+                    }
+                ) { size, idx in
                     let item = currentItems[idx]
                     FeedItemView(
                         item: item,
