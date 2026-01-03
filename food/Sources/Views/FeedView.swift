@@ -378,19 +378,9 @@ struct FeedView: View {
                 // ✅ Perfil Real Conectado
                 UserProfileView(userId: uid)
             } else {
-                // ⚠️ Legacy Mock Profile (Mantenemos para demos)
+                // ⚠️ Legacy Mock Profile: Usamos el diseño real inyectando los datos del item actual
                 let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
-                // ... (código legacy mock se mantiene pero inaccesible si hay selectedUserId)
-                // Para simplificar y evitar duplicar lógica de mock compleja aquí,
-                // si es mock, usamos una versión "dummy" del UserProfileView nuevo o el viejo si pudiéramos
-                // Pero como UserProfileView cambió su init, necesitamos un adaptador si queremos mantener mocks.
-                // Por ahora, asumiremos que si es mock, no cargará datos reales y mostrará loading o error,
-                // OJO: El UserProfileView nuevo REQUIERE un ID real.
-                
-                // FIX: Para no romper los mocks existentes, pasamos un ID falso "mock_user"
-                // y el ViewModel debería manejarlo (o simplemente fallar gracefuly).
-                // Lo ideal sería migrar los mocks a datos reales en Firebase, pero por tiempo:
-                UserProfileView(userId: "mock_user") 
+                UserProfileView(mockItem: item)
             }
         }
         .fullScreenCover(isPresented: $showMenu) {

@@ -10,6 +10,22 @@ struct UserProfileView: View {
     init(userId: String) {
         _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
     }
+
+    // ✅ Nuevo Init para datos Mock (desde FeedItem)
+    // Permite usar el diseño real con datos estáticos del feed
+    init(mockItem: FeedItem) {
+        let mockData = PublicProfileViewModel.UserProfileData(
+            id: "mock_user",
+            username: mockItem.username,
+            name: mockItem.username,
+            bio: mockItem.description,
+            photoUrl: mockItem.avatarUrl,
+            coverUrl: mockItem.backgroundUrl,
+            followers: mockItem.likes, // Simulamos followers con likes
+            location: "Food City"
+        )
+        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: "mock_user", initialData: mockData))
+    }
     
     // Estado UI
     @State private var isFollowing = false
