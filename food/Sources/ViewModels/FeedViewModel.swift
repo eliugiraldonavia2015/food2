@@ -71,6 +71,7 @@ final class FeedViewModel: ObservableObject {
         return FeedItem(
             id: UUID(),
             videoId: video.id,
+            authorId: video.userId, // ✅ ID del autor real
             backgroundUrl: video.thumbnailUrl,
             username: username, // ✅ Nombre real del autor
             label: .none,
@@ -101,6 +102,7 @@ struct FeedItem: Identifiable {
     enum Label { case sponsored, foodieReview, none }
     let id: UUID
     let videoId: String? // ID real de Firestore (opcional para compatibilidad con datos mock)
+    let authorId: String? // ✅ ID del autor para navegación a perfil
     let backgroundUrl: String
     let username: String
     let label: Label
@@ -119,6 +121,7 @@ struct FeedItem: Identifiable {
     init(
         id: UUID = UUID(),
         videoId: String? = nil,
+        authorId: String? = nil, // ✅ Nuevo parámetro
         backgroundUrl: String,
         username: String,
         label: Label,
@@ -135,6 +138,7 @@ struct FeedItem: Identifiable {
     ) {
         self.id = id
         self.videoId = videoId
+        self.authorId = authorId
         self.backgroundUrl = backgroundUrl
         self.username = username
         self.label = label

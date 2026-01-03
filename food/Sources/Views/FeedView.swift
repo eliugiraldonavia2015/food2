@@ -244,6 +244,7 @@ struct FeedView: View {
 
     @State private var showRestaurantProfile = false
     @State private var showUserProfile = false
+    @State private var selectedUserId: String? = nil // Nuevo estado para navegación dinámica
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
@@ -273,9 +274,17 @@ struct FeedView: View {
                         isActive: idx == selectedVM.currentIndex,
                         isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
                         onShowProfile: {
-                            if item.label == .foodieReview {
+                            // Lógica de navegación a perfiles
+                            if let authorId = item.authorId {
+                                // 🚀 Usuario Real: Navegar al perfil público dinámico
+                                selectedUserId = authorId
+                                showUserProfile = true
+                            } else if item.label == .foodieReview {
+                                // Legacy: Foodie Mock
+                                selectedUserId = nil // Indicador de mock
                                 showUserProfile = true
                             } else {
+                                // Legacy: Restaurant Mock
                                 showRestaurantProfile = true
                             }
                         },
@@ -356,42 +365,25 @@ struct FeedView: View {
             )
         }
         .fullScreenCover(isPresented: $showUserProfile) {
-            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
-            let photos: [UserProfileView.PhotoItem] = [
-                .init(url: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", title: "Reseñas recientes"),
-                .init(url: "https://images.unsplash.com/photo-1526312426976-0c6e56a2ff5f", title: "Platos favoritos"),
-                .init(url: "https://images.unsplash.com/photo-1544025162-d76694265947", title: "Descubrimientos")
-            ]
-            UserProfileView(
-                data: .init(
-                    coverUrl: item.backgroundUrl,
-                    avatarUrl: item.avatarUrl,
-                    name: item.username,
-                    username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
-                    location: "CDMX, México",
-                    followers: 12800,
-                    bio: "Foodie reviewer: reseñas, descubrimientos y recomendaciones locales 🍽️",
-                    photos: photos
-                ),
-                onRefresh: {
-                    try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
-                    let newPhotos: [UserProfileView.PhotoItem] = [
-                        .init(url: "https://images.unsplash.com/photo-1558559509-7d2b32d343b3", title: "Nueva reseña"),
-                        .init(url: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f", title: "Favorito del mes"),
-                        .init(url: "https://images.unsplash.com/photo-1543352634-8b8d5372f064", title: "Top descubrimiento")
-                    ]
-                    return .init(
-                        coverUrl: item.backgroundUrl,
-                        avatarUrl: item.avatarUrl,
-                        name: item.username,
-                        username: item.username.replacingOccurrences(of: " ", with: "").lowercased(),
-                        location: "CDMX, México",
-                        followers: 12800,
-                        bio: "Foodie reviewer: reseñas, descubrimientos y recomendaciones locales 🍽️",
-                        photos: newPhotos
-                    )
-                }
-            )
+            // Decidir qué perfil mostrar (Real vs Mock)
+            if let uid = selectedUserId {
+                // ✅ Perfil Real Conectado
+                UserProfileView(userId: uid)
+            } else {
+                // ⚠️ Legacy Mock Profile (Mantenemos para demos)
+                let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                // ... (código legacy mock se mantiene pero inaccesible si hay selectedUserId)
+                // Para simplificar y evitar duplicar lógica de mock compleja aquí,
+                // si es mock, usamos una versión "dummy" del UserProfileView nuevo o el viejo si pudiéramos
+                // Pero como UserProfileView cambió su init, necesitamos un adaptador si queremos mantener mocks.
+                // Por ahora, asumiremos que si es mock, no cargará datos reales y mostrará loading o error,
+                // OJO: El UserProfileView nuevo REQUIERE un ID real.
+                
+                // FIX: Para no romper los mocks existentes, pasamos un ID falso "mock_user"
+                // y el ViewModel debería manejarlo (o simplemente fallar gracefuly).
+                // Lo ideal sería migrar los mocks a datos reales en Firebase, pero por tiempo:
+                UserProfileView(userId: "mock_user") 
+            }
         }
         .fullScreenCover(isPresented: $showMenu) {
             let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]

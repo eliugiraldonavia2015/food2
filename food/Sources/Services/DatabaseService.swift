@@ -229,6 +229,31 @@ public final class DatabaseService {
         }
     }
     
+    // MARK: - Video Fetching (User Profile)
+    
+    /// Obtiene los videos de un usuario específico
+    public func fetchUserVideos(userId: String, completion: @escaping (Result<[Video], Error>) -> Void) {
+        db.collection("videos")
+            .whereField("userId", isEqualTo: userId)
+            .order(by: "createdAt", descending: true)
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    completion(.success([]))
+                    return
+                }
+                
+                let videos = documents.compactMap { doc -> Video? in
+                    try? doc.data(as: Video.self)
+                }
+                completion(.success(videos))
+            }
+    }
+    
     // MARK: - Likes Management
     
     /// Da like a un video
