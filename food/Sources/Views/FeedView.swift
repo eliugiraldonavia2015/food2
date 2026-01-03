@@ -742,18 +742,19 @@ struct FeedView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 10) {
                             HStack(alignment: .center, spacing: 12) {
-                                WebImage(url: URL(string: item.avatarUrl))
-                                    .resizable()
-                                    .placeholder {
-                                        Circle().fill(Color.gray.opacity(0.3))
-                                            .overlay(Image(systemName: "person.fill").foregroundColor(.white))
-                                    }
-                                    .scaledToFill()
-                                    .frame(width: 53, height: 53)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
-                                    )
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .overlay(Image(systemName: "person.fill").foregroundColor(.white))
+                                    WebImage(url: URL(string: item.avatarUrl))
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                                .frame(width: 53, height: 53)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
+                                )
                                 
                                 VStack(alignment: .leading, spacing: 1) {
                                     HStack(spacing: 8) {
