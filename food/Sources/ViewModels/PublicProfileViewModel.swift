@@ -20,25 +20,11 @@ class PublicProfileViewModel: ObservableObject {
     
     private let userId: String
     
-    init(userId: String, initialData: UserProfileData? = nil) {
+    init(userId: String) {
         self.userId = userId
-        if let data = initialData {
-            self.user = data
-            self.isLoading = false
-        }
     }
     
     func loadData() {
-        // Si es un usuario mock, no intentamos cargar de la red
-        if userId == "mock_user" {
-            // Si no tenemos datos (no se pasaron en init), cargamos un fallback
-            if user == nil {
-                mapUser(data: [:], uid: "mock_user")
-            }
-            // Simulamos carga de videos vacía o mock si quisieras
-            return
-        }
-        
         isLoading = true
         let group = DispatchGroup()
         

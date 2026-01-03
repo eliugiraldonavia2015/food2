@@ -1,195 +1,302 @@
 import SwiftUI
 import SDWebImageSwiftUI
 
-// ✅ Versión conectada a datos reales usando ViewModel
 struct UserProfileView: View {
     @StateObject private var viewModel: PublicProfileViewModel
     @Environment(\.dismiss) private var dismiss
     
-    // Init con userId para cargar datos reales
-    init(userId: String) {
-        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
-    }
-
-    // ✅ Nuevo Init para datos Mock (desde FeedItem)
-    // Permite usar el diseño real con datos estáticos del feed
-    init(mockItem: FeedItem) {
-        let mockData = PublicProfileViewModel.UserProfileData(
-            id: "mock_user",
-            username: mockItem.username,
-            name: mockItem.username,
-            bio: mockItem.description,
-            photoUrl: mockItem.avatarUrl,
-            coverUrl: mockItem.backgroundUrl,
-            followers: mockItem.likes, // Simulamos followers con likes
-            location: "Food City"
-        )
-        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: "mock_user", initialData: mockData))
-    }
-    
-    // Estado UI
+    // Estados visuales inspirados en RestaurantProfileView
     @State private var isFollowing = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
+    
     private let headerHeight: CGFloat = 340
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1)
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
     ]
+    
+    init(userId: String) {
+        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
+    }
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) { // Spacing 0 para diseño ajustado
+            VStack(spacing: 16) {
+                // Scroll Preference para efectos
+                Color.clear
+                    .frame(height: 0)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
+                        }
+                    )
+                    .padding(.bottom, -16)
+                
                 if let user = viewModel.user {
                     // Header Parallax
-                    GeometryReader { geo in
-                        let minY = geo.frame(in: .global).minY
-                        ZStack(alignment: .bottom) {
-                            WebImage(url: URL(string: user.coverUrl))
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
-                                .blur(radius: minY > 0 ? min(10, minY / 20) : 0)
-                                .overlay(Color.black.opacity(0.3))
-                                .offset(y: minY > 0 ? -minY : 0)
-                                .clipped()
-                            
-                            // Avatar superpuesto
-                            VStack {
-                                WebImage(url: URL(string: user.photoUrl))
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 90, height: 90)
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.black, lineWidth: 3))
-                                    .shadow(radius: 5)
-                            }
-                            .offset(y: 45) // Mitad fuera del header
-                        }
-                    }
-                    .frame(height: headerHeight)
+                    header(user: user)
+                        .padding(.horizontal, -16)
                     
-                    // Info del usuario
-                    VStack(spacing: 12) {
-                        VStack(spacing: 4) {
-                            Text(user.name)
-                                .font(.title2.bold())
-                                .foregroundColor(.white)
-                                .padding(.top, 50) // Espacio para el avatar
-                            
-                            Text("@\(user.username)")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            
-                            Text(user.bio)
-                                .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.9))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                                .padding(.top, 8)
-                        }
-                        
-                        // Stats Row
-                        HStack(spacing: 40) {
-                            statItem(value: "\(user.followers)", label: "Seguidores")
-                            statItem(value: "250", label: "Siguiendo")
-                            statItem(value: "\(viewModel.videos.count)", label: "Videos")
-                        }
-                        .padding(.vertical, 12)
-                        
-                        // Action Buttons
-                        HStack(spacing: 12) {
-                            Button(action: { isFollowing.toggle() }) {
-                                Text(isFollowing ? "Siguiendo" : "Seguir")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(isFollowing ? .white : .black)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 40)
-                                    .background(isFollowing ? Color.white.opacity(0.15) : Color.green)
-                                    .cornerRadius(8)
-                            }
-                            
-                            Button(action: {}) {
-                                Image(systemName: "paperplane.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color.white.opacity(0.15))
-                                    .cornerRadius(8)
-                            }
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 20)
-                        
-                        Divider().background(Color.white.opacity(0.1))
-                        
-                        // Grid de Videos
-                        LazyVGrid(columns: photoColumns, spacing: 1) {
-                            ForEach(viewModel.videos) { video in
-                                WebImage(url: URL(string: video.thumbnailUrl))
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(height: 130)
-                                    .clipped()
-                                    .overlay(
-                                        HStack {
-                                            Image(systemName: "play.fill")
-                                                .font(.caption2)
-                                            Text("\(video.likes)")
-                                                .font(.caption2.bold())
-                                        }
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .shadow(radius: 2)
-                                        , alignment: .bottomLeading
-                                    )
-                            }
-                        }
+                    // Info Principal
+                    profileInfo(user: user)
+                    
+                    // Bio / Descripción
+                    if !user.bio.isEmpty {
+                        descriptionCard(user: user)
                     }
+                    
+                    // Grid de Contenido
+                    sectionHeader("Videos")
+                    videoGrid
                 } else {
-                    // Loading State
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                        Spacer()
-                    }
-                    .frame(height: UIScreen.main.bounds.height)
+                    loadingView
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 40)
         }
-        .background(Color.black.ignoresSafeArea())
-        .edgesIgnoringSafeArea(.top)
+        .coordinateSpace(name: "profileScroll")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+            pullOffset = max(0, y)
+        }
+        .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
+            headerMinY = v
+            pullOffset = max(0, v)
+        }
         .overlay(alignment: .topLeading) {
             Button(action: { dismiss() }) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.black.opacity(0.3))
-                    .clipShape(Circle())
+                Circle()
+                    .fill(Color.black.opacity(0.6))
+                    .frame(width: 38, height: 38)
+                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
             }
-            .padding(.leading, 16)
-            .padding(.top, 50)
+            .padding(12)
+            .offset(y: 50)
         }
+        .background(Color.black.ignoresSafeArea())
+        .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
         }
     }
     
-    private func statItem(value: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(.headline.bold())
-                .foregroundColor(.white)
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.gray)
+    // MARK: - Componentes Visuales
+    
+    private func header(user: PublicProfileViewModel.UserProfileData) -> some View {
+        GeometryReader { geo in
+            let minY = geo.frame(in: .global).minY
+            ZStack(alignment: .topLeading) {
+                WebImage(url: URL(string: user.coverUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                    .clipped()
+                    .overlay(coverGradient)
+                    .offset(y: minY > 0 ? -minY : 0)
+                
+                Color.clear
+                    .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
+            }
+            .frame(height: headerHeight)
+            .frame(maxWidth: .infinity)
         }
+        .frame(height: headerHeight)
+    }
+    
+    private var coverGradient: LinearGradient {
+        LinearGradient(
+            gradient: Gradient(stops: [
+                .init(color: Color.black.opacity(0.0), location: 0.0),
+                .init(color: Color.black.opacity(0.0), location: 0.55),
+                .init(color: Color.black.opacity(0.30), location: 0.65),
+                .init(color: Color.black.opacity(0.75), location: 0.75),
+                .init(color: Color.black.opacity(1.0), location: 0.85),
+                .init(color: Color.black.opacity(1.0), location: 1.0)
+            ]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
+    private func profileInfo(user: PublicProfileViewModel.UserProfileData) -> some View {
+        VStack(spacing: 12) {
+            // Avatar superpuesto
+            WebImage(url: URL(string: user.photoUrl))
+                .resizable()
+                .scaledToFill()
+                .frame(width: 86, height: 86)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.green, lineWidth: 2))
+                .offset(y: -22)
+                .shadow(radius: 6)
+            
+            VStack(spacing: 6) {
+                Text(user.name)
+                    .foregroundColor(.white)
+                    .font(.system(size: 26, weight: .bold))
+                
+                Text("@\(user.username)")
+                    .foregroundColor(.white.opacity(0.85))
+                    .font(.system(size: 16))
+                
+                HStack(spacing: 10) {
+                    if !user.location.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .foregroundColor(.white.opacity(0.9))
+                            Text(user.location)
+                                .foregroundColor(.white)
+                                .font(.system(size: 14))
+                        }
+                    }
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill").foregroundColor(.yellow)
+                        Text("4.8").foregroundColor(.white).font(.system(size: 14))
+                    }
+                }
+                
+                // Categoría Pill
+                HStack(spacing: 8) {
+                    Text("Categoría:")
+                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 14))
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                    
+                    Text("Foodie")
+                        .foregroundColor(.green)
+                        .font(.system(size: 14, weight: .semibold))
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                }
+                .padding(.top, 4)
+                
+                // Stats
+                VStack(spacing: 2) {
+                    Text(formatCount(user.followers))
+                        .foregroundColor(.white)
+                        .font(.system(size: 24, weight: .bold))
+                    Text("Seguidores")
+                        .foregroundColor(.white.opacity(0.85))
+                        .font(.system(size: 13))
+                }
+                .padding(.top, 4)
+            }
+            .padding(.top, -10)
+            
+            // Botones de acción grandes
+            HStack(spacing: 12) {
+                Button(action: { isFollowing.toggle() }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: isFollowing ? "person.checkmark" : "person.badge.plus")
+                            .foregroundColor(.white)
+                        Text(isFollowing ? "Siguiendo" : "Seguir")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(isFollowing ? Color.white.opacity(0.15) : Color.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                
+                Button(action: {}) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "paperplane.fill").foregroundColor(.white)
+                        Text("Mensaje").foregroundColor(.white).font(.system(size: 16, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.white.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+            }
+        }
+        .padding(.top, -112) // Desplazamiento negativo para subir sobre el header
+        .padding(.bottom, 4)
+    }
+    
+    private func descriptionCard(user: PublicProfileViewModel.UserProfileData) -> some View {
+        Text(user.bio)
+            .foregroundColor(.white)
+            .font(.subheadline)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.white.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+    
+    private var videoGrid: some View {
+        LazyVGrid(columns: photoColumns, spacing: 12) {
+            ForEach(viewModel.videos) { video in
+                WebImage(url: URL(string: video.thumbnailUrl))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+                    .overlay(
+                        HStack(spacing: 4) {
+                            Image(systemName: "play.fill")
+                                .font(.caption2)
+                            Text("\(video.likes)")
+                                .font(.caption2.bold())
+                        }
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.4))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .padding(4)
+                        , alignment: .bottomLeading
+                    )
+            }
+        }
+    }
+    
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title).foregroundColor(.white).font(.headline)
+            Spacer()
+        }
+    }
+    
+    private var loadingView: some View {
+        VStack {
+            Spacer()
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .scaleEffect(1.5)
+            Spacer()
+        }
+        .frame(height: UIScreen.main.bounds.height * 0.5)
+    }
+    
+    private func formatCount(_ count: Int) -> String {
+        if count >= 1_000_000 { return String(format: "%.1fM", Double(count)/1_000_000) }
+        else if count >= 1_000 { return String(format: "%.1fK", Double(count)/1_000) }
+        else { return "\(count)" }
     }
 }
 
+// Helpers para Scroll y Parallax
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
 
+struct HeaderOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
