@@ -401,6 +401,47 @@ public final class DatabaseService {
             }
     }
     
+    // MARK: - Batch Fetching
+    
+    /// Obtiene múltiples usuarios en una sola consulta (max 10 por lote)
+    public func fetchUsers(byIds ids: [String], completion: @escaping (Result<[String: [String: Any]], Error>) -> Void) {
+        guard !ids.isEmpty else {
+            completion(.success([:]))
+            return
+        }
+        
+        // Firestore limita las consultas 'in' a 10 elementos.
+        // Si hay más de 10, hay que dividirlos en chunks.
+        let chunks = ids.chunked(into: 10)
+        var results: [String: [String: Any]] = [:]
+        let group = DispatchGroup()
+        var lastError: Error?
+        
+        for chunk in chunks {
+            group.enter()
+            db.collection(usersCollection)
+                .whereField("uid", in: chunk)
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        print("[Database] ⚠️ Error fetching users batch: \(error.localizedDescription)")
+                        lastError = error
+                    } else if let docs = snapshot?.documents {
+                        for doc in docs {
+                            results[doc.documentID] = doc.data()
+                        }
+                    }
+                    group.leave()
+                }
+        }
+        
+        group.notify(queue: .global()) {
+            if let error = lastError, results.isEmpty {
+                completion(.failure(error))
+            } else {
+                completion(.success(results))
+            }
+        }
+    }
     // MARK: - Onboarding Related
     public func updateUserInterests(
         uid: String,

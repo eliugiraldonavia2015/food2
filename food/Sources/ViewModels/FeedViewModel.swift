@@ -21,44 +21,61 @@ final class FeedViewModel: ObservableObject {
         loadRecentVideos()
     }
     
-    /// Carga videos frescos desde Firestore
+    /// Carga videos frescos desde Firestore y los hidrata con perfiles de usuario
     func loadRecentVideos() {
         guard !isLoading else { return }
         isLoading = true
         
         FeedService.shared.fetchRecentVideos { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success(let fetchedVideos):
-                    // Convertir modelos de DB (Video) a modelos de Vista (FeedItem)
-                    let items = fetchedVideos.map { self?.mapToFeedItem(video: $0) }
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let fetchedVideos):
+                // 1. Obtener IDs únicos de autores
+                let userIds = fetchedVideos.compactMap { $0.userId }
+                
+                // 2. Resolver perfiles en batch (usando caché inteligente)
+                UserCacheService.shared.resolveUsers(userIds: userIds) { userProfiles in
                     
-                    // Si no hay videos, mantener vacío o poner placeholder si se desea
-                    if let newItems = items as? [FeedItem], !newItems.isEmpty {
-                        self?.videos.append(contentsOf: newItems)
-                        // Prefetch de las primeras miniaturas
-                        self?.prefetch(urls: newItems.prefix(3).map { $0.backgroundUrl })
+                    DispatchQueue.main.async {
+                        self.isLoading = false
+                        
+                        // 3. Mapear videos hidratados con la data del perfil
+                        let newItems = fetchedVideos.map { video -> FeedItem in
+                            let profile = userProfiles[video.userId] ?? [:]
+                            return self.mapToFeedItem(video: video, userProfile: profile)
+                        }
+                        
+                        // 4. Actualizar UI
+                        if !newItems.isEmpty {
+                            self.videos.append(contentsOf: newItems)
+                            self.prefetch(urls: newItems.prefix(3).map { $0.backgroundUrl })
+                        }
                     }
-                    
-                case .failure(let error):
+                }
+                
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    self.isLoading = false
                     print("⚠️ Error cargando feed: \(error.localizedDescription)")
                 }
             }
         }
     }
     
-    /// Convierte el modelo crudo de DB al modelo visual
-    private func mapToFeedItem(video: Video) -> FeedItem {
-        // Por ahora usamos placeholders para datos que aun no tenemos en DB (avatar, soundTitle)
+    /// Convierte el modelo crudo de DB al modelo visual, inyectando datos de usuario
+    private func mapToFeedItem(video: Video, userProfile: [String: Any]) -> FeedItem {
+        let username = userProfile["username"] as? String ?? "Usuario"
+        let photoUrl = userProfile["photoURL"] as? String ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2" // Fallback seguro
+        
         return FeedItem(
-            id: UUID(), // Usamos UUID local para la vista, pero mantenemos referencia al real si es necesario
-            videoId: video.id, // ✅ Guardamos el ID real para likes/comentarios
-            backgroundUrl: video.thumbnailUrl, // Usamos thumbnail mientras carga el video
-            username: "Chef Foodie", // TODO: Cargar usuario real con fetchAuthorProfile
+            id: UUID(),
+            videoId: video.id,
+            backgroundUrl: video.thumbnailUrl,
+            username: username, // ✅ Nombre real del autor
             label: .none,
             hasStories: false,
-            avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2", // Placeholder
+            avatarUrl: photoUrl, // ✅ Foto real del autor
             title: video.title,
             description: video.description,
             soundTitle: "Sonido Original",
