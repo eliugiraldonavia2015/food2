@@ -8,8 +8,8 @@ struct UploadVideoView: View {
     @State private var description: String = ""
     @State private var category: String = "Promoción"
     @State private var tags: String = ""
-    @State private var selectedVideo: PhotosPickerItem? = nil
-    @State private var thumbnailURL: URL? = nil
+    @State private var showCustomPicker = false
+    @State private var selectedVideoURL: URL? = nil // URL temporal del video seleccionado
     
     // Estados mínimos para la vista (ya no maneja proceso)
     @State private var errorText: String? = nil
@@ -24,15 +24,15 @@ struct UploadVideoView: View {
             header()
             ScrollView {
                 VStack(spacing: 12) {
-                    // SELECCIÓN DE VIDEO
-                    PhotosPicker(selection: $selectedVideo, matching: .videos) {
+                    // SELECCIÓN DE VIDEO (Custom Picker Trigger)
+                    Button(action: { showCustomPicker = true }) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
                                 .fill(Color.white.opacity(0.06))
                                 .frame(height: 160)
                             
                             VStack(spacing: 8) {
-                                if selectedVideo != nil {
+                                if selectedVideoURL != nil {
                                     // Feedback minimalista: Solo muestra que hay video
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
@@ -51,9 +51,7 @@ struct UploadVideoView: View {
                             }
                         }
                     }
-                    .onChange(of: selectedVideo) { newItem in
-                        startPreparation(item: newItem)
-                    }
+                    .buttonStyle(.plain)
 
                     textField("Título", text: $title)
                     textArea("Descripción", text: $description)
@@ -90,8 +88,8 @@ struct UploadVideoView: View {
                     primaryFilledButton(title: "Publicar Video") {
                         commitUpload()
                     }
-                    .disabled(selectedVideo == nil || title.isEmpty || isPreparing)
-                    .opacity((selectedVideo == nil || title.isEmpty || isPreparing) ? 0.6 : 1.0)
+                    .disabled(selectedVideoURL == nil || title.isEmpty || isPreparing)
+                    .opacity((selectedVideoURL == nil || title.isEmpty || isPreparing) ? 0.6 : 1.0)
                 }
                 .padding()
             }
@@ -102,55 +100,60 @@ struct UploadVideoView: View {
                 errorBanner(e)
             }
         }
+        .sheet(isPresented: $showCustomPicker) {
+            CustomMediaPickerView(
+                onSelect: { url in
+                    showCustomPicker = false
+                    selectedVideoURL = url
+                    startPreparation(url: url)
+                },
+                onCancel: {
+                    showCustomPicker = false
+                }
+            )
+        }
         .onAppear {
             isRestaurant = (auth.user?.role ?? "client") == "restaurant"
         }
     }
     
-    private func startPreparation(item: PhotosPickerItem?) {
-        guard let item = item else { return }
+    private func startPreparation(url: URL) {
         isPreparing = true
         
         Task {
-            do {
-                print("🎬 [UploadVideoView] Extrayendo video del picker...")
-                // Extraer URL segura y persistente
-                var finalURL: URL?
+            print("🎬 [UploadVideoView] Video seleccionado desde Custom Picker: \(url)")
+            
+            await MainActor.run {
+                UploadManager.shared.prepareVideo(inputURL: url)
+                self.isPreparing = false
                 
-                if let pickedURL = try? await item.loadTransferable(type: URL.self) {
-                    let t = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
-                    try FileManager.default.copyItem(at: pickedURL, to: t)
-                    finalURL = t
-                } else if let data = try? await item.loadTransferable(type: Data.self) {
-                    let t = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
-                    try data.write(to: t)
-                    finalURL = t
+                // Generar thumbnail
+                self.thumbnailURL = nil
+                if let thumb = self.generateLocalThumbnail(url: url) {
+                    // Opcional: guardar thumb local
+                }
+            }
+        }
+    }
+    
+    // Helper Struct para Transferable seguro (YA NO SE USA CON CUSTOM PICKER PERO SE MANTIENE SI SE REQUIERE)
+    struct MovieFile: Transferable {
+        let url: URL
+        
+        static var transferRepresentation: some TransferRepresentation {
+            FileRepresentation(contentType: .movie) { movie in
+                SentTransferredFile(movie.url)
+            } importing: { received in
+                // Copiar a directorio temporal propio para persistencia durante la sesión
+                let fileName = received.file.lastPathComponent
+                let copyURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+                
+                if FileManager.default.fileExists(atPath: copyURL.path) {
+                    try? FileManager.default.removeItem(at: copyURL)
                 }
                 
-                guard let inputURL = finalURL else {
-                    print("❌ Error extrayendo video")
-                    await MainActor.run { isPreparing = false }
-                    return
-                }
-                
-                // Iniciar preparación en background (Manager Global)
-                // Esto no bloquea la UI, el usuario sigue escribiendo título/descripción
-                await MainActor.run {
-                    UploadManager.shared.prepareVideo(inputURL: inputURL)
-                    self.isPreparing = false
-                    
-                    // Generar thumbnail visual localmente para feedback inmediato
-                    self.thumbnailURL = nil // Reset
-                    if let thumb = self.generateLocalThumbnail(url: inputURL) {
-                        // Aquí podríamos guardar el thumb local para mostrarlo
-                        // Por simplicidad en este MVP, no lo mostramos en la UI de edición
-                        // salvo que implementemos lógica de thumb local.
-                    }
-                }
-                
-            } catch {
-                print("❌ Error fatal preparando: \(error)")
-                await MainActor.run { isPreparing = false }
+                try FileManager.default.copyItem(at: received.file, to: copyURL)
+                return Self(url: copyURL)
             }
         }
     }
