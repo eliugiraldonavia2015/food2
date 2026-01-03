@@ -4,13 +4,17 @@ import Combine
 
 public final class FeedService {
     public static let shared = FeedService()
-    private let db = Firestore.firestore()
+    // ✅ Usar la misma configuración de base de datos que DatabaseService
+    private let db: Firestore
     
     // Cache simple para evitar lecturas excesivas
     private var lastDocument: DocumentSnapshot?
     private var isFetching = false
     
-    private init() {}
+    private init() {
+        // Inicializar con la base de datos correcta "logincloud"
+        self.db = Firestore.firestore(database: "logincloud")
+    }
     
     /// Obtiene los videos más recientes ordenados por ID (ULID)
     /// Esto garantiza orden cronológico inverso sin necesidad de índices complejos
