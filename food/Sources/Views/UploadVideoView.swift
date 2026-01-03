@@ -9,7 +9,8 @@ struct UploadVideoView: View {
     @State private var category: String = "Promoción"
     @State private var tags: String = ""
     @State private var showCustomPicker = false
-    @State private var selectedVideoURL: URL? = nil // URL temporal del video seleccionado
+    @State private var selectedVideoURL: URL? = nil
+    @State private var thumbnailURL: URL? = nil // Restauramos esta variable que faltaba
     
     // Estados mínimos para la vista (ya no maneja proceso)
     @State private var errorText: String? = nil
