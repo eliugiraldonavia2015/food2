@@ -9,6 +9,13 @@ final class FeedViewModel: ObservableObject {
     @Published var videos: [FeedItem] = []
     @Published var isLoading = false
     
+    // 🧠 MEMORIA O(1): Set persistente para deduplicación instantánea
+    private var seenVideoIds = Set<String>()
+    
+    // 🎛️ CONFIG: Interruptor para permitir duplicados (útil para testing con pocos videos)
+    // Cambiar a 'true' para producción
+    private let shouldDeduplicate = false
+    
     @Published var currentIndex: Int {
         didSet { 
             UserDefaults.standard.set(currentIndex, forKey: storageKey) 
@@ -60,25 +67,40 @@ final class FeedViewModel: ObservableObject {
                             return self.mapToFeedItem(video: video, userProfile: profile)
                         }
                         
+                        print("📊 [FeedViewModel] Recibidos \(newItems.count) items de Firestore. Reset: \(reset)")
+                        
                         // 4. Actualizar UI
                         if !newItems.isEmpty {
+                            // Paso 1: Filtrar items rotos (sin video válido)
+                            let playableItems = newItems.filter { $0.videoUrl != nil && !$0.videoUrl!.isEmpty }
+                            
                             if reset {
-                                self.videos = newItems
+                                self.videos = playableItems
+                                // Reconstruir el set de vistos
+                                self.seenVideoIds = Set(playableItems.compactMap { $0.videoId })
+                                print("✅ [FeedViewModel] Reset completo. Videos válidos: \(self.videos.count)")
                             } else {
-                                // Deduplicación usando los items actuales
-                                let currentIds = Set(self.videos.compactMap { $0.videoId })
-                                let uniqueItems = newItems.filter { item in
+                                // 🛑 DEDUPLICACIÓN SCALABLE (O(1)):
+                                let uniqueItems = playableItems.filter { item in
+                                    guard self.shouldDeduplicate else { return true }
                                     guard let vid = item.videoId else { return true }
-                                    return !currentIds.contains(vid)
+                                    if self.seenVideoIds.contains(vid) { return false }
+                                    return true
                                 }
                                 
-                                // Filtrar solo items que tengan video URL válido (no solo thumbnails)
-                                let playableItems = uniqueItems.filter { $0.videoUrl != nil && !$0.videoUrl!.isEmpty }
+                                // Registrar los nuevos IDs
+                                uniqueItems.forEach { 
+                                    if let vid = $0.videoId { self.seenVideoIds.insert(vid) }
+                                }
                                 
-                                self.videos.append(contentsOf: playableItems)
+                                self.videos.append(contentsOf: uniqueItems)
+                                print("➕ [FeedViewModel] Agregados \(uniqueItems.count) nuevos videos.")
                             }
+                            
                             // Prefetch de las nuevas miniaturas
                             self.prefetch(urls: newItems.map { $0.backgroundUrl })
+                        } else {
+                             print("⚠️ [FeedViewModel] Firestore devolvió lista vacía.")
                         }
                     }
                 }
