@@ -1,6 +1,7 @@
 import SwiftUI
 import SDWebImageSwiftUI
 import AVKit
+import Combine
 
 struct FeedView: View {
     let bottomInset: CGFloat
