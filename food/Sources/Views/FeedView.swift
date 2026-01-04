@@ -621,10 +621,25 @@ struct FeedView: View {
                         .onTapGesture(count: 2) { handleDoubleTap() }
                         .onTapGesture {
                             guard item.videoUrl != nil else { return }
+                            // 1. Toggle local state immediately for UI feedback
+                            let willPause = !isPaused
+                            withAnimation(.easeInOut(duration: 0.08)) { isPaused = willPause }
+                            
+                            // 2. Direct player control (bypass coordinator for pause)
                             if let p = player {
-                                if isPaused { p.play() } else { p.pause() }
+                                if willPause {
+                                    p.pause()
+                                } else {
+                                    // Resume only if we are the active video
+                                    if coordinator.activeVideoId == item.id {
+                                        p.play()
+                                    } else {
+                                        // If we weren't active, become active
+                                        coordinator.setActive(item.id)
+                                        // Coordinator change will trigger updatePlayback -> play
+                                    }
+                                }
                             }
-                            withAnimation(.easeInOut(duration: 0.08)) { isPaused.toggle() }
                         }
                     Spacer(minLength: 0)
                 }
@@ -1164,12 +1179,24 @@ struct FeedView: View {
 
         private func updatePlayback() {
             guard let p = player else { return }
-            if isActive && isScreenActive && !isPaused {
+            
+            // Lógica Centralizada:
+            // Solo reproducir si:
+            // 1. El coordinador dice que somos el video activo (evita audios simultáneos)
+            // 2. La pantalla está activa (no hay menús encima)
+            // 3. El usuario no lo pausó manualmente
+            let shouldPlay = (coordinator.activeVideoId == item.id) && isScreenActive && !isPaused
+            
+            if shouldPlay {
+                // Solo llamar a play si no está reproduciendo para evitar overhead
+                if p.rate == 0 && p.status == .readyToPlay { 
+                    p.play() 
+                }
                 p.isMuted = false
-                p.play()
             } else {
-                p.pause()
-                p.isMuted = true
+                if p.rate != 0 { p.pause() }
+                // No silenciar si está pausado por el usuario, solo pausar
+                // p.isMuted = true 
             }
         }
 
