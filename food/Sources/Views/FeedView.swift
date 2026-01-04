@@ -533,6 +533,9 @@ struct FeedView: View {
         @State private var hapticMedium = UIImpactFeedbackGenerator(style: .medium)
         @State private var hapticHeavy = UIImpactFeedbackGenerator(style: .heavy)
         
+        // Coordinator
+        @ObservedObject private var coordinator = VideoPlayerCoordinator.shared
+        
         // Animation State
         @State private var showLikeHeart = false
         @State private var heartScale: CGFloat = 0.5
