@@ -324,9 +324,33 @@ struct FeedView: View {
             followingVM.cancelPrefetch()
         }
         .onChange(of: activeTab) { _, _ in
+            // 🛑 DETENER TODO EL AUDIO AL CAMBIAR DE TAB
+            VideoPlayerCoordinator.shared.pauseAll()
+            
             withAnimation(.easeInOut(duration: 0.2)) { }
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
+        }
+        // 🚀 PRECARGA INTELIGENTE DE VIDEO
+        // Cuando cambia el índice (scroll), iniciamos la carga del SIGUIENTE video
+        .onChange(of: selectedIndexBinding.wrappedValue) { oldValue, newValue in
+            let idx = newValue
+            let items = currentItems
+            guard idx >= 0 && idx < items.count else { return }
+            
+            // 1. Limpiar memoria (borrar videos lejanos)
+            let currentUrl = items[idx].videoUrl
+            let nextIdx = idx + 1
+            let nextUrl = (nextIdx < items.count) ? items[nextIdx].videoUrl : nil
+            
+            if let c = currentUrl {
+                VideoPrefetchService.shared.cleanup(currentItemUrl: c, nextItemUrl: nextUrl)
+            }
+            
+            // 2. Precargar el SIGUIENTE video (buffer ~4 seg)
+            if let n = nextUrl {
+                VideoPrefetchService.shared.prefetch(url: n)
+            }
         }
         .fullScreenCover(isPresented: $showRestaurantProfile) {
             let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
@@ -630,20 +654,28 @@ struct FeedView: View {
                 // Verificar si ya le di like
                 checkLikeStatus()
                 
+                // 🚀 CARGA ASÍNCRONA OPTIMIZADA
+                // No bloqueamos el hilo principal creando el AVPlayer inmediatamente
                 if let u = item.videoUrl, let url = URL(string: u) {
-                    let p = AVPlayer(url: url)
-                    p.isMuted = true // Start muted and paused
                     
-                    // Solo activar si somos el activo
-                    if isActive && isScreenActive {
-                        coordinator.setActive(item.id)
+                    // 1. REVISAR CACHÉ (PRECARGA)
+                    if let cachedItem = VideoPrefetchService.shared.getItem(for: u) {
+                        // ¡Bingo! Ya tenemos el video precargado
+                        setupPlayer(with: cachedItem)
+                    } else {
+                        // 2. Si no está en caché, cargar desde cero (Fallback)
+                        Task {
+                            let asset = AVURLAsset(url: url)
+                            // Cargar propiedades clave en background
+                            let keys = ["playable", "duration"]
+                            try? await asset.loadValues(forKeys: keys)
+                            
+                            await MainActor.run {
+                                let item = AVPlayerItem(asset: asset)
+                                setupPlayer(with: item)
+                            }
+                        }
                     }
-                    
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
-                        p.seek(to: .zero)
-                        p.play()
-                    }
-                    player = p
                 }
             }
             .onDisappear {
@@ -668,6 +700,7 @@ struct FeedView: View {
                         p.pause()
                         p.seek(to: .zero)
                     }
+                    isPaused = false
                 }
                 // No llamamos updatePlayback aquí, reaccionaremos al cambio del coordinator
             }
@@ -675,6 +708,23 @@ struct FeedView: View {
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
             .onChange(of: isMuted) { _, _ in updatePlayback() }
+        }
+
+        private func setupPlayer(with item: AVPlayerItem) {
+            let p = AVPlayer(playerItem: item)
+            p.automaticallyWaitsToMinimizeStalling = true
+            p.isMuted = true
+            
+            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
+                p.seek(to: .zero)
+                p.play()
+            }
+            
+            self.player = p
+            
+            if isActive && isScreenActive {
+                coordinator.setActive(self.item.id)
+            }
         }
 
         private func checkLikeStatus() {
