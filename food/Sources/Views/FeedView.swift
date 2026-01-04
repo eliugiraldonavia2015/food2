@@ -568,6 +568,8 @@ struct FeedView: View {
         @State private var player: AVPlayer? = nil
         @State private var isPaused: Bool = false
         @State private var isMuted: Bool = false
+        @State private var loadingTask: Task<Void, Never>? = nil // 🔴 Track loading task
+        @State private var isVideoReady = false // 🔴 Track if video is actually rendering frames
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -664,13 +666,20 @@ struct FeedView: View {
                         setupPlayer(with: cachedItem)
                     } else {
                         // 2. Si no está en caché, cargar desde cero (Fallback)
-                        Task {
+                        loadingTask?.cancel() // Cancelar anterior
+                        loadingTask = Task {
                             let asset = AVURLAsset(url: url)
                             // Cargar propiedades clave en background
-                            let keys = ["playable", "duration"]
+                            let keys = ["playable", "duration", "tracks"]
                             try? await asset.loadValues(forKeys: keys)
                             
+                            // Verificar cancelación
+                            if Task.isCancelled { return }
+                            
                             await MainActor.run {
+                                // Verificar cancelación de nuevo por si acaso
+                                if Task.isCancelled { return }
+                                
                                 let item = AVPlayerItem(asset: asset)
                                 setupPlayer(with: item)
                             }
@@ -679,10 +688,15 @@ struct FeedView: View {
                 }
             }
             .onDisappear {
+                loadingTask?.cancel() // 🔴 STOP ZOMBIE LOAD
+                loadingTask = nil
+                
                 if let p = player {
                     p.pause()
                 }
                 player = nil
+                isVideoReady = false // Reset visual state
+                
                 // Si éramos el activo, soltamos el control
                 if coordinator.activeVideoId == item.id {
                    // Opcional: coordinator.stop(item.id) 
@@ -715,12 +729,24 @@ struct FeedView: View {
             p.automaticallyWaitsToMinimizeStalling = true
             p.isMuted = true
             
+            // Detectar cuando está listo para mostrar imagen (evita pantallazo negro)
+            // Usamos KVO en readyForDisplay si usamos AVPlayerLayer, pero con VideoPlayer SwiftUI es opaco.
+            // Truco: Esperar al status .readyToPlay
+            
+            // Configurar loop
             NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
                 p.seek(to: .zero)
                 p.play()
             }
             
             self.player = p
+            
+            // Simular "ready" tras un breve delay si el status es bueno, 
+            // o esperar a que el observer de timeControlStatus nos diga que fluye.
+            // Para feedback instantáneo mejoramos la percepción visual:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation { isVideoReady = true }
+            }
             
             if isActive && isScreenActive {
                 coordinator.setActive(self.item.id)
@@ -1085,6 +1111,7 @@ struct FeedView: View {
             Group {
                 if let u = item.videoUrl, player != nil {
                     ZStack {
+                        // 1. Imagen de fondo SIEMPRE visible hasta que el video esté listo
                         if let poster = item.posterUrl, let pu = URL(string: poster) {
                             AsyncImage(url: pu) { phase in
                                 switch phase {
@@ -1094,9 +1121,22 @@ struct FeedView: View {
                                 @unknown default: Color.black
                                 }
                             }
+                            .opacity(isVideoReady ? 0 : 1) // Desvanecer suavemente cuando esté listo
+                            .animation(.easeOut(duration: 0.3), value: isVideoReady)
+                        } else {
+                            WebImage(url: URL(string: item.backgroundUrl))
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .opacity(isVideoReady ? 0 : 1)
+                                .animation(.easeOut(duration: 0.3), value: isVideoReady)
                         }
+                        
+                        // 2. Video Player
                         VideoPlayer(player: player)
                             .disabled(true)
+                            .opacity(isVideoReady ? 1 : 0) // Aparecer suavemente
+                            .animation(.easeIn(duration: 0.3), value: isVideoReady)
+                        
                         if isPaused {
                             Image(systemName: "play.fill")
                                 .foregroundColor(.white)

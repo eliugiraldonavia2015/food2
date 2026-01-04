@@ -38,7 +38,9 @@ final class VideoPrefetchService: ObservableObject {
     
     /// Recupera un item precargado si existe, o devuelve nil
     func getItem(for url: String) -> AVPlayerItem? {
-        return itemCache[url]
+        // ⚠️ CRITICAL: AVPlayerItem can only belong to one AVPlayer at a time.
+        // We must return a copy to avoid "An AVPlayerItem cannot be associated with more than one instance of AVPlayer" crash.
+        return itemCache[url]?.copy() as? AVPlayerItem
     }
     
     /// Limpia caché antigua para liberar memoria RAM
