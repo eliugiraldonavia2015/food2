@@ -972,6 +972,7 @@ struct FeedView: View {
                         // 2. Video Player
                         VideoPlayer(player: player)
                             .disabled(true)
+                            .allowsHitTesting(false) // 🛑 Asegurar que los toques pasen al contenedor para el Pausa
                             .opacity(isVideoReady ? 1 : 0) // Aparecer suavemente
                             .animation(.easeIn(duration: 0.3), value: isVideoReady)
                         

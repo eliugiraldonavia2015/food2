@@ -65,7 +65,18 @@ final class FeedViewModel: ObservableObject {
                             if reset {
                                 self.videos = newItems
                             } else {
-                                self.videos.append(contentsOf: newItems)
+                                // 🛑 DEDUPLICACIÓN INTELIGENTE:
+                                // Evitar agregar videos que ya tenemos en la lista (por ID)
+                                let currentIds = Set(self.videos.compactMap { $0.videoId })
+                                let uniqueItems = newItems.filter { item in
+                                    guard let vid = item.videoId else { return true }
+                                    return !currentIds.contains(vid)
+                                }
+                                
+                                // Filtrar solo items que tengan video URL válido (no solo thumbnails)
+                                let playableItems = uniqueItems.filter { $0.videoUrl != nil && !$0.videoUrl!.isEmpty }
+                                
+                                self.videos.append(contentsOf: playableItems)
                             }
                             // Prefetch de las nuevas miniaturas
                             self.prefetch(urls: newItems.map { $0.backgroundUrl })
