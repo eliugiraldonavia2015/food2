@@ -489,7 +489,13 @@ struct FeedView: View {
                             let asset = AVURLAsset(url: url)
                             // Cargar propiedades clave en background
                             let keys = ["playable", "duration", "tracks"]
-                            try? await asset.loadValues(forKeys: keys)
+                            
+                            do {
+                                try await asset.loadValues(forKeys: keys)
+                            } catch {
+                                print("❌ [FeedItem] Error cargando asset para \(url): \(error.localizedDescription)")
+                                return 
+                            }
                             
                             // Verificar cancelación
                             if Task.isCancelled { return }
@@ -585,10 +591,12 @@ struct FeedView: View {
                 withAnimation { isVideoReady = true }
             }
             
-            // Eliminamos la activación inmediata en setupPlayer para respetar el debounce
-            // if isActive && isScreenActive {
-            //    coordinator.setActive(self.item.id)
-            // }
+            // 🚀 AUTO-PLAY RESTAURADO:
+            // Si al terminar de cargar seguimos siendo el video activo, iniciamos la reproducción.
+            // Esto es crucial para el primer video o cuando la carga termina y el usuario sigue ahí.
+            if isActive && isScreenActive {
+                coordinator.setActive(self.item.id)
+            }
         }
 
         private func checkLikeStatus() {
