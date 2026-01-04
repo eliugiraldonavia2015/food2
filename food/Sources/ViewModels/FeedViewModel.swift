@@ -64,21 +64,12 @@ final class FeedViewModel: ObservableObject {
                         if !newItems.isEmpty {
                             if reset {
                                 self.videos = newItems
-                                // Reconstruir el set de vistos
-                                self.seenVideoIds = Set(newItems.compactMap { $0.videoId })
                             } else {
-                                // 🛑 DEDUPLICACIÓN SCALABLE (O(1)):
-                                // Usamos el Set persistente en lugar de reconstruirlo
+                                // Deduplicación usando los items actuales
+                                let currentIds = Set(self.videos.compactMap { $0.videoId })
                                 let uniqueItems = newItems.filter { item in
                                     guard let vid = item.videoId else { return true }
-                                    // Si ya lo vimos, lo descartamos
-                                    if self.seenVideoIds.contains(vid) { return false }
-                                    return true
-                                }
-                                
-                                // Registrar los nuevos IDs en el Set
-                                uniqueItems.forEach { 
-                                    if let vid = $0.videoId { self.seenVideoIds.insert(vid) }
+                                    return !currentIds.contains(vid)
                                 }
                                 
                                 // Filtrar solo items que tengan video URL válido (no solo thumbnails)
