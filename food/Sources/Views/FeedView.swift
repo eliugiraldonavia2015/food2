@@ -231,7 +231,12 @@ struct FeedView: View {
     private var selectedVM: FeedViewModel { activeTab == .foryou ? forYouVM : followingVM }
     private var selectedIndexBinding: Binding<Int> {
         Binding(
-            get: { activeTab == .foryou ? forYouVM.currentIndex : followingVM.currentIndex },
+            get: { 
+                // Asegurar que el índice no exceda el count actual para evitar crash de rango
+                let idx = activeTab == .foryou ? forYouVM.currentIndex : followingVM.currentIndex
+                let maxIdx = max(0, currentItems.count - 1)
+                return min(idx, maxIdx)
+            },
             set: { newValue in
                 if activeTab == .foryou {
                     forYouVM.currentIndex = newValue
@@ -691,16 +696,17 @@ struct FeedView: View {
                 loadingTask?.cancel() // 🔴 STOP ZOMBIE LOAD
                 loadingTask = nil
                 
+                // 🗑️ MEMORY NUKE: Destruir player inmediatamente al salir de pantalla
                 if let p = player {
                     p.pause()
+                    p.replaceCurrentItem(with: nil) // Liberar recursos del item
                 }
                 player = nil
-                isVideoReady = false // Reset visual state
+                isVideoReady = false 
                 
                 // Si éramos el activo, soltamos el control
                 if coordinator.activeVideoId == item.id {
                    // Opcional: coordinator.stop(item.id) 
-                   // Pero mejor dejamos que el siguiente setActive tome el control para evitar huecos
                 }
             }
             .onChange(of: isActive) { oldValue, newValue in

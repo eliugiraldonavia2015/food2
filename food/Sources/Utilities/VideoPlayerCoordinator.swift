@@ -13,9 +13,9 @@ final class VideoPlayerCoordinator: ObservableObject {
     private init() {}
     
     func setActive(_ id: UUID) {
-        // Debounce slightly to avoid rapid switching causing issues? 
-        // For now, direct assignment is cleaner for responsiveness.
+        // Enforce strict one-player rule
         if activeVideoId != id {
+            // Log for debugging if needed: print("Switching audio focus from \(String(describing: activeVideoId)) to \(id)")
             activeVideoId = id
         }
     }

@@ -46,14 +46,18 @@ final class VideoPrefetchService: ObservableObject {
     /// Limpia caché antigua para liberar memoria RAM
     /// Se debe llamar cuando cambiamos de video
     func cleanup(currentItemUrl: String, nextItemUrl: String?) {
-        // Mantener solo el actual y el siguiente. Borrar todo lo demás.
+        // TikTok Strategy: Keep ONLY current and next. Aggressively purge everything else.
+        // If memory pressure is high, iOS will handle it, but we help it.
         let keysToKeep = [currentItemUrl, nextItemUrl].compactMap { $0 }
         
         for key in itemCache.keys {
             if !keysToKeep.contains(key) {
-                itemCache.removeValue(forKey: key)
+                // Cancel loading task
                 loadingTasks[key]?.cancel()
                 loadingTasks.removeValue(forKey: key)
+                
+                // Remove item to free memory immediately
+                itemCache.removeValue(forKey: key)
             }
         }
     }
