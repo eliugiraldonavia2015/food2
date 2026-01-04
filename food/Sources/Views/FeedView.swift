@@ -575,6 +575,7 @@ struct FeedView: View {
         @State private var isMuted: Bool = false
         @State private var loadingTask: Task<Void, Never>? = nil // 🔴 Track loading task
         @State private var isVideoReady = false // 🔴 Track if video is actually rendering frames
+        @State private var loopCancellable: AnyCancellable? = nil // 🔴 Fix Memory Leak
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -750,15 +751,13 @@ struct FeedView: View {
             p.automaticallyWaitsToMinimizeStalling = true
             p.isMuted = true
             
-            // Detectar cuando está listo para mostrar imagen (evita pantallazo negro)
-            // Usamos KVO en readyForDisplay si usamos AVPlayerLayer, pero con VideoPlayer SwiftUI es opaco.
-            // Truco: Esperar al status .readyToPlay
-            
-            // Configurar loop
-            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
-                p.seek(to: .zero)
-                p.play()
-            }
+            // 🛑 MEMORY LEAK FIX: Use Combine for looping instead of block-based NotificationCenter
+            // This ensures the observer is released when the view/cancellable is deallocated.
+            loopCancellable = NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: p.currentItem)
+                .sink { [weak p] _ in
+                    p?.seek(to: .zero)
+                    p?.play()
+                }
             
             self.player = p
             
