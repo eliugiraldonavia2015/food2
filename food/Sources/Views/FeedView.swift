@@ -629,8 +629,13 @@ struct FeedView: View {
                 
                 if let u = item.videoUrl, let url = URL(string: u) {
                     let p = AVPlayer(url: url)
-                    p.isMuted = !(isActive && isScreenActive && !isPaused)
-                    if isActive && isScreenActive && !isPaused { p.play() } else { p.pause() }
+                    p.isMuted = true // Start muted and paused
+                    
+                    // Solo activar si somos el activo
+                    if isActive && isScreenActive {
+                        coordinator.setActive(item.id)
+                    }
+                    
                     NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
                         p.seek(to: .zero)
                         p.play()
@@ -643,17 +648,27 @@ struct FeedView: View {
                     p.pause()
                 }
                 player = nil
+                // Si éramos el activo, soltamos el control
+                if coordinator.activeVideoId == item.id {
+                   // Opcional: coordinator.stop(item.id) 
+                   // Pero mejor dejamos que el siguiente setActive tome el control para evitar huecos
+                }
             }
             .onChange(of: isActive) { oldValue, newValue in
-                if !newValue {
+                if newValue {
+                    // Nos volvimos activos -> Reclamar el audio
+                    coordinator.setActive(item.id)
+                    isPaused = false
+                } else {
+                    // Dejamos de ser activos -> Pausar localmente y resetear
                     if let p = player {
                         p.pause()
                         p.seek(to: .zero)
                     }
-                    isPaused = false
                 }
-                updatePlayback()
+                // No llamamos updatePlayback aquí, reaccionaremos al cambio del coordinator
             }
+            .onChange(of: coordinator.activeVideoId) { _, _ in updatePlayback() }
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
             .onChange(of: isMuted) { _, _ in updatePlayback() }
