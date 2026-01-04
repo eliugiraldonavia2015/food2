@@ -7,17 +7,13 @@ struct FeedView: View {
     let bottomInset: CGFloat
     let onGlobalShowComments: ((Int, String) -> Void)?
     let isCommentsOverlayActive: Bool
-    // MARK: - Propiedades Computadas para el Feed Híbrido
-    // Combina los datos mockeados (legacy) con los videos reales de Firestore
+    // MARK: - Propiedades Computadas para el Feed (SOLO REAL)
     private var forYouItems: [FeedItem] {
-        // Si hay videos reales cargados, los mostramos PRIMERO
-        if !forYouVM.videos.isEmpty {
-            return forYouVM.videos + MockData.forYouItems
-        }
-        return MockData.forYouItems
+        // Solo mostrar videos reales de Firestore
+        return forYouVM.videos
     }
 
-    private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : MockData.followingItems }
+    private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : [] } // Siguiendo vacío por ahora si no hay real
 
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
