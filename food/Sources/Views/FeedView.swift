@@ -467,6 +467,8 @@ struct FeedView: View {
             .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.25), value: isCommentsOverlayActive)
             .onAppear {
+                print("👀 [ItemView] Renderizando: '\(item.title)' | Video: \(item.videoUrl != nil) | Likes: \(item.likes)")
+                
                 hapticLight.prepare()
                 hapticMedium.prepare()
                 hapticHeavy.prepare()
