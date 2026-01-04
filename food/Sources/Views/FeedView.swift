@@ -372,6 +372,7 @@ struct FeedView: View {
         @State private var loadingTask: Task<Void, Never>? = nil // 🔴 Track loading task
         @State private var isVideoReady = false // 🔴 Track if video is actually rendering frames
         @State private var loopCancellable: AnyCancellable? = nil // 🔴 Fix Memory Leak
+        @State private var activationTask: Task<Void, Never>? = nil // ⏳ Debounce Task
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
