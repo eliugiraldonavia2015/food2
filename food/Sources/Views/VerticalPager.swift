@@ -100,9 +100,18 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
 
         func update(count: Int, builder: @escaping (CGSize, Int) -> Content) {
             self.builder = builder
-            if hosts.count != count {
-                hosts = (0..<count).map { _ in UIHostingController(rootView: AnyView(EmptyView())) }
+            
+            // 🚀 REUSE STRATEGY: Only recreate hosts if absolutely necessary
+            if hosts.count > count {
+                // If we have more hosts than needed, remove excess
+                hosts.removeLast(hosts.count - count)
+            } else if hosts.count < count {
+                // If we need more hosts, append new ones
+                let newHosts = (hosts.count..<count).map { _ in UIHostingController(rootView: AnyView(EmptyView())) }
+                hosts.append(contentsOf: newHosts)
             }
+            // If equal, do nothing (reuse existing)
+            
             if count > 0 {
                 if parent.index >= count { 
                     DispatchQueue.main.async { self.parent.index = count - 1 } 
