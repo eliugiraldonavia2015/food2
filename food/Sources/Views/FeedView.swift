@@ -963,7 +963,10 @@ struct FeedView: View {
                         if let poster = item.posterUrl, let pu = URL(string: poster) {
                             AsyncImage(url: pu) { phase in
                                 switch phase {
-                                case .success(let image): image.resizable().aspectRatio(contentMode: .fill)
+                                case .success(let image): 
+                                    image.resizable()
+                                         .aspectRatio(contentMode: .fill)
+                                         .allowsHitTesting(false) // 🛑 Desactivar interacción para evitar VisionKit/Lag
                                 case .empty: Color.black
                                 case .failure(_): Color.black
                                 @unknown default: Color.black
@@ -975,6 +978,7 @@ struct FeedView: View {
                             WebImage(url: URL(string: item.backgroundUrl))
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .allowsHitTesting(false) // 🛑 Desactivar interacción
                                 .opacity(isVideoReady ? 0 : 1)
                                 .animation(.easeOut(duration: 0.3), value: isVideoReady)
                         }
