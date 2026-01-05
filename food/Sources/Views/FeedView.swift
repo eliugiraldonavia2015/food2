@@ -83,6 +83,7 @@ struct FeedView: View {
                         isCommentsOverlayActive: isCommentsOverlayActive,
                         isActive: idx == selectedVM.currentIndex,
                         isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
+                        viewModel: selectedVM,
                         onShowProfile: {
                             // Lógica de navegación a perfiles
                             if let authorId = item.authorId {
@@ -343,6 +344,9 @@ struct FeedView: View {
         let isActive: Bool
         let isScreenActive: Bool
         
+        // Acceso al ViewModel para verificar índice real
+        @ObservedObject var viewModel: FeedViewModel 
+        
         // Callbacks
         let onShowProfile: () -> Void
         let onShowMenu: () -> Void
@@ -395,7 +399,7 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, viewModel: FeedViewModel, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
@@ -403,6 +407,7 @@ struct FeedView: View {
             self.isCommentsOverlayActive = isCommentsOverlayActive
             self.isActive = isActive
             self.isScreenActive = isScreenActive
+            self.viewModel = viewModel
             self.onShowProfile = onShowProfile
             self.onShowMenu = onShowMenu
             self.onShowComments = onShowComments
@@ -463,6 +468,17 @@ struct FeedView: View {
 
                 if !isCommentsOverlayActive { leftColumn }
                 if !isCommentsOverlayActive { rightColumn }
+                
+                // 🛑 CAPA DE GESTOS MAESTRA (Z-INDEX SUPERIOR)
+                // Colocada al final del ZStack para estar ENCIMA del video pero DEBAJO de los controles (si los controles tienen zIndex mayor o están después)
+                // Espera... leftColumn y rightColumn están después, así que están encima. Bien.
+                // Pero el gradiente estaba antes.
+                // Esta capa captura los toques en el área central libre.
+                Color.black.opacity(0.001)
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: 2) { handleDoubleTap() }
+                    .onTapGesture { handleSingleTap() }
+                    .allowsHitTesting(!isCommentsOverlayActive) // Desactivar si hay comentarios
             }
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
