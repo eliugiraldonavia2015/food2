@@ -9,11 +9,16 @@ struct FeedView: View {
     let isCommentsOverlayActive: Bool
     // MARK: - Propiedades Computadas para el Feed (SOLO REAL)
     private var forYouItems: [FeedItem] {
-        // Solo mostrar videos reales de Firestore
         return forYouVM.videos
     }
+    
+    private var followingItems: [FeedItem] {
+        // 🔄 TEMPORAL: Usar mismo contenido que 'Para Ti' hasta implementar lógica de seguidos
+        // Para revertir, cambiar a: return followingVM.videos
+        return forYouVM.videos 
+    }
 
-    private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : [] } // Siguiendo vacío por ahora si no hay real
+    private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : followingItems }
 
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
@@ -642,6 +647,27 @@ struct FeedView: View {
             }
         }
         
+        private func handleSingleTap() {
+            guard item.videoUrl != nil else { return }
+            
+            // 1. Toggle local state (Feedback visual inmediato)
+            let willPause = !isPaused
+            withAnimation(.easeInOut(duration: 0.1)) { isPaused = willPause }
+            
+            // 2. Control Lógico
+            if willPause {
+                // Si pausamos, el updatePlayback (onChange of isPaused) se encargará de detener el player
+            } else {
+                // Si damos play, reclamamos el foco de audio
+                if coordinator.activeVideoId != item.id {
+                    coordinator.setActive(item.id)
+                } else {
+                    // Si ya somos activos, forzamos el play por si acaso
+                    player?.play()
+                }
+            }
+        }
+
         private func toggleLike() {
             guard let videoId = item.videoId, let userId = AuthService.shared.user?.uid else {
                 // Si no hay sesión o video ID real, solo hacemos toggle visual local
