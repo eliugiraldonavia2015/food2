@@ -151,7 +151,22 @@ struct FeedView: View {
             VideoPlayerCoordinator.shared.pauseAll()
             
             withAnimation(.easeInOut(duration: 0.2)) { }
-            selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
+            
+            // 🧠 LOGICA INTELIGENTE DE SALTO:
+            // Si cambiamos de tab, queremos mantener la posición relativa o saltar la intro.
+            // Si el nuevo tab tiene la intro card (índice 0) y ya hemos visto contenido...
+            // O simplemente forzar al usuario al primer video (índice 1) si viene de ver videos.
+            
+            var newIdx = activeTab == .foryou ? forYouVM.currentIndex : followingVM.currentIndex
+            
+            // Si el índice guardado es 0 (Intro), intentamos saltar al 1 (Primer Video)
+            // para no aburrir al usuario con la intro repetida.
+            if newIdx == 0 && currentItems.count > 1 {
+                newIdx = 1
+                if activeTab == .foryou { forYouVM.currentIndex = 1 } else { followingVM.currentIndex = 1 }
+            }
+            
+            selectedVM.currentIndex = min(newIdx, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
         }
         // 🚀 PRECARGA INTELIGENTE DE VIDEO
@@ -495,8 +510,13 @@ struct FeedView: View {
                     .onTapGesture { handleSingleTap() }
                     .allowsHitTesting(!isCommentsOverlayActive)
 
-                if !isCommentsOverlayActive { leftColumn }
-                if !isCommentsOverlayActive { rightColumn }
+                // 🎨 RENDERIZADO CONDICIONAL: Intro Card vs Video Normal
+                if item.id.uuidString == "00000000-0000-0000-0000-000000000000" {
+                    introCardOverlay // Diseño exclusivo de bienvenida
+                } else {
+                    if !isCommentsOverlayActive { leftColumn }
+                    if !isCommentsOverlayActive { rightColumn }
+                }
             }
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
