@@ -371,6 +371,40 @@ struct FeedView: View {
     
     // MARK: - FeedItemView Unificado
     private struct FeedItemView: View {
+        // ... (código existente)
+        
+        // MOVIDO: introCardOverlay ahora es parte de FeedItemView para que sea accesible
+        private var introCardOverlay: some View {
+            VStack {
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    Text("¿Listo para destapar el hambre?")
+                        .font(.system(size: 32, weight: .heavy))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
+                    
+                    Text("Desliza para descubrir")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                    
+                    // Animación de Swipe Up
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                        .offset(y: -10)
+                        .padding(.top, 8)
+                        .opacity(heartOpacity > 0 ? 0 : 1) // Reusamos heartOpacity o ignoramos opacidad
+                        .modifier(SwipeAnimation()) 
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 60)
+            }
+        }
+        
+        // ... (resto del código)
         let item: FeedItem
         let size: CGSize
         let bottomInset: CGFloat
@@ -502,13 +536,14 @@ struct FeedView: View {
                 }
 
                 // 🛑 CAPA DE GESTOS (FIX: DETRÁS DE LOS CONTROLES)
-                // Esta capa captura el tap en el área vacía para pausar/reproducir.
-                // Al estar ANTES de las columnas, los botones de las columnas tendrán prioridad.
-                Color.black.opacity(0.001)
-                    .contentShape(Rectangle())
-                    .onTapGesture(count: 2) { handleDoubleTap() }
-                    .onTapGesture { handleSingleTap() }
-                    .allowsHitTesting(!isCommentsOverlayActive)
+                // Desactivar gestos (pausa/like) si es la Intro Card
+                if item.id.uuidString != "00000000-0000-0000-0000-000000000000" {
+                    Color.black.opacity(0.001)
+                        .contentShape(Rectangle())
+                        .onTapGesture(count: 2) { handleDoubleTap() }
+                        .onTapGesture { handleSingleTap() }
+                        .allowsHitTesting(!isCommentsOverlayActive)
+                }
 
                 // 🎨 RENDERIZADO CONDICIONAL: Intro Card vs Video Normal
                 if item.id.uuidString == "00000000-0000-0000-0000-000000000000" {
