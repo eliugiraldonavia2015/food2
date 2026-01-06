@@ -5,7 +5,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
     @Binding var index: Int
     let pageHeight: CGFloat?
     let content: (CGSize, Int) -> Content
-    var onPullToRefresh: (() -> Void)? = nil // Callback para refresh
+    var onPullToRefresh: (() -> Void)? = nil
     
     init(count: Int, index: Binding<Int>, pageHeight: CGFloat? = nil, onPullToRefresh: (() -> Void)? = nil, @ViewBuilder content: @escaping (CGSize, Int) -> Content) {
         self.count = count
@@ -14,8 +14,6 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         self.onPullToRefresh = onPullToRefresh
         self.content = content
     }
-    
-    // ... (rest of initializers if needed, but the main one covers most cases)
     
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -50,8 +48,9 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         scroll.contentInset = .zero
         scroll.scrollIndicatorInsets = .zero
         
-        // Actualizar contenido
-        context.coordinator.update(count: count, builder: content)
+        // Actualizar referencia al padre y builder
+        context.coordinator.parent = self
+        context.coordinator.update(builder: content)
         
         // Usar siempre la altura específica si está disponible
         if let pageHeight = pageHeight {
@@ -70,20 +69,16 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
                 return
             }
         }
-        
-        // Posicionar en la página correcta
-        let height = pageHeight ?? scroll.bounds.height
-        if height > 0 {
-            let targetY = CGFloat(index) * height
-            if !context.coordinator.isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
-                scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
-            }
-        }
     }
 
     final class Coordinator: NSObject, UIScrollViewDelegate {
-        let parent: VerticalPager
-        var hosts: [UIHostingController<AnyView>] = []
+        var parent: VerticalPager
+        
+        // 🚀 OPTIMIZATION: View Recycling (Sliding Window)
+        // Only keep controllers for visible items + buffer
+        var visibleControllers: [Int: UIHostingController<AnyView>] = [:]
+        var recycledControllers: [UIHostingController<AnyView>] = []
+        
         var builder: ((CGSize, Int) -> Content)?
         var isAnimating = false
         var lastSize: CGSize = .zero
@@ -98,20 +93,11 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             scroll.subviews.forEach { $0.removeFromSuperview() }
         }
 
-        func update(count: Int, builder: @escaping (CGSize, Int) -> Content) {
+        func update(builder: @escaping (CGSize, Int) -> Content) {
             self.builder = builder
             
-            // 🚀 REUSE STRATEGY: Only recreate hosts if absolutely necessary
-            if hosts.count > count {
-                // If we have more hosts than needed, remove excess
-                hosts.removeLast(hosts.count - count)
-            } else if hosts.count < count {
-                // If we need more hosts, append new ones
-                let newHosts = (hosts.count..<count).map { _ in UIHostingController(rootView: AnyView(EmptyView())) }
-                hosts.append(contentsOf: newHosts)
-            }
-            // If equal, do nothing (reuse existing)
-            
+            // Bounds check
+            let count = parent.count
             if count > 0 {
                 if parent.index >= count { 
                     DispatchQueue.main.async { self.parent.index = count - 1 } 
@@ -123,47 +109,90 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             }
         }
 
-        // Método original para compatibilidad
-        func layout(in scroll: UIScrollView) {
-            let size = scroll.bounds.size
-            layout(in: scroll, size: size)
+        func layout(in scroll: UIScrollView, size: CGSize? = nil) {
+            let pageSize = size ?? scroll.bounds.size
+            guard pageSize.height > 0, let builder = builder else { return }
+            
+            let count = parent.count
+            
+            // 1. Update Content Size
+            let contentHeight = pageSize.height * CGFloat(count)
+            if scroll.contentSize.height != contentHeight || scroll.contentSize.width != pageSize.width {
+                scroll.contentSize = CGSize(width: pageSize.width, height: contentHeight)
+            }
+            
+            lastSize = pageSize
+            lastCount = count
+            
+            // 2. Determine visible range (Current +/- 1)
+            let currentIndex = parent.index
+            let minIndex = max(0, currentIndex - 1)
+            let maxIndex = min(count - 1, currentIndex + 1)
+            var neededIndices = Set<Int>()
+            if count > 0 {
+                for i in minIndex...maxIndex {
+                    neededIndices.insert(i)
+                }
+            }
+            
+            // 3. Remove invisible controllers
+            for (index, controller) in visibleControllers {
+                if !neededIndices.contains(index) {
+                    controller.view.removeFromSuperview()
+                    controller.rootView = AnyView(EmptyView()) // Clear content to free memory
+                    visibleControllers.removeValue(forKey: index)
+                    recycledControllers.append(controller)
+                }
+            }
+            
+            // 4. Add/Update visible controllers
+            for index in neededIndices {
+                if let controller = visibleControllers[index] {
+                    // Update existing
+                    controller.rootView = AnyView(builder(pageSize, index))
+                    controller.view.frame = CGRect(
+                        x: 0, 
+                        y: CGFloat(index) * pageSize.height, 
+                        width: pageSize.width, 
+                        height: pageSize.height
+                    )
+                } else {
+                    // Recycle or create
+                    let controller: UIHostingController<AnyView>
+                    if let recycled = recycledControllers.popLast() {
+                        controller = recycled
+                    } else {
+                        controller = UIHostingController(rootView: AnyView(EmptyView()))
+                        controller.view.backgroundColor = .clear
+                    }
+                    
+                    controller.rootView = AnyView(builder(pageSize, index))
+                    controller.view.frame = CGRect(
+                        x: 0, 
+                        y: CGFloat(index) * pageSize.height, 
+                        width: pageSize.width, 
+                        height: pageSize.height
+                    )
+                    
+                    if controller.view.superview != scroll {
+                        scroll.addSubview(controller.view)
+                    }
+                    visibleControllers[index] = controller
+                }
+            }
+            
+            // 5. Sync Offset if needed (only when not interacting)
+            let targetY = CGFloat(parent.index) * pageSize.height
+            if !scroll.isDragging && !scroll.isDecelerating && !isAnimating {
+                if abs(scroll.contentOffset.y - targetY) > 1 {
+                    scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
+                }
+            }
         }
         
-        // Nuevo método con tamaño específico
-        func layout(in scroll: UIScrollView, size: CGSize) {
-            guard let builder = builder else { return }
-            if size.height <= 0 { return }
-            
-            // Usar el tamaño proporcionado
-            let pageSize = size
-            
-            for (i, host) in hosts.enumerated() {
-                host.rootView = AnyView(builder(pageSize, i))
-                let view = host.view!
-                if view.superview == nil { scroll.addSubview(view) }
-                
-                // Cada página toca exactamente a la siguiente
-                view.frame = CGRect(
-                    x: 0, 
-                    y: CGFloat(i) * pageSize.height, 
-                    width: pageSize.width, 
-                    height: pageSize.height
-                )
-            }
-            
-            if lastSize != pageSize || lastCount != hosts.count {
-                scroll.contentSize = CGSize(
-                    width: pageSize.width, 
-                    height: pageSize.height * CGFloat(hosts.count)
-                )
-                lastSize = pageSize
-                lastCount = hosts.count
-            }
-            
-            let targetY = CGFloat(parent.index) * pageSize.height
-            if !isAnimating && abs(scroll.contentOffset.y - targetY) > 1 {
-                scroll.setContentOffset(CGPoint(x: 0, y: targetY), animated: false)
-            }
+        // 🚀 Trigger layout on scroll to recycle views dynamically
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            layout(in: scrollView, size: lastSize)
         }
 
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -224,7 +253,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             // Ejecutar callback
             parent.onPullToRefresh?()
             
-            // Terminar animación después de un delay simulado (o cuando el padre quiera, pero aquí lo cerramos rápido para UX)
+            // Terminar animación después de un delay simulado
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 sender.endRefreshing()
             }
