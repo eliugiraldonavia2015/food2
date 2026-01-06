@@ -9,13 +9,33 @@ struct FeedView: View {
     let isCommentsOverlayActive: Bool
     // MARK: - Propiedades Computadas para el Feed (SOLO REAL)
     private var forYouItems: [FeedItem] {
-        return forYouVM.videos
+        // 🚀 UX HACK: Insertar Intro Card al inicio para dar tiempo al motor de video a calentar
+        // Esto soluciona el problema de que el "primer video" a veces no arranca en frío.
+        return [introCardItem] + forYouVM.videos
+    }
+    
+    private var introCardItem: FeedItem {
+        FeedItem(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!,
+            backgroundUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836", // Comida oscura y elegante
+            username: "Food2",
+            label: .none,
+            hasStories: false,
+            avatarUrl: "https://images.unsplash.com/photo-1556910103-1c02745a30bf",
+            title: "¿Listo para destapar el hambre?",
+            description: "Desliza hacia abajo para descubrir los mejores platillos cerca de ti. 👇🔥",
+            soundTitle: "Bienvenido a Food2",
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            videoUrl: nil // 🛑 IMPORTANTE: Nil para que sea imagen estática
+        )
     }
     
     private var followingItems: [FeedItem] {
         // 🔄 TEMPORAL: Usar mismo contenido que 'Para Ti' hasta implementar lógica de seguidos
         // Para revertir, cambiar a: return followingVM.videos
-        return forYouVM.videos 
+        return [introCardItem] + forYouVM.videos 
     }
 
     private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : followingItems }
