@@ -466,19 +466,17 @@ struct FeedView: View {
                         .allowsHitTesting(false)
                 }
 
-                if !isCommentsOverlayActive { leftColumn }
-                if !isCommentsOverlayActive { rightColumn }
-                
-                // 🛑 CAPA DE GESTOS MAESTRA (Z-INDEX SUPERIOR)
-                // Colocada al final del ZStack para estar ENCIMA del video pero DEBAJO de los controles (si los controles tienen zIndex mayor o están después)
-                // Espera... leftColumn y rightColumn están después, así que están encima. Bien.
-                // Pero el gradiente estaba antes.
-                // Esta capa captura los toques en el área central libre.
+                // 🛑 CAPA DE GESTOS (FIX: DETRÁS DE LOS CONTROLES)
+                // Esta capa captura el tap en el área vacía para pausar/reproducir.
+                // Al estar ANTES de las columnas, los botones de las columnas tendrán prioridad.
                 Color.black.opacity(0.001)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { handleDoubleTap() }
                     .onTapGesture { handleSingleTap() }
-                    .allowsHitTesting(!isCommentsOverlayActive) // Desactivar si hay comentarios
+                    .allowsHitTesting(!isCommentsOverlayActive)
+
+                if !isCommentsOverlayActive { leftColumn }
+                if !isCommentsOverlayActive { rightColumn }
             }
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
