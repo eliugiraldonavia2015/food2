@@ -124,6 +124,7 @@ struct FeedView: View {
                         onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
                         onShowMusic: { showMusic = true }
                     )
+                    .id(idx) // 🚀 CRÍTICO: Fuerza a SwiftUI a reiniciar el ciclo de vida (onAppear) al reciclar vistas
                 }
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
