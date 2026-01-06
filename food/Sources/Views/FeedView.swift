@@ -630,8 +630,8 @@ struct FeedView: View {
                     activationTask?.cancel()
                     
                     activationTask = Task {
-                        // Esperar 250ms (ajustable)
-                        try? await Task.sleep(nanoseconds: 250_000_000)
+                        // Esperar 100ms (ajustable) - Optimizado para respuesta más rápida
+                        try? await Task.sleep(nanoseconds: 100_000_000)
                         
                         if !Task.isCancelled {
                             await MainActor.run {
