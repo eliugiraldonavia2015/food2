@@ -1002,20 +1002,20 @@ struct FlowLayout: Layout {
 // Global safe image loader with graceful fallback
 func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
     let finalURL = URL(string: url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-    return WebImage(url: finalURL)
-        .resizable()
-        .placeholder {
-            ZStack {
-                LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: "photo")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white.opacity(0.8))
-            }
+    return WebImage(url: finalURL) { image in
+        image
+            .resizable()
+            .aspectRatio(contentMode: contentMode)
+    } placeholder: {
+        ZStack {
+            LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            Image(systemName: "photo")
+                .font(.system(size: 20))
+                .foregroundColor(.white.opacity(0.8))
         }
-        .indicator(.activity)
-        .transition(.fade(duration: 0.3))
-        .aspectRatio(contentMode: contentMode)
-        .frame(width: width, height: height)
-        .background(Color.white.opacity(0.06))
-        .clipped()
+    }
+    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+    .frame(width: width, height: height)
+    .background(Color.white.opacity(0.06))
+    .clipped()
 }
