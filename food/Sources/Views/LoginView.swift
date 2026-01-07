@@ -149,7 +149,7 @@ struct LoginView: View {
             // White Container Bottom Sheet
             VStack(spacing: 0) {
                 Spacer()
-                    .frame(height: 100) // Push down the sheet
+                    .frame(height: 120) // Push down the sheet even more
                 
                 ZStack(alignment: .top) {
                     // White Background
@@ -159,7 +159,7 @@ struct LoginView: View {
                         .ignoresSafeArea(edges: .bottom)
                     
                     // Content
-                    VStack(spacing: 24) {
+                    VStack(spacing: 30) { // Increased spacing
                         Spacer().frame(height: 40) // Space for Logo overlap
                         
                         // Header Text
@@ -217,6 +217,8 @@ struct LoginView: View {
                             }
                         }
                         
+                        Spacer() // Push content to fill space
+                        
                         // Toggle
                         HStack {
                             Text(isShowingSignUp ? "Already have an account?" : "Don't have an account?")
@@ -233,7 +235,7 @@ struct LoginView: View {
                                     .foregroundColor(fuchsiaColor)
                             }
                         }
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 30)
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 20)
