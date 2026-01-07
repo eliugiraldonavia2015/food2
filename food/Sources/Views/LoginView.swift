@@ -930,7 +930,7 @@ struct LoginView: View {
             } else if message.contains("💡") {
                 return .blue
             } else {
-                return .secondary
+                return .black
             }
         }
     }
