@@ -31,11 +31,11 @@ struct CustomTextField: View {
             if isSecure {
                 SecureField("", text: $text, prompt: Text(placeholder).foregroundColor(Color.gray))
                     .focused($isFocused)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
             } else {
                 TextField("", text: $text, prompt: Text(placeholder).foregroundColor(Color.gray))
                     .focused($isFocused)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
             }
             
             if let isAvailable = isAvailable, !isSecure {
@@ -55,7 +55,7 @@ struct CustomTextField: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(red: 28/255, green: 28/255, blue: 30/255)) // Dark background color
+                .fill(Color(red: 248/255, green: 250/255, blue: 252/255)) // Light background color (#F8FAFC)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
