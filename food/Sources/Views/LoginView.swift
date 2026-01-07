@@ -334,7 +334,7 @@ struct LoginView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 30))
                     .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
-            .disabled(!isSignInFormValid || auth.isLoading)
+            .allowsHitTesting(isSignInFormValid && !auth.isLoading)
             .opacity(isSignInFormValid ? 1 : 0.7)
         }
     }
@@ -446,7 +446,7 @@ struct LoginView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 30))
                     .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
-            .disabled(!isSignUpFormValid || auth.isLoading)
+            .allowsHitTesting(isSignUpFormValid && !auth.isLoading)
             .opacity(isSignUpFormValid ? 1 : 0.7)
             .padding(.top)
             
