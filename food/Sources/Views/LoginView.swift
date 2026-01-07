@@ -61,6 +61,7 @@ struct LoginView: View {
     @State private var loginType: AuthService.LoginType = .unknown
     
     @State private var currentAuthFlow: AuthFlow = .main
+    @State private var isShowingForgotPassword = false
     private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     @FocusState private var focusedField: FocusField?
@@ -77,6 +78,8 @@ struct LoginView: View {
                 // Nuevo diseño con fondo animado
                 if currentAuthFlow == .phone {
                     phoneAuthFlowView
+                } else if isShowingForgotPassword {
+                    forgotPasswordView
                 } else {
                     mainAuthView
                 }
@@ -314,7 +317,9 @@ struct LoginView: View {
                 .focused($focusedField, equals: .password)
                 
                 Button("Forgot Password?") {
-                    // Action
+                    withAnimation {
+                        isShowingForgotPassword = true
+                    }
                 }
                 .font(.caption)
                 .foregroundColor(fuchsiaColor)
@@ -456,6 +461,135 @@ struct LoginView: View {
         }
     }
     
+    // MARK: - Forgot Password View
+    private var forgotPasswordView: some View {
+        ZStack(alignment: .top) {
+            // Background Image (Same as Main)
+            GeometryReader { geometry in
+                AsyncImage(url: URL(string: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg")) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height * 0.4)
+                        .clipped()
+                } placeholder: {
+                    Color.gray
+                }
+            }
+            .ignoresSafeArea()
+            
+            // White Container Bottom Sheet
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 120)
+                
+                ZStack(alignment: .top) {
+                    // White Background
+                    Color.white
+                        .cornerRadius(30, corners: [.topLeft, .topRight])
+                        .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
+                        .ignoresSafeArea(edges: .bottom)
+                    
+                    // Content
+                    VStack(spacing: 0) {
+                        Spacer().frame(height: 40) // Space for Logo overlap
+                        
+                        // Header Text
+                        VStack(spacing: 8) {
+                            Text("FoodTook")
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundColor(.black)
+                            
+                            Text("Olvidé Contraseña")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.black.opacity(0.8))
+                            
+                            Text("Ingresa tu correo electrónico y te enviaremos un enlace para recuperar tu acceso.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                        }
+                        .padding(.bottom, 40)
+                        
+                        // Form
+                        VStack(spacing: 24) {
+                            CustomTextField(
+                                text: $email,
+                                placeholder: "Correo electrónico",
+                                icon: "envelope",
+                                isSecure: false,
+                                isAvailable: nil,
+                                isChecking: false
+                            )
+                            
+                            Button(action: {
+                                // Action placeholder
+                            }) {
+                                HStack {
+                                    Text("Enviar")
+                                    Image(systemName: "chevron.right")
+                                }
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(fuchsiaColor)
+                                .clipShape(RoundedRectangle(cornerRadius: 30))
+                                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                        
+                        Spacer()
+                        
+                        // Back Button
+                        Button(action: {
+                            withAnimation {
+                                isShowingForgotPassword = false
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.left")
+                                Text("Volver a Iniciar Sesión")
+                            }
+                            .foregroundColor(.black)
+                            .font(.system(size: 16))
+                        }
+                        .padding(.bottom, 40)
+                    }
+                    
+                    // Logo (Floating)
+                    BrandLogoView()
+                        .offset(y: -50)
+                }
+                .frame(maxHeight: .infinity)
+            }
+            
+            // Top Left Back Button
+            VStack {
+                HStack {
+                    Button(action: {
+                        withAnimation {
+                            isShowingForgotPassword = false
+                        }
+                    }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                }
+                .padding()
+                Spacer()
+            }
+        }
+    }
+
     // MARK: - Phone Auth Flow (manteniendo la funcionalidad existente)
     private var phoneAuthFlowView: some View {
         VStack(spacing: 20) {
