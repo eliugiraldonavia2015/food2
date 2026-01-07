@@ -279,25 +279,14 @@ struct LoginView: View {
         }
     }
     
-    struct PrimaryButtonStyle: ButtonStyle {
-        let backgroundColor: Color
-        let isEnabled: Bool
-        
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(backgroundColor)
-                .clipShape(RoundedRectangle(cornerRadius: 30))
-                .shadow(color: backgroundColor.opacity(0.3), radius: 10, x: 0, y: 5)
-                .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.7)
-                .scaleEffect(configuration.isPressed ? 0.98 : 1)
-                .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
+    struct GoogleBrandView: UIViewRepresentable {
+        func makeUIView(context: Context) -> GIDSignInButton {
+            let button = GIDSignInButton()
+            return button
         }
+        func updateUIView(_ uiView: GIDSignInButton, context: Context) {}
     }
-
+    
     // MARK: - Nuevo Sign In Form
     private var signInFormView: some View {
         VStack(spacing: 16) {
@@ -343,9 +332,16 @@ struct LoginView: View {
                     Text("Log In")
                     Image(systemName: "chevron.right")
                 }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(fuchsiaColor)
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
-            .buttonStyle(PrimaryButtonStyle(backgroundColor: fuchsiaColor, isEnabled: isSignInFormValid && !auth.isLoading))
-            .disabled(!isSignInFormValid || auth.isLoading)
+            .allowsHitTesting(isSignInFormValid && !auth.isLoading)
+            .opacity(isSignInFormValid ? 1 : 0.7)
         }
     }
     
@@ -451,9 +447,16 @@ struct LoginView: View {
                     Text("Sign Up")
                     Image(systemName: "chevron.right")
                 }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(fuchsiaColor)
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
-            .buttonStyle(PrimaryButtonStyle(backgroundColor: fuchsiaColor, isEnabled: isSignUpFormValid && !auth.isLoading))
-            .disabled(!isSignUpFormValid || auth.isLoading)
+            .allowsHitTesting(isSignUpFormValid && !auth.isLoading)
+            .opacity(isSignUpFormValid ? 1 : 0.7)
             .padding(.top)
             
             if !password.isEmpty {
@@ -532,8 +535,14 @@ struct LoginView: View {
                                     Text("Enviar")
                                     Image(systemName: "chevron.right")
                                 }
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(fuchsiaColor)
+                                .clipShape(RoundedRectangle(cornerRadius: 30))
+                                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
                             }
-                            .buttonStyle(PrimaryButtonStyle(backgroundColor: fuchsiaColor, isEnabled: true))
                         }
                         .padding(.horizontal, 24)
                         
