@@ -417,6 +417,8 @@ struct LoginView: View {
                 
                 if let strength = passwordStrength {
                     PasswordStrengthView(strength: strength)
+                        .background(Color.gray.opacity(0.15)) // Increased opacity for better contrast
+                        .cornerRadius(8)
                 }
             }
             
@@ -818,14 +820,14 @@ struct LoginView: View {
             Text("Requisitos mínimos:")
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .foregroundColor(.black) // Changed to black
             
             HStack(alignment: .top) {
                 Image(systemName: meetsMinimumRequirements ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(meetsMinimumRequirements ? .green : .gray)
                 Text("8+ caracteres, 1 mayúscula, 1 minúscula")
                     .font(.caption)
-                    .foregroundColor(meetsMinimumRequirements ? .green : .secondary)
+                    .foregroundColor(.black) // Changed to black
             }
         }
         .padding()
@@ -833,7 +835,7 @@ struct LoginView: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(meetsMinimumRequirements ? Color.green : Color.gray, lineWidth: 1)
-                .background(Color.gray.opacity(0.05))
+                .background(Color.gray.opacity(0.15)) // Increased opacity for better contrast
         )
     }
     
@@ -847,7 +849,7 @@ struct LoginView: View {
                     VStack(alignment: .leading) {
                         Text("Nivel de seguridad")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.black) // Changed to black
                         
                         Text(strength.strength.rawValue)
                             .font(.subheadline)
@@ -860,6 +862,7 @@ struct LoginView: View {
                     Text("\(strength.score)/40")
                         .font(.caption)
                         .fontWeight(.medium)
+                        .foregroundColor(.black) // Changed to black
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(strength.strength.uiColor.opacity(0.2))
@@ -892,7 +895,7 @@ struct LoginView: View {
                             
                             Text(feedback.message)
                                 .font(.caption)
-                                .foregroundColor(colorForFeedback(feedback))
+                                .foregroundColor(.black) // Changed to black
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -900,10 +903,7 @@ struct LoginView: View {
                 .padding(.top, 4)
             }
             .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.1))
-            )
+            // Removed internal background to allow parent to control it or keep it transparent
         }
         
         private func iconForFeedback(_ feedback: PasswordStrength.PasswordFeedback) -> String {

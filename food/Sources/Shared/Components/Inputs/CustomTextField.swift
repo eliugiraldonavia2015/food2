@@ -59,7 +59,8 @@ struct CustomTextField: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isFocused ? fuchsiaColor : Color.clear, lineWidth: 1)
+                .stroke(isFocused ? fuchsiaColor : Color.clear, lineWidth: 2)
         )
+        .animation(.none, value: isFocused)
     }
 }
