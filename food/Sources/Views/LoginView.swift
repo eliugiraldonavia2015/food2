@@ -317,9 +317,7 @@ struct LoginView: View {
                 .focused($focusedField, equals: .password)
                 
                 Button("Forgot Password?") {
-                    withAnimation {
-                        isShowingForgotPassword = true
-                    }
+                    isShowingForgotPassword = true
                 }
                 .font(.caption)
                 .foregroundColor(fuchsiaColor)
@@ -330,14 +328,17 @@ struct LoginView: View {
             Button(action: {
                 Task { await loginUseCase.signIn(identifier: emailOrUsername, password: password) }
             }) {
-                Text("Log In")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(fuchsiaColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 30))
-                    .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                HStack {
+                    Text("Log In")
+                    Image(systemName: "chevron.right")
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(fuchsiaColor)
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
             .allowsHitTesting(isSignInFormValid && !auth.isLoading)
             .opacity(isSignInFormValid ? 1 : 0.7)
@@ -442,14 +443,17 @@ struct LoginView: View {
             
             // Register Button
             Button(action: registerUser) {
-                Text("Sign Up")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(fuchsiaColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 30))
-                    .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                HStack {
+                    Text("Sign Up")
+                    Image(systemName: "chevron.right")
+                }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(fuchsiaColor)
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+                .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
             .allowsHitTesting(isSignUpFormValid && !auth.isLoading)
             .opacity(isSignUpFormValid ? 1 : 0.7)
@@ -546,9 +550,7 @@ struct LoginView: View {
                         
                         // Back Button
                         Button(action: {
-                            withAnimation {
-                                isShowingForgotPassword = false
-                            }
+                            isShowingForgotPassword = false
                         }) {
                             HStack {
                                 Image(systemName: "arrow.left")
@@ -571,9 +573,7 @@ struct LoginView: View {
             VStack {
                 HStack {
                     Button(action: {
-                        withAnimation {
-                            isShowingForgotPassword = false
-                        }
+                        isShowingForgotPassword = false
                     }) {
                         Image(systemName: "arrow.left")
                             .font(.system(size: 20, weight: .bold))
