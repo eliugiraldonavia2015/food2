@@ -164,9 +164,13 @@ struct LoginView: View {
                         
                         // Header Text
                         VStack(spacing: 8) {
-                            Text(isShowingSignUp ? "Join the food revolution." : "Welcome Back!")
-                                .font(.system(size: 26, weight: .bold))
+                            Text("FoodTook")
+                                .font(.system(size: 28, weight: .black))
                                 .foregroundColor(.black)
+                            
+                            Text(isShowingSignUp ? "Join the food revolution." : "Welcome Back!")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.black.opacity(0.8))
                             
                             if !isShowingSignUp {
                                 Text("Login to continue your tasty journey.")
