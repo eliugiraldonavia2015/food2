@@ -18,11 +18,6 @@ struct BrandLogoView: View {
                     .frame(width: 80, height: 80) // Full width of container for max zoom
                     .clipShape(RoundedRectangle(cornerRadius: 20)) // Match container corner radius
             }
-            
-            // Text
-            Text("FoodTook")
-                .font(.system(size: 32, weight: .bold))
-                .foregroundColor(.black)
         }
     }
 }
