@@ -138,7 +138,7 @@ struct LoginView: View {
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height * 0.55)
+                        .frame(width: geometry.size.width, height: geometry.size.height * 0.4) // Reduced height
                         .clipped()
                 } placeholder: {
                     Color.gray
@@ -149,6 +149,7 @@ struct LoginView: View {
             // White Container Bottom Sheet
             VStack(spacing: 0) {
                 Spacer()
+                    .frame(height: 100) // Push down the sheet
                 
                 ZStack(alignment: .top) {
                     // White Background
@@ -159,7 +160,7 @@ struct LoginView: View {
                     
                     // Content
                     VStack(spacing: 24) {
-                        Spacer().frame(height: 50) // Space for Logo overlap
+                        Spacer().frame(height: 40) // Space for Logo overlap
                         
                         // Header Text
                         VStack(spacing: 8) {
@@ -239,7 +240,7 @@ struct LoginView: View {
                     
                     // Logo (Floating)
                     BrandLogoView()
-                        .offset(y: -60) // Pull up to overlap
+                        .offset(y: -50) // Adjust overlap
                 }
                 .frame(maxHeight: .infinity)
             }

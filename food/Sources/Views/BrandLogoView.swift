@@ -15,7 +15,7 @@ struct BrandLogoView: View {
                 Image("foodtookoficialicon")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 50, height: 50)
+                    .frame(width: 65, height: 65)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
             
