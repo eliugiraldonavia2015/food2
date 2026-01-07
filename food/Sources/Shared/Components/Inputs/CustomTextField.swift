@@ -18,18 +18,24 @@ struct CustomTextField: View {
     
     @FocusState private var isFocused: Bool
     
+    // Define fuchsia color locally or use a shared extension if available.
+    // For now, using the hex color directly.
+    private let fuchsiaColor = Color(red: 217/255, green: 4/255, blue: 103/255)
+    
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(isFocused ? .green : .gray) // Cambié a green para mantener consistencia
+                .foregroundColor(Color.gray)
                 .frame(width: 20)
             
             if isSecure {
                 SecureField(placeholder, text: $text)
                     .focused($isFocused)
+                    .foregroundColor(.black)
             } else {
                 TextField(placeholder, text: $text)
                     .focused($isFocused)
+                    .foregroundColor(.black)
             }
             
             if let isAvailable = isAvailable, !isSecure {
@@ -49,13 +55,11 @@ struct CustomTextField: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray5).opacity(0.5))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isFocused ? .green : Color(.systemGray3), lineWidth: 1) // Cambié a green
-                )
+                .fill(Color(.systemGray6)) // Lighter background for light theme
         )
-        .foregroundColor(.white)
-        .accentColor(.green) // Cambié a green
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isFocused ? fuchsiaColor : Color.clear, lineWidth: 1)
+        )
     }
 }

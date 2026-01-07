@@ -1,32 +1,37 @@
 import SwiftUI
 
 struct BrandLogoView: View {
+    private let fuchsiaColor = Color(red: 217/255, green: 4/255, blue: 103/255)
+    
     var body: some View {
         VStack(spacing: 8) {
-            HStack(spacing: 0) {
-                Text("Food")
-                    .font(.system(size: 60, weight: .black, design: .default))
-                    .foregroundColor(.white)
-                Text("Took")
-                    .font(.system(size: 60, weight: .black, design: .default))
-                    .foregroundColor(.green)
+            // Icon Container
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                
+                Image("foodtookoficialicon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            Text("Taste the trend.")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.black.opacity(0.3))
-                .clipShape(Capsule())
-                .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+            
+            // Text
+            Text("FoodTook")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.black)
         }
-        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
     }
 }
 
 struct BrandLogoView_Previews: PreviewProvider {
     static var previews: some View {
-        ZStack { Color.black.ignoresSafeArea(); BrandLogoView() }
-            .preferredColorScheme(.dark)
+        ZStack { 
+            Color.gray.opacity(0.2).ignoresSafeArea()
+            BrandLogoView() 
+        }
     }
 }

@@ -61,6 +61,7 @@ struct LoginView: View {
     @State private var loginType: AuthService.LoginType = .unknown
     
     @State private var currentAuthFlow: AuthFlow = .main
+    private let fuchsiaColor = Color(red: 217/255, green: 4/255, blue: 103/255)
     
     @FocusState private var focusedField: FocusField?
     private let loginUseCase = LoginUseCase()
@@ -130,130 +131,136 @@ struct LoginView: View {
     
     // MARK: - Nuevo Main Auth View con diseño FoodFeed
     private var mainAuthView: some View {
-        ZStack {
-            // Background with animated image
+        ZStack(alignment: .top) {
+            // Background Image
             GeometryReader { geometry in
-                ZStack {
-                    AsyncImage(url: URL(string: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg")) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .scaleEffect(1.2) // Documentación: Se incrementa escala para asegurar cobertura completa del fondo (modificado por asistente)
-                            .animation(.easeInOut(duration: 20).repeatForever(autoreverses: true), value: UUID())
-                    } placeholder: {
-                        Color.black
-                    }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .ignoresSafeArea(.container, edges: .all) // Documentación: Fondo expandido ignorando safe area para cubrir toda la pantalla (modificado por asistente)
-                    .clipped()
-                    .opacity(0.8)
-                    
-                    // Gradient overlay
-                    LinearGradient(
-                        colors: [
-                            .black.opacity(0.3),
-                            .clear,
-                            .black
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                AsyncImage(url: URL(string: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg")) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height * 0.55)
+                        .clipped()
+                } placeholder: {
+                    Color.gray
                 }
             }
-            .ignoresSafeArea(.container, edges: .all) // Documentación: Contenedor de fondo ignora safe area para eliminar márgenes superiores y laterales (modificado por asistente)
+            .ignoresSafeArea()
             
-            // Content Container
-            VStack {
+            // White Container Bottom Sheet
+            VStack(spacing: 0) {
                 Spacer()
                 
-                // Brand Header - Floating
-                BrandLogoView()
-                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
-                
-                Spacer()
-                
-                // Form Sheet
-                VStack(spacing: 0) {
-                    // Handle bar
-                    Capsule()
-                        .fill(Color(.systemGray4))
-                        .frame(width: 48, height: 6)
-                        .padding(.top, 8)
+                ZStack(alignment: .top) {
+                    // White Background
+                    Color.white
+                        .cornerRadius(30, corners: [.topLeft, .topRight])
+                        .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
+                        .ignoresSafeArea(edges: .bottom)
                     
-                    VStack(alignment: .leading, spacing: 24) {
-                        // Header
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(isShowingSignUp ? "Get started" : "Welcome back")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
+                    // Content
+                    VStack(spacing: 24) {
+                        Spacer().frame(height: 50) // Space for Logo overlap
+                        
+                        // Header Text
+                        VStack(spacing: 8) {
+                            Text(isShowingSignUp ? "Join the food revolution." : "Welcome Back!")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundColor(.black)
                             
-                            Text(isShowingSignUp ? "Create your free account" : "Enter your details below")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
+                            if !isShowingSignUp {
+                                Text("Login to continue your tasty journey.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
                         
-                        // Form Container
+                        // Form
                         if isShowingSignUp {
                             signUpFormView
                         } else {
                             signInFormView
                         }
                         
-                        // Social Buttons Compact
-                        HStack(spacing: 12) {
-                            Button(action: {
-                                handleGoogleSignIn()
-                            }) {
-                                GoogleBrandView()
-                                    .frame(height: 44)
-                                    .frame(maxWidth: .infinity)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                        // Social Login
+                        VStack(spacing: 20) {
+                            HStack {
+                                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                                Text(isShowingSignUp ? "OR CONTINUE WITH" : "Or login with")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 8)
+                                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
                             }
                             
-                            SocialButton(icon: "phone", text: "Phone", isApple: false) {
-                                withAnimation {
-                                    currentAuthFlow = .phone
+                            HStack(spacing: 20) {
+                                // Google
+                                Button(action: {
+                                    handleGoogleSignIn()
+                                }) {
+                                    CircularSocialButton(icon: "g.circle.fill", color: .red) // Placeholder symbol
+                                }
+                                
+                                // Apple
+                                Button(action: {}) {
+                                    CircularSocialButton(icon: "apple.logo", color: .black)
+                                }
+                                
+                                // Phone
+                                Button(action: {
+                                    withAnimation {
+                                        currentAuthFlow = .phone
+                                    }
+                                }) {
+                                    CircularSocialButton(icon: "phone.fill", color: .green)
                                 }
                             }
                         }
                         
-                        // Toggle Text
+                        // Toggle
                         HStack {
-                            Text(isShowingSignUp ? "Already a member? " : "New to FoodFeed? ")
+                            Text(isShowingSignUp ? "Already have an account?" : "Don't have an account?")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                             
                             Button(action: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
+                                withAnimation {
                                     isShowingSignUp.toggle()
                                 }
                             }) {
-                                Text(isShowingSignUp ? "Log in" : "Join now")
+                                Text(isShowingSignUp ? "Log in" : "Sign up")
                                     .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.green)
+                                    .foregroundColor(fuchsiaColor)
                             }
                         }
-                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 24)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 20)
+                    
+                    // Logo (Floating)
+                    BrandLogoView()
+                        .offset(y: -60) // Pull up to overlap
                 }
-                .background(
-                    LinearGradient(
-                        colors: [
-                            Color(.systemGray6).opacity(0.95),
-                            .black
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 40)
-                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 40))
-                .shadow(color: .green.opacity(0.2), radius: 60, x: 0, y: -10)
+                .frame(maxHeight: .infinity)
+            }
+            
+            // Back Button (Top Left)
+            VStack {
+                HStack {
+                    Button(action: {
+                        // Action for back button
+                    }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                }
+                .padding()
+                Spacer()
             }
         }
     }
@@ -272,7 +279,7 @@ struct LoginView: View {
             // Email/Username Field
             CustomTextField(
                 text: $emailOrUsername,
-                placeholder: "Email or username",
+                placeholder: "Email or Username",
                 icon: "envelope",
                 isSecure: false,
                 isAvailable: nil,
@@ -284,35 +291,40 @@ struct LoginView: View {
             }
             
             // Password Field
-            CustomTextField(
-                text: $password,
-                placeholder: "Password",
-                icon: "lock",
-                isSecure: true,
-                isAvailable: nil,
-                isChecking: false
-            )
-            .focused($focusedField, equals: .password)
+            VStack(alignment: .trailing, spacing: 8) {
+                CustomTextField(
+                    text: $password,
+                    placeholder: "Password",
+                    icon: "lock",
+                    isSecure: true,
+                    isAvailable: nil,
+                    isChecking: false
+                )
+                .focused($focusedField, equals: .password)
+                
+                Button("Forgot Password?") {
+                    // Action
+                }
+                .font(.caption)
+                .foregroundColor(fuchsiaColor)
+                .fontWeight(.bold)
+            }
             
             // Login Button
             Button(action: {
                 Task { await loginUseCase.signIn(identifier: emailOrUsername, password: password) }
             }) {
-                HStack {
-                    Text("Log In")
-                        .font(.system(size: 18, weight: .bold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 18, weight: .bold))
-                }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(isSignInFormValid ? Color.green : Color.gray)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .green.opacity(0.2), radius: 10, x: 0, y: 5)
+                Text("Log In")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(fuchsiaColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                    .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
             .disabled(!isSignInFormValid || auth.isLoading)
-            .buttonStyle(ScaleButtonStyle())
+            .opacity(isSignInFormValid ? 1 : 0.7)
         }
     }
     
@@ -322,10 +334,10 @@ struct LoginView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     // Personal Information
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         CustomTextField(
                             text: $firstName,
-                            placeholder: "First name",
+                            placeholder: "First Name",
                             icon: "person",
                             isSecure: false,
                             isAvailable: nil,
@@ -336,7 +348,7 @@ struct LoginView: View {
                         
                         CustomTextField(
                             text: $lastName,
-                            placeholder: "Last name",
+                            placeholder: "Last Name",
                             icon: "person",
                             isSecure: false,
                             isAvailable: nil,
@@ -349,7 +361,7 @@ struct LoginView: View {
                     // Email Field
                     CustomTextField(
                         text: $email,
-                        placeholder: "Email address",
+                        placeholder: "Email Address",
                         icon: "envelope",
                         isSecure: false,
                         isAvailable: nil,
@@ -362,7 +374,7 @@ struct LoginView: View {
                     CustomTextField(
                         text: $username,
                         placeholder: "Username",
-                        icon: "person",
+                        icon: "at",
                         isSecure: false,
                         isAvailable: isUsernameAvailable,
                         isChecking: checkingUsername
@@ -397,18 +409,14 @@ struct LoginView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         CustomTextField(
                             text: $confirmPassword,
-                            placeholder: "Confirm password",
-                            icon: "lock",
+                            placeholder: "Confirm Password",
+                            icon: "checkmark.shield",
                             isSecure: true,
                             isAvailable: nil,
                             isChecking: false
                         )
                         .focused($focusedField, equals: .confirmPassword)
                         .id(FocusField.confirmPassword)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(borderColor, lineWidth: 1)
-                        )
                         
                         if !confirmPassword.isEmpty && !passwordsMatch {
                             Text("Passwords don't match")
@@ -420,21 +428,17 @@ struct LoginView: View {
                     
                     // Register Button
                     Button(action: registerUser) {
-                        HStack {
-                            Text("Sign Up")
-                                .font(.system(size: 18, weight: .bold))
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(isSignUpFormValid ? Color.green : Color.gray)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .green.opacity(0.2), radius: 10, x: 0, y: 5)
+                        Text("Sign Up")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(fuchsiaColor)
+                            .clipShape(RoundedRectangle(cornerRadius: 30))
+                            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
                     }
                     .disabled(!isSignUpFormValid || auth.isLoading)
-                    .buttonStyle(ScaleButtonStyle())
+                    .opacity(isSignUpFormValid ? 1 : 0.7)
                     .padding(.top)
                     
                     if !password.isEmpty {
@@ -442,6 +446,7 @@ struct LoginView: View {
                     }
                 }
             }
+            .scrollIndicators(.hidden)
             .onChange(of: focusedField) { _, newField in
                 if let field = newField {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -1046,6 +1051,25 @@ struct LoginView: View {
             }
         default:
             break
+        }
+    }
+}
+
+// MARK: - Components
+struct CircularSocialButton: View {
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white)
+                .frame(width: 50, height: 50)
+                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+            
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(color)
         }
     }
 }
