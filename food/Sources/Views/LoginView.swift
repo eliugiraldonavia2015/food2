@@ -61,7 +61,7 @@ struct LoginView: View {
     @State private var loginType: AuthService.LoginType = .unknown
     
     @State private var currentAuthFlow: AuthFlow = .main
-    private let fuchsiaColor = Color(red: 217/255, green: 4/255, blue: 103/255)
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     @FocusState private var focusedField: FocusField?
     private let loginUseCase = LoginUseCase()
@@ -159,7 +159,7 @@ struct LoginView: View {
                         .ignoresSafeArea(edges: .bottom)
                     
                     // Content
-                    VStack(spacing: 30) { // Increased spacing
+                    VStack(spacing: 0) { // Changed spacing to 0, handling it in child views
                         Spacer().frame(height: 40) // Space for Logo overlap
                         
                         // Header Text
@@ -174,68 +174,72 @@ struct LoginView: View {
                                     .foregroundColor(.gray)
                             }
                         }
+                        .padding(.bottom, 30) // Add padding after header
                         
-                        // Form
-                        if isShowingSignUp {
-                            signUpFormView
-                        } else {
-                            signInFormView
-                        }
-                        
-                        // Social Login
-                        VStack(spacing: 20) {
-                            HStack {
-                                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
-                                Text(isShowingSignUp ? "OR CONTINUE WITH" : "Or login with")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 8)
-                                Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
-                            }
-                            
-                            HStack(spacing: 20) {
-                                // Google
-                                Button(action: {
-                                    handleGoogleSignIn()
-                                }) {
-                                    CircularSocialButton(icon: "g.circle.fill", color: .red) // Placeholder symbol
+                        // Scrollable Content
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 30) {
+                                // Form
+                                if isShowingSignUp {
+                                    signUpFormView
+                                } else {
+                                    signInFormView
                                 }
                                 
-                                // Apple
-                                Button(action: {}) {
-                                    CircularSocialButton(icon: "apple.logo", color: .black)
-                                }
-                                
-                                // Phone
-                                Button(action: {
-                                    withAnimation {
-                                        currentAuthFlow = .phone
+                                // Social Login
+                                VStack(spacing: 20) {
+                                    HStack {
+                                        Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                                        Text(isShowingSignUp ? "OR CONTINUE WITH" : "Or login with")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                            .padding(.horizontal, 8)
+                                        Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
                                     }
-                                }) {
-                                    CircularSocialButton(icon: "phone.fill", color: .green)
+                                    
+                                    HStack(spacing: 20) {
+                                        // Google
+                                        Button(action: {
+                                            handleGoogleSignIn()
+                                        }) {
+                                            CircularSocialButton(icon: "g.circle.fill", color: .red) // Placeholder symbol
+                                        }
+                                        
+                                        // Apple
+                                        Button(action: {}) {
+                                            CircularSocialButton(icon: "apple.logo", color: .black)
+                                        }
+                                        
+                                        // Phone
+                                        Button(action: {
+                                            withAnimation {
+                                                currentAuthFlow = .phone
+                                            }
+                                        }) {
+                                            CircularSocialButton(icon: "phone.fill", color: .green)
+                                        }
+                                    }
                                 }
+                                
+                                // Toggle
+                                HStack {
+                                    Text(isShowingSignUp ? "Already have an account?" : "Don't have an account?")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.gray)
+                                    
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.2)) { // Optimized animation duration
+                                            isShowingSignUp.toggle()
+                                        }
+                                    }) {
+                                        Text(isShowingSignUp ? "Log in" : "Sign up")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(fuchsiaColor)
+                                    }
+                                }
+                                .padding(.bottom, 30)
                             }
                         }
-                        
-                        Spacer() // Push content to fill space
-                        
-                        // Toggle
-                        HStack {
-                            Text(isShowingSignUp ? "Already have an account?" : "Don't have an account?")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-                            
-                            Button(action: {
-                                withAnimation {
-                                    isShowingSignUp.toggle()
-                                }
-                            }) {
-                                Text(isShowingSignUp ? "Log in" : "Sign up")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(fuchsiaColor)
-                            }
-                        }
-                        .padding(.bottom, 30)
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 20)
@@ -333,131 +337,117 @@ struct LoginView: View {
     
     // MARK: - Nuevo Sign Up Form
     private var signUpFormView: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Personal Information
-                    HStack(spacing: 12) {
-                        CustomTextField(
-                            text: $firstName,
-                            placeholder: "First Name",
-                            icon: "person",
-                            isSecure: false,
-                            isAvailable: nil,
-                            isChecking: false
-                        )
-                        .focused($focusedField, equals: .firstName)
-                        .id(FocusField.firstName)
-                        
-                        CustomTextField(
-                            text: $lastName,
-                            placeholder: "Last Name",
-                            icon: "person",
-                            isSecure: false,
-                            isAvailable: nil,
-                            isChecking: false
-                        )
-                        .focused($focusedField, equals: .lastName)
-                        .id(FocusField.lastName)
-                    }
-                    
-                    // Email Field
-                    CustomTextField(
-                        text: $email,
-                        placeholder: "Email Address",
-                        icon: "envelope",
-                        isSecure: false,
-                        isAvailable: nil,
-                        isChecking: false
-                    )
-                    .focused($focusedField, equals: .email)
-                    .id(FocusField.email)
-                    
-                    // Username Field with Availability Check
-                    CustomTextField(
-                        text: $username,
-                        placeholder: "Username",
-                        icon: "at",
-                        isSecure: false,
-                        isAvailable: isUsernameAvailable,
-                        isChecking: checkingUsername
-                    )
-                    .focused($focusedField, equals: .username)
-                    .id(FocusField.username)
-                    
-                    usernameValidationView
-                    
-                    // Password Field
-                    VStack(alignment: .leading, spacing: 10) {
-                        CustomTextField(
-                            text: $password,
-                            placeholder: "Password",
-                            icon: "lock",
-                            isSecure: true,
-                            isAvailable: nil,
-                            isChecking: false
-                        )
-                        .focused($focusedField, equals: .password)
-                        .id(FocusField.password)
-                        .onChange(of: password) { _, newPass in
-                            passwordStrength = auth.evaluatePasswordStrength(newPass, email: email, username: username)
-                        }
-                        
-                        if let strength = passwordStrength {
-                            PasswordStrengthView(strength: strength)
-                        }
-                    }
-                    
-                    // Confirm Password Field
-                    VStack(alignment: .leading, spacing: 5) {
-                        CustomTextField(
-                            text: $confirmPassword,
-                            placeholder: "Confirm Password",
-                            icon: "checkmark.shield",
-                            isSecure: true,
-                            isAvailable: nil,
-                            isChecking: false
-                        )
-                        .focused($focusedField, equals: .confirmPassword)
-                        .id(FocusField.confirmPassword)
-                        
-                        if !confirmPassword.isEmpty && !passwordsMatch {
-                            Text("Passwords don't match")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                                .padding(.leading, 12)
-                        }
-                    }
-                    
-                    // Register Button
-                    Button(action: registerUser) {
-                        Text("Sign Up")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(fuchsiaColor)
-                            .clipShape(RoundedRectangle(cornerRadius: 30))
-                            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
-                    }
-                    .disabled(!isSignUpFormValid || auth.isLoading)
-                    .opacity(isSignUpFormValid ? 1 : 0.7)
-                    .padding(.top)
-                    
-                    if !password.isEmpty {
-                        minimumRequirementsView
-                    }
+        VStack(spacing: 16) {
+            // Personal Information
+            HStack(spacing: 12) {
+                CustomTextField(
+                    text: $firstName,
+                    placeholder: "First Name",
+                    icon: "person",
+                    isSecure: false,
+                    isAvailable: nil,
+                    isChecking: false
+                )
+                .focused($focusedField, equals: .firstName)
+                .id(FocusField.firstName)
+                
+                CustomTextField(
+                    text: $lastName,
+                    placeholder: "Last Name",
+                    icon: "person",
+                    isSecure: false,
+                    isAvailable: nil,
+                    isChecking: false
+                )
+                .focused($focusedField, equals: .lastName)
+                .id(FocusField.lastName)
+            }
+            
+            // Email Field
+            CustomTextField(
+                text: $email,
+                placeholder: "Email Address",
+                icon: "envelope",
+                isSecure: false,
+                isAvailable: nil,
+                isChecking: false
+            )
+            .focused($focusedField, equals: .email)
+            .id(FocusField.email)
+            
+            // Username Field with Availability Check
+            CustomTextField(
+                text: $username,
+                placeholder: "Username",
+                icon: "at",
+                isSecure: false,
+                isAvailable: isUsernameAvailable,
+                isChecking: checkingUsername
+            )
+            .focused($focusedField, equals: .username)
+            .id(FocusField.username)
+            
+            usernameValidationView
+            
+            // Password Field
+            VStack(alignment: .leading, spacing: 10) {
+                CustomTextField(
+                    text: $password,
+                    placeholder: "Password",
+                    icon: "lock",
+                    isSecure: true,
+                    isAvailable: nil,
+                    isChecking: false
+                )
+                .focused($focusedField, equals: .password)
+                .id(FocusField.password)
+                .onChange(of: password) { _, newPass in
+                    passwordStrength = auth.evaluatePasswordStrength(newPass, email: email, username: username)
+                }
+                
+                if let strength = passwordStrength {
+                    PasswordStrengthView(strength: strength)
                 }
             }
-            .scrollIndicators(.hidden)
-            .onChange(of: focusedField) { _, newField in
-                if let field = newField {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            proxy.scrollTo(field, anchor: .center)
-                        }
-                    }
+            
+            // Confirm Password Field
+            VStack(alignment: .leading, spacing: 5) {
+                CustomTextField(
+                    text: $confirmPassword,
+                    placeholder: "Confirm Password",
+                    icon: "checkmark.shield",
+                    isSecure: true,
+                    isAvailable: nil,
+                    isChecking: false
+                )
+                .focused($focusedField, equals: .confirmPassword)
+                .id(FocusField.confirmPassword)
+                
+                if !confirmPassword.isEmpty && !passwordsMatch {
+                    Text("Passwords don't match")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.leading, 12)
                 }
+            }
+            
+            // Register Button
+            Button(action: registerUser) {
+                Text("Sign Up")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(fuchsiaColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                    .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+            }
+            .disabled(!isSignUpFormValid || auth.isLoading)
+            .opacity(isSignUpFormValid ? 1 : 0.7)
+            .padding(.top)
+            
+            if !password.isEmpty {
+                minimumRequirementsView
             }
         }
     }

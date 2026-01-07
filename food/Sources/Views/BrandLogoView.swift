@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BrandLogoView: View {
-    private let fuchsiaColor = Color(red: 217/255, green: 4/255, blue: 103/255)
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     var body: some View {
         VStack(spacing: 8) {
