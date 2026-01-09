@@ -61,6 +61,21 @@ struct ProfilePictureSetupView: View {
                 }
             }
             
+            Button("Saltar este paso") {
+                viewModel.nextStep()
+            }
+            .font(.callout)
+            .fontWeight(.semibold)
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color.black.opacity(0.25))
+            .overlay(Capsule().stroke(fuchsiaColor.opacity(0.25), lineWidth: 1))
+            .clipShape(Capsule())
+            .padding(.top, 12)
+
+            Spacer()
+
             Button {
                 viewModel.nextStep()
             } label: {
@@ -75,20 +90,6 @@ struct ProfilePictureSetupView: View {
             .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             .padding(.horizontal)
             
-            Button("Saltar este paso") {
-                viewModel.nextStep()
-            }
-            .font(.callout)
-            .fontWeight(.semibold)
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color.black.opacity(0.25))
-            .overlay(Capsule().stroke(fuchsiaColor.opacity(0.25), lineWidth: 1))
-            .clipShape(Capsule())
-            .padding(.top, 12)
-            
-            Spacer()
         }
         .padding()
     }

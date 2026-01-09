@@ -114,11 +114,11 @@ private struct RoleCard: View {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(selected ? fuchsiaColor.opacity(0.2) : Color.white.opacity(0.15))
+                        .fill(selected ? fuchsiaColor.opacity(0.25) : Color.white.opacity(0.15))
                         .frame(width: 52, height: 52)
                     Image(systemName: icon)
                         .font(.system(size: 22))
-                        .foregroundColor(selected ? fuchsiaColor : .white)
+                        .foregroundColor(selected ? .white : .white)
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
@@ -126,25 +126,27 @@ private struct RoleCard: View {
                         .foregroundColor(.white)
                     Text(subtitle)
                         .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundColor(.white.opacity(0.9))
                 }
                 Spacer()
                 ZStack {
-                    Circle()
-                        .stroke(selected ? fuchsiaColor : Color.white.opacity(0.3), lineWidth: 2)
-                        .frame(width: 22, height: 22)
                     if selected {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(fuchsiaColor)
-                            .font(.system(size: 12, weight: .bold))
+                        Capsule()
+                            .fill(fuchsiaColor)
+                            .frame(width: 22, height: 22)
+                            .overlay(Image(systemName: "checkmark").foregroundColor(.white).font(.system(size: 12, weight: .bold)))
+                    } else {
+                        Circle()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                            .frame(width: 22, height: 22)
                     }
                 }
             }
             .padding(22)
-            .background(selected ? Color.black.opacity(0.35) : Color.black.opacity(0.25))
+            .background(selected ? fuchsiaColor.opacity(0.25) : Color.black.opacity(0.25))
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
-                    .stroke(selected ? fuchsiaColor : Color.white.opacity(0.25), lineWidth: 1.5)
+                    .stroke(selected ? fuchsiaColor : Color.white.opacity(0.25), lineWidth: selected ? 2 : 1.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: 18))
             .shadow(color: selected ? fuchsiaColor.opacity(0.25) : .clear, radius: 12, x: 0, y: 6)

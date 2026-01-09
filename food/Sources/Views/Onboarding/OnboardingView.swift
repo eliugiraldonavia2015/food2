@@ -70,35 +70,13 @@ struct OnboardingView: View {
                         RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
                             .padding(.horizontal, 24)
                         Spacer()
+                    } else if viewModel.currentStep == .done {
+                        Spacer()
+                        doneView
+                            .padding(.horizontal, 24)
+                        Spacer()
                     } else {
-                        VStack {
-                            switch viewModel.currentStep {
-                            case .photo:
-                                ProfilePictureSetupView(viewModel: viewModel)
-                            case .interests:
-                                InterestSelectionView(viewModel: viewModel)
-                            case .role:
-                                RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
-                            case .done:
-                                doneView
-                            default:
-                                EmptyView()
-                            }
-                        }
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                colors: [Color(.systemGray6).opacity(0.95), .black],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .shadow(color: .green.opacity(0.2), radius: 40, x: 0, y: -10)
+                        EmptyView()
                     }
                 }
             }
@@ -209,6 +187,7 @@ struct OnboardingView: View {
             .font(.body)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 24)
+            Spacer()
             Button(action: { onCompletion() }) {
                 Text("Empezar")
                     .fontWeight(.semibold)
