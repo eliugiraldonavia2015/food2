@@ -114,11 +114,11 @@ private struct RoleCard: View {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(selected ? fuchsiaColor.opacity(0.25) : Color.white.opacity(0.15))
+                        .fill(selected ? Color.white.opacity(0.2) : Color.white.opacity(0.15))
                         .frame(width: 52, height: 52)
                     Image(systemName: icon)
                         .font(.system(size: 22))
-                        .foregroundColor(selected ? .white : .white)
+                        .foregroundColor(.white)
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
@@ -133,22 +133,35 @@ private struct RoleCard: View {
                     if selected {
                         Capsule()
                             .fill(fuchsiaColor)
-                            .frame(width: 22, height: 22)
-                            .overlay(Image(systemName: "checkmark").foregroundColor(.white).font(.system(size: 12, weight: .bold)))
+                            .frame(width: 26, height: 26)
+                            .overlay(Image(systemName: "checkmark").foregroundColor(.white).font(.system(size: 13, weight: .bold)))
                     } else {
                         Circle()
-                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                            .frame(width: 22, height: 22)
+                            .stroke(Color.white.opacity(0.35), lineWidth: 2)
+                            .frame(width: 24, height: 24)
                     }
                 }
             }
             .padding(22)
-            .background(selected ? fuchsiaColor.opacity(0.25) : Color.black.opacity(0.25))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(selected ? fuchsiaColor : Color.white.opacity(0.25), lineWidth: selected ? 2 : 1.5)
+            .background(
+                Group {
+                    if selected {
+                        Capsule().fill(fuchsiaColor)
+                    } else {
+                        RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.25))
+                    }
+                }
             )
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                Group {
+                    if selected {
+                        Capsule().stroke(fuchsiaColor, lineWidth: 2)
+                    } else {
+                        RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                    }
+                }
+            )
+            .clipShape(selected ? Capsule() : RoundedRectangle(cornerRadius: 18))
             .shadow(color: selected ? fuchsiaColor.opacity(0.25) : .clear, radius: 12, x: 0, y: 6)
         }
         .buttonStyle(.plain)

@@ -164,6 +164,7 @@ struct OnboardingView: View {
     // MARK: - Step: Done
     private var doneView: some View {
         VStack(spacing: 26) {
+            Spacer().frame(height: 140)
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(fuchsiaColor)
