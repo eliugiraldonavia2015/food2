@@ -7,41 +7,73 @@ struct ProfilePictureSetupView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @State private var showImagePicker = false
     @State private var selectedItem: PhotosPickerItem?
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     var body: some View {
-        VStack(spacing: 25) {
-            Text("Agrega una foto de perfil")
-                .font(.title2)
-                .fontWeight(.bold)
+        VStack(spacing: 24) {
+            HStack {
+                Button(action: { viewModel.goBack() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(fuchsiaColor)
+                }
+                Spacer()
+                Text("FoodTook")
+                    .font(.headline)
+                    .foregroundColor(fuchsiaColor)
+                Spacer()
+            }
+            .padding(.horizontal)
             
-            Text("Ayuda a que otros te reconozcan más fácilmente")
+            Text("Dale un rostro a tu antojo")
+                .font(.title)
+                .fontWeight(.heavy)
+                .multilineTextAlignment(.center)
+                
+            Text("Una foto ayuda a que la comunidad de FoodTook te reconozca mejor.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
-            // 📸 Imagen de perfil seleccionada o placeholder
             Button {
                 showImagePicker = true
             } label: {
-                Group {
-                    if let image = viewModel.profileImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 140, height: 140)
-                            .clipShape(Circle())
-                    } else {
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 120))
-                            .foregroundColor(.gray)
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 160, height: 160)
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        .overlay(Circle().stroke(fuchsiaColor, lineWidth: 3))
+                    Group {
+                        if let image = viewModel.profileImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 150, height: 150)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.crop.circle")
+                                .font(.system(size: 64))
+                                .foregroundColor(.gray)
+                        }
                     }
+                    VStack { Spacer() }
                 }
-                .frame(width: 140, height: 140)
-                .overlay(Circle().stroke(Color.orange, lineWidth: 2))
-                .shadow(radius: 3)
+                .overlay(
+                    ZStack {
+                        Circle()
+                            .fill(fuchsiaColor)
+                            .frame(width: 36, height: 36)
+                            .shadow(color: fuchsiaColor.opacity(0.3), radius: 6, x: 0, y: 4)
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .bold))
+                    }
+                    .offset(x: 56, y: 56)
+                )
             }
-            .padding(.top, 10)
+            .padding(.top, 8)
             .photosPicker(isPresented: $showImagePicker, selection: $selectedItem, matching: .images)
             .onChange(of: selectedItem) { _, newItem in
                 if let newItem {
@@ -59,7 +91,6 @@ struct ProfilePictureSetupView: View {
                 }
             }
             
-            // Botón continuar
             Button {
                 viewModel.nextStep()
             } label: {
@@ -67,23 +98,24 @@ struct ProfilePictureSetupView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(fuchsiaColor)
+            .clipShape(RoundedRectangle(cornerRadius: 30))
+            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             .padding(.horizontal)
             
-            // Botón para saltar
             Button("Saltar este paso") {
                 viewModel.nextStep()
             }
             .font(.footnote)
-            .foregroundColor(.blue)
+            .foregroundColor(.secondary)
             .padding(.top, 8)
             
             Spacer()
         }
         .padding()
-        .navigationTitle("Foto de perfil")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(.ultraThinMaterial)
     }
     
     // MARK: - Función de compresión añadida

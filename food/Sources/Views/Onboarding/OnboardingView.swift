@@ -17,7 +17,7 @@ struct OnboardingView: View {
             ZStack {
                 GeometryReader { geometry in
                     ZStack {
-                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg")) { image in
+                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/255349/pexels-photo-255349.jpeg")) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -45,9 +45,15 @@ struct OnboardingView: View {
                 
                 VStack {
                     Spacer().frame(height: 180)
-                    if viewModel.currentStep == .welcome {
-                        welcomeView
-                            .padding(.horizontal, 24)
+                    if viewModel.currentStep == .welcome || viewModel.currentStep == .photo {
+                        Group {
+                            if viewModel.currentStep == .welcome {
+                                welcomeView
+                            } else {
+                                ProfilePictureSetupView(viewModel: viewModel)
+                            }
+                        }
+                        .padding(.horizontal, 24)
                     } else {
                         VStack {
                             switch viewModel.currentStep {
