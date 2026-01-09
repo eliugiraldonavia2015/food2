@@ -17,7 +17,7 @@ struct OnboardingView: View {
             ZStack {
                 GeometryReader { geometry in
                     ZStack {
-                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg")) { image in
+                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg")) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -44,7 +44,7 @@ struct OnboardingView: View {
                 .ignoresSafeArea(.container, edges: .all)
                 
                 VStack {
-                    Spacer()
+                    Spacer().frame(height: 180)
                     if viewModel.currentStep == .welcome {
                         welcomeView
                             .padding(.horizontal, 24)

@@ -11,6 +11,7 @@ import SwiftUI
 public struct OnboardingProgressView: View {
     let totalSteps: Int
     let currentStep: Int
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     public init(totalSteps: Int, currentStep: Int) {
         self.totalSteps = totalSteps
@@ -20,11 +21,16 @@ public struct OnboardingProgressView: View {
     public var body: some View {
         HStack(spacing: 6) {
             ForEach(0..<totalSteps, id: \.self) { index in
-                Circle()
-                    .frame(width: 6, height: 6)
-                    .foregroundColor(index == currentStep ? .white : Color.white.opacity(0.4))
-                    .shadow(color: index == currentStep ? Color.black.opacity(0.2) : .clear, radius: 2, x: 0, y: 1)
-                    .scaleEffect(index == currentStep ? 1.15 : 1.0)
+                if index == currentStep {
+                    Capsule()
+                        .frame(width: 16, height: 6)
+                        .foregroundColor(fuchsiaColor)
+                        .shadow(color: Color.black.opacity(0.25), radius: 3, x: 0, y: 2)
+                } else {
+                    Circle()
+                        .frame(width: 6, height: 6)
+                        .foregroundColor(Color.white.opacity(0.4))
+                }
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: currentStep)
