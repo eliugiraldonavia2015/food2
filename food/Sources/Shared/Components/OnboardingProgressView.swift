@@ -18,16 +18,17 @@ public struct OnboardingProgressView: View {
     }
     
     public var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(0..<totalSteps, id: \.self) { index in
                 Circle()
-                    .frame(width: 8, height: 8)
-                    .foregroundColor(index == currentStep ? .green : .gray)
-                    .scaleEffect(index == currentStep ? 1.2 : 1.0)
+                    .frame(width: 6, height: 6)
+                    .foregroundColor(index == currentStep ? .white : Color.white.opacity(0.4))
+                    .shadow(color: index == currentStep ? Color.black.opacity(0.2) : .clear, radius: 2, x: 0, y: 1)
+                    .scaleEffect(index == currentStep ? 1.15 : 1.0)
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: currentStep)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
     }
 }
 

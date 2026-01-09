@@ -45,55 +45,40 @@ struct OnboardingView: View {
                 
                 VStack {
                     Spacer()
-                    
-                    VStack(spacing: 8) {
-                        Text("Food")
-                            .font(.system(size: 48, weight: .black))
-                            .foregroundColor(.white) +
-                        Text("Took")
-                            .font(.system(size: 48, weight: .black))
-                            .foregroundColor(.green)
-                        
-                        Text("Taste the trend.")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            .background(.black.opacity(0.3))
-                            .clipShape(Capsule())
-                    }
-                    .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
-                    
-                    Spacer()
-                    
-                    VStack {
-                        switch viewModel.currentStep {
-                        case .welcome:
-                            welcomeView
-                        case .photo:
-                            ProfilePictureSetupView(viewModel: viewModel)
-                        case .interests:
-                            InterestSelectionView(viewModel: viewModel)
-                        case .role:
-                            RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
-                        case .done:
-                            doneView
+                    if viewModel.currentStep == .welcome {
+                        welcomeView
+                            .padding(.horizontal, 24)
+                    } else {
+                        VStack {
+                            switch viewModel.currentStep {
+                            case .photo:
+                                ProfilePictureSetupView(viewModel: viewModel)
+                            case .interests:
+                                InterestSelectionView(viewModel: viewModel)
+                            case .role:
+                                RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
+                            case .done:
+                                doneView
+                            default:
+                                EmptyView()
+                            }
                         }
-                    }
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            colors: [Color(.systemGray6).opacity(0.95), .black],
-                            startPoint: .top,
-                            endPoint: .bottom
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                colors: [Color(.systemGray6).opacity(0.95), .black],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 24))
-                    .shadow(color: .green.opacity(0.2), radius: 40, x: 0, y: -10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .shadow(color: .green.opacity(0.2), radius: 40, x: 0, y: -10)
+                    }
+                    Spacer()
                 }
             }
             .preferredColorScheme(.dark)
@@ -103,7 +88,11 @@ struct OnboardingView: View {
                         Button("Saltar") {
                             viewModel.skipOnboarding()
                         }
-                        .tint(.green)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.gray.opacity(0.3))
+                        .clipShape(Capsule())
                         .disabled(viewModel.isLoading)
                     }
                 }
@@ -136,11 +125,17 @@ struct OnboardingView: View {
             Text("¡Bienvenido!")
                 .font(.largeTitle.bold())
             
-            Text("Descubre los mejores platos a través de videos y recíbelos en tu puerta.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+            (
+                Text("Descubre los mejores ")
+                    .foregroundColor(.white.opacity(0.9)) +
+                Text("platos")
+                    .foregroundColor(fuchsiaColor) +
+                Text(" a través de videos y recíbelos en tu puerta.")
+                    .foregroundColor(.white.opacity(0.9))
+            )
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 24)
             
             Spacer()
             
