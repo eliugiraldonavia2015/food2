@@ -26,7 +26,10 @@ struct InterestSelectionView: View {
                 .padding(.horizontal, 16)
             
             ScrollView {
-                let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+                let columns = [
+                    GridItem(.flexible(), spacing: 8, alignment: .center),
+                    GridItem(.flexible(), spacing: 8, alignment: .center)
+                ]
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach($viewModel.interests) { $option in
                         Button {
@@ -58,6 +61,7 @@ struct InterestSelectionView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, 8)
                 .padding(.top, 8)
             }
             
