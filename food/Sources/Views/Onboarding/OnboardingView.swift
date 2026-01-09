@@ -17,10 +17,20 @@ struct OnboardingView: View {
             ZStack {
                 GeometryReader { geometry in
                     ZStack {
-                        Image("fondoonboarding")
-                            .resizable()
-                            .scaledToFill()
-                            .scaleEffect(1.2)
+                        Group {
+                            if let uiImage = UIImage(named: "fondoonboarding") {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                            } else if let url = Bundle.main.url(forResource: "fondoonboarding", withExtension: "png"),
+                                      let img = UIImage(contentsOfFile: url.path) {
+                                Image(uiImage: img)
+                                    .resizable()
+                            } else {
+                                Color.black
+                            }
+                        }
+                        .scaledToFill()
+                        .scaleEffect(1.2)
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .ignoresSafeArea(.container, edges: .all)
                         .clipped()
@@ -40,16 +50,16 @@ struct OnboardingView: View {
                 .ignoresSafeArea(.container, edges: .all)
                 
                 VStack {
-                    Spacer().frame(height: 180)
-                    if viewModel.currentStep == .welcome || viewModel.currentStep == .photo {
-                        Group {
-                            if viewModel.currentStep == .welcome {
-                                welcomeView
-                            } else {
-                                ProfilePictureSetupView(viewModel: viewModel)
-                            }
-                        }
-                        .padding(.horizontal, 24)
+                    if viewModel.currentStep == .welcome {
+                        Spacer().frame(height: 180)
+                        welcomeView
+                            .padding(.horizontal, 24)
+                        Spacer()
+                    } else if viewModel.currentStep == .photo {
+                        Spacer()
+                        ProfilePictureSetupView(viewModel: viewModel)
+                            .padding(.horizontal, 24)
+                        Spacer()
                     } else {
                         VStack {
                             switch viewModel.currentStep {
@@ -80,7 +90,6 @@ struct OnboardingView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .shadow(color: .green.opacity(0.2), radius: 40, x: 0, y: -10)
                     }
-                    Spacer()
                 }
             }
             .preferredColorScheme(.dark)

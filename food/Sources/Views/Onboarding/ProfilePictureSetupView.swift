@@ -85,7 +85,6 @@ struct ProfilePictureSetupView: View {
             Spacer()
         }
         .padding()
-        .background(.ultraThinMaterial)
     }
     
     // MARK: - Función de compresión añadida
