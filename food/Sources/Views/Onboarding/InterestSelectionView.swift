@@ -26,8 +26,7 @@ struct InterestSelectionView: View {
                 .padding(.horizontal, 16)
             
             ScrollView {
-                ForEach(stride(from: 0, to: viewModel.interests.count, by: 2), id: \.
-                            self) { i in
+                ForEach(Array(stride(from: 0, to: viewModel.interests.count, by: 2)), id: \.self) { i in
                     HStack(spacing: 0) {
                         let left = viewModel.interests[i]
                         Button {
