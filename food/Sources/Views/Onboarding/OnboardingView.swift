@@ -65,6 +65,11 @@ struct OnboardingView: View {
                         InterestSelectionView(viewModel: viewModel)
                             .padding(.horizontal, 24)
                         Spacer()
+                    } else if viewModel.currentStep == .role {
+                        Spacer()
+                        RoleSelectionView(viewModel: RoleSelectionViewModel(), onCompletion: { viewModel.nextStep() })
+                            .padding(.horizontal, 24)
+                        Spacer()
                     } else {
                         VStack {
                             switch viewModel.currentStep {
@@ -100,7 +105,7 @@ struct OnboardingView: View {
             .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    if viewModel.currentStep == .photo || viewModel.currentStep == .interests {
+                    if viewModel.currentStep == .photo || viewModel.currentStep == .interests || viewModel.currentStep == .role {
                         Button(action: { viewModel.goBack() }) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 18, weight: .bold))

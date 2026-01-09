@@ -12,6 +12,7 @@ import SwiftUI
 public struct RoleSelectionView: View {
     @StateObject public var viewModel: RoleSelectionViewModel // ✅ PUBLIC VIEWMODEL
     var onCompletion: () -> Void
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     // ✅ CORRECCIÓN: Agregar inicializador público
     public init(viewModel: RoleSelectionViewModel, onCompletion: @escaping () -> Void) {
@@ -20,69 +21,60 @@ public struct RoleSelectionView: View {
     }
     
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Text("Selecciona tu rol")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text("¿Cómo quieres usar la plataforma?")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    VStack(spacing: 24) {
-                        RoleOptionView(
-                            title: "Cliente",
-                            description: "Disfruta tu comida favorita",
-                            features: [
-                                "Miles de restaurantes",
-                                "Entregas rápidas",
-                                "Ofertas exclusivas"
-                            ],
-                            icon: "person.crop.circle",
-                            isSelected: viewModel.selectedRole == .client,
-                            action: { viewModel.selectRole(.client) }
-                        )
-                        
-                        RoleOptionView(
-                            title: "Repartidor",
-                            description: "Gana dinero flexiblemente",
-                            features: [
-                                "Horarios flexibles",
-                                "Ganancias inmediatas",
-                                "Seguro incluido"
-                            ],
-                            icon: "scooter",
-                            isSelected: viewModel.selectedRole == .rider,
-                            action: { viewModel.selectRole(.rider) }
-                        )
-                        
-                        RoleOptionView(
-                            title: "Restaurante",
-                            description: "Aumenta tus ventas",
-                            features: [
-                                "Sin costo inicial",
-                                "Miles de clientes",
-                                "Soporte 24/7"
-                            ],
-                            icon: "building.2.crop.circle",
-                            isSelected: viewModel.selectedRole == .restaurant,
-                            action: { viewModel.selectRole(.restaurant) }
-                        )
-                    }
-                }
-                .padding()
-                .padding(.bottom, 100)
-            }
+        VStack(spacing: 20) {
+            Text("¿Cómo quieres unirte?")
+                .font(.largeTitle.bold())
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
             
-            finalizeBar
+            Text("Selecciona el perfil que mejor te defina")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            VStack(spacing: 14) {
+                RoleCard(
+                    title: "Cliente",
+                    subtitle: "Quiero pedir comida y ver videos",
+                    icon: "person.crop.circle",
+                    selected: viewModel.selectedRole == .client,
+                    action: { viewModel.selectRole(.client) }
+                )
+                RoleCard(
+                    title: "Repartidor",
+                    subtitle: "Quiero entregar pedidos",
+                    icon: "scooter",
+                    selected: viewModel.selectedRole == .rider,
+                    action: { viewModel.selectRole(.rider) }
+                )
+                RoleCard(
+                    title: "Restaurante",
+                    subtitle: "Quiero vender mis platos",
+                    icon: "building.2.crop.circle",
+                    selected: viewModel.selectedRole == .restaurant,
+                    action: { viewModel.selectRole(.restaurant) }
+                )
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            let isEnabled = viewModel.selectedRole != nil
+            Button(action: { if isEnabled { viewModel.confirmSelection(onSuccess: onCompletion) } }) {
+                Text("Finalizar")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+            }
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(isEnabled ? fuchsiaColor : fuchsiaColor.opacity(0.4))
+            .clipShape(RoundedRectangle(cornerRadius: 30))
+            .shadow(color: fuchsiaColor.opacity(isEnabled ? 0.3 : 0.0), radius: 10, x: 0, y: 5)
+            .disabled(!isEnabled)
+            .padding(.horizontal)
         }
-        .onAppear {
-            viewModel.loadUser()
-        }
+        .onAppear { viewModel.loadUser() }
     }
     
     private var finalizeBar: some View {
@@ -108,57 +100,55 @@ public struct RoleSelectionView: View {
 }
 
 // MARK: - RoleOptionView
-private struct RoleOptionView: View {
+private struct RoleCard: View {
     let title: String
-    let description: String
-    let features: [String]
+    let subtitle: String
     let icon: String
-    let isSelected: Bool
+    let selected: Bool
     let action: () -> Void
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(selected ? fuchsiaColor.opacity(0.2) : Color.white.opacity(0.15))
+                        .frame(width: 52, height: 52)
                     Image(systemName: icon)
-                        .font(.system(size: 24))
-                        .padding(12)
-                        .background(isSelected ? Color.orange.opacity(0.2) : Color(.systemGray6))
-                        .cornerRadius(12)
-                    
+                        .font(.system(size: 22))
+                        .foregroundColor(selected ? fuchsiaColor : .white)
+                }
+                VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline)
-                        .foregroundColor(isSelected ? .orange : .primary)
-                    
-                    Spacer()
-                    
-                    if isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.orange)
-                    }
+                        .foregroundColor(.white)
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.85))
                 }
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                ForEach(features, id: \.self) { feature in
-                    HStack(spacing: 8) {
+                Spacer()
+                ZStack {
+                    Circle()
+                        .stroke(selected ? fuchsiaColor : Color.white.opacity(0.3), lineWidth: 2)
+                        .frame(width: 22, height: 22)
+                    if selected {
                         Image(systemName: "checkmark")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                        Text(feature)
+                            .foregroundColor(fuchsiaColor)
+                            .font(.system(size: 12, weight: .bold))
                     }
-                    .font(.caption)
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.orange : Color(.systemGray4), lineWidth: 1)
+            .padding(16)
+            .background(selected ? Color.black.opacity(0.35) : Color.black.opacity(0.25))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(selected ? fuchsiaColor : Color.white.opacity(0.25), lineWidth: 1.5)
             )
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .shadow(color: selected ? fuchsiaColor.opacity(0.25) : .clear, radius: 12, x: 0, y: 6)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
     }
 }
 
@@ -167,12 +157,12 @@ private struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .fontWeight(.semibold)
-            .padding()
+            .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
-            .background(configuration.isPressed ? Color.orange.opacity(0.8) : Color.orange)
+            .background(configuration.isPressed ? Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.8) : Color(red: 244/255, green: 37/255, blue: 123/255))
             .foregroundColor(.white)
-            .cornerRadius(12)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .cornerRadius(30)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.spring(), value: configuration.isPressed)
     }
 }

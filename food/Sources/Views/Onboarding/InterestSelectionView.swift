@@ -31,6 +31,7 @@ struct InterestSelectionView: View {
                         let left = viewModel.interests[i]
                         Button {
                             viewModel.interests[i].isSelected.toggle()
+                            viewModel.interests = viewModel.interests
                         } label: {
                             HStack(spacing: 10) {
                                 Text(emoji(for: left.name))
@@ -54,6 +55,7 @@ struct InterestSelectionView: View {
                             let right = viewModel.interests[i+1]
                             Button {
                                 viewModel.interests[i+1].isSelected.toggle()
+                                viewModel.interests = viewModel.interests
                             } label: {
                                 HStack(spacing: 10) {
                                     Text(emoji(for: right.name))
@@ -78,6 +80,12 @@ struct InterestSelectionView: View {
                 }
                 .padding(.horizontal, 4)
                 .padding(.top, 8)
+            }
+            
+            if viewModel.interests.filter({ $0.isSelected }).count < AppConstants.Validation.minInterests {
+                Text("Selecciona al menos 3 intereses")
+                    .font(.footnote)
+                    .foregroundColor(.white.opacity(0.9))
             }
             
             Button(action: { viewModel.nextStep() }) {

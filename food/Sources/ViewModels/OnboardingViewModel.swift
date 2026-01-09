@@ -116,6 +116,8 @@ public final class OnboardingViewModel: ObservableObject {
             currentStep = .welcome
         case .interests:
             currentStep = .photo
+        case .role:
+            currentStep = .interests
         default:
             break
         }
