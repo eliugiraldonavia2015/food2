@@ -19,22 +19,22 @@ public struct OnboardingProgressView: View {
     }
     
     public var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             ForEach(0..<totalSteps, id: \.self) { index in
                 if index == currentStep {
                     Capsule()
-                        .frame(width: 16, height: 6)
+                        .frame(width: 20, height: 8)
                         .foregroundColor(fuchsiaColor)
                         .shadow(color: Color.black.opacity(0.25), radius: 3, x: 0, y: 2)
                 } else {
                     Circle()
-                        .frame(width: 6, height: 6)
+                        .frame(width: 8, height: 8)
                         .foregroundColor(Color.white.opacity(0.4))
                 }
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: currentStep)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
     }
 }
 

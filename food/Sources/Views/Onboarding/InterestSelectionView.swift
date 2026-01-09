@@ -39,9 +39,8 @@ struct InterestSelectionView: View {
                                     .fontWeight(.semibold)
                             }
                             .foregroundColor(option.isSelected ? .white : .white.opacity(0.9))
-                            .padding(.horizontal, option.isSelected ? 20 : 16)
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, option.isSelected ? 22 : 18)
+                            .padding(.vertical, 14)
                             .background(
                                 Group {
                                     if option.isSelected {
@@ -52,7 +51,7 @@ struct InterestSelectionView: View {
                                 }
                             )
                             .overlay(
-                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1)
+                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1.3)
                             )
                             .shadow(color: option.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
                         }
