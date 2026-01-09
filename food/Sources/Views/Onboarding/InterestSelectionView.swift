@@ -26,42 +26,58 @@ struct InterestSelectionView: View {
                 .padding(.horizontal, 16)
             
             ScrollView {
-                let columns = [
-                    GridItem(.flexible(), spacing: 6, alignment: .center),
-                    GridItem(.flexible(), spacing: 6, alignment: .center)
-                ]
-                LazyVGrid(columns: columns, spacing: 6) {
-                    ForEach($viewModel.interests) { $option in
+                ForEach(stride(from: 0, to: viewModel.interests.count, by: 2), id: \.
+                            self) { i in
+                    HStack(spacing: 0) {
+                        let left = viewModel.interests[i]
                         Button {
-                            option.isSelected.toggle()
+                            viewModel.interests[i].isSelected.toggle()
                         } label: {
                             HStack(spacing: 10) {
-                                Text(emoji(for: option.name))
-                                Text(option.name)
+                                Text(emoji(for: left.name))
+                                Text(left.name)
                                     .font(.callout)
                                     .fontWeight(.semibold)
                             }
-                            .foregroundColor(option.isSelected ? .white : .white.opacity(0.9))
-                            .padding(.horizontal, option.isSelected ? 22 : 18)
+                            .foregroundColor(left.isSelected ? .white : .white.opacity(0.9))
+                            .padding(.horizontal, left.isSelected ? 22 : 18)
                             .padding(.vertical, 14)
-                            .background(
-                                Group {
-                                    if option.isSelected {
-                                        Capsule().fill(fuchsiaColor)
-                                    } else {
-                                        Capsule().fill(Color.black.opacity(0.35))
-                                    }
-                                }
-                            )
-                            .overlay(
-                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1.3)
-                            )
-                            .shadow(color: option.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
+                            .background(left.isSelected ? Capsule().fill(fuchsiaColor) : Capsule().fill(Color.black.opacity(0.35)))
+                            .overlay(Capsule().stroke(left.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1.3))
+                            .shadow(color: left.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
                         }
                         .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        
+                        Spacer().frame(width: 6)
+                        
+                        if i + 1 < viewModel.interests.count {
+                            let right = viewModel.interests[i+1]
+                            Button {
+                                viewModel.interests[i+1].isSelected.toggle()
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Text(emoji(for: right.name))
+                                    Text(right.name)
+                                        .font(.callout)
+                                        .fontWeight(.semibold)
+                                }
+                                .foregroundColor(right.isSelected ? .white : .white.opacity(0.9))
+                                .padding(.horizontal, right.isSelected ? 22 : 18)
+                                .padding(.vertical, 14)
+                                .background(right.isSelected ? Capsule().fill(fuchsiaColor) : Capsule().fill(Color.black.opacity(0.35)))
+                                .overlay(Capsule().stroke(right.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1.3))
+                                .shadow(color: right.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            Spacer().frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 4)
                 .padding(.top, 8)
             }
             
