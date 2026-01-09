@@ -8,7 +8,7 @@ struct BrandLogoView: View {
             // Icon Container
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
+                    .fill(fuchsiaColor)
                     .frame(width: 80, height: 80)
                     .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                 

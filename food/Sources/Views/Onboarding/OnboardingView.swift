@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     var onCompletion: () -> Void
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     var body: some View {
         NavigationStack {
@@ -130,15 +131,12 @@ struct OnboardingView: View {
     // MARK: - Step: Welcome
     private var welcomeView: some View {
         VStack(spacing: 30) {
-            Image(systemName: "hand.wave.fill")
-                .font(.system(size: 100))
-                .foregroundColor(.green)
-                .symbolEffect(.bounce, options: .repeat(3), value: true)
+            BrandLogoView()
             
-            Text("¡Bienvenido a Food!")
+            Text("¡Bienvenido!")
                 .font(.largeTitle.bold())
             
-            Text("Completa estos pasos rápidos para personalizar tu experiencia.")
+            Text("Descubre los mejores platos a través de videos y recíbelos en tu puerta.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -153,8 +151,11 @@ struct OnboardingView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.green)
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(fuchsiaColor)
+            .clipShape(RoundedRectangle(cornerRadius: 30))
+            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             .padding(.horizontal)
         }
         .padding()
