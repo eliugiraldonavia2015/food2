@@ -80,10 +80,10 @@ struct ProfilePictureSetupView: View {
             }
             .font(.callout)
             .fontWeight(.semibold)
-            .foregroundColor(fuchsiaColor)
+            .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color.white.opacity(0.08))
+            .background(Color.black.opacity(0.25))
             .overlay(Capsule().stroke(fuchsiaColor.opacity(0.25), lineWidth: 1))
             .clipShape(Capsule())
             .padding(.top, 12)

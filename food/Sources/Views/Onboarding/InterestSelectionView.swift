@@ -26,7 +26,8 @@ struct InterestSelectionView: View {
                 .padding(.horizontal, 16)
             
             ScrollView {
-                VStack(spacing: 12) {
+                let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+                LazyVGrid(columns: columns, spacing: 12) {
                     ForEach($viewModel.interests) { $option in
                         Button {
                             option.isSelected.toggle()
@@ -38,20 +39,20 @@ struct InterestSelectionView: View {
                                     .fontWeight(.semibold)
                             }
                             .foregroundColor(option.isSelected ? .white : .white.opacity(0.9))
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, option.isSelected ? 20 : 16)
                             .padding(.vertical, 10)
-                            .frame(maxWidth: 260)
+                            .frame(maxWidth: .infinity)
                             .background(
                                 Group {
                                     if option.isSelected {
                                         Capsule().fill(fuchsiaColor)
                                     } else {
-                                        Capsule().fill(Color.white.opacity(0.12))
+                                        Capsule().fill(Color.black.opacity(0.35))
                                     }
                                 }
                             )
                             .overlay(
-                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.2), lineWidth: 1)
+                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.25), lineWidth: 1)
                             )
                             .shadow(color: option.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
                         }
