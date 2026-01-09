@@ -131,11 +131,7 @@ struct OnboardingView: View {
             .task {
                 await viewModel.startFlow()
             }
-            .onChange(of: viewModel.currentStep) { _, step in
-                if step == .done {
-                    onCompletion()
-                }
-            }
+            .onChange(of: viewModel.currentStep) { _, _ in }
             .animation(.easeInOut, value: viewModel.currentStep)
             .safeAreaInset(edge: .bottom) {
                 OnboardingProgressView(
@@ -189,20 +185,41 @@ struct OnboardingView: View {
     
     // MARK: - Step: Done
     private var doneView: some View {
-        VStack(spacing: 30) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 100))
-                .foregroundColor(.green)
-                .symbolEffect(.bounce, options: .repeat(2), value: true)
-            
-            Text("¡Listo!")
+        VStack(spacing: 26) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(fuchsiaColor)
+                    .frame(width: 84, height: 84)
+                    .shadow(color: fuchsiaColor.opacity(0.35), radius: 10, x: 0, y: 6)
+                Image(systemName: "checkmark")
+                    .foregroundColor(.white)
+                    .font(.system(size: 30, weight: .bold))
+            }
+            Text("¡Todo listo!")
                 .font(.largeTitle.bold())
-            
-            Text("Tu cuenta está lista. Ahora puedes explorar la app.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+                .foregroundColor(.white)
+            (
+                Text("Tu cuenta ha sido configurada. Prepárate para descubrir ")
+                    .foregroundColor(.white.opacity(0.9)) +
+                Text("sabores increíbles")
+                    .foregroundColor(fuchsiaColor) +
+                Text(".")
+                    .foregroundColor(.white.opacity(0.9))
+            )
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 24)
+            Button(action: { onCompletion() }) {
+                Text("Empezar")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+            }
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(fuchsiaColor)
+            .clipShape(RoundedRectangle(cornerRadius: 30))
+            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+            .padding(.horizontal)
         }
         .padding()
         .navigationBarHidden(true)
