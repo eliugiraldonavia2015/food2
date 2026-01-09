@@ -60,6 +60,11 @@ struct OnboardingView: View {
                         ProfilePictureSetupView(viewModel: viewModel)
                             .padding(.horizontal, 24)
                         Spacer()
+                    } else if viewModel.currentStep == .interests {
+                        Spacer()
+                        InterestSelectionView(viewModel: viewModel)
+                            .padding(.horizontal, 24)
+                        Spacer()
                     } else {
                         VStack {
                             switch viewModel.currentStep {
@@ -94,6 +99,15 @@ struct OnboardingView: View {
             }
             .preferredColorScheme(.dark)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if viewModel.currentStep == .photo || viewModel.currentStep == .interests {
+                        Button(action: { viewModel.goBack() }) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(fuchsiaColor)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStep != .done {
                         Button("Saltar") {

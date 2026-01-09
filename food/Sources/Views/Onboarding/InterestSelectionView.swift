@@ -10,78 +10,87 @@ import SwiftUI
 // Sources/Views/Onboarding/InterestSelectionView.swift
 struct InterestSelectionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
+    private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
     var body: some View {
         VStack(spacing: 20) {
-            // Título
-            Text("¿Qué tipo de comida te interesa?")
-                .font(.title2.bold())
+            Text("¿Qué te gusta?")
+                .font(.largeTitle.bold())
+                .foregroundColor(.white)
                 .multilineTextAlignment(.center)
             
-            Text("Esto nos ayudará a personalizar tu experiencia en FoodTook 🍽️")
+            Text("Elige tus categorías favoritas para personalizar tu feed.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.85))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
             
-            // Lista de intereses
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 12)], spacing: 12) {
+                VStack(spacing: 12) {
                     ForEach($viewModel.interests) { $option in
                         Button {
                             option.isSelected.toggle()
                         } label: {
-                            HStack {
-                                if option.isSelected {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.white)
-                                }
+                            HStack(spacing: 10) {
+                                Text(emoji(for: option.name))
                                 Text(option.name)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(option.isSelected ? .white : .primary)
+                                    .font(.callout)
+                                    .fontWeight(.semibold)
                             }
-                            .padding(.vertical, 12)
-                            .frame(maxWidth: .infinity)
+                            .foregroundColor(option.isSelected ? .white : .white.opacity(0.9))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: 260)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(option.isSelected ? Color.green : Color.gray.opacity(0.1))
+                                Group {
+                                    if option.isSelected {
+                                        Capsule().fill(fuchsiaColor)
+                                    } else {
+                                        Capsule().fill(Color.white.opacity(0.12))
+                                    }
+                                }
                             )
-                            .animation(.easeInOut(duration: 0.15), value: option.isSelected)
+                            .overlay(
+                                Capsule().stroke(option.isSelected ? fuchsiaColor.opacity(0.4) : Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                            .shadow(color: option.isSelected ? fuchsiaColor.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
                         }
                         .buttonStyle(.plain)
-                        .shadow(color: option.isSelected ? .orange.opacity(0.3) : .clear, radius: 4)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top, 10)
+                .padding(.top, 8)
             }
+            
+            Button(action: { viewModel.nextStep() }) {
+                Text("Siguiente")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+            }
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(fuchsiaColor)
+            .clipShape(RoundedRectangle(cornerRadius: 30))
+            .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
+            .padding(.horizontal)
+            .disabled(viewModel.interests.filter { $0.isSelected }.count < AppConstants.Validation.minInterests)
             
             Spacer()
-            
-            // Controles inferiores
-            HStack {
-                Button(action: { viewModel.goBack() }) {
-                    Label("Atrás", systemImage: "chevron.left")
-                }
-                .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Button(action: { viewModel.nextStep() }) {
-                    Text("Finalizar")
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-                .disabled(viewModel.interests.filter { $0.isSelected }.count < AppConstants.Validation.minInterests)
-            }
-            .padding(.horizontal)
         }
         .padding(.top)
-        .navigationTitle("Intereses")
-        .navigationBarTitleDisplayMode(.inline)
         .animation(.easeInOut, value: viewModel.interests)
+    }
+    
+    private func emoji(for name: String) -> String {
+        let lower = name.lowercased()
+        if lower.contains("pizza") { return "🍕" }
+        if lower.contains("burger") || lower.contains("rápida") { return "🍔" }
+        if lower.contains("sushi") || lower.contains("internacional") { return "🍣" }
+        if lower.contains("taco") { return "🌮" }
+        if lower.contains("saludable") { return "🥗" }
+        if lower.contains("pasta") { return "🍝" }
+        if lower.contains("postre") { return "🍰" }
+        if lower.contains("café") || lower.contains("bebidas") { return "☕️" }
+        if lower.contains("ramen") || lower.contains("local") { return "🍜" }
+        return "🍽️"
     }
 }
