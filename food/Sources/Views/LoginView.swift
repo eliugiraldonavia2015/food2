@@ -457,8 +457,8 @@ struct LoginView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 30))
                 .shadow(color: fuchsiaColor.opacity(0.3), radius: 10, x: 0, y: 5)
             }
-            .allowsHitTesting(isSignUpFormValid && !auth.isLoading)
-            .opacity(isSignUpFormValid ? 1 : 0.7)
+            .allowsHitTesting(isSignUpButtonEnabled && !auth.isLoading)
+            .opacity(isSignUpButtonEnabled ? 1 : 0.7)
             .padding(.top)
             
             if !password.isEmpty {
@@ -977,6 +977,15 @@ struct LoginView: View {
         !password.isEmpty
     }
     
+    private var isSignUpButtonEnabled: Bool {
+        auth.isValidEmail(email) &&
+        !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        isUsernameAvailable &&
+        !password.isEmpty &&
+        !confirmPassword.isEmpty &&
+        password == confirmPassword
+    }
+
     private var isSignUpFormValid: Bool {
         !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
@@ -984,7 +993,6 @@ struct LoginView: View {
         auth.isValidEmail(email) &&
         !password.isEmpty &&
         password == confirmPassword &&
-        meetsMinimumRequirements &&
         !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         isUsernameAvailable
     }
@@ -1016,7 +1024,22 @@ struct LoginView: View {
     }
     
     private func registerUser() {
-        guard isSignUpFormValid else { return }
+        if !isSignUpFormValid {
+            var reasons: [String] = []
+            if firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { reasons.append("Nombre requerido") }
+            if lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { reasons.append("Apellido requerido") }
+            if email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { reasons.append("Correo requerido") }
+            if !auth.isValidEmail(email) { reasons.append("Correo inválido") }
+            if username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { reasons.append("Nombre de usuario requerido") }
+            if !isUsernameAvailable { reasons.append("Nombre de usuario no disponible") }
+            if password.isEmpty { reasons.append("Contraseña requerida") }
+            if confirmPassword.isEmpty { reasons.append("Confirmación de contraseña requerida") }
+            if password != confirmPassword { reasons.append("Las contraseñas no coinciden") }
+            
+            alertMessage = reasons.isEmpty ? "Completa correctamente el formulario de registro." : reasons.joined(separator: "\n")
+            showAlert = true
+            return
+        }
         Task { await signupUseCase.signUp(email: email, password: password, firstName: firstName, lastName: lastName, username: username) }
     }
     
