@@ -11,11 +11,34 @@ public final class OnboardingViewModel: ObservableObject {
     
     @Published public var interests: [InterestOption] = [
         .init(name: "Comida rápida", isSelected: false),
-        .init(name: "Saludable", isSelected: false),
+        .init(name: "Comida saludable", isSelected: false),
+        .init(name: "Hamburguesas", isSelected: false),
+        .init(name: "Pizza", isSelected: false),
+        .init(name: "Sushi", isSelected: false),
+        .init(name: "Pastas", isSelected: false),
+        .init(name: "Ensaladas", isSelected: false),
+        .init(name: "Asados", isSelected: false),
+        .init(name: "Tacos y Comida Mexicana", isSelected: false),
+        .init(name: "Comida China", isSelected: false),
+        .init(name: "Comida Árabe", isSelected: false),
+        .init(name: "Mariscos", isSelected: false),
+        .init(name: "Comida típica", isSelected: false),
+        .init(name: "Sándwiches", isSelected: false),
+        .init(name: "Desayunos", isSelected: false),
+        .init(name: "Brunch", isSelected: false),
         .init(name: "Postres", isSelected: false),
-        .init(name: "Bebidas", isSelected: false),
-        .init(name: "Internacional", isSelected: false),
-        .init(name: "Local", isSelected: false)
+        .init(name: "Helados", isSelected: false),
+        .init(name: "Panadería", isSelected: false),
+        .init(name: "Donas", isSelected: false),
+        .init(name: "Tortas y Pasteles", isSelected: false),
+        .init(name: "Café", isSelected: false),
+        .init(name: "Jugos naturales", isSelected: false),
+        .init(name: "Cerveza", isSelected: false),
+        .init(name: "Vinos", isSelected: false),
+        .init(name: "Cocteles", isSelected: false),
+        .init(name: "Malteadas", isSelected: false),
+        .init(name: "Snacks", isSelected: false),
+        .init(name: "Tapas y Entradas", isSelected: false)
     ]
     
     @Published public var profileImage: UIImage?
