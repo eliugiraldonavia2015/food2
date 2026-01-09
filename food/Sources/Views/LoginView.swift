@@ -978,7 +978,7 @@ struct LoginView: View {
     }
     
     private var isSignUpButtonEnabled: Bool {
-        auth.isValidEmail(email) &&
+        auth.isValidEmail(email.trimmingCharacters(in: .whitespacesAndNewlines)) &&
         !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         isUsernameAvailable &&
         !password.isEmpty &&
