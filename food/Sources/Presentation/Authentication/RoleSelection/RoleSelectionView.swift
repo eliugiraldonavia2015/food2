@@ -33,7 +33,7 @@ public struct RoleSelectionView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
-            VStack(spacing: 14) {
+            VStack(spacing: 16) {
                 RoleCard(
                     title: "Cliente",
                     subtitle: "Quiero pedir comida y ver videos",
@@ -58,7 +58,7 @@ public struct RoleSelectionView: View {
             }
             .padding(.horizontal)
             
-            Spacer()
+            Spacer(minLength: 40)
             
             let isEnabled = viewModel.selectedRole != nil
             Button(action: { if isEnabled { viewModel.confirmSelection(onSuccess: onCompletion) } }) {
@@ -74,6 +74,7 @@ public struct RoleSelectionView: View {
             .disabled(!isEnabled)
             .padding(.horizontal)
         }
+        .padding(.top, 30)
         .onAppear { viewModel.loadUser() }
     }
     
@@ -139,7 +140,7 @@ private struct RoleCard: View {
                     }
                 }
             }
-            .padding(16)
+            .padding(22)
             .background(selected ? Color.black.opacity(0.35) : Color.black.opacity(0.25))
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
