@@ -17,14 +17,10 @@ struct OnboardingView: View {
             ZStack {
                 GeometryReader { geometry in
                     ZStack {
-                        AsyncImage(url: URL(string: "https://images.pexels.com/photos/255349/pexels-photo-255349.jpeg")) { image in
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .scaleEffect(1.2)
-                        } placeholder: {
-                            Color.black
-                        }
+                        Image("fondoonboarding")
+                            .resizable()
+                            .scaledToFill()
+                            .scaleEffect(1.2)
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .ignoresSafeArea(.container, edges: .all)
                         .clipped()
