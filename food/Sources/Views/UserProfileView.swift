@@ -78,7 +78,7 @@ struct UserProfileView: View {
             .offset(y: 12)
         }
         .background(Color.white.ignoresSafeArea())
-        .tint(.fuchsia)
+        .tint(Color.fuchsia)
         .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {

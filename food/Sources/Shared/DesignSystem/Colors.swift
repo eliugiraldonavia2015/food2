@@ -1,7 +1,8 @@
 import SwiftUI
 import UIKit
 
-enum Colors// SwiftUI
+enum Colors {
+    // SwiftUI
     static let fuchsia = Color(red: 255/255, green: 0/255, blue: 132/255)
 
     // UIKit

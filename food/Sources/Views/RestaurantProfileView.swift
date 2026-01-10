@@ -138,7 +138,7 @@ struct RestaurantProfileView: View {
                 }
         )
         .background(Color.white.ignoresSafeArea())
-        .tint(.fuchsia)
+        .tint(Color.fuchsia)
         .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {
