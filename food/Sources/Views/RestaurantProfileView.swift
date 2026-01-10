@@ -72,8 +72,8 @@ struct RestaurantProfileView: View {
                 header
                     .padding(.horizontal, -16)
                 profileInfo
-                menuPill
-                descriptionCard
+                menuButtonView
+                aboutSection
                 sectionHeader("Ubicaciones disponibles")
                 HStack {
                     locationSelector
@@ -370,42 +370,46 @@ struct RestaurantProfileView: View {
         .padding(.top, 0) // Reset padding negativo anterior
     }
 
-    private var menuPill: some View {
+    private var menuButtonView: some View {
         Button(action: { showFullMenu = true }) {
-            ZStack {
-                HStack {
-                    Image(systemName: "fork.knife")
-                        .foregroundColor(.fuchsia)
-                        .padding(8)
-                        .background(Color.fuchsia.opacity(0.1))
-                        .clipShape(Circle())
-                    Text("Ver Menú Completo")
-                        .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .semibold))
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
-                }
+            HStack(spacing: 12) {
+                Image(systemName: "fork.knife")
+                    .foregroundColor(.fuchsia)
+                    .font(.system(size: 16, weight: .bold))
+                    .frame(width: 36, height: 36)
+                    .background(Color.fuchsia.opacity(0.1))
+                    .clipShape(Circle())
+                
+                Text("Ver Menú Completo")
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .semibold))
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray.opacity(0.6))
+                    .font(.system(size: 14, weight: .bold))
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 16)
+            .padding(16)
             .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.25), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         }
         .padding(.vertical, 8)
-        .zIndex(1)
     }
 
-    private var descriptionCard: some View {
+    private var aboutSection: some View {
         Text(currentData.description)
+            .font(.system(size: 14))
             .foregroundColor(.gray)
-            .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(16)
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(12)
     }
 
     private var locationSelector: some View {
