@@ -426,6 +426,39 @@ public final class DatabaseService {
         }
     }
     
+    public func fetchFollowingUids(followerUid: String, completion: @escaping (Set<String>) -> Void) {
+        db.collection("users").document(followerUid).collection("following").getDocuments { snapshot, error in
+            if let _ = error {
+                completion([])
+                return
+            }
+            let uids = Set(snapshot?.documents.map { $0.documentID } ?? [])
+            completion(uids)
+        }
+    }
+    
+    public func fetchFollowingUidsLimited(followerUid: String, limit: Int, completion: @escaping ([String]) -> Void) {
+        db.collection("users").document(followerUid).collection("following").limit(to: limit).getDocuments { snapshot, error in
+            if let _ = error {
+                completion([])
+                return
+            }
+            let uids = snapshot?.documents.map { $0.documentID } ?? []
+            completion(uids)
+        }
+    }
+    
+    public func getUidForUsername(_ username: String, completion: @escaping (String?) -> Void) {
+        db.collection(usernamesCollection).document(username).getDocument { snapshot, error in
+            if let _ = error {
+                completion(nil)
+                return
+            }
+            let uid = snapshot?.data()?["uid"] as? String
+            completion(uid)
+        }
+    }
+    
     // MARK: - Comments Management
     
     /// Publica un comentario en un video

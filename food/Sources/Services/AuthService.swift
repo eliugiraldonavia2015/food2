@@ -164,6 +164,14 @@ extension AuthService {
             onboardingCompleted: self.user?.onboardingCompleted
         )
     }
+    
+    public func isFollowingCached(_ uid: String) -> Bool? {
+        return followingCache.get(uid)
+    }
+    
+    public func setFollowingCached(_ uid: String, value: Bool) {
+        followingCache.set(uid, value: value)
+    }
 }
 
 // MARK: - Interest Management
@@ -256,6 +264,7 @@ public final class AuthService: ObservableObject {
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var phoneAuthState: PhoneAuthState = .idle
     @Published public private(set) var hasResolvedAuth: Bool = false
+    private let followingCache = FollowingCache(capacity: 1024)
     
     // MARK: - Private Properties
     private let db = DatabaseService.shared.db
@@ -1082,6 +1091,11 @@ extension AuthService {
                         location: location,
                         onboardingCompleted: onboardingCompleted
                     )
+                    DatabaseService.shared.fetchFollowingUidsLimited(followerUid: firebaseUser.uid, limit: 256) { list in
+                        DispatchQueue.main.async {
+                            for uid in list { self.followingCache.set(uid, value: true) }
+                        }
+                    }
                     self.isAuthenticated = true
                     self.isLoading = false
                     self.hasResolvedAuth = true
