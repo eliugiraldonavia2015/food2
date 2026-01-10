@@ -1,10 +1,18 @@
 import SwiftUI
 import SDWebImageSwiftUI
 import UIKit
+import AVKit
 
 struct RestaurantProfileView: View {
     struct PhotoItem: Identifiable { let id = UUID(); let url: String; let title: String }
     struct LocationItem: Identifiable { let id = UUID(); let name: String; let address: String; let distanceKm: Double }
+    struct FeatureFlags {
+        var followEnabled: Bool = true
+        var messageEnabled: Bool = true
+        var menuEnabled: Bool = true
+        var locationsEnabled: Bool = true
+        var mediaEnabled: Bool = true
+    }
     struct DataModel {
         let coverUrl: String
         let avatarUrl: String
@@ -17,11 +25,13 @@ struct RestaurantProfileView: View {
         let description: String
         let branch: String
         let photos: [PhotoItem]
+        let features: FeatureFlags = .init()
     }
 
     let data: DataModel
     let onRefresh: (() async -> DataModel?)?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var isFollowing = false
     @State private var showLocationList = false
     @State private var selectedBranchName = ""
@@ -31,9 +41,11 @@ struct RestaurantProfileView: View {
     @State private var reachedThreshold = false
     @State private var didHapticThreshold = false
     @State private var refreshedData: DataModel?
-    @State private var showFullMenu = false
     @State private var showChat = false
     @StateObject private var messagesStore = MessagesStore()
+    @State private var showVideoPlayer = false
+    @State private var selectedVideoIndex = 0
+    @State private var showMockMenu = false
 
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 220
@@ -117,16 +129,14 @@ struct RestaurantProfileView: View {
         .onAppear {
             loadVideos()
         }
-        .fullScreenCover(isPresented: $showFullMenu) {
-            FullMenuView(
-                restaurantId: currentData.username.replacingOccurrences(of: " ", with: "").lowercased(),
+        .sheet(isPresented: $showMockMenu) {
+            MockRestaurantMenuView(
                 restaurantName: currentData.name,
-                coverUrl: currentData.coverUrl,
-                avatarUrl: currentData.avatarUrl,
-                location: currentData.location,
-                branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
-                distanceKm: 2.3
+                location: currentData.location
             )
+        }
+        .fullScreenCover(isPresented: $showVideoPlayer) {
+            ProfileVideoPagerView(videos: fetchedVideos, startIndex: selectedVideoIndex)
         }
         .sheet(isPresented: $showChat) {
             ChatView(
@@ -254,41 +264,16 @@ struct RestaurantProfileView: View {
     }
 
     private var profileInfo: some View {
-        VStack(spacing: 0) {
-            // Avatar con Placeholder
-            ZStack {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 110, height: 110)
-                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                
-                if let url = URL(string: currentData.avatarUrl), !currentData.avatarUrl.isEmpty {
-                    WebImage(url: url)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 102, height: 102)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 102, height: 102)
-                        .foregroundColor(.gray.opacity(0.5))
-                        .clipShape(Circle())
-                }
-            }
-            .offset(y: -55)
-            .padding(.bottom, -40) // Ajuste fino para acercar el texto
-            
+        ZStack(alignment: .top) {
             VStack(spacing: 8) {
                 Text(currentData.name)
                     .foregroundColor(.black)
                     .font(.system(size: 24, weight: .bold))
-                
+
                 Text("@\(currentData.username)")
                     .foregroundColor(.gray)
                     .font(.system(size: 15))
-                
+
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.and.ellipse").foregroundColor(.fuchsia).font(.caption)
@@ -300,8 +285,7 @@ struct RestaurantProfileView: View {
                         Text(String(format: "%.1f", currentData.rating)).foregroundColor(.black).font(.caption.bold())
                     }
                 }
-                
-                // Categoría y Seguidores alineados
+
                 HStack(spacing: 16) {
                     Text(currentData.category)
                         .foregroundColor(.black.opacity(0.8))
@@ -310,7 +294,7 @@ struct RestaurantProfileView: View {
                         .padding(.horizontal, 12)
                         .background(Color.green.opacity(0.15))
                         .clipShape(Capsule())
-                    
+
                     VStack(spacing: 0) {
                         Text(formatCount(currentData.followers))
                             .foregroundColor(.black)
@@ -321,12 +305,11 @@ struct RestaurantProfileView: View {
                     }
                 }
                 .padding(.top, 4)
-                
-                // Botones
+
                 HStack(spacing: 12) {
-                    Button(action: { isFollowing.toggle() }) {
+                    Button(action: { toggleFollowMock() }) {
                         HStack(spacing: 8) {
-                            Image(systemName: "person.badge.plus")
+                            Image(systemName: isFollowing ? "checkmark" : "person.badge.plus")
                                 .foregroundColor(.white)
                             Text(isFollowing ? "Siguiendo" : "Seguir")
                                 .foregroundColor(.white)
@@ -334,12 +317,12 @@ struct RestaurantProfileView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.fuchsia)
+                        .background(Color.fuchsia.opacity(currentData.features.followEnabled ? 1.0 : 0.45))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    Button(action: {
-                        showChat = true
-                    }) {
+                    .disabled(!currentData.features.followEnabled)
+
+                    Button(action: { showChat = true }) {
                         HStack(spacing: 8) {
                             Image(systemName: "paperplane.fill")
                                 .font(.system(size: 16))
@@ -354,22 +337,52 @@ struct RestaurantProfileView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
+                    .opacity(currentData.features.messageEnabled ? 1.0 : 0.55)
+                    .disabled(!currentData.features.messageEnabled)
                 }
                 .padding(.top, 12)
             }
+            .padding(.top, 60)
             .padding(.horizontal, 8)
+
+            avatarView
+                .offset(y: -55)
         }
         .padding(.top, 0)
     }
 
+    private var avatarView: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white)
+                .frame(width: 110, height: 110)
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+
+            if let url = URL(string: currentData.avatarUrl), !currentData.avatarUrl.isEmpty {
+                WebImage(url: url)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 102, height: 102)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 102, height: 102)
+                    .foregroundColor(.gray.opacity(0.5))
+                    .clipShape(Circle())
+            }
+        }
+    }
+
     private var menuButtonView: some View {
-        Button(action: { showFullMenu = true }) {
+        Button(action: { showMockMenu = true }) {
             HStack(spacing: 12) {
                 Image(systemName: "fork.knife")
-                    .foregroundColor(.white) // Icono blanco sobre fondo fuchsia
+                    .foregroundColor(.white)
                     .font(.system(size: 16, weight: .bold))
                     .frame(width: 36, height: 36)
-                    .background(Color.fuchsia) // Fondo fuchsia sólido
+                    .background(Color.fuchsia)
                     .clipShape(Circle())
                 
                 Text("Ver Menú Completo")
@@ -392,7 +405,9 @@ struct RestaurantProfileView: View {
             .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         }
         .padding(.vertical, 8)
-        .zIndex(1) // Asegurar visibilidad
+        .zIndex(1)
+        .opacity(currentData.features.menuEnabled ? 1.0 : 0.55)
+        .disabled(!currentData.features.menuEnabled)
     }
 
     private var aboutSection: some View {
@@ -425,6 +440,8 @@ struct RestaurantProfileView: View {
         }
         .background(Color.gray.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 18))
+        .opacity(currentData.features.locationsEnabled ? 1.0 : 0.55)
+        .disabled(!currentData.features.locationsEnabled)
     }
 
     private var locationList: some View {
@@ -448,6 +465,7 @@ struct RestaurantProfileView: View {
         Button(action: {
             selectedBranchName = loc.name
             showLocationList = false
+            openMaps(query: loc.address)
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -472,6 +490,13 @@ struct RestaurantProfileView: View {
         }
     }
 
+    private func openMaps(query: String) {
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
+            openURL(url)
+        }
+    }
+
     private func nearestBadge(nearest: Bool) -> some View {
         Group {
             if nearest {
@@ -493,7 +518,6 @@ struct RestaurantProfileView: View {
     }
 
     private func loadVideos() {
-        // Intentar cargar videos reales si el usuario existe
         DatabaseService.shared.getUidForUsername(currentData.username) { uid in
             guard let uid = uid else { return }
             DatabaseService.shared.fetchUserVideos(userId: uid) { result in
@@ -503,6 +527,13 @@ struct RestaurantProfileView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func toggleFollowMock() {
+        guard currentData.features.followEnabled else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isFollowing.toggle()
         }
     }
 
@@ -521,8 +552,22 @@ struct RestaurantProfileView: View {
 
     private var photoGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 12) {
-            ForEach(0..<photoItems.count, id: \.self) { i in
-                PhotoTileView(url: photoItems[i].url)
+            if !fetchedVideos.isEmpty {
+                ForEach(Array(fetchedVideos.enumerated()), id: \.offset) { idx, v in
+                    Button {
+                        guard currentData.features.mediaEnabled else { return }
+                        selectedVideoIndex = idx
+                        showVideoPlayer = true
+                    } label: {
+                        PhotoTileView(url: v.thumbnailUrl)
+                    }
+                    .buttonStyle(.plain)
+                    .opacity(currentData.features.mediaEnabled ? 1.0 : 0.65)
+                }
+            } else {
+                ForEach(0..<photoItems.count, id: \.self) { i in
+                    PhotoTileView(url: photoItems[i].url)
+                }
             }
         }
     }
@@ -624,6 +669,189 @@ struct RestaurantProfileView: View {
         if count >= 1_000_000 { return String(format: "%.1fM", Double(count)/1_000_000) }
         else if count >= 1_000 { return String(format: "%.1fK", Double(count)/1_000) }
         else { return "\(count)" }
+    }
+}
+
+final class ProfileVideoPlayerHolder: ObservableObject {
+    let player: AVPlayer
+
+    init(urlString: String) {
+        if let url = URL(string: urlString) {
+            self.player = AVPlayer(url: url)
+        } else {
+            self.player = AVPlayer()
+        }
+    }
+}
+
+struct ProfileVideoPageView: View {
+    let video: Video
+    let isActive: Bool
+    @StateObject private var holder: ProfileVideoPlayerHolder
+
+    init(video: Video, isActive: Bool) {
+        self.video = video
+        self.isActive = isActive
+        _holder = StateObject(wrappedValue: ProfileVideoPlayerHolder(urlString: video.videoUrl))
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            VideoPlayer(player: holder.player)
+                .ignoresSafeArea()
+
+            LinearGradient(colors: [Color.clear, Color.black.opacity(0.55)], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(video.title)
+                    .foregroundColor(.white)
+                    .font(.system(size: 18, weight: .bold))
+                    .lineLimit(2)
+                Text(video.description)
+                    .foregroundColor(.white.opacity(0.85))
+                    .font(.system(size: 13))
+                    .lineLimit(2)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 22)
+        }
+        .onAppear { updatePlayback(isActive: isActive) }
+        .onChange(of: isActive) { _, newValue in updatePlayback(isActive: newValue) }
+        .onDisappear {
+            holder.player.pause()
+            holder.player.seek(to: .zero)
+        }
+    }
+
+    private func updatePlayback(isActive: Bool) {
+        if isActive {
+            holder.player.play()
+        } else {
+            holder.player.pause()
+        }
+    }
+}
+
+struct ProfileVideoPagerView: View {
+    let videos: [Video]
+    let startIndex: Int
+    @Environment(\.dismiss) private var dismiss
+    @State private var index: Int = 0
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Color.black.ignoresSafeArea()
+            if videos.isEmpty {
+                Text("Sin videos")
+                    .foregroundColor(.white)
+                    .font(.system(size: 18, weight: .semibold))
+            } else {
+                VerticalPager(count: videos.count, index: $index) { size, i in
+                    ProfileVideoPageView(video: videos[i], isActive: index == i)
+                        .frame(width: size.width, height: size.height)
+                }
+            }
+            Button(action: { dismiss() }) {
+                Circle()
+                    .fill(Color.black.opacity(0.6))
+                    .frame(width: 40, height: 40)
+                    .overlay(Image(systemName: "xmark").font(.system(size: 16, weight: .bold)).foregroundColor(.white))
+            }
+            .padding(.leading, 16)
+            .padding(.top, 50)
+        }
+        .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            index = min(max(startIndex, 0), max(videos.count - 1, 0))
+        }
+    }
+}
+
+struct MockRestaurantMenuView: View {
+    let restaurantName: String
+    let location: String
+    @Environment(\.dismiss) private var dismiss
+
+    private struct MenuItem: Identifiable {
+        let id = UUID()
+        let name: String
+        let desc: String
+        let price: String
+    }
+
+    private let items: [MenuItem] = [
+        .init(name: "Tacos al Pastor", desc: "Piña, cebolla, cilantro", price: "$85"),
+        .init(name: "Gringa", desc: "Queso + pastor en tortilla de harina", price: "$95"),
+        .init(name: "Quesadilla", desc: "Elige tu guiso", price: "$70"),
+        .init(name: "Agua de Horchata", desc: "500 ml", price: "$35"),
+        .init(name: "Agua de Jamaica", desc: "500 ml", price: "$35")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(restaurantName)
+                            .foregroundColor(.black)
+                            .font(.system(size: 26, weight: .bold))
+                        Text(location)
+                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                    }
+                    .padding(.top, 8)
+
+                    ForEach(items) { it in
+                        HStack(alignment: .top, spacing: 12) {
+                            Circle()
+                                .fill(Color.fuchsia.opacity(0.15))
+                                .frame(width: 44, height: 44)
+                                .overlay(
+                                    Image(systemName: "fork.knife")
+                                        .foregroundColor(.fuchsia)
+                                        .font(.system(size: 16, weight: .bold))
+                                )
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(it.name)
+                                        .foregroundColor(.black)
+                                        .font(.system(size: 16, weight: .semibold))
+                                    Spacer()
+                                    Text(it.price)
+                                        .foregroundColor(.black)
+                                        .font(.system(size: 16, weight: .bold))
+                                }
+                                Text(it.desc)
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 13))
+                            }
+                        }
+                        .padding(14)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.15), lineWidth: 1))
+                        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 20)
+            }
+            .background(Color.white.ignoresSafeArea())
+            .navigationTitle("Menú")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.black)
+                            .font(.system(size: 16, weight: .bold))
+                    }
+                }
+            }
+        }
     }
 }
 

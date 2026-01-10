@@ -210,7 +210,14 @@ struct FeedView: View {
                     followers: 45200,
                     description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                     branch: "Sucursal Condesa",
-                    photos: photos
+                    photos: photos,
+                    features: .init(
+                        followEnabled: true,
+                        messageEnabled: true,
+                        menuEnabled: true,
+                        locationsEnabled: true,
+                        mediaEnabled: true
+                    )
                 ),
                 onRefresh: {
                     try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
@@ -230,7 +237,14 @@ struct FeedView: View {
                         followers: 45200,
                         description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                         branch: "Sucursal Condesa",
-                        photos: newPhotos
+                        photos: newPhotos,
+                        features: .init(
+                            followEnabled: true,
+                            messageEnabled: true,
+                            menuEnabled: true,
+                            locationsEnabled: true,
+                            mediaEnabled: true
+                        )
                     )
                 }
             )
