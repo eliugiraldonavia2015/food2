@@ -2,6 +2,7 @@ import SwiftUI
 import SDWebImageSwiftUI
 import UIKit
 import AVKit
+import Combine
 
 struct RestaurantProfileView: View {
     struct PhotoItem: Identifiable { let id = UUID(); let url: String; let title: String }
@@ -673,6 +674,7 @@ struct RestaurantProfileView: View {
 }
 
 final class ProfileVideoPlayerHolder: ObservableObject {
+    let objectWillChange = ObservableObjectPublisher()
     let player: AVPlayer
 
     init(urlString: String) {
