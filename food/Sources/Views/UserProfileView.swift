@@ -10,7 +10,7 @@ struct UserProfileView: View {
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     
-    private let headerHeight: CGFloat = 340
+    private let headerHeight: CGFloat = 220
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
@@ -157,6 +157,7 @@ struct UserProfileView: View {
                         }
                     }
                     HStack(spacing: 6) {
+                        Text("GYE, Ecuador").foregroundColor(.gray).font(.system(size: 14))
                         Image(systemName: "star.fill").foregroundColor(.yellow)
                         Text("4.8").foregroundColor(.black).font(.system(size: 14))
                     }
@@ -205,7 +206,7 @@ struct UserProfileView: View {
                 
                 Button(action: {}) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill").foregroundColor(.black)
+                        Text("✈️").font(.system(size: 16))
                         Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
@@ -222,11 +223,11 @@ struct UserProfileView: View {
     
     private func descriptionCard(user: PublicProfileViewModel.UserProfileData) -> some View {
         Text(user.bio)
-            .foregroundColor(.black)
+            .foregroundColor(.gray)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(Color.gray.opacity(0.15))
+            .background(Color.gray.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
     

@@ -33,15 +33,22 @@ struct RestaurantProfileView: View {
     @State private var refreshedData: DataModel?
     @State private var showFullMenu = false
     private var currentData: DataModel { refreshedData ?? data }
-    private let headerHeight: CGFloat = 340
+    private let headerHeight: CGFloat = 220
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
     ]
+    @State private var fetchedVideos: [Video] = []
+    
     private var photoItems: [PhotoItem] {
-        (0..<12).map { i in i < currentData.photos.count ? currentData.photos[i] : PhotoItem(url: "", title: "") }
+        if !fetchedVideos.isEmpty {
+            return fetchedVideos.map { video in
+                PhotoItem(url: video.thumbnailUrl, title: video.title)
+            }
+        }
+        return (0..<12).map { i in i < currentData.photos.count ? currentData.photos[i] : PhotoItem(url: "", title: "") }
     }
 
     private let locations: [LocationItem] = [
@@ -134,6 +141,9 @@ struct RestaurantProfileView: View {
         .tint(.fuchsia)
         .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
+        .onAppear {
+            loadVideos()
+        }
         .fullScreenCover(isPresented: $showFullMenu) {
             FullMenuView(
                 restaurantId: currentData.username.replacingOccurrences(of: " ", with: "").lowercased(),
@@ -280,6 +290,7 @@ struct RestaurantProfileView: View {
                         Text(currentData.location).foregroundColor(.black).font(.system(size: 14))
                     }
                     HStack(spacing: 6) {
+                        Text("GYE, Ecuador").foregroundColor(.gray).font(.system(size: 14))
                         Image(systemName: "star.fill").foregroundColor(.yellow)
                         Text(String(format: "%.1f", currentData.rating)).foregroundColor(.black).font(.system(size: 14))
                     }
@@ -319,7 +330,7 @@ struct RestaurantProfileView: View {
                 }
                 Button(action: {}) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill").foregroundColor(.black)
+                        Text("✈️").font(.system(size: 16))
                         Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
@@ -338,17 +349,20 @@ struct RestaurantProfileView: View {
         Button(action: { showFullMenu = true }) {
             ZStack {
                 HStack {
-                    Image(systemName: "menucard")
+                    Image(systemName: "fork.knife")
+                        .foregroundColor(.fuchsia)
+                        .padding(8)
+                        .background(Color.fuchsia.opacity(0.1))
+                        .clipShape(Circle())
+                    Text("Ver Menú Completo")
                         .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .semibold))
                     Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray)
                 }
-                Text("Ver Menú Completo")
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .semibold))
             }
-            .padding(.vertical, 14)
+            .padding(.vertical, 12)
             .padding(.horizontal, 16)
             .background(Color.white)
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.25), lineWidth: 1))
@@ -358,10 +372,11 @@ struct RestaurantProfileView: View {
 
     private var descriptionCard: some View {
         Text(currentData.description)
-            .foregroundColor(.black)
+            .foregroundColor(.gray)
             .font(.subheadline)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(Color.gray.opacity(0.15))
+            .background(Color.gray.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
@@ -369,7 +384,7 @@ struct RestaurantProfileView: View {
         Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
             HStack(spacing: 10) {
                 Image(systemName: "mappin")
-                    .foregroundColor(.fuchsia)
+                    .foregroundColor(.green)
                     .font(.system(size: 18))
                 Text(selectedBranchName.isEmpty ? currentData.branch : selectedBranchName)
                     .foregroundColor(.black)
@@ -379,13 +394,12 @@ struct RestaurantProfileView: View {
                     .foregroundColor(.gray)
                     .rotationEffect(.degrees(showLocationList ? 180 : 0))
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 14)
-            .frame(width: UIScreen.main.bounds.width * 0.65)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
         }
-        .background(Color.white)
+        .background(Color.gray.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.25), lineWidth: 1))
     }
 
     private var locationList: some View {
@@ -451,6 +465,20 @@ struct RestaurantProfileView: View {
         Text(String(format: "%.1f km", km))
             .foregroundColor(.green)
             .font(.system(size: 14, weight: .semibold))
+    }
+
+    private func loadVideos() {
+        // Intentar cargar videos reales si el usuario existe
+        DatabaseService.shared.getUidForUsername(currentData.username) { uid in
+            guard let uid = uid else { return }
+            DatabaseService.shared.fetchUserVideos(userId: uid) { result in
+                if case .success(let videos) = result {
+                    DispatchQueue.main.async {
+                        self.fetchedVideos = videos
+                    }
+                }
+            }
+        }
     }
 
     private func performRefresh() async {
