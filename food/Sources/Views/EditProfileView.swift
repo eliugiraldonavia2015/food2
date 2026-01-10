@@ -225,15 +225,29 @@ struct EditProfileView: View {
             return
         }
         usernameChecking = true
-        DatabaseService.shared.isUsernameAvailable(username) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let available):
-                    usernameAvailable = available || username == currentUser?.username
-                case .failure:
-                    usernameAvailable = nil
+        if let uid = Auth.auth().currentUser?.uid {
+            DatabaseService.shared.isUsernameAvailable(for: uid, username: username) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let availableForUser):
+                        usernameAvailable = availableForUser
+                    case .failure:
+                        usernameAvailable = nil
+                    }
+                    usernameChecking = false
                 }
-                usernameChecking = false
+            }
+        } else {
+            DatabaseService.shared.isUsernameAvailable(username) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let available):
+                        usernameAvailable = available
+                    case .failure:
+                        usernameAvailable = nil
+                    }
+                    usernameChecking = false
+                }
             }
         }
     }
@@ -264,10 +278,22 @@ struct EditProfileView: View {
     }
 
     private func persist(uid: String) {
+        let email = AuthService.shared.user?.email
+        let currentUsername = AuthService.shared.user?.username ?? ""
+        
+        if !username.isEmpty && username != currentUsername {
+            DatabaseService.shared.updateUsername(uid: uid, newUsername: username, email: email) { error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        errorText = "No se pudo actualizar el usuario: \(error.localizedDescription)"
+                    }
+                }
+            }
+        }
+        
         DatabaseService.shared.updateUserDocument(
             uid: uid,
             name: name,
-            username: username,
             bio: bio,
             location: location
         )

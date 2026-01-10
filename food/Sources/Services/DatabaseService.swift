@@ -99,6 +99,23 @@ public final class DatabaseService {
             }
     }
     
+    public func isUsernameAvailable(for uid: String, username: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+        db.collection(usernamesCollection)
+            .document(username)
+            .getDocument { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                guard let snapshot, snapshot.exists, let data = snapshot.data() else {
+                    completion(.success(true))
+                    return
+                }
+                let ownerUid = data["uid"] as? String
+                completion(.success(ownerUid == uid))
+            }
+    }
+    
     // MARK: - Actualizar último login
     public func updateLastLogin(uid: String) {
         let updateData: [String: Any] = [
@@ -120,6 +137,62 @@ public final class DatabaseService {
         db.collection(usernamesCollection).document(username).setData(data) { error in
             if let error = error {
                 print("[Database] ⚠️ Error creating username index: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // MARK: - Actualizar username y su índice de forma atómica
+    public func updateUsername(uid: String, newUsername: String, email: String?, completion: ((Error?) -> Void)? = nil) {
+        guard !newUsername.isEmpty else {
+            completion?(NSError(domain: "Database", code: -1, userInfo: [NSLocalizedDescriptionKey: "Nuevo username vacío"]))
+            return
+        }
+        
+        // 1. Verificar disponibilidad para el usuario actual
+        isUsernameAvailable(for: uid, username: newUsername) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .failure(let error):
+                completion?(error)
+            case .success(let availableForUser):
+                guard availableForUser else {
+                    completion?(NSError(domain: "Database", code: -2, userInfo: [NSLocalizedDescriptionKey: "Username no disponible"]))
+                    return
+                }
+                // 2. Obtener username anterior
+                self.fetchUser(uid: uid) { fetchResult in
+                    switch fetchResult {
+                    case .failure(let error):
+                        completion?(error)
+                    case .success(let data):
+                        let oldUsername = data["username"] as? String ?? ""
+                        
+                        // 3. Aplicar actualización con batch
+                        let batch = self.db.batch()
+                        let userRef = self.db.collection(self.usersCollection).document(uid)
+                        batch.updateData(["username": newUsername, "lastUpdated": Timestamp(date: Date())], forDocument: userRef)
+                        
+                        // 3a. Borrar índice anterior si existe y es distinto
+                        if !oldUsername.isEmpty && oldUsername != newUsername {
+                            let oldIndexRef = self.db.collection(self.usernamesCollection).document(oldUsername)
+                            batch.deleteDocument(oldIndexRef)
+                        }
+                        // 3b. Crear índice nuevo
+                        var indexData: [String: Any] = ["uid": uid]
+                        if let email = email { indexData["email"] = email }
+                        let newIndexRef = self.db.collection(self.usernamesCollection).document(newUsername)
+                        batch.setData(indexData, forDocument: newIndexRef)
+                        
+                        batch.commit { error in
+                            if let error = error {
+                                print("[Database] ❌ Error updating username/index: \(error.localizedDescription)")
+                            } else {
+                                print("[Database] ✅ Username updated: \(oldUsername) → \(newUsername)")
+                            }
+                            completion?(error)
+                        }
+                    }
+                }
             }
         }
     }
