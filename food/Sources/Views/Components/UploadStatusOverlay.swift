@@ -107,7 +107,7 @@ public struct UploadStatusOverlay: View {
             .padding(.top, 8) // Espacio seguro superior
             .transition(.move(edge: .top).combined(with: .opacity))
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: manager.isProcessing)
-            .onChange(of: manager.isCompleted) { _, completed in
+            .onChange(of: manager.isCompleted) { completed in
                 if completed && isHiddenTemporarily {
                     // Si estaba oculto y terminó, mostrar de nuevo para feedback
                     withAnimation {

@@ -109,7 +109,7 @@ struct OnboardingView: View {
             .task {
                 await viewModel.startFlow()
             }
-            .onChange(of: viewModel.currentStep) { _, _ in }
+            .onChange(of: viewModel.currentStep) { _ in }
             .animation(.easeInOut, value: viewModel.currentStep)
             .safeAreaInset(edge: .bottom) {
                 OnboardingProgressView(

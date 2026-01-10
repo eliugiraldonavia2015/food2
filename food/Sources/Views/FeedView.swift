@@ -147,7 +147,7 @@ struct FeedView: View {
             forYouVM.cancelPrefetch()
             followingVM.cancelPrefetch()
         }
-        .onChange(of: activeTab) { _, _ in
+        .onChange(of: activeTab) { _ in
             // 🛑 DETENER TODO EL AUDIO AL CAMBIAR DE TAB
             VideoPlayerCoordinator.shared.pauseAll()
             
@@ -172,7 +172,7 @@ struct FeedView: View {
         }
         // 🚀 PRECARGA INTELIGENTE DE VIDEO
         // Cuando cambia el índice (scroll), iniciamos la carga del SIGUIENTE video
-        .onChange(of: selectedIndexBinding.wrappedValue) { oldValue, newValue in
+        .onChange(of: selectedIndexBinding.wrappedValue) { newValue in
             let idx = newValue
             let items = currentItems
             guard idx >= 0 && idx < items.count else { return }
@@ -673,10 +673,10 @@ struct FeedView: View {
                     isPaused = false
                 }
             }
-            .onChange(of: coordinator.activeVideoId) { _, _ in updatePlayback() }
-            .onChange(of: isScreenActive) { _, _ in updatePlayback() }
-            .onChange(of: isPaused) { _, _ in updatePlayback() }
-            .onChange(of: isMuted) { _, _ in updatePlayback() }
+            .onChange(of: coordinator.activeVideoId) { _ in updatePlayback() }
+            .onChange(of: isScreenActive) { _ in updatePlayback() }
+            .onChange(of: isPaused) { _ in updatePlayback() }
+            .onChange(of: isMuted) { _ in updatePlayback() }
         }
 
         private func setupPlayer(with item: AVPlayerItem) {
@@ -920,7 +920,7 @@ struct FeedView: View {
             .onAppear {
                 updateFollowingUI()
             }
-            .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
+            .onChange(of: AuthService.shared.hasResolvedAuth) { newValue in
                 if newValue { updateFollowingUI() }
             }
 

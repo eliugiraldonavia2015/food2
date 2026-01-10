@@ -719,7 +719,7 @@ struct ProfileVideoPageView: View {
             .padding(.bottom, 22)
         }
         .onAppear { updatePlayback(isActive: isActive) }
-        .onChange(of: isActive) { _, newValue in updatePlayback(isActive: newValue) }
+        .onChange(of: isActive) { newValue in updatePlayback(isActive: newValue) }
         .onDisappear {
             holder.player.pause()
             holder.player.seek(to: .zero)
