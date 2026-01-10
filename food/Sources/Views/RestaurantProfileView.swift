@@ -60,87 +60,57 @@ struct RestaurantProfileView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                Color.clear
-                    .frame(height: 0)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
-                        }
-                    )
-                    .padding(.bottom, -16)
+            VStack(spacing: 0) {
+                // Header ocupando todo el ancho
                 header
-                    .padding(.horizontal, -16)
-                profileInfo
-                menuButtonView
-                aboutSection
-                sectionHeader("Ubicaciones disponibles")
-                HStack {
-                    locationSelector
-                    Spacer()
-                }
-                .overlay(alignment: .topLeading) {
-                    if showLocationList {
-                        locationList
-                            .padding(.top, 52)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .zIndex(2)
+                
+                // Contenido del perfil
+                VStack(spacing: 20) {
+                    profileInfo
+                    menuButtonView
+                    aboutSection
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader("Ubicaciones disponibles")
+                        HStack {
+                            locationSelector
+                            Spacer()
+                        }
+                        .overlay(alignment: .topLeading) {
+                            if showLocationList {
+                                locationList
+                                    .padding(.top, 52)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                                    .zIndex(20)
+                            }
+                        }
+                        .zIndex(showLocationList ? 20 : 1)
+                    }
+                    .zIndex(showLocationList ? 20 : 1)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        sectionHeader("Fotos y Videos")
+                        photoGrid
                     }
                 }
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
-                .zIndex(showLocationList ? 10 : 0)
-                sectionHeader("Fotos y Videos")
-                photoGrid
+                .padding(.horizontal, 16)
+                .padding(.bottom, 40)
             }
-            .padding(.horizontal, 16)
         }
         .coordinateSpace(name: "profileScroll")
-        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-            pullOffset = max(0, y)
-            reachedThreshold = pullOffset >= refreshThreshold
-            if reachedThreshold && !didHapticThreshold {
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
-                didHapticThreshold = true
-            }
-            if !reachedThreshold { didHapticThreshold = false }
-        }
-        .onPreferenceChange(HeaderOffsetPreferenceKey.self) { v in
-            headerMinY = v
-            pullOffset = max(0, v)
-            reachedThreshold = pullOffset >= refreshThreshold
-        }
-        .safeAreaInset(edge: .top) {
-            refreshHeader
-                .allowsHitTesting(false)
-                .zIndex(1001)
-                .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: isRefreshing)
-        }
+        .ignoresSafeArea(edges: .top)
         .overlay(alignment: .topLeading) {
             Button(action: { dismiss() }) {
                 Circle()
                     .fill(Color.white)
-                    .frame(width: 38, height: 38)
-                    .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
-                    .overlay(Image(systemName: "chevron.left").foregroundColor(.black))
+                    .frame(width: 40, height: 40)
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.black))
             }
-            .padding(12)
-            .offset(y: 12)
-            .opacity(1)
-            .zIndex(1000)
+            .padding(.leading, 16)
+            .padding(.top, 50) // Posición más baja para evitar el notch/isla
         }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 1, coordinateSpace: .named("profileScroll"))
-                .onEnded { _ in
-                    if reachedThreshold && !isRefreshing {
-                        Task { await performRefresh() }
-                    }
-                }
-        )
         .background(Color.white.ignoresSafeArea())
-        .tint(Color.fuchsia)
-        .preferredColorScheme(.light)
-        .ignoresSafeArea(edges: .top)
         .onAppear {
             loadVideos()
         }
