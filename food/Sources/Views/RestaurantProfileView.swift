@@ -26,7 +26,35 @@ struct RestaurantProfileView: View {
         let description: String
         let branch: String
         let photos: [PhotoItem]
-        let features: FeatureFlags = .init()
+        let features: FeatureFlags
+
+        init(
+            coverUrl: String,
+            avatarUrl: String,
+            name: String,
+            username: String,
+            location: String,
+            rating: Double,
+            category: String,
+            followers: Int,
+            description: String,
+            branch: String,
+            photos: [PhotoItem],
+            features: FeatureFlags = .init()
+        ) {
+            self.coverUrl = coverUrl
+            self.avatarUrl = avatarUrl
+            self.name = name
+            self.username = username
+            self.location = location
+            self.rating = rating
+            self.category = category
+            self.followers = followers
+            self.description = description
+            self.branch = branch
+            self.photos = photos
+            self.features = features
+        }
     }
 
     let data: DataModel
