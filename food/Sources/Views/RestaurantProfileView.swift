@@ -321,10 +321,17 @@ struct RestaurantProfileView: View {
                         .background(Color.fuchsia)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    Button(action: {}) {
+                    Button(action: {
+                        // Acción placeholder para Mensaje
+                        print("Abrir chat con \(currentData.name)")
+                    }) {
                         HStack(spacing: 8) {
-                            Text("✈️").font(.system(size: 16))
-                            Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.fuchsia)
+                            Text("Mensaje")
+                                .foregroundColor(.black)
+                                .font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -337,17 +344,17 @@ struct RestaurantProfileView: View {
             }
             .padding(.horizontal, 8)
         }
-        .padding(.top, 0) // Reset padding negativo anterior
+        .padding(.top, 0)
     }
 
     private var menuButtonView: some View {
         Button(action: { showFullMenu = true }) {
             HStack(spacing: 12) {
                 Image(systemName: "fork.knife")
-                    .foregroundColor(.fuchsia)
+                    .foregroundColor(.white) // Icono blanco sobre fondo fuchsia
                     .font(.system(size: 16, weight: .bold))
                     .frame(width: 36, height: 36)
-                    .background(Color.fuchsia.opacity(0.1))
+                    .background(Color.fuchsia) // Fondo fuchsia sólido
                     .clipShape(Circle())
                 
                 Text("Ver Menú Completo")
@@ -370,6 +377,7 @@ struct RestaurantProfileView: View {
             .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         }
         .padding(.vertical, 8)
+        .zIndex(1) // Asegurar visibilidad
     }
 
     private var aboutSection: some View {
