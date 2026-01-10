@@ -32,6 +32,9 @@ struct RestaurantProfileView: View {
     @State private var didHapticThreshold = false
     @State private var refreshedData: DataModel?
     @State private var showFullMenu = false
+    @State private var showChat = false
+    @StateObject private var messagesStore = MessagesStore()
+
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 220
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
@@ -123,6 +126,19 @@ struct RestaurantProfileView: View {
                 location: currentData.location,
                 branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
                 distanceKm: 2.3
+            )
+        }
+        .sheet(isPresented: $showChat) {
+            ChatView(
+                conversation: Conversation(
+                    title: currentData.name,
+                    subtitle: "Responde habitualmente en 1 hora",
+                    timestamp: "Ahora",
+                    unreadCount: 0,
+                    avatarSystemName: "storefront.fill",
+                    isOnline: true
+                ),
+                store: messagesStore
             )
         }
     }
@@ -322,8 +338,7 @@ struct RestaurantProfileView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     Button(action: {
-                        // Acción placeholder para Mensaje
-                        print("Abrir chat con \(currentData.name)")
+                        showChat = true
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "paperplane.fill")
