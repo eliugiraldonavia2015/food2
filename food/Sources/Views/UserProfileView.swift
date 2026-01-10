@@ -126,99 +126,109 @@ struct UserProfileView: View {
     }
     
     private func profileInfo(user: PublicProfileViewModel.UserProfileData) -> some View {
-        VStack(spacing: 12) {
-            // Avatar superpuesto
-            WebImage(url: URL(string: user.photoUrl))
-                .resizable()
-                .scaledToFill()
-                .frame(width: 86, height: 86)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                .offset(y: -32)
-                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 4)
+        VStack(spacing: 0) {
+            // Avatar con Placeholder
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 110, height: 110)
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                
+                if let url = URL(string: user.photoUrl), !user.photoUrl.isEmpty {
+                    WebImage(url: url)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 102, height: 102)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 102, height: 102)
+                        .foregroundColor(.gray.opacity(0.5))
+                        .clipShape(Circle())
+                }
+            }
+            .offset(y: -55)
+            .padding(.bottom, -40)
             
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 Text(user.name)
                     .foregroundColor(.black)
-                    .font(.system(size: 26, weight: .bold))
+                    .font(.system(size: 24, weight: .bold))
                 
                 Text("@\(user.username)")
                     .foregroundColor(.gray)
-                    .font(.system(size: 16))
+                    .font(.system(size: 15))
                 
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     if !user.location.isEmpty {
-                        HStack(spacing: 6) {
-                            Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.fuchsia)
-                            Text(user.location)
-                                .foregroundColor(.black)
-                                .font(.system(size: 14))
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.and.ellipse").foregroundColor(.fuchsia).font(.caption)
+                            Text(user.location).foregroundColor(.gray).font(.caption)
                         }
                     }
-                    HStack(spacing: 6) {
-                        Text("GYE, Ecuador").foregroundColor(.gray).font(.system(size: 14))
-                        Image(systemName: "star.fill").foregroundColor(.yellow)
-                        Text("4.8").foregroundColor(.black).font(.system(size: 14))
+                    HStack(spacing: 4) {
+                        if !user.location.isEmpty { Text("•").foregroundColor(.gray) }
+                        Image(systemName: "star.fill").foregroundColor(.yellow).font(.caption)
+                        Text("4.8").foregroundColor(.black).font(.caption.bold())
                     }
                 }
                 
-                // Categoría Pill
-                HStack(spacing: 8) {
+                // Categoría y Seguidores
+                HStack(spacing: 16) {
                     Text("Foodie")
-                        .foregroundColor(.black)
-                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.black.opacity(0.8))
+                        .font(.system(size: 13, weight: .semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .background(Color.green.opacity(0.15))
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .clipShape(Capsule())
+                    
+                    VStack(spacing: 0) {
+                        Text(formatCount(user.followers))
+                            .foregroundColor(.black)
+                            .font(.system(size: 16, weight: .bold))
+                        Text("Seguidores")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 11))
+                    }
                 }
                 .padding(.top, 4)
                 
-                // Stats
-                VStack(spacing: 2) {
-                    Text(formatCount(user.followers))
-                        .foregroundColor(.black)
-                        .font(.system(size: 24, weight: .bold))
-                    Text("Seguidores")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 13))
-                }
-                .padding(.top, 4)
-            }
-            .padding(.top, -20)
-            
-            // Botones de acción grandes
-            HStack(spacing: 12) {
-                Button(action: { isFollowing.toggle() }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: isFollowing ? "person.checkmark" : "person.badge.plus")
-                            .foregroundColor(.white)
-                        Text(isFollowing ? "Siguiendo" : "Seguir")
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .semibold))
+                // Botones
+                HStack(spacing: 12) {
+                    Button(action: { isFollowing.toggle() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: isFollowing ? "person.checkmark" : "person.badge.plus")
+                                .foregroundColor(.white)
+                            Text(isFollowing ? "Siguiendo" : "Seguir")
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(isFollowing ? Color.gray : Color.fuchsia)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.fuchsia)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                
-                Button(action: {}) {
-                    HStack(spacing: 8) {
-                        Text("✈️").font(.system(size: 16))
-                        Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                    
+                    Button(action: {}) {
+                        HStack(spacing: 8) {
+                            Text("✈️").font(.system(size: 16))
+                            Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.25), lineWidth: 1))
                 }
+                .padding(.top, 12)
             }
+            .padding(.horizontal, 8)
         }
-        .padding(.top, -132)
-        .padding(.bottom, 4)
+        .padding(.top, 0)
     }
     
     private func descriptionCard(user: PublicProfileViewModel.UserProfileData) -> some View {
