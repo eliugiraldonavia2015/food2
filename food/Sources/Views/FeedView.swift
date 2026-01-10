@@ -428,6 +428,8 @@ struct FeedView: View {
         @State private var isLiked = false
         @State private var likesCount: Int
         @State private var isFollowing = false
+        @State private var showFollowButton = true
+        @State private var orderPressed = false
         @State private var bottomSectionHeight: CGFloat = 0
         @State private var hapticLight = UIImpactFeedbackGenerator(style: .light)
         @State private var hapticMedium = UIImpactFeedbackGenerator(style: .medium)
@@ -817,11 +819,26 @@ struct FeedView: View {
                                                 .foregroundColor(.white)
                                                 .font(.system(size: 20, weight: .bold))
                                         }
-                                        Button(action: { isFollowing.toggle() }) {
-                                            Capsule()
-                                                .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                                .frame(width: 90, height: 32)
-                                                .overlay(Text(isFollowing ? "Siguiendo" : "Seguir").foregroundColor(.white).font(.footnote.bold()))
+                                        if showFollowButton {
+                                            Button(action: {
+                                                withAnimation(.easeInOut(duration: 0.2)) { isFollowing = true }
+                                                if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
+                                                    DatabaseService.shared.followUser(followerUid: followerUid, followedUid: followedUid) { _ in }
+                                                }
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                                    withAnimation(.easeInOut(duration: 0.2)) { showFollowButton = false }
+                                                }
+                                            }) {
+                                                Capsule()
+                                                    .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                                                    .frame(width: 90, height: 32)
+                                                    .overlay(
+                                                        Text(isFollowing ? "Siguiendo" : "Seguir")
+                                                            .foregroundColor(.white)
+                                                            .font(.footnote.bold())
+                                                            .transition(.opacity.combined(with: .scale))
+                                                    )
+                                            }
                                         }
                                     }
                                     if let labelText = labelText {
@@ -859,11 +876,19 @@ struct FeedView: View {
                             }
                             
                             HStack(spacing: 10) {
-                                Button(action: onShowMenu) {
+                                Button(action: {
+                                    withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderPressed = false }
+                                        onShowMenu()
+                                    }
+                                }) {
                                     Capsule()
-                                        .fill(Color.green)
+                                        .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
                                         .frame(width: 216, height: 48)
                                         .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                                        .scaleEffect(orderPressed ? 0.95 : 1.0)
+                                        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: orderPressed)
                                 }
                             }
                         }
@@ -872,6 +897,18 @@ struct FeedView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, bottomInset - 24)
+            }
+            .onAppear {
+                if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
+                    DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: followedUid) { isF in
+                        DispatchQueue.main.async {
+                            isFollowing = isF
+                            showFollowButton = !isF
+                        }
+                    }
+                } else {
+                    showFollowButton = true
+                }
             }
         }
         

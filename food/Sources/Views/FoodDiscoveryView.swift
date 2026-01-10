@@ -6,6 +6,7 @@ struct FoodDiscoveryView: View {
     @State private var searchText = ""
     @State private var showFilters = false // Estado para mostrar filtros
     var onClose: () -> Void
+    @State private var orderTapScale: CGFloat = 1.0
     
     // Datos simulados
     let categories = ["Burgers", "Pizza", "Saludable", "Carnes", "Drinks", "Sushi"]
@@ -215,14 +216,20 @@ struct FoodDiscoveryView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.9))
                 
-                Button(action: {}) {
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.12)) { orderTapScale = 0.95 }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderTapScale = 1.0 }
+                    }
+                }) {
                     Text("Ordenar ahora")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
-                        .background(Color.green)
+                        .background(Color(red: 244/255, green: 37/255, blue: 123/255))
                         .cornerRadius(8)
+                        .scaleEffect(orderTapScale)
                 }
                 .padding(.top, 8)
             }

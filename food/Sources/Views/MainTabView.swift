@@ -152,10 +152,10 @@ struct MainTabView: View {
     }
 
     private var riderButton: some View {
-        centerAccentButton(icon: "figure.bicycle", title: "Ruta", color: .orange) {
-            withAnimation {
-                selected = .notifications
-            }
+        centerAccentButton(icon: "cart.fill", title: "Carrito", color: .green) {
+            showShopLoading = false
+            showShop = true
+            inDiscoveryMode = true
         }
         .frame(maxWidth: .infinity)
     }

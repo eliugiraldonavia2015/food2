@@ -396,6 +396,36 @@ public final class DatabaseService {
         }
     }
     
+    // MARK: - Follow Management
+    public func followUser(followerUid: String, followedUid: String, completion: @escaping (Error?) -> Void) {
+        let ref = db.collection("users").document(followerUid).collection("following").document(followedUid)
+        ref.setData([
+            "followedUid": followedUid,
+            "createdAt": Timestamp(date: Date())
+        ]) { error in
+            completion(error)
+        }
+    }
+    
+    public func unfollowUser(followerUid: String, followedUid: String, completion: @escaping (Error?) -> Void) {
+        let ref = db.collection("users").document(followerUid).collection("following").document(followedUid)
+        ref.delete { error in
+            completion(error)
+        }
+    }
+    
+    public func checkIfFollowing(followerUid: String, followedUid: String, completion: @escaping (Bool) -> Void) {
+        let ref = db.collection("users").document(followerUid).collection("following").document(followedUid)
+        ref.getDocument { snapshot, error in
+            if let error = error {
+                print("[Database] ⚠️ Error checking following status: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            completion(snapshot?.exists ?? false)
+        }
+    }
+    
     // MARK: - Comments Management
     
     /// Publica un comentario en un video
