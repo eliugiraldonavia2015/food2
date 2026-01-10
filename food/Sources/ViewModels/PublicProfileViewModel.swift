@@ -63,7 +63,9 @@ class PublicProfileViewModel: ObservableObject {
         let name = data["name"] as? String ?? ""
         let bio = data["bio"] as? String ?? "Amante de la comida 🌮"
         let photoUrl = data["photoURL"] as? String ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
-        let coverUrl = "https://images.unsplash.com/photo-1493770348161-369560ae357d" // Placeholder por ahora
+        let coverUrl = (data["coverURL"] as? String)?.isEmpty == false
+            ? (data["coverURL"] as! String)
+            : "https://images.unsplash.com/photo-1493770348161-369560ae357d"
         
         DispatchQueue.main.async {
             self.user = UserProfileData(

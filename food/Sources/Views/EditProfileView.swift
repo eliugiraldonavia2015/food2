@@ -12,10 +12,13 @@ struct EditProfileView: View {
     @State private var location: String = ""
     @State private var selectedImage: UIImage? = nil
     @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var selectedCoverImage: UIImage? = nil
+    @State private var selectedCoverItem: PhotosPickerItem? = nil
     @State private var isSaving: Bool = false
     @State private var usernameAvailable: Bool? = nil
     @State private var usernameChecking: Bool = false
     @State private var errorText: String? = nil
+    @State private var coverUrlString: String = ""
 
     @Environment(\.dismiss) private var dismiss
 
@@ -103,6 +106,52 @@ struct EditProfileView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    private func coverPicker() -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Portada")
+                .foregroundColor(.white.opacity(0.8))
+                .font(.caption)
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 140)
+                if let img = selectedCoverImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 140)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } else if let url = URL(string: coverUrlString), !coverUrlString.isEmpty {
+                    WebImage(url: url)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 140)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } else {
+                    VStack(spacing: 6) {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .foregroundColor(.white.opacity(0.6))
+                            .font(.system(size: 24))
+                        Text("Sin portada")
+                            .foregroundColor(.white.opacity(0.6))
+                            .font(.caption)
+                    }
+                }
+            }
+            PhotosPicker(selection: $selectedCoverItem, matching: .images) {
+                Text("Cambiar portada")
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
     private func labeledField(label: String, placeholder: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label).foregroundColor(.white.opacity(0.8)).font(.caption)
@@ -173,6 +222,7 @@ struct EditProfileView: View {
             VStack(spacing: 12) {
                 header()
                 avatarPicker()
+                coverPicker()
                 labeledField(label: "Nombre", placeholder: "Tu nombre", text: $name)
                 usernameField()
                 labeledField(label: "Ubicación", placeholder: "Ciudad, País", text: $location)
@@ -187,6 +237,13 @@ struct EditProfileView: View {
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self), let img = UIImage(data: data) {
                     selectedImage = img
+                }
+            }
+        }
+        .onChange(of: selectedCoverItem) { newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self), let img = UIImage(data: data) {
+                    selectedCoverImage = img
                 }
             }
         }
@@ -209,6 +266,7 @@ struct EditProfileView: View {
                         username = (data["username"] as? String) ?? username
                         bio = (data["bio"] as? String) ?? bio
                         location = (data["location"] as? String) ?? location
+                        coverUrlString = (data["coverURL"] as? String) ?? coverUrlString
                     }
                 }
             }
@@ -258,6 +316,7 @@ struct EditProfileView: View {
         errorText = nil
 
         var newPhotoURL: URL? = currentUser?.photoURL
+        var newCoverURL: URL? = nil
         if let image = selectedImage {
             StorageService.shared.uploadProfileImage(uid: firebaseUser.uid, image: image) { result in
                 DispatchQueue.main.async {
@@ -265,7 +324,7 @@ struct EditProfileView: View {
                     case .success(let url):
                         newPhotoURL = url
                         AuthService.shared.updateProfilePhoto(with: url)
-                        persist(uid: firebaseUser.uid)
+                        maybeUploadCoverAndPersist(uid: firebaseUser.uid, photoURL: newPhotoURL)
                     case .failure(let error):
                         errorText = error.localizedDescription
                         isSaving = false
@@ -273,11 +332,29 @@ struct EditProfileView: View {
                 }
             }
         } else {
-            persist(uid: firebaseUser.uid)
+            maybeUploadCoverAndPersist(uid: firebaseUser.uid, photoURL: newPhotoURL)
         }
     }
 
-    private func persist(uid: String) {
+    private func maybeUploadCoverAndPersist(uid: String, photoURL: URL?) {
+        if let coverImg = selectedCoverImage {
+            StorageService.shared.uploadProfileCover(uid: uid, image: coverImg) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let url):
+                        persist(uid: uid, photoURL: photoURL, coverURL: url)
+                    case .failure(let error):
+                        errorText = error.localizedDescription
+                        isSaving = false
+                    }
+                }
+            }
+        } else {
+            persist(uid: uid, photoURL: photoURL, coverURL: nil)
+        }
+    }
+
+    private func persist(uid: String, photoURL: URL?, coverURL: URL?) {
         let email = AuthService.shared.user?.email
         let currentUsername = AuthService.shared.user?.username ?? ""
         
@@ -294,6 +371,8 @@ struct EditProfileView: View {
         DatabaseService.shared.updateUserDocument(
             uid: uid,
             name: name,
+            photoURL: photoURL,
+            coverURL: coverURL,
             bio: bio,
             location: location
         )
@@ -307,12 +386,13 @@ struct EditProfileView: View {
                         name: data["name"] as? String,
                         username: data["username"] as? String,
                         phoneNumber: AuthService.shared.user?.phoneNumber,
-                        photoURL: AuthService.shared.user?.photoURL,
+                        photoURL: photoURL ?? AuthService.shared.user?.photoURL,
                         interests: AuthService.shared.user?.interests,
                         role: data["role"] as? String,
                         bio: data["bio"] as? String,
                         location: data["location"] as? String
                     )
+                    coverUrlString = data["coverURL"] as? String ?? coverUrlString
                     isSaving = false
                     onClose()
                 } else {

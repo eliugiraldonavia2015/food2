@@ -46,6 +46,7 @@ public final class DatabaseService {
             "createdAt": Timestamp(date: Date()),
             "lastLogin": Timestamp(date: Date()),
             "photoURL": photoURL?.absoluteString ?? "",
+            "coverURL": "",
             "isPremium": false,
             "onboardingCompleted": false, // ✅ INICIALIZADO CORRECTAMENTE
             "bio": "",
@@ -202,6 +203,7 @@ public final class DatabaseService {
         uid: String,
         name: String? = nil,
         photoURL: URL? = nil,
+        coverURL: URL? = nil,
         username: String? = nil,
         bio: String? = nil,
         location: String? = nil
@@ -210,6 +212,7 @@ public final class DatabaseService {
         
         if let name = name { updateData["name"] = name }
         if let photoURL = photoURL { updateData["photoURL"] = photoURL.absoluteString }
+        if let coverURL = coverURL { updateData["coverURL"] = coverURL.absoluteString }
         if let username = username { updateData["username"] = username }
         if let bio = bio { updateData["bio"] = bio }
         if let location = location { updateData["location"] = location }
@@ -223,6 +226,21 @@ public final class DatabaseService {
             } else {
                 print("[Database] ✅ User updated successfully")
             }
+        }
+    }
+    
+    public func updateUserCoverUrl(uid: String, coverURL: URL, completion: ((Error?) -> Void)? = nil) {
+        let updateData: [String: Any] = [
+            "coverURL": coverURL.absoluteString,
+            "lastUpdated": Timestamp(date: Date())
+        ]
+        db.collection(usersCollection).document(uid).updateData(updateData) { error in
+            if let error = error {
+                print("[Database] ❌ Error updating coverURL: \(error.localizedDescription)")
+            } else {
+                print("[Database] ✅ coverURL updated successfully")
+            }
+            completion?(error)
         }
     }
     

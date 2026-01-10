@@ -49,7 +49,7 @@ struct UserProfileView: View {
                     }
                     
                     // Grid de Contenido
-                    sectionHeader("Videos")
+                    sectionHeader("Fotos y Videos")
                     videoGrid
                 } else {
                     loadingView
@@ -69,14 +69,17 @@ struct UserProfileView: View {
         .overlay(alignment: .topLeading) {
             Button(action: { dismiss() }) {
                 Circle()
-                    .fill(Color.black.opacity(0.6))
+                    .fill(Color.white)
                     .frame(width: 38, height: 38)
-                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+                    .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 4)
+                    .overlay(Image(systemName: "chevron.left").foregroundColor(.black))
             }
             .padding(12)
-            .offset(y: 50)
+            .offset(y: 12)
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
+        .tint(.fuchsia)
+        .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
@@ -113,10 +116,9 @@ struct UserProfileView: View {
             gradient: Gradient(stops: [
                 .init(color: Color.black.opacity(0.0), location: 0.0),
                 .init(color: Color.black.opacity(0.0), location: 0.55),
-                .init(color: Color.black.opacity(0.30), location: 0.65),
-                .init(color: Color.black.opacity(0.75), location: 0.75),
-                .init(color: Color.black.opacity(1.0), location: 0.85),
-                .init(color: Color.black.opacity(1.0), location: 1.0)
+                .init(color: Color.black.opacity(0.15), location: 0.75),
+                .init(color: Color.black.opacity(0.25), location: 0.9),
+                .init(color: Color.black.opacity(0.3), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -131,51 +133,43 @@ struct UserProfileView: View {
                 .scaledToFill()
                 .frame(width: 86, height: 86)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.green, lineWidth: 2))
-                .offset(y: -22)
-                .shadow(radius: 6)
+                .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                .offset(y: -32)
+                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 4)
             
             VStack(spacing: 6) {
                 Text(user.name)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .font(.system(size: 26, weight: .bold))
                 
                 Text("@\(user.username)")
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.gray)
                     .font(.system(size: 16))
                 
                 HStack(spacing: 10) {
                     if !user.location.isEmpty {
                         HStack(spacing: 6) {
                             Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.fuchsia)
                             Text(user.location)
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                                 .font(.system(size: 14))
                         }
                     }
                     HStack(spacing: 6) {
                         Image(systemName: "star.fill").foregroundColor(.yellow)
-                        Text("4.8").foregroundColor(.white).font(.system(size: 14))
+                        Text("4.8").foregroundColor(.black).font(.system(size: 14))
                     }
                 }
                 
                 // Categoría Pill
                 HStack(spacing: 8) {
-                    Text("Categoría:")
-                        .foregroundColor(.white.opacity(0.9))
-                        .font(.system(size: 14))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 12)
-                        .background(Color.white.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
-                    
                     Text("Foodie")
-                        .foregroundColor(.green)
+                        .foregroundColor(.black)
                         .font(.system(size: 14, weight: .semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
-                        .background(Color.white.opacity(0.08))
+                        .background(Color.green.opacity(0.15))
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                 }
                 .padding(.top, 4)
@@ -183,15 +177,15 @@ struct UserProfileView: View {
                 // Stats
                 VStack(spacing: 2) {
                     Text(formatCount(user.followers))
-                        .foregroundColor(.white)
+                        .foregroundColor(.black)
                         .font(.system(size: 24, weight: .bold))
                     Text("Seguidores")
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundColor(.gray)
                         .font(.system(size: 13))
                 }
                 .padding(.top, 4)
             }
-            .padding(.top, -10)
+            .padding(.top, -20)
             
             // Botones de acción grandes
             HStack(spacing: 12) {
@@ -205,33 +199,34 @@ struct UserProfileView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(isFollowing ? Color.white.opacity(0.15) : Color.green)
+                    .background(Color.fuchsia)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 
                 Button(action: {}) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill").foregroundColor(.white)
-                        Text("Mensaje").foregroundColor(.white).font(.system(size: 16, weight: .semibold))
+                        Image(systemName: "paperplane.fill").foregroundColor(.black)
+                        Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.white.opacity(0.08))
+                    .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.25), lineWidth: 1))
                 }
             }
         }
-        .padding(.top, -112) // Desplazamiento negativo para subir sobre el header
+        .padding(.top, -132)
         .padding(.bottom, 4)
     }
     
     private func descriptionCard(user: PublicProfileViewModel.UserProfileData) -> some View {
         Text(user.bio)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(Color.white.opacity(0.06))
+            .background(Color.gray.opacity(0.15))
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
     
@@ -245,7 +240,7 @@ struct UserProfileView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
                     .overlay(
                         HStack(spacing: 4) {
@@ -267,7 +262,7 @@ struct UserProfileView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.white).font(.headline)
+            Text(title).foregroundColor(.black).font(.headline)
             Spacer()
         }
     }
@@ -276,7 +271,7 @@ struct UserProfileView: View {
         VStack {
             Spacer()
             ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .progressViewStyle(CircularProgressViewStyle(tint: .gray))
                 .scaleEffect(1.5)
             Spacer()
         }

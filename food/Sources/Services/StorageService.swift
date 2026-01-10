@@ -60,4 +60,44 @@ public final class StorageService {
             }
         }
     }
+    
+    public func uploadProfileCover(
+        uid: String,
+        image: UIImage,
+        completion: @escaping (Result<URL, Error>) -> Void
+    ) {
+        let ts = Int(Date().timeIntervalSince1970)
+        let path = "users/\(uid)/cover_\(ts).jpg"
+        let ref = storage.reference().child(path)
+        
+        guard let data = image.jpegData(compressionQuality: 0.88) else {
+            completion(.failure(NSError(domain: "StorageService",
+                                        code: -1,
+                                        userInfo: [NSLocalizedDescriptionKey: "No se pudo codificar la imagen a JPEG"])))
+            return
+        }
+        
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        ref.putData(data, metadata: metadata) { _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            ref.downloadURL { url, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                guard let url = url else {
+                    completion(.failure(NSError(domain: "StorageService",
+                                                code: -2,
+                                                userInfo: [NSLocalizedDescriptionKey: "URL de descarga nula"])))
+                    return
+                }
+                completion(.success(url))
+            }
+        }
+    }
 }
