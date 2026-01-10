@@ -826,7 +826,7 @@ struct FeedView: View {
                                                 if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
                                                     DatabaseService.shared.followUser(followerUid: followerUid, followedUid: followedUid) { _ in
                                                         DispatchQueue.main.async {
-                                                            AuthService.shared.setFollowingCached(followedUid, value: true)
+                                                            AuthService.shared.recordLocalFollow(followedUid: followedUid)
                                                         }
                                                     }
                                                 }
