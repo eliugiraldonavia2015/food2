@@ -250,7 +250,8 @@ struct EditProfileView: View {
                     switch result {
                     case .success(let url):
                         newPhotoURL = url
-                        persist(uid: firebaseUser.uid, photo: newPhotoURL)
+                        AuthService.shared.updateProfilePhoto(with: url)
+                        persist(uid: firebaseUser.uid)
                     case .failure(let error):
                         errorText = error.localizedDescription
                         isSaving = false
@@ -258,15 +259,14 @@ struct EditProfileView: View {
                 }
             }
         } else {
-            persist(uid: firebaseUser.uid, photo: newPhotoURL)
+            persist(uid: firebaseUser.uid)
         }
     }
 
-    private func persist(uid: String, photo: URL?) {
+    private func persist(uid: String) {
         DatabaseService.shared.updateUserDocument(
             uid: uid,
             name: name,
-            photoURL: photo,
             username: username,
             bio: bio,
             location: location
@@ -281,7 +281,7 @@ struct EditProfileView: View {
                         name: data["name"] as? String,
                         username: data["username"] as? String,
                         phoneNumber: AuthService.shared.user?.phoneNumber,
-                        photoURL: photo,
+                        photoURL: AuthService.shared.user?.photoURL,
                         interests: AuthService.shared.user?.interests,
                         role: data["role"] as? String,
                         bio: data["bio"] as? String,

@@ -22,8 +22,8 @@ public final class StorageService {
         image: UIImage,
         completion: @escaping (Result<URL, Error>) -> Void
     ) {
-        // Carpeta del usuario: users/{uid}/profile.jpg
-        let path = "users/\(uid)/profile.jpg"
+        let ts = Int(Date().timeIntervalSince1970)
+        let path = "users/\(uid)/profile_\(ts).jpg"
         let ref = storage.reference().child(path)
 
         // Comprimir (calidad 0.85 suele ser buen equilibrio)

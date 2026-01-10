@@ -136,6 +136,36 @@ public struct AppUser: Identifiable {
     }
 }
 
+// MARK: - Profile Photo Updates
+extension AuthService {
+    public func updateProfilePhoto(with url: URL) {
+        guard let currentUser = Auth.auth().currentUser else { return }
+        
+        DatabaseService.shared.updateUserDocument(
+            uid: currentUser.uid,
+            photoURL: url
+        )
+        
+        let changeRequest = currentUser.createProfileChangeRequest()
+        changeRequest.photoURL = url
+        changeRequest.commitChanges { _ in }
+        
+        self.user = AppUser(
+            uid: currentUser.uid,
+            email: self.user?.email,
+            name: self.user?.name,
+            username: self.user?.username,
+            phoneNumber: self.user?.phoneNumber,
+            photoURL: url,
+            interests: self.user?.interests,
+            role: self.user?.role,
+            bio: self.user?.bio,
+            location: self.user?.location,
+            onboardingCompleted: self.user?.onboardingCompleted
+        )
+    }
+}
+
 // MARK: - Interest Management
 extension AuthService {
     public struct InterestValidation {
@@ -1027,12 +1057,16 @@ extension AuthService {
                     var userRole: String? = nil
                     var bio: String? = nil
                     var location: String? = nil
+                    var photoURLFromFirestore: URL? = nil
                     var onboardingCompleted: Bool? = nil
                     if case .success(let userData) = result {
                         interests = userData["interests"] as? [String]
                         userRole = userData["role"] as? String
                         bio = userData["bio"] as? String
                         location = userData["location"] as? String
+                         if let s = userData["photoURL"] as? String, !s.isEmpty {
+                             photoURLFromFirestore = URL(string: s)
+                         }
                         onboardingCompleted = userData["onboardingCompleted"] as? Bool
                     }
                     self.user = AppUser(
@@ -1041,7 +1075,7 @@ extension AuthService {
                         name: firebaseUser.displayName,
                         username: self.extractUsernameFromName(firebaseUser.displayName),
                         phoneNumber: firebaseUser.phoneNumber,
-                        photoURL: firebaseUser.photoURL,
+                        photoURL: photoURLFromFirestore ?? firebaseUser.photoURL,
                         interests: interests,
                         role: userRole,
                         bio: bio,

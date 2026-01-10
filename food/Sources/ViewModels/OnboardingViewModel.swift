@@ -146,19 +146,8 @@ public final class OnboardingViewModel: ObservableObject {
                     }
                 }
                 
-                // Actualizar el perfil en Firebase Auth
                 if let url = uploadedPhotoURL {
-                    let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
-                    changeRequest?.photoURL = url
-                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                        changeRequest?.commitChanges { error in
-                            if let error = error {
-                                continuation.resume(throwing: error)
-                            } else {
-                                continuation.resume(returning: ())
-                            }
-                        }
-                    }
+                    auth.updateProfilePhoto(with: url)
                 }
             }
             

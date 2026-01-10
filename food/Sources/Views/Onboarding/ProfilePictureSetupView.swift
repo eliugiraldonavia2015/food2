@@ -6,6 +6,7 @@ import UIKit
 struct ProfilePictureSetupView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @State private var showImagePicker = false
+    @State private var showCameraPicker = false
     @State private var selectedItem: PhotosPickerItem?
     private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
     
@@ -60,6 +61,33 @@ struct ProfilePictureSetupView: View {
                     }
                 }
             }
+            HStack(spacing: 16) {
+                Button {
+                    showCameraPicker = true
+                } label: {
+                    Text("Tomar foto")
+                        .font(.callout)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(fuchsiaColor)
+                        .clipShape(Capsule())
+                }
+                Button {
+                    showImagePicker = true
+                } label: {
+                    Text("Elegir de galería")
+                        .font(.callout)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.25))
+                        .overlay(Capsule().stroke(fuchsiaColor.opacity(0.25), lineWidth: 1))
+                        .clipShape(Capsule())
+                }
+            }
             
             Button("Saltar este paso") {
                 viewModel.nextStep()
@@ -92,6 +120,12 @@ struct ProfilePictureSetupView: View {
             
         }
         .padding()
+        .sheet(isPresented: $showCameraPicker) {
+            CameraPicker { image in
+                let compressedImage = compressImage(image, maxFileSize: 1024 * 1024)
+                viewModel.profileImage = compressedImage
+            }
+        }
     }
     
     // MARK: - Función de compresión añadida

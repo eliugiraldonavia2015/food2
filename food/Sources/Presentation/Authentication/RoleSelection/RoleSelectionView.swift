@@ -161,7 +161,7 @@ private struct RoleCard: View {
                     }
                 }
             )
-            .clipShape(RoundedRectangle(cornerRadius: selected ? 30 : 18))
+            .clipShape(selected ? Capsule() : RoundedRectangle(cornerRadius: 18))
             .shadow(color: selected ? fuchsiaColor.opacity(0.25) : .clear, radius: 12, x: 0, y: 6)
         }
         .buttonStyle(.plain)
