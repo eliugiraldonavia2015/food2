@@ -85,7 +85,7 @@ struct RootView: View {
         .background(showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color(.systemBackground))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
-        .onChange(of: auth.isAuthenticated) { isAuthenticated in
+        .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated else { return }
             if showStartupSplash {
                 withAnimation(.easeInOut(duration: 0.5)) {

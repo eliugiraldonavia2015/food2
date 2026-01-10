@@ -114,10 +114,10 @@ struct LoginView: View {
                     showAlert = true
                 }
             }
-            .onChange(of: isShowingSignUp) { _ in
+            .onChange(of: isShowingSignUp) { _, _ in
                 resetSignUpFields()
             }
-            .onChange(of: auth.phoneAuthState) { newState in
+            .onChange(of: auth.phoneAuthState) { oldState, newState in
                 handlePhoneAuthStateChange(newState)
             }
             .onDisappear {
@@ -300,7 +300,7 @@ struct LoginView: View {
                 isChecking: false
             )
             .focused($focusedField, equals: .emailOrUsername)
-            .onChange(of: emailOrUsername) { newValue in
+            .onChange(of: emailOrUsername) { _, newValue in
                 loginType = auth.identifyLoginType(newValue)
             }
             
@@ -411,7 +411,7 @@ struct LoginView: View {
                 )
                 .focused($focusedField, equals: .password)
                 .id(FocusField.password)
-                .onChange(of: password) { newPass in
+                .onChange(of: password) { _, newPass in
                     passwordStrength = auth.evaluatePasswordStrength(newPass, email: email, username: username)
                 }
                 
@@ -650,7 +650,7 @@ struct LoginView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
                         .foregroundColor(.white)
-                        .onChange(of: phoneNumber) { newValue in
+                        .onChange(of: phoneNumber) { _, newValue in
                             formatPhoneNumber(newValue)
                         }
                 }
@@ -735,7 +735,7 @@ struct LoginView: View {
             .keyboardType(.numberPad)
             .textContentType(.oneTimeCode)
             .focused($focusedField, equals: .phoneVerificationCode)
-            .onChange(of: verificationCode) { newValue in
+            .onChange(of: verificationCode) { _, newValue in
                 let filtered = newValue.filter { $0.isNumber }
                 if filtered.count > 6 {
                     verificationCode = String(filtered.prefix(6))
@@ -805,7 +805,7 @@ struct LoginView: View {
                 }
             }
         }
-        .onChange(of: username) { newUsername in
+        .onChange(of: username) { _, newUsername in
             guard !newUsername.isEmpty else {
                 isUsernameAvailable = true
                 checkingUsername = false

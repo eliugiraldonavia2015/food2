@@ -147,7 +147,7 @@ struct FeedView: View {
             forYouVM.cancelPrefetch()
             followingVM.cancelPrefetch()
         }
-        .onChange(of: activeTab) { _ in
+        .onChange(of: activeTab) { _, _ in
             // 🛑 DETENER TODO EL AUDIO AL CAMBIAR DE TAB
             VideoPlayerCoordinator.shared.pauseAll()
             
@@ -172,7 +172,7 @@ struct FeedView: View {
         }
         // 🚀 PRECARGA INTELIGENTE DE VIDEO
         // Cuando cambia el índice (scroll), iniciamos la carga del SIGUIENTE video
-        .onChange(of: selectedIndexBinding.wrappedValue) { newValue in
+        .onChange(of: selectedIndexBinding.wrappedValue) { oldValue, newValue in
             let idx = newValue
             let items = currentItems
             guard idx >= 0 && idx < items.count else { return }
@@ -210,14 +210,7 @@ struct FeedView: View {
                     followers: 45200,
                     description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                     branch: "Sucursal Condesa",
-                    photos: photos,
-                    features: .init(
-                        followEnabled: true,
-                        messageEnabled: true,
-                        menuEnabled: true,
-                        locationsEnabled: true,
-                        mediaEnabled: true
-                    )
+                    photos: photos
                 ),
                 onRefresh: {
                     try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
@@ -237,14 +230,7 @@ struct FeedView: View {
                         followers: 45200,
                         description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                         branch: "Sucursal Condesa",
-                        photos: newPhotos,
-                        features: .init(
-                            followEnabled: true,
-                            messageEnabled: true,
-                            menuEnabled: true,
-                            locationsEnabled: true,
-                            mediaEnabled: true
-                        )
+                        photos: newPhotos
                     )
                 }
             )
@@ -673,10 +659,10 @@ struct FeedView: View {
                     isPaused = false
                 }
             }
-            .onChange(of: coordinator.activeVideoId) { _ in updatePlayback() }
-            .onChange(of: isScreenActive) { _ in updatePlayback() }
-            .onChange(of: isPaused) { _ in updatePlayback() }
-            .onChange(of: isMuted) { _ in updatePlayback() }
+            .onChange(of: coordinator.activeVideoId) { _, _ in updatePlayback() }
+            .onChange(of: isScreenActive) { _, _ in updatePlayback() }
+            .onChange(of: isPaused) { _, _ in updatePlayback() }
+            .onChange(of: isMuted) { _, _ in updatePlayback() }
         }
 
         private func setupPlayer(with item: AVPlayerItem) {
@@ -920,7 +906,7 @@ struct FeedView: View {
             .onAppear {
                 updateFollowingUI()
             }
-            .onChange(of: AuthService.shared.hasResolvedAuth) { newValue in
+            .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
                 if newValue { updateFollowingUI() }
             }
 

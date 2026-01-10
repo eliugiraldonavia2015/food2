@@ -46,7 +46,7 @@ struct ProfilePictureSetupView: View {
             }
             .padding(.top, 8)
             .photosPicker(isPresented: $showImagePicker, selection: $selectedItem, matching: .images)
-            .onChange(of: selectedItem) { newItem in
+            .onChange(of: selectedItem) { _, newItem in
                 if let newItem {
                     Task {
                         if let data = try? await newItem.loadTransferable(type: Data.self),
