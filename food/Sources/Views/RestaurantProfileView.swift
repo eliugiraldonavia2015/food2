@@ -390,9 +390,12 @@ struct RestaurantProfileView: View {
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
             .background(Color.white)
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.25), lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.25), lineWidth: 1))
+            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         }
+        .padding(.vertical, 8)
+        .zIndex(1)
     }
 
     private var descriptionCard: some View {
