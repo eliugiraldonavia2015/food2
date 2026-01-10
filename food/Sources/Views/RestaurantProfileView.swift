@@ -393,41 +393,7 @@ struct RestaurantProfileView: View {
         return ScrollView {
             VStack(spacing: 8) {
                 ForEach(locations) { loc in
-                    Button(action: {
-                        selectedBranchName = loc.name
-                        showLocationList = false
-                    }) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(loc.name)
-                                    .foregroundColor(.black)
-                                    .font(.system(size: 16, weight: .bold))
-                                Text(loc.address)
-                                    .foregroundColor(.gray)
-                                    .font(.footnote)
-                            }
-                            Spacer()
-                            HStack(spacing: 8) {
-                                if nearestId == loc.id {
-                                    Text("Más cercano")
-                                        .foregroundColor(.green)
-                                        .font(.caption2.weight(.semibold))
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 8)
-                                        .background(Color.green.opacity(0.15))
-                                        .clipShape(Capsule())
-                                }
-                                Text(String(format: "%.1f km", loc.distanceKm))
-                                    .foregroundColor(.green)
-                                    .font(.system(size: 14, weight: .semibold))
-                            }
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 14)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
-                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(nearestId == loc.id ? 0.3 : 0.2), lineWidth: 1))
-                    }
+                    locationRow(loc: loc, nearestId: nearestId)
                 }
             }
         }
@@ -437,6 +403,54 @@ struct RestaurantProfileView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.2), lineWidth: 1))
         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+
+    private func locationRow(loc: LocationItem, nearestId: UUID?) -> some View {
+        Button(action: {
+            selectedBranchName = loc.name
+            showLocationList = false
+        }) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(loc.name)
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .bold))
+                    Text(loc.address)
+                        .foregroundColor(.gray)
+                        .font(.footnote)
+                }
+                Spacer()
+                HStack(spacing: 8) {
+                    nearestBadge(nearest: nearestId == loc.id)
+                    distanceText(km: loc.distanceKm)
+                }
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(nearestId == loc.id ? 0.3 : 0.2), lineWidth: 1))
+        }
+    }
+
+    private func nearestBadge(nearest: Bool) -> some View {
+        Group {
+            if nearest {
+                Text("Más cercano")
+                    .foregroundColor(.green)
+                    .font(.caption2.weight(.semibold))
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(Color.green.opacity(0.15))
+                    .clipShape(Capsule())
+            }
+        }
+    }
+
+    private func distanceText(km: Double) -> some View {
+        Text(String(format: "%.1f km", km))
+            .foregroundColor(.green)
+            .font(.system(size: 14, weight: .semibold))
     }
 
     private func performRefresh() async {
