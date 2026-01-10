@@ -430,6 +430,7 @@ struct FeedView: View {
         @State private var isFollowing = false
         @State private var showFollowButton = true
         @State private var orderPressed = false
+        @State private var resolvedAuthorUid: String? = nil
         @State private var bottomSectionHeight: CGFloat = 0
         @State private var hapticLight = UIImpactFeedbackGenerator(style: .light)
         @State private var hapticMedium = UIImpactFeedbackGenerator(style: .medium)
@@ -903,39 +904,38 @@ struct FeedView: View {
                 .padding(.bottom, bottomInset - 24)
             }
             .onAppear {
-                if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
-                    if AuthService.shared.isFollowingCached(followedUid) == true {
-                        isFollowing = true
-                        showFollowButton = false
-                    } else {
-                        DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: followedUid) { isF in
-                            DispatchQueue.main.async {
-                                isFollowing = isF
-                                showFollowButton = !isF
-                                AuthService.shared.setFollowingCached(followedUid, value: isF)
-                            }
-                        }
-                    }
-                } else {
+                updateFollowingUI()
+            }
+            .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
+                if newValue { updateFollowingUI() }
+            }
+
+            func updateFollowingUI() {
+                guard let followerUid = AuthService.shared.user?.uid else {
+                    showFollowButton = true
+                    return
+                }
+                if let authorUid = item.authorId {
+                    resolvedAuthorUid = authorUid
+                } else if resolvedAuthorUid == nil {
                     DatabaseService.shared.getUidForUsername(item.username) { uid in
-                        guard let followerUid = AuthService.shared.user?.uid, let uid = uid else {
-                            DispatchQueue.main.async { showFollowButton = true }
-                            return
-                        }
-                        if AuthService.shared.isFollowingCached(uid) == true {
-                            DispatchQueue.main.async {
-                                isFollowing = true
-                                showFollowButton = false
-                            }
-                        } else {
-                            DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: uid) { isF in
-                                DispatchQueue.main.async {
-                                    isFollowing = isF
-                                    showFollowButton = !isF
-                                    AuthService.shared.setFollowingCached(uid, value: isF)
-                                }
-                            }
-                        }
+                        DispatchQueue.main.async { resolvedAuthorUid = uid }
+                    }
+                }
+                guard let followedUid = resolvedAuthorUid ?? item.authorId else {
+                    showFollowButton = true
+                    return
+                }
+                if AuthService.shared.isFollowingCached(followedUid) == true {
+                    isFollowing = true
+                    showFollowButton = false
+                    return
+                }
+                DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: followedUid) { isF in
+                    DispatchQueue.main.async {
+                        isFollowing = isF
+                        showFollowButton = !isF
+                        AuthService.shared.setFollowingCached(followedUid, value: isF)
                     }
                 }
             }
