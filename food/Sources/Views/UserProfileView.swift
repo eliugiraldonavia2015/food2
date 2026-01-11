@@ -8,8 +8,9 @@ struct UserProfileView: View {
     // Estados visuales inspirados en RestaurantProfileView
     @State private var isFollowing = false
     @State private var showFullMenu = false
-    @State private var showLocationList = false
+    @State private var showBranchSheet = false
     @State private var selectedBranchName = ""
+    @State private var pendingBranchName = ""
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     
@@ -61,48 +62,40 @@ struct UserProfileView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Scroll Preference para efectos
-                Color.clear
-                    .frame(height: 0)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
-                        }
-                    )
-                    .padding(.bottom, -16)
-                
-                if let user = viewModel.user {
-                    // Header Parallax
-                    header(user: user)
-                        .padding(.horizontal, -16)
-                    
-                    // Info Principal
-                    profileInfo(user: user)
-                    
-                    sectionHeader("Ubicaciones disponibles")
-                    locationSelector
-                        .overlay(alignment: .topLeading) {
-                            if showLocationList {
-                                locationList
-                                    .padding(.top, 60)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .zIndex(2)
+        ZStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    Color.clear
+                        .frame(height: 0)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geo.frame(in: .named("profileScroll")).minY)
                             }
-                        }
-                        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
-                        .zIndex(showLocationList ? 10 : 0)
-
-                    // Grid de Contenido
-                    sectionHeader("Fotos y Videos")
-                    mediaGrid
-                } else {
-                    loadingView
+                        )
+                        .padding(.bottom, -16)
+                    
+                    if let user = viewModel.user {
+                        header(user: user)
+                            .padding(.horizontal, -16)
+                        
+                        profileInfo(user: user)
+                        
+                        sectionHeader("Ubicaciones disponibles")
+                        locationSelector
+                        
+                        sectionHeader("Fotos y Videos")
+                        mediaGrid
+                    } else {
+                        loadingView
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 40)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 40)
+            
+            if showBranchSheet {
+                branchSheetOverlay
+            }
         }
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
@@ -336,18 +329,18 @@ struct UserProfileView: View {
     }
 
     private var locationSelector: some View {
-        Button(action: { showLocationList.toggle() }) {
+        Button(action: { openBranchSheet() }) {
             HStack(spacing: 10) {
                 Image(systemName: "mappin")
                     .foregroundColor(.green)
                     .font(.system(size: 18))
-                Text(selectedBranchName.isEmpty ? "Sucursal Condesa" : selectedBranchName)
+                Text(currentBranchName)
                     .foregroundColor(.black)
                     .font(.subheadline)
                 Spacer()
                 Image(systemName: "chevron.down")
                     .foregroundColor(.gray)
-                    .rotationEffect(.degrees(showLocationList ? 180 : 0))
+                    .rotationEffect(.degrees(showBranchSheet ? 180 : 0))
             }
             .padding(.vertical, 16)
             .padding(.horizontal, 16)
@@ -356,48 +349,128 @@ struct UserProfileView: View {
         .background(Color.gray.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
-
-    private var locationList: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                ForEach(hardcodedLocations) { loc in
-                    Button(action: {
-                        selectedBranchName = loc.name
-                        showLocationList = false
-                    }) {
-                        HStack(spacing: 12) {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 8, height: 8)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(loc.name)
-                                    .foregroundColor(.black)
-                                    .font(.system(size: 14, weight: .semibold))
-                                Text(loc.address)
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 12))
-                            }
-                            Spacer()
-                            Text(String(format: "%.1f km", loc.distanceKm))
-                                .foregroundColor(.gray)
-                                .font(.system(size: 12, weight: .semibold))
+    
+    private var currentBranchName: String {
+        selectedBranchName.isEmpty ? "Sucursal Condesa" : selectedBranchName
+    }
+    
+    private var branchSheetOverlay: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture { closeBranchSheet() }
+                .transition(.opacity)
+            
+            VStack(spacing: 14) {
+                Capsule()
+                    .fill(Color.gray.opacity(0.35))
+                    .frame(width: 44, height: 5)
+                    .padding(.top, 6)
+                
+                Text("Selecciona una sucursal")
+                    .foregroundColor(.black)
+                    .font(.system(size: 18, weight: .bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+                
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(hardcodedLocations) { loc in
+                            branchRow(loc)
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 14)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.15), lineWidth: 1))
                     }
+                    .padding(.top, 2)
+                }
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.42)
+                
+                Button(action: {
+                    selectedBranchName = pendingBranchName.isEmpty ? currentBranchName : pendingBranchName
+                    closeBranchSheet()
+                }) {
+                    Text("Confirmar Selección")
+                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.fuchsia)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                }
+                .padding(.top, 2)
+            }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 16)
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+        }
+    }
+    
+    private func branchRow(_ loc: LocationItem) -> some View {
+        let isSelected = (pendingBranchName.isEmpty ? currentBranchName : pendingBranchName) == loc.name
+        let shortName = loc.name.replacingOccurrences(of: "Sucursal ", with: "")
+        return Button(action: { pendingBranchName = loc.name }) {
+            HStack(spacing: 12) {
+                Image(systemName: "storefront.fill")
+                    .foregroundColor(isSelected ? .white : .gray.opacity(0.65))
+                    .font(.system(size: 14, weight: .bold))
+                    .frame(width: 34, height: 34)
+                    .background(isSelected ? Color.fuchsia : Color.gray.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FoodTook - \(shortName)")
+                        .foregroundColor(.black)
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(loc.address)
+                        .foregroundColor(.gray)
+                        .font(.system(size: 12))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(String(format: "%.1f km", loc.distanceKm))
+                        .foregroundColor(.fuchsia)
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.fuchsia)
+                        .font(.system(size: 18, weight: .bold))
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundColor(.gray.opacity(0.25))
+                        .font(.system(size: 18, weight: .bold))
                 }
             }
-            .padding(.top, 8)
+            .padding(14)
+            .background(Color.gray.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(isSelected ? Color.fuchsia : Color.gray.opacity(0.08), lineWidth: isSelected ? 2 : 1)
+            )
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: CGFloat(min(hardcodedLocations.count, 3)) * 70)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+    
+    private func openBranchSheet() {
+        if pendingBranchName.isEmpty {
+            pendingBranchName = currentBranchName
+        }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
+            showBranchSheet = true
+        }
+    }
+    
+    private func closeBranchSheet() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
+            showBranchSheet = false
+        }
     }
 
     private var mediaGrid: some View {
