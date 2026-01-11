@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import UIKit
 
 struct UserProfileView: View {
     @StateObject private var viewModel: PublicProfileViewModel
@@ -376,6 +377,7 @@ struct UserProfileView: View {
                     .font(.system(size: 20, weight: .bold))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 4)
+                    .padding(.horizontal, 18)
                 
                 ScrollView {
                     VStack(spacing: 12) {
@@ -384,7 +386,7 @@ struct UserProfileView: View {
                         }
                     }
                     .padding(.top, 2)
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, 18)
                 }
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.42)
                 
@@ -401,10 +403,12 @@ struct UserProfileView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .padding(.top, 2)
+                .padding(.horizontal, 18)
+                .padding(.bottom, 16)
             }
             .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(Color.white.ignoresSafeArea(edges: .bottom))
+            .clipShape(RoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
             .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .ignoresSafeArea(edges: .bottom)
@@ -551,4 +555,13 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 struct HeaderOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+struct RoundedCorners: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
 }
