@@ -237,7 +237,7 @@ struct FullMenuView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 14)
+                .padding(.bottom, 44)
                 .offset(y: minY > 0 ? -minY * 0.35 : 0)
             }
             .frame(height: 250)
@@ -248,16 +248,37 @@ struct FullMenuView: View {
     }
 
     private var infoRow: some View {
-        HStack(spacing: 14) {
-            metricCard(title: "Tiempo", value: "25-35 min", system: "clock", tint: .fuchsia)
-            metricCard(title: "Envío", value: "$2.99", system: "shippingbox.fill", tint: .fuchsia)
-            metricCard(title: "Rating", value: "4.8", system: "star.fill", tint: .yellow)
-        }
-        .padding(.top, 4)
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.white)
+            .frame(height: 86)
+            .shadow(color: Color.black.opacity(0.10), radius: 14, x: 0, y: 8)
+            .overlay(
+                HStack(spacing: 0) {
+                    metricCard(title: "Tiempo", value: "25-35 min", system: "clock", tint: .fuchsia)
+                        .frame(maxWidth: .infinity)
+                    
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 1, height: 42)
+                    
+                    metricCard(title: "Envío", value: "$2.99", system: "shippingbox.fill", tint: .green)
+                        .frame(maxWidth: .infinity)
+                    
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 1, height: 42)
+                    
+                    metricCard(title: "Rating", value: "4.8", system: "star.fill", tint: .yellow)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal, 16)
+            )
+            .padding(.horizontal, 8)
+            .padding(.top, -34)
     }
 
     private func metricCard(title: String, value: String, system: String, tint: Color) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 7) {
             HStack(spacing: 6) {
                 Image(systemName: system)
                     .foregroundColor(tint)
@@ -270,11 +291,6 @@ struct FullMenuView: View {
                 .foregroundColor(.black)
                 .font(.system(size: 15, weight: .bold))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
     }
 
     private var currentBranchName: String {
@@ -299,7 +315,7 @@ struct FullMenuView: View {
                         .font(.system(size: 10, weight: .bold))
                     HStack(spacing: 6) {
                         Text(String(format: "%.1f km", distanceKm ?? 2.3))
-                            .foregroundColor(.fuchsia)
+                            .foregroundColor(.black)
                             .font(.system(size: 14, weight: .bold))
                         Image(systemName: "chevron.down")
                             .foregroundColor(.gray.opacity(0.8))
@@ -388,7 +404,7 @@ struct FullMenuView: View {
                         .lineLimit(1)
                     Spacer()
                     Text(priceText(dish.price))
-                        .foregroundColor(.fuchsia)
+                        .foregroundColor(.black)
                         .font(.system(size: 14, weight: .bold))
                 }
                 
