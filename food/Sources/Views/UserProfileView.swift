@@ -353,6 +353,10 @@ struct UserProfileView: View {
     private var currentBranchName: String {
         selectedBranchName.isEmpty ? "Sucursal Condesa" : selectedBranchName
     }
+
+    private var nearestBranchName: String? {
+        hardcodedLocations.min(by: { $0.distanceKm < $1.distanceKm })?.name
+    }
     
     private var branchSheetOverlay: some View {
         ZStack(alignment: .bottom) {
@@ -369,7 +373,7 @@ struct UserProfileView: View {
                 
                 Text("Selecciona una sucursal")
                     .foregroundColor(.black)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 4)
                 
@@ -380,6 +384,7 @@ struct UserProfileView: View {
                         }
                     }
                     .padding(.top, 2)
+                    .padding(.horizontal, 14)
                 }
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.42)
                 
@@ -389,7 +394,7 @@ struct UserProfileView: View {
                 }) {
                     Text("Confirmar Selección")
                         .foregroundColor(.white)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 17, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.fuchsia)
@@ -397,45 +402,54 @@ struct UserProfileView: View {
                 }
                 .padding(.top, 2)
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 16)
             .frame(maxWidth: .infinity)
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
             .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
             .transition(.move(edge: .bottom).combined(with: .opacity))
-            .padding(.horizontal, 10)
-            .padding(.bottom, 10)
+            .ignoresSafeArea(edges: .bottom)
         }
     }
     
     private func branchRow(_ loc: LocationItem) -> some View {
         let isSelected = (pendingBranchName.isEmpty ? currentBranchName : pendingBranchName) == loc.name
         let shortName = loc.name.replacingOccurrences(of: "Sucursal ", with: "")
+        let isNearest = loc.name == nearestBranchName
         return Button(action: { pendingBranchName = loc.name }) {
             HStack(spacing: 12) {
                 Image(systemName: "storefront.fill")
                     .foregroundColor(isSelected ? .white : .gray.opacity(0.65))
-                    .font(.system(size: 14, weight: .bold))
-                    .frame(width: 34, height: 34)
+                    .font(.system(size: 15, weight: .bold))
+                    .frame(width: 38, height: 38)
                     .background(isSelected ? Color.fuchsia : Color.gray.opacity(0.12))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("FoodTook - \(shortName)")
                         .foregroundColor(.black)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text(loc.address)
                         .foregroundColor(.gray)
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    Text(String(format: "%.1f km", loc.distanceKm))
-                        .foregroundColor(.fuchsia)
-                        .font(.system(size: 12, weight: .semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 8) {
+                        Text(String(format: "%.1f km", loc.distanceKm))
+                            .foregroundColor(.fuchsia)
+                            .font(.system(size: 13, weight: .semibold))
+                        if isNearest {
+                            Text("Más cerca")
+                                .foregroundColor(.fuchsia)
+                                .font(.system(size: 12, weight: .semibold))
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 10)
+                                .background(Color.fuchsia.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                        Spacer()
+                    }
                 }
                 
                 if isSelected {
@@ -448,7 +462,7 @@ struct UserProfileView: View {
                         .font(.system(size: 18, weight: .bold))
                 }
             }
-            .padding(14)
+            .padding(16)
             .background(Color.gray.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
