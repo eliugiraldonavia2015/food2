@@ -7,6 +7,7 @@ struct UserProfileView: View {
     
     // Estados visuales inspirados en RestaurantProfileView
     @State private var isFollowing = false
+    @State private var showFullMenu = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     
@@ -83,6 +84,21 @@ struct UserProfileView: View {
         .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
+        }
+        .fullScreenCover(isPresented: $showFullMenu) {
+            if let user = viewModel.user {
+                FullMenuView(
+                    restaurantId: user.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                    restaurantName: user.name,
+                    coverUrl: user.coverUrl,
+                    avatarUrl: user.photoUrl,
+                    location: user.location.isEmpty ? "CDMX, México" : user.location,
+                    branchName: user.location.isEmpty ? "CDMX, México" : user.location,
+                    distanceKm: 2.3
+                )
+            } else {
+                Color.black.ignoresSafeArea()
+            }
         }
     }
     
@@ -223,6 +239,36 @@ struct UserProfileView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
+                }
+                .padding(.top, 12)
+                
+                Button(action: { showFullMenu = true }) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "fork.knife")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .bold))
+                            .frame(width: 36, height: 36)
+                            .background(Color.fuchsia)
+                            .clipShape(Circle())
+                        
+                        Text("Ver Menú Completo")
+                            .foregroundColor(.black)
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.gray.opacity(0.6))
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                    .padding(16)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                 }
                 .padding(.top, 12)
             }
