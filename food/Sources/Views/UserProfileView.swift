@@ -8,6 +8,8 @@ struct UserProfileView: View {
     // Estados visuales inspirados en RestaurantProfileView
     @State private var isFollowing = false
     @State private var showFullMenu = false
+    @State private var showLocationList = false
+    @State private var selectedBranchName = ""
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     
@@ -18,6 +20,41 @@ struct UserProfileView: View {
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
     ]
+
+    private struct LocationItem: Identifiable {
+        let id = UUID()
+        let name: String
+        let address: String
+        let distanceKm: Double
+    }
+
+    private struct MediaItem: Identifiable {
+        let id = UUID()
+        let url: String
+        let likes: Int
+    }
+
+    private let hardcodedLocations: [LocationItem] = [
+        .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 1.2),
+        .init(name: "Sucursal Condesa", address: "Av. Michoacán 78, Condesa", distanceKm: 2.3),
+        .init(name: "Sucursal Roma", address: "Calle Orizaba 45, Roma Norte", distanceKm: 3.1),
+        .init(name: "Sucursal Polanco", address: "Masaryk 200, Polanco", distanceKm: 4.0)
+    ]
+
+    private let hardcodedMedia: [MediaItem] = [
+        .init(url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836", likes: 12000),
+        .init(url: "https://images.unsplash.com/photo-1604908176997-431199f7c209", likes: 5200),
+        .init(url: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092", likes: 8000),
+        .init(url: "https://images.unsplash.com/photo-1605475121025-6520df4cf73e", likes: 1800),
+        .init(url: "https://images.unsplash.com/photo-1589308078053-02051b89c1a3", likes: 9100),
+        .init(url: "https://images.unsplash.com/photo-1612197528228-7d9d7e9db2e8", likes: 3400),
+        .init(url: "https://images.unsplash.com/photo-1617191519200-3d5d4b8c9a27", likes: 6700),
+        .init(url: "https://images.unsplash.com/photo-1550547660-d9450f859349", likes: 2200),
+        .init(url: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", likes: 4300)
+    ]
+
+    private let hardcodedDescriptionText =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco."
     
     init(userId: String) {
         _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
@@ -44,14 +81,22 @@ struct UserProfileView: View {
                     // Info Principal
                     profileInfo(user: user)
                     
-                    // Bio / Descripción
-                    if !user.bio.isEmpty {
-                        descriptionCard(user: user)
-                    }
-                    
+                    sectionHeader("Ubicaciones disponibles")
+                    locationSelector
+                        .overlay(alignment: .topLeading) {
+                            if showLocationList {
+                                locationList
+                                    .padding(.top, 60)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                                    .zIndex(2)
+                            }
+                        }
+                        .animation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2), value: showLocationList)
+                        .zIndex(showLocationList ? 10 : 0)
+
                     // Grid de Contenido
                     sectionHeader("Fotos y Videos")
-                    videoGrid
+                    mediaGrid
                 } else {
                     loadingView
                 }
@@ -271,26 +316,94 @@ struct UserProfileView: View {
                     .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                 }
                 .padding(.top, 12)
+
+                descriptionCard
+                    .padding(.top, 10)
             }
             .padding(.horizontal, 8)
         }
         .padding(.top, 0)
     }
     
-    private func descriptionCard(user: PublicProfileViewModel.UserProfileData) -> some View {
-        Text(user.bio)
+    private var descriptionCard: some View {
+        Text(hardcodedDescriptionText)
             .foregroundColor(.gray)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(16)
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(12)
     }
-    
-    private var videoGrid: some View {
+
+    private var locationSelector: some View {
+        Button(action: { showLocationList.toggle() }) {
+            HStack(spacing: 10) {
+                Image(systemName: "mappin")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18))
+                Text(selectedBranchName.isEmpty ? "Sucursal Condesa" : selectedBranchName)
+                    .foregroundColor(.black)
+                    .font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.gray)
+                    .rotationEffect(.degrees(showLocationList ? 180 : 0))
+            }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Color.gray.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var locationList: some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(hardcodedLocations) { loc in
+                    Button(action: {
+                        selectedBranchName = loc.name
+                        showLocationList = false
+                    }) {
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(loc.name)
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(loc.address)
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 12))
+                            }
+                            Spacer()
+                            Text(String(format: "%.1f km", loc.distanceKm))
+                                .foregroundColor(.gray)
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 14)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.15), lineWidth: 1))
+                    }
+                }
+            }
+            .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: CGFloat(min(hardcodedLocations.count, 3)) * 70)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+    }
+
+    private var mediaGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 12) {
-            ForEach(viewModel.videos) { video in
-                WebImage(url: URL(string: video.thumbnailUrl))
+            ForEach(hardcodedMedia) { item in
+                WebImage(url: URL(string: item.url))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(height: 120)
@@ -303,7 +416,7 @@ struct UserProfileView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "play.fill")
                                 .font(.caption2)
-                            Text("\(video.likes)")
+                            Text(formatCount(item.likes))
                                 .font(.caption2.bold())
                         }
                         .foregroundColor(.white)
