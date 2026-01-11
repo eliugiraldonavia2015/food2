@@ -93,10 +93,8 @@ struct UserProfileView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 40)
             }
-            
-            if showBranchSheet {
-                branchSheetOverlay
-            }
+
+            branchSheetOverlay
         }
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
@@ -360,58 +358,69 @@ struct UserProfileView: View {
     }
     
     private var branchSheetOverlay: some View {
-        ZStack(alignment: .bottom) {
-            Color.black.opacity(0.35)
-                .ignoresSafeArea()
-                .onTapGesture { closeBranchSheet() }
-                .transition(.opacity)
-            
-            VStack(spacing: 14) {
-                Capsule()
-                    .fill(Color.gray.opacity(0.35))
-                    .frame(width: 44, height: 5)
-                    .padding(.top, 6)
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                Color.black
+                    .opacity(showBranchSheet ? 0.35 : 0)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        if showBranchSheet { closeBranchSheet() }
+                    }
                 
-                Text("Selecciona una sucursal")
-                    .foregroundColor(.black)
-                    .font(.system(size: 20, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 4)
-                    .padding(.horizontal, 18)
-                
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(hardcodedLocations) { loc in
-                            branchRow(loc)
+                VStack(spacing: 14) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.35))
+                        .frame(width: 44, height: 5)
+                        .padding(.top, 6)
+                    
+                    Text("Selecciona una sucursal")
+                        .foregroundColor(.black)
+                        .font(.system(size: 20, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 4)
+                        .padding(.horizontal, 18)
+                    
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(hardcodedLocations) { loc in
+                                branchRow(loc)
+                            }
                         }
+                        .padding(.top, 2)
+                        .padding(.horizontal, 18)
+                    }
+                    .frame(maxHeight: UIScreen.main.bounds.height * 0.42)
+                    
+                    Button(action: {
+                        selectedBranchName = pendingBranchName.isEmpty ? currentBranchName : pendingBranchName
+                        closeBranchSheet()
+                    }) {
+                        Text("Confirmar Selección")
+                            .foregroundColor(.white)
+                            .font(.system(size: 17, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.fuchsia)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     }
                     .padding(.top, 2)
                     .padding(.horizontal, 18)
+                    .padding(.bottom, 16)
+                    
+                    Spacer(minLength: 0)
+                        .frame(height: geo.safeAreaInsets.bottom)
                 }
-                .frame(maxHeight: UIScreen.main.bounds.height * 0.42)
-                
-                Button(action: {
-                    selectedBranchName = pendingBranchName.isEmpty ? currentBranchName : pendingBranchName
-                    closeBranchSheet()
-                }) {
-                    Text("Confirmar Selección")
-                        .foregroundColor(.white)
-                        .font(.system(size: 17, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.fuchsia)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                .padding(.top, 2)
-                .padding(.horizontal, 18)
-                .padding(.bottom, 16)
+                .frame(maxWidth: .infinity)
+                .background(Color.white)
+                .clipShape(RoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
+                .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
+                .offset(y: showBranchSheet ? 0 : (geo.size.height + geo.safeAreaInsets.bottom + 40))
+                .ignoresSafeArea(edges: .bottom)
             }
-            .frame(maxWidth: .infinity)
-            .background(Color.white.ignoresSafeArea(edges: .bottom))
-            .clipShape(RoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
-            .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .ignoresSafeArea(edges: .bottom)
+            .allowsHitTesting(showBranchSheet)
+            .animation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2), value: showBranchSheet)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
         }
     }
     
