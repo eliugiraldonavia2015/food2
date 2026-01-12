@@ -25,6 +25,8 @@ struct FullMenuView: View {
     @State private var showDishMiniHeader: Bool = false
     @State private var dishSheetContentOffsetY: CGFloat = 0
     @State private var dishSheetScrollToTopToken: Int = 0
+    @State private var menuContentOffsetY: CGFloat = 0
+    @State private var showMenuMiniHeader: Bool = false
 
     init(
         restaurantId: String,
@@ -282,7 +284,7 @@ struct FullMenuView: View {
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
+            TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
                 VStack(spacing: 14) {
                     header
                     infoRow
@@ -302,12 +304,21 @@ struct FullMenuView: View {
             checkoutBar
         }
         .tint(.fuchsia)
+        .onChange(of: menuContentOffsetY) { _, newValue in
+            let shouldShow = newValue > 168
+            if shouldShow != showMenuMiniHeader {
+                withAnimation(.easeInOut(duration: 0.16)) {
+                    showMenuMiniHeader = shouldShow
+                }
+            }
+        }
         .onAppear {
             selectedBranchName = branchName ?? location
             pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
             if cart.isEmpty {
                 cart["green-burger"] = 1
             }
+            showMenuMiniHeader = false
         }
         .overlay {
             ZStack {
@@ -506,6 +517,7 @@ struct FullMenuView: View {
     }
     
     private func dishRow(_ dish: Dish) -> some View {
+        let qty = cart[dish.id] ?? 0
         HStack(spacing: 12) {
             dishImage(dish.imageUrl)
                 .frame(width: 66, height: 66)
@@ -527,23 +539,17 @@ struct FullMenuView: View {
                     .foregroundColor(.gray)
                     .font(.system(size: 12))
                     .lineLimit(2)
-                
-                Button(action: { addToCart(dish) }) {
-                    Text("+ Agregar")
-                        .foregroundColor(.fuchsia)
-                        .font(.system(size: 12, weight: .bold))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 14)
-                        .background(Color.fuchsia.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.bottom, 18)
         }
         .padding(14)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+        .overlay(alignment: .bottomTrailing) {
+            menuItemQuantityControl(dish, quantity: qty)
+                .padding(10)
+        }
         .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .onTapGesture { openDishSheet(dish) }
     }
@@ -565,6 +571,16 @@ struct FullMenuView: View {
     }
     
     private var topBar: some View {
+        Group {
+            if showMenuMiniHeader {
+                compactTopBar
+            } else {
+                expandedTopBar
+            }
+        }
+    }
+
+    private var expandedTopBar: some View {
         HStack {
             Button(action: { dismiss() }) {
                 Circle()
@@ -589,6 +605,55 @@ struct FullMenuView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
+    }
+
+    private var compactTopBar: some View {
+        HStack(spacing: 10) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .bold))
+                    .frame(width: 34, height: 34)
+                    .background(Color.gray.opacity(0.12))
+                    .clipShape(Circle())
+            }
+
+            Text(restaurantName)
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+                .lineLimit(1)
+
+            Spacer()
+
+            Button(action: {}) {
+                Image(systemName: "square.and.arrow.up")
+                    .foregroundColor(.black.opacity(0.75))
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(width: 34, height: 34)
+                    .background(Color.gray.opacity(0.12))
+                    .clipShape(Circle())
+            }
+
+            ZStack(alignment: .topTrailing) {
+                Circle()
+                    .fill(Color.gray.opacity(0.12))
+                    .frame(width: 34, height: 34)
+                    .overlay(Image(systemName: "cart.fill").foregroundColor(.black.opacity(0.75)).font(.system(size: 14, weight: .bold)))
+                if cartCount > 0 {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 18, height: 18)
+                        .overlay(Text("\(cartCount)").foregroundColor(.white).font(.caption2.bold()))
+                        .offset(x: 8, y: -8)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .overlay(Rectangle().fill(Color.gray.opacity(0.12)).frame(height: 1), alignment: .bottom)
     }
     
     private var branchSheetOverlay: some View {
@@ -936,6 +1001,64 @@ struct FullMenuView: View {
     private func addToCart(_ dish: Dish, quantity: Int = 1) {
         guard quantity > 0 else { return }
         cart[dish.id, default: 0] += quantity
+    }
+
+    private func removeFromCart(_ dish: Dish, quantity: Int = 1) {
+        guard quantity > 0 else { return }
+        let current = cart[dish.id] ?? 0
+        let updated = max(0, current - quantity)
+        if updated == 0 {
+            cart.removeValue(forKey: dish.id)
+        } else {
+            cart[dish.id] = updated
+        }
+    }
+
+    private func menuItemQuantityControl(_ dish: Dish, quantity: Int) -> some View {
+        Group {
+            if quantity <= 0 {
+                Button(action: { addToCart(dish, quantity: 1) }) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: "plus")
+                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .bold))
+                        )
+                }
+            } else {
+                HStack(spacing: 10) {
+                    Button(action: { removeFromCart(dish, quantity: 1) }) {
+                        Image(systemName: "minus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 28, height: 28)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+
+                    Text("\(quantity)")
+                        .foregroundColor(.black)
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(minWidth: 14)
+
+                    Button(action: { addToCart(dish, quantity: 1) }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 28, height: 28)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
+        }
     }
 
     private var quantityStepper: some View {
