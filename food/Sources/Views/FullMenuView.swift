@@ -67,6 +67,13 @@ struct FullMenuView: View {
         let price: Double
     }
 
+    private struct DishSheetScrollOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
+
     private var recommendedSides: [DishOption] {
         [
             .init(id: "fries", title: "Papas Fritas", price: 2.5),
@@ -610,6 +617,18 @@ struct FullMenuView: View {
 
                 ZStack(alignment: .top) {
                     ScrollView(showsIndicators: false) {
+                        Color.clear
+                            .frame(height: 1)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                GeometryReader { proxy in
+                                    Color.clear.preference(
+                                        key: DishSheetScrollOffsetKey.self,
+                                        value: proxy.frame(in: .named("dishSheetScroll")).minY
+                                    )
+                                }
+                            )
+
                         VStack(alignment: .leading, spacing: 14) {
                             ZStack(alignment: .topTrailing) {
                                 dishImage(dish.imageUrl)
@@ -689,10 +708,9 @@ struct FullMenuView: View {
                         .padding(.top, 2)
                         .padding(.bottom, 16)
                     }
-                    .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                        geometry.contentOffset.y
-                    } action: { _, newValue in
-                        let shouldShow = newValue > 56
+                    .coordinateSpace(name: "dishSheetScroll")
+                    .onPreferenceChange(DishSheetScrollOffsetKey.self) { value in
+                        let shouldShow = value < -56
                         if shouldShow != showDishMiniHeader {
                             withAnimation(.easeInOut(duration: 0.16)) {
                                 showDishMiniHeader = shouldShow
