@@ -23,6 +23,8 @@ struct FullMenuView: View {
     @State private var selectedSideOptionId: String? = nil
     @State private var selectedDrinkOptionId: String? = nil
     @State private var showDishMiniHeader: Bool = false
+    @State private var dishSheetContentOffsetY: CGFloat = 0
+    @State private var dishSheetScrollToTopToken: Int = 0
 
     init(
         restaurantId: String,
@@ -71,6 +73,81 @@ struct FullMenuView: View {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
             value = nextValue()
+        }
+    }
+
+    private struct TrackableScrollView<Content: View>: UIViewRepresentable {
+        @Binding var contentOffsetY: CGFloat
+        let scrollToTopToken: Int
+        let showsIndicators: Bool
+        let content: Content
+
+        init(
+            contentOffsetY: Binding<CGFloat>,
+            scrollToTopToken: Int,
+            showsIndicators: Bool = false,
+            @ViewBuilder content: () -> Content
+        ) {
+            _contentOffsetY = contentOffsetY
+            self.scrollToTopToken = scrollToTopToken
+            self.showsIndicators = showsIndicators
+            self.content = content()
+        }
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(parent: self)
+        }
+
+        func makeUIView(context: Context) -> UIScrollView {
+            let scrollView = UIScrollView()
+            scrollView.delegate = context.coordinator
+            scrollView.showsVerticalScrollIndicator = showsIndicators
+            scrollView.showsHorizontalScrollIndicator = false
+            scrollView.alwaysBounceVertical = true
+
+            let hostingController = UIHostingController(rootView: content)
+            hostingController.view.backgroundColor = .clear
+            hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+            context.coordinator.hostingController = hostingController
+
+            scrollView.addSubview(hostingController.view)
+            NSLayoutConstraint.activate([
+                hostingController.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+                hostingController.view.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+                hostingController.view.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+                hostingController.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+                hostingController.view.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor)
+            ])
+
+            return scrollView
+        }
+
+        func updateUIView(_ uiView: UIScrollView, context: Context) {
+            context.coordinator.parent = self
+            context.coordinator.hostingController?.rootView = content
+            uiView.showsVerticalScrollIndicator = showsIndicators
+
+            if context.coordinator.lastScrollToTopToken != scrollToTopToken {
+                context.coordinator.lastScrollToTopToken = scrollToTopToken
+                uiView.setContentOffset(.zero, animated: false)
+                DispatchQueue.main.async {
+                    contentOffsetY = 0
+                }
+            }
+        }
+
+        final class Coordinator: NSObject, UIScrollViewDelegate {
+            var parent: TrackableScrollView
+            var hostingController: UIHostingController<Content>?
+            var lastScrollToTopToken: Int = 0
+
+            init(parent: TrackableScrollView) {
+                self.parent = parent
+            }
+
+            func scrollViewDidScroll(_ scrollView: UIScrollView) {
+                parent.contentOffsetY = scrollView.contentOffset.y
+            }
         }
     }
 
@@ -616,19 +693,11 @@ struct FullMenuView: View {
                     .padding(.bottom, 10)
 
                 ZStack(alignment: .top) {
-                    ScrollView(showsIndicators: false) {
-                        Color.clear
-                            .frame(height: 1)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                GeometryReader { proxy in
-                                    Color.clear.preference(
-                                        key: DishSheetScrollOffsetKey.self,
-                                        value: proxy.frame(in: .named("dishSheetScroll")).minY
-                                    )
-                                }
-                            )
-
+                    TrackableScrollView(
+                        contentOffsetY: $dishSheetContentOffsetY,
+                        scrollToTopToken: dishSheetScrollToTopToken,
+                        showsIndicators: false
+                    ) {
                         VStack(alignment: .leading, spacing: 14) {
                             ZStack(alignment: .topTrailing) {
                                 dishImage(dish.imageUrl)
@@ -708,9 +777,8 @@ struct FullMenuView: View {
                         .padding(.top, 2)
                         .padding(.bottom, 16)
                     }
-                    .coordinateSpace(name: "dishSheetScroll")
-                    .onPreferenceChange(DishSheetScrollOffsetKey.self) { value in
-                        let shouldShow = value < -56
+                    .onChange(of: dishSheetContentOffsetY) { _, newValue in
+                        let shouldShow = newValue > 56
                         if shouldShow != showDishMiniHeader {
                             withAnimation(.easeInOut(duration: 0.16)) {
                                 showDishMiniHeader = shouldShow
@@ -847,6 +915,8 @@ struct FullMenuView: View {
         selectedSideOptionId = recommendedSides.first?.id
         selectedDrinkOptionId = nil
         showDishMiniHeader = false
+        dishSheetContentOffsetY = 0
+        dishSheetScrollToTopToken += 1
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showDishSheet = true
         }
