@@ -518,7 +518,7 @@ struct FullMenuView: View {
     
     private func dishRow(_ dish: Dish) -> some View {
         let qty = cart[dish.id] ?? 0
-        HStack(spacing: 12) {
+        return HStack(spacing: 12) {
             dishImage(dish.imageUrl)
                 .frame(width: 66, height: 66)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
