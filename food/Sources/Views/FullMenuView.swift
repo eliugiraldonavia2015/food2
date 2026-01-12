@@ -617,15 +617,6 @@ struct FullMenuView: View {
 
                 ZStack(alignment: .top) {
                     ScrollView(showsIndicators: false) {
-                        GeometryReader { proxy in
-                            Color.clear
-                                .preference(
-                                    key: DishSheetScrollOffsetKey.self,
-                                    value: proxy.frame(in: .named("dishSheetScroll")).minY
-                                )
-                        }
-                        .frame(height: 0)
-
                         VStack(alignment: .leading, spacing: 14) {
                             ZStack(alignment: .topTrailing) {
                                 dishImage(dish.imageUrl)
@@ -704,6 +695,15 @@ struct FullMenuView: View {
                         .padding(.horizontal, 18)
                         .padding(.top, 2)
                         .padding(.bottom, 16)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .preference(
+                                        key: DishSheetScrollOffsetKey.self,
+                                        value: proxy.frame(in: .named("dishSheetScroll")).minY
+                                    )
+                            }
+                        )
                     }
                     .coordinateSpace(name: "dishSheetScroll")
                     .onPreferenceChange(DishSheetScrollOffsetKey.self) { value in
@@ -715,6 +715,7 @@ struct FullMenuView: View {
                     if showDishMiniHeader {
                         dishMiniHeader(dish)
                             .transition(.move(edge: .top).combined(with: .opacity))
+                            .zIndex(2)
                     }
                 }
 
