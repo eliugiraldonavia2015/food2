@@ -778,7 +778,7 @@ struct FullMenuView: View {
                         .padding(.bottom, 16)
                     }
                     .onChange(of: dishSheetContentOffsetY) { _, newValue in
-                        let shouldShow = newValue > 112
+                        let shouldShow = newValue > 168
                         if shouldShow != showDishMiniHeader {
                             withAnimation(.easeInOut(duration: 0.16)) {
                                 showDishMiniHeader = shouldShow
