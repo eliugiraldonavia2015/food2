@@ -14,9 +14,11 @@ struct FullMenuView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
     @State private var showBranchSheet = false
+    @State private var showDishSheet = false
     @State private var selectedBranchName: String = ""
     @State private var pendingBranchName: String = ""
     @State private var cart: [String: Int] = [:]
+    @State private var selectedDish: Dish? = nil
 
     init(
         restaurantId: String,
@@ -198,7 +200,10 @@ struct FullMenuView: View {
             }
         }
         .overlay {
-            branchSheetOverlay
+            ZStack {
+                branchSheetOverlay
+                dishSheetOverlay
+            }
         }
     }
 
@@ -429,6 +434,8 @@ struct FullMenuView: View {
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .onTapGesture { openDishSheet(dish) }
     }
     
     private var checkoutBar: some View {
@@ -538,6 +545,135 @@ struct FullMenuView: View {
             .ignoresSafeArea()
         }
     }
+
+    private var dishSheetOverlay: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                Color.black
+                    .opacity(showDishSheet ? 0.35 : 0)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        if showDishSheet { closeDishSheet() }
+                    }
+
+                dishSheetContent(in: geo)
+                    .offset(y: showDishSheet ? 0 : (geo.size.height + geo.safeAreaInsets.bottom + 40))
+                    .ignoresSafeArea(edges: .bottom)
+            }
+            .allowsHitTesting(showDishSheet)
+            .animation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2), value: showDishSheet)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+        }
+    }
+
+    @ViewBuilder
+    private func dishSheetContent(in geo: GeometryProxy) -> some View {
+        if let dish = selectedDish {
+            VStack(spacing: 14) {
+                Capsule()
+                    .fill(Color.gray.opacity(0.35))
+                    .frame(width: 44, height: 5)
+                    .padding(.top, 8)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        ZStack(alignment: .topTrailing) {
+                            dishImage(dish.imageUrl)
+                                .frame(height: 200)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                            Button(action: { closeDishSheet() }) {
+                                Circle()
+                                    .fill(Color.black.opacity(0.35))
+                                    .frame(width: 34, height: 34)
+                                    .overlay(
+                                        Image(systemName: "xmark")
+                                            .foregroundColor(.white)
+                                            .font(.system(size: 13, weight: .bold))
+                                    )
+                            }
+                            .padding(12)
+                        }
+
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(dish.title)
+                                .foregroundColor(.black)
+                                .font(.system(size: 22, weight: .bold))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            HStack(spacing: 10) {
+                                Button(action: {}) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(.black.opacity(0.75))
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .frame(width: 34, height: 34)
+                                        .background(Color.gray.opacity(0.10))
+                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+
+                                Button(action: {}) {
+                                    Image(systemName: "bookmark")
+                                        .foregroundColor(.black.opacity(0.75))
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .frame(width: 34, height: 34)
+                                        .background(Color.gray.opacity(0.10))
+                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                }
+                            }
+                        }
+
+                        Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet nisl a risus porta pellentesque. Integer vitae sem in justo luctus tincidunt. Sed pharetra, justo at aliquet euismod, mauris enim facilisis erat, a accumsan arcu urna nec sapien.")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 13))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text(priceText(dish.price))
+                            .foregroundColor(.black)
+                            .font(.system(size: 22, weight: .bold))
+
+                        Divider()
+                            .overlay(Color.gray.opacity(0.15))
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Acompañamiento recomendado")
+                                .foregroundColor(.black)
+                                .font(.system(size: 16, weight: .bold))
+                            Text("Elige máximo 3 opciones")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 12))
+                        }
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 2)
+                }
+
+                Button(action: {
+                    addToCart(dish)
+                    closeDishSheet()
+                }) {
+                    Text("Agregar al Carrito")
+                        .foregroundColor(.white)
+                        .font(.system(size: 17, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.fuchsia)
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                }
+                .padding(.horizontal, 18)
+                .padding(.bottom, 6)
+
+                Spacer(minLength: 0)
+                    .frame(height: geo.safeAreaInsets.bottom)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: geo.size.height * 0.75)
+            .background(Color.white)
+            .clipShape(FullMenuRoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
+            .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
+        }
+    }
     
     private func branchRow(_ branch: Branch) -> some View {
         let isSelected = (pendingBranchName.isEmpty ? currentBranchName : pendingBranchName) == branch.name
@@ -603,6 +739,9 @@ struct FullMenuView: View {
         if pendingBranchName.isEmpty {
             pendingBranchName = currentBranchName
         }
+        if showDishSheet {
+            closeDishSheet()
+        }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showBranchSheet = true
         }
@@ -611,6 +750,27 @@ struct FullMenuView: View {
     private func closeBranchSheet() {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showBranchSheet = false
+        }
+    }
+
+    private func openDishSheet(_ dish: Dish) {
+        if showBranchSheet {
+            closeBranchSheet()
+        }
+        selectedDish = dish
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
+            showDishSheet = true
+        }
+    }
+
+    private func closeDishSheet() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
+            showDishSheet = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            if !showDishSheet {
+                selectedDish = nil
+            }
         }
     }
     
