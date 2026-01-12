@@ -23,6 +23,7 @@ struct FullMenuView: View {
     @State private var selectedSideOptionId: String? = nil
     @State private var selectedDrinkOptionId: String? = nil
     @State private var showDishMiniHeader: Bool = false
+    @State private var dishSheetScrollStartGlobalY: CGFloat? = nil
 
     init(
         restaurantId: String,
@@ -617,6 +618,15 @@ struct FullMenuView: View {
 
                 ZStack(alignment: .top) {
                     ScrollView(showsIndicators: false) {
+                        GeometryReader { proxy in
+                            Color.clear
+                                .preference(
+                                    key: DishSheetScrollOffsetKey.self,
+                                    value: proxy.frame(in: .global).minY
+                                )
+                        }
+                        .frame(height: 0)
+
                         VStack(alignment: .leading, spacing: 14) {
                             ZStack(alignment: .topTrailing) {
                                 dishImage(dish.imageUrl)
@@ -695,20 +705,18 @@ struct FullMenuView: View {
                         .padding(.horizontal, 18)
                         .padding(.top, 2)
                         .padding(.bottom, 16)
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear
-                                    .preference(
-                                        key: DishSheetScrollOffsetKey.self,
-                                        value: proxy.frame(in: .named("dishSheetScroll")).minY
-                                    )
-                            }
-                        )
                     }
-                    .coordinateSpace(name: "dishSheetScroll")
                     .onPreferenceChange(DishSheetScrollOffsetKey.self) { value in
-                        withAnimation(.easeInOut(duration: 0.16)) {
-                            showDishMiniHeader = value < -120
+                        if dishSheetScrollStartGlobalY == nil {
+                            dishSheetScrollStartGlobalY = value
+                        }
+                        let start = dishSheetScrollStartGlobalY ?? value
+                        let delta = start - value
+                        let shouldShow = delta > 56
+                        if shouldShow != showDishMiniHeader {
+                            withAnimation(.easeInOut(duration: 0.16)) {
+                                showDishMiniHeader = shouldShow
+                            }
                         }
                     }
 
@@ -841,6 +849,7 @@ struct FullMenuView: View {
         selectedSideOptionId = recommendedSides.first?.id
         selectedDrinkOptionId = nil
         showDishMiniHeader = false
+        dishSheetScrollStartGlobalY = nil
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showDishSheet = true
         }
