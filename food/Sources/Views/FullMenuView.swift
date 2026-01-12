@@ -27,6 +27,7 @@ struct FullMenuView: View {
     @State private var dishSheetScrollToTopToken: Int = 0
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
+    @State private var showCartScreen: Bool = false
 
     init(
         restaurantId: String,
@@ -326,6 +327,13 @@ struct FullMenuView: View {
                 dishSheetOverlay
             }
         }
+        .fullScreenCover(isPresented: $showCartScreen) {
+            CartScreenView(
+                restaurantName: restaurantName,
+                items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
+                quantities: $cart
+            )
+        }
     }
 
     private var header: some View {
@@ -589,17 +597,19 @@ struct FullMenuView: View {
                     .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
             }
             Spacer()
-            ZStack(alignment: .topTrailing) {
-                Circle()
-                    .fill(Color.black.opacity(0.35))
-                    .frame(width: 38, height: 38)
-                    .overlay(Image(systemName: "cart.fill").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
-                if cartCount > 0 {
+            Button(action: { showCartScreen = true }) {
+                ZStack(alignment: .topTrailing) {
                     Circle()
-                        .fill(Color.fuchsia)
-                        .frame(width: 18, height: 18)
-                        .overlay(Text("\(cartCount)").foregroundColor(.white).font(.caption2.bold()))
-                        .offset(x: 8, y: -8)
+                        .fill(Color.black.opacity(0.35))
+                        .frame(width: 38, height: 38)
+                        .overlay(Image(systemName: "cart.fill").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                    if cartCount > 0 {
+                        Circle()
+                            .fill(Color.fuchsia)
+                            .frame(width: 18, height: 18)
+                            .overlay(Text("\(cartCount)").foregroundColor(.white).font(.caption2.bold()))
+                            .offset(x: 8, y: -8)
+                    }
                 }
             }
         }
@@ -634,17 +644,19 @@ struct FullMenuView: View {
                     .clipShape(Circle())
             }
 
-            ZStack(alignment: .topTrailing) {
-                Circle()
-                    .fill(Color.gray.opacity(0.12))
-                    .frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "cart.fill").foregroundColor(.black.opacity(0.75)).font(.system(size: 14, weight: .bold)))
-                if cartCount > 0 {
+            Button(action: { showCartScreen = true }) {
+                ZStack(alignment: .topTrailing) {
                     Circle()
-                        .fill(Color.green)
-                        .frame(width: 18, height: 18)
-                        .overlay(Text("\(cartCount)").foregroundColor(.white).font(.caption2.bold()))
-                        .offset(x: 8, y: -8)
+                        .fill(Color.gray.opacity(0.12))
+                        .frame(width: 34, height: 34)
+                        .overlay(Image(systemName: "cart.fill").foregroundColor(.black.opacity(0.75)).font(.system(size: 14, weight: .bold)))
+                    if cartCount > 0 {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 18, height: 18)
+                            .overlay(Text("\(cartCount)").foregroundColor(.white).font(.caption2.bold()))
+                            .offset(x: 8, y: -8)
+                    }
                 }
             }
         }
