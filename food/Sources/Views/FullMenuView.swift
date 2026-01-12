@@ -19,6 +19,10 @@ struct FullMenuView: View {
     @State private var pendingBranchName: String = ""
     @State private var cart: [String: Int] = [:]
     @State private var selectedDish: Dish? = nil
+    @State private var dishQuantity: Int = 1
+    @State private var selectedSideOptionId: String? = nil
+    @State private var selectedDrinkOptionId: String? = nil
+    @State private var showDishMiniHeader: Bool = false
 
     init(
         restaurantId: String,
@@ -55,6 +59,35 @@ struct FullMenuView: View {
         let price: Double
         let imageUrl: String
         let isPopular: Bool
+    }
+
+    private struct DishOption: Identifiable {
+        let id: String
+        let title: String
+        let price: Double
+    }
+
+    private struct DishSheetScrollOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
+
+    private var recommendedSides: [DishOption] {
+        [
+            .init(id: "fries", title: "Papas Fritas", price: 2.5),
+            .init(id: "onion-rings", title: "Aros de Cebolla", price: 3),
+            .init(id: "caesar-salad", title: "Ensalada César", price: 2)
+        ]
+    }
+
+    private var recommendedDrinks: [DishOption] {
+        [
+            .init(id: "coke", title: "Coca-Cola", price: 1.5),
+            .init(id: "sparkling", title: "Agua mineral", price: 1.25),
+            .init(id: "lemonade", title: "Limonada", price: 2)
+        ]
     }
     
     private let hardcodedBranches: [Branch] = [
@@ -570,99 +603,144 @@ struct FullMenuView: View {
     @ViewBuilder
     private func dishSheetContent(in geo: GeometryProxy) -> some View {
         if let dish = selectedDish {
-            VStack(spacing: 14) {
+            let selectedSide = recommendedSides.first(where: { $0.id == selectedSideOptionId })
+            let selectedDrink = recommendedDrinks.first(where: { $0.id == selectedDrinkOptionId })
+            let unitPrice = dish.price + (selectedSide?.price ?? 0) + (selectedDrink?.price ?? 0)
+            let totalPrice = unitPrice * Double(dishQuantity)
+
+            VStack(spacing: 0) {
                 Capsule()
                     .fill(Color.gray.opacity(0.35))
                     .frame(width: 44, height: 5)
                     .padding(.top, 8)
+                    .padding(.bottom, 10)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        ZStack(alignment: .topTrailing) {
-                            dishImage(dish.imageUrl)
-                                .frame(height: 200)
-                                .frame(maxWidth: .infinity)
-                                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-
-                            Button(action: { closeDishSheet() }) {
-                                Circle()
-                                    .fill(Color.black.opacity(0.35))
-                                    .frame(width: 34, height: 34)
-                                    .overlay(
-                                        Image(systemName: "xmark")
-                                            .foregroundColor(.white)
-                                            .font(.system(size: 13, weight: .bold))
-                                    )
-                            }
-                            .padding(12)
+                ZStack(alignment: .top) {
+                    ScrollView(showsIndicators: false) {
+                        GeometryReader { proxy in
+                            Color.clear
+                                .preference(
+                                    key: DishSheetScrollOffsetKey.self,
+                                    value: proxy.frame(in: .named("dishSheetScroll")).minY
+                                )
                         }
+                        .frame(height: 0)
 
-                        HStack(alignment: .top, spacing: 12) {
-                            Text(dish.title)
-                                .foregroundColor(.black)
-                                .font(.system(size: 22, weight: .bold))
+                        VStack(alignment: .leading, spacing: 14) {
+                            ZStack(alignment: .topTrailing) {
+                                dishImage(dish.imageUrl)
+                                    .frame(height: 200)
+                                    .frame(maxWidth: .infinity)
+                                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                                Button(action: { closeDishSheet() }) {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.35))
+                                        .frame(width: 34, height: 34)
+                                        .overlay(
+                                            Image(systemName: "xmark")
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 13, weight: .bold))
+                                        )
+                                }
+                                .padding(12)
+                            }
+
+                            HStack(alignment: .top, spacing: 12) {
+                                Text(dish.title)
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 22, weight: .bold))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                HStack(spacing: 10) {
+                                    Button(action: {}) {
+                                        Image(systemName: "square.and.arrow.up")
+                                            .foregroundColor(.black.opacity(0.75))
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .frame(width: 34, height: 34)
+                                            .background(Color.gray.opacity(0.10))
+                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    }
+
+                                    Button(action: {}) {
+                                        Image(systemName: "bookmark")
+                                            .foregroundColor(.black.opacity(0.75))
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .frame(width: 34, height: 34)
+                                            .background(Color.gray.opacity(0.10))
+                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    }
+                                }
+                            }
+
+                            Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet nisl a risus porta pellentesque. Integer vitae sem in justo luctus tincidunt. Sed pharetra, justo at aliquet euismod, mauris enim facilisis erat, a accumsan arcu urna nec sapien.")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 13))
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                            HStack(spacing: 10) {
-                                Button(action: {}) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .foregroundColor(.black.opacity(0.75))
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .frame(width: 34, height: 34)
-                                        .background(Color.gray.opacity(0.10))
-                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                }
-
-                                Button(action: {}) {
-                                    Image(systemName: "bookmark")
-                                        .foregroundColor(.black.opacity(0.75))
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .frame(width: 34, height: 34)
-                                        .background(Color.gray.opacity(0.10))
-                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                }
-                            }
-                        }
-
-                        Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet nisl a risus porta pellentesque. Integer vitae sem in justo luctus tincidunt. Sed pharetra, justo at aliquet euismod, mauris enim facilisis erat, a accumsan arcu urna nec sapien.")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 13))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text(priceText(dish.price))
-                            .foregroundColor(.black)
-                            .font(.system(size: 22, weight: .bold))
-
-                        Divider()
-                            .overlay(Color.gray.opacity(0.15))
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Acompañamiento recomendado")
+                            Text(priceText(dish.price))
                                 .foregroundColor(.black)
-                                .font(.system(size: 16, weight: .bold))
-                            Text("Elige máximo 3 opciones")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 12))
+                                .font(.system(size: 22, weight: .bold))
+
+                            Divider()
+                                .overlay(Color.gray.opacity(0.15))
+
+                            optionSection(
+                                title: "Acompañamiento recomendado",
+                                subtitle: "Elige 1 opción",
+                                options: recommendedSides,
+                                selectedId: $selectedSideOptionId
+                            )
+
+                            optionSection(
+                                title: "Bebidas recomendadas",
+                                subtitle: "Elige 1 opción",
+                                options: recommendedDrinks,
+                                selectedId: $selectedDrinkOptionId
+                            )
+
+                            Spacer(minLength: 8)
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.top, 2)
+                        .padding(.bottom, 16)
+                    }
+                    .coordinateSpace(name: "dishSheetScroll")
+                    .onPreferenceChange(DishSheetScrollOffsetKey.self) { value in
+                        withAnimation(.easeInOut(duration: 0.16)) {
+                            showDishMiniHeader = value < -120
                         }
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 2)
+
+                    if showDishMiniHeader {
+                        dishMiniHeader(dish)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                 }
 
-                Button(action: {
-                    addToCart(dish)
-                    closeDishSheet()
-                }) {
-                    Text("Agregar al Carrito")
-                        .foregroundColor(.white)
-                        .font(.system(size: 17, weight: .bold))
+                HStack(spacing: 12) {
+                    quantityStepper
+
+                    Button(action: {
+                        addToCart(dish, quantity: dishQuantity)
+                        closeDishSheet()
+                    }) {
+                        VStack(spacing: 2) {
+                            Text("Agregar al Carrito •")
+                                .foregroundColor(.white)
+                                .font(.system(size: 15, weight: .bold))
+                            Text(priceText(totalPrice))
+                                .foregroundColor(.white.opacity(0.92))
+                                .font(.system(size: 14, weight: .bold))
+                        }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.fuchsia)
+                        .padding(.vertical, 12)
+                        .background(Color.green)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    }
                 }
                 .padding(.horizontal, 18)
-                .padding(.bottom, 6)
+                .padding(.bottom, 10)
 
                 Spacer(minLength: 0)
                     .frame(height: geo.safeAreaInsets.bottom)
@@ -758,6 +836,10 @@ struct FullMenuView: View {
             closeBranchSheet()
         }
         selectedDish = dish
+        dishQuantity = 1
+        selectedSideOptionId = recommendedSides.first?.id
+        selectedDrinkOptionId = nil
+        showDishMiniHeader = false
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showDishSheet = true
         }
@@ -774,12 +856,152 @@ struct FullMenuView: View {
         }
     }
     
-    private func addToCart(_ dish: Dish) {
-        cart[dish.id, default: 0] += 1
+    private func addToCart(_ dish: Dish, quantity: Int = 1) {
+        guard quantity > 0 else { return }
+        cart[dish.id, default: 0] += quantity
+    }
+
+    private var quantityStepper: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                dishQuantity = max(1, dishQuantity - 1)
+            }) {
+                Text("−")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18, weight: .bold))
+                    .frame(width: 36, height: 36)
+            }
+
+            Text("\(dishQuantity)")
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+                .frame(minWidth: 22)
+
+            Button(action: {
+                dishQuantity = min(99, dishQuantity + 1)
+            }) {
+                Text("+")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18, weight: .bold))
+                    .frame(width: 36, height: 36)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 54)
+        .background(Color.gray.opacity(0.10))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private func dishMiniHeader(_ dish: Dish) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dish.title)
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .bold))
+                    .lineLimit(1)
+                Text(priceText(dish.price))
+                    .foregroundColor(.black.opacity(0.75))
+                    .font(.system(size: 14, weight: .semibold))
+            }
+
+            Spacer()
+
+            Button(action: { closeDishSheet() }) {
+                Circle()
+                    .fill(Color.gray.opacity(0.18))
+                    .frame(width: 34, height: 34)
+                    .overlay(
+                        Image(systemName: "xmark")
+                            .foregroundColor(.black.opacity(0.75))
+                            .font(.system(size: 13, weight: .bold))
+                    )
+            }
+        }
+        .padding(.horizontal, 18)
+        .frame(height: 56)
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .overlay(Rectangle().fill(Color.gray.opacity(0.12)).frame(height: 1), alignment: .bottom)
+    }
+
+    private func optionSection(
+        title: String,
+        subtitle: String,
+        options: [DishOption],
+        selectedId: Binding<String?>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .bold))
+                Text(subtitle)
+                    .foregroundColor(.gray)
+                    .font(.system(size: 12))
+            }
+
+            VStack(spacing: 10) {
+                ForEach(options) { option in
+                    dishOptionRow(option: option, selectedId: selectedId)
+                }
+            }
+        }
+    }
+
+    private func dishOptionRow(option: DishOption, selectedId: Binding<String?>) -> some View {
+        let isSelected = selectedId.wrappedValue == option.id
+        return Button(action: {
+            selectedId.wrappedValue = option.id
+        }) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 22, height: 22)
+                        .overlay(
+                            Circle()
+                                .stroke(isSelected ? Color.green : Color.gray.opacity(0.25), lineWidth: 2)
+                        )
+
+                    if isSelected {
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: 8, height: 8)
+                    }
+                }
+
+                Text(option.title)
+                    .foregroundColor(.black)
+                    .font(.system(size: 14, weight: .semibold))
+
+                Spacer()
+
+                Text(plusPriceText(option.price))
+                    .foregroundColor(.black)
+                    .font(.system(size: 13, weight: .bold))
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 14)
+            .background(isSelected ? Color.white : Color.gray.opacity(0.07))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(isSelected ? Color.green : Color.gray.opacity(0.10), lineWidth: isSelected ? 2 : 1)
+            )
+        }
     }
     
     private func priceText(_ value: Double) -> String {
         String(format: "$%.2f", value)
+    }
+
+    private func plusPriceText(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        let amount = formatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
+        return "+$\(amount)"
     }
     
     private var coverImage: some View {
