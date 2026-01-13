@@ -341,15 +341,13 @@ struct FullMenuView: View {
     private var heroSection: some View {
         VStack(spacing: 0) {
             header
-
-            identityRow
-                .padding(.top, -92)
-                .padding(.bottom, 10)
-                .zIndex(1)
-
-            infoRow
-                .padding(.top, -96)
-                .zIndex(2)
+            VStack(spacing: 12) {
+                identityRow
+                    .zIndex(3)
+                infoRow
+                    .zIndex(2)
+            }
+            .padding(.top, -140)
         }
     }
 
@@ -392,7 +390,7 @@ struct FullMenuView: View {
 
             Spacer()
         }
-        .padding(.leading, 8)
+        .padding(.leading, 18)
     }
 
     private var infoRow: some View {
