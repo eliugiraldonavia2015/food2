@@ -406,7 +406,7 @@ struct FullMenuView: View {
                 .padding(.horizontal, 16)
             )
             .padding(.horizontal, 8)
-            .padding(.top, -34)
+            .padding(.top, -46)
     }
 
     private func metricCard(title: String, value: String, system: String, tint: Color) -> some View {
