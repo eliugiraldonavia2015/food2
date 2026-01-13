@@ -107,6 +107,7 @@ struct FullMenuView: View {
             scrollView.showsVerticalScrollIndicator = showsIndicators
             scrollView.showsHorizontalScrollIndicator = false
             scrollView.alwaysBounceVertical = true
+            scrollView.contentInsetAdjustmentBehavior = .never
 
             let hostingController = UIHostingController(rootView: content)
             hostingController.view.backgroundColor = .clear
@@ -337,44 +338,41 @@ struct FullMenuView: View {
     }
 
     private var header: some View {
-        GeometryReader { geo in
-            let minY = geo.frame(in: .global).minY
-            ZStack(alignment: .bottomLeading) {
-                coverImage
-                    .frame(height: minY > 0 ? 250 + minY : 250)
-                    .clipped()
-                    .overlay(headerGradient)
-                    .offset(y: minY > 0 ? -minY : 0)
-                
-                HStack(spacing: 12) {
-                    avatarImage
-                        .frame(width: 46, height: 46)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white.opacity(0.85), lineWidth: 2))
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(restaurantName)
-                            .foregroundColor(.white)
-                            .font(.system(size: 30, weight: .bold))
+        let stretch = max(0, -menuContentOffsetY)
+        return ZStack(alignment: .bottomLeading) {
+            coverImage
+                .frame(height: 250 + stretch)
+                .clipped()
+                .overlay(headerGradient)
+                .offset(y: -stretch)
+
+            HStack(spacing: 12) {
+                avatarImage
+                    .frame(width: 46, height: 46)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.85), lineWidth: 2))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(restaurantName)
+                        .foregroundColor(.white)
+                        .font(.system(size: 30, weight: .bold))
+                        .lineLimit(1)
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(.white.opacity(0.9))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(location.isEmpty ? "CDMX, México" : location)
+                            .foregroundColor(.white.opacity(0.9))
+                            .font(.system(size: 14, weight: .semibold))
                             .lineLimit(1)
-                        
-                        HStack(spacing: 6) {
-                            Image(systemName: "mappin.and.ellipse")
-                                .foregroundColor(.white.opacity(0.9))
-                                .font(.system(size: 13, weight: .semibold))
-                            Text(location.isEmpty ? "CDMX, México" : location)
-                                .foregroundColor(.white.opacity(0.9))
-                                .font(.system(size: 14, weight: .semibold))
-                                .lineLimit(1)
-                        }
                     }
-                    Spacer()
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 44)
-                .offset(y: minY > 0 ? -minY * 0.35 : 0)
+                Spacer()
             }
-            .frame(height: 250)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 44)
+            .offset(y: -stretch * 0.35)
         }
         .frame(height: 250)
         .padding(.horizontal, -16)
