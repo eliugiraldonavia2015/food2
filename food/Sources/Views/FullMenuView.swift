@@ -20,8 +20,8 @@ struct FullMenuView: View {
     @State private var cart: [String: Int] = [:]
     @State private var selectedDish: Dish? = nil
     @State private var dishQuantity: Int = 1
-    @State private var selectedSideOptionId: String? = nil
-    @State private var selectedDrinkOptionId: String? = nil
+    @State private var sideOptionQuantities: [String: Int] = [:]
+    @State private var drinkOptionQuantities: [String: Int] = [:]
     @State private var showDishMiniHeader: Bool = false
     @State private var dishSheetContentOffsetY: CGFloat = 0
     @State private var dishSheetScrollToTopToken: Int = 0
@@ -769,10 +769,13 @@ struct FullMenuView: View {
     @ViewBuilder
     private func dishSheetContent(in geo: GeometryProxy) -> some View {
         if let dish = selectedDish {
-            let selectedSide = recommendedSides.first(where: { $0.id == selectedSideOptionId })
-            let selectedDrink = recommendedDrinks.first(where: { $0.id == selectedDrinkOptionId })
-            let unitPrice = dish.price + (selectedSide?.price ?? 0) + (selectedDrink?.price ?? 0)
-            let totalPrice = unitPrice * Double(dishQuantity)
+            let sidesTotal = recommendedSides.reduce(0) { partialResult, option in
+                partialResult + (Double(sideOptionQuantities[option.id] ?? 0) * option.price)
+            }
+            let drinksTotal = recommendedDrinks.reduce(0) { partialResult, option in
+                partialResult + (Double(drinkOptionQuantities[option.id] ?? 0) * option.price)
+            }
+            let totalPrice = (dish.price * Double(dishQuantity)) + sidesTotal + drinksTotal
 
             VStack(spacing: 0) {
                 Capsule()
@@ -810,7 +813,7 @@ struct FullMenuView: View {
                             HStack(alignment: .top, spacing: 12) {
                                 Text(dish.title)
                                     .foregroundColor(.black)
-                                    .font(.system(size: 22, weight: .bold))
+                                    .font(.system(size: 24, weight: .bold))
                                     .frame(maxWidth: .infinity, alignment: .leading)
 
                                 HStack(spacing: 10) {
@@ -836,7 +839,7 @@ struct FullMenuView: View {
 
                             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet nisl a risus porta pellentesque. Integer vitae sem in justo luctus tincidunt. Sed pharetra, justo at aliquet euismod, mauris enim facilisis erat, a accumsan arcu urna nec sapien.")
                                 .foregroundColor(.gray)
-                                .font(.system(size: 13))
+                                .font(.system(size: 15))
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             Text(priceText(dish.price))
@@ -848,16 +851,16 @@ struct FullMenuView: View {
 
                             optionSection(
                                 title: "Acompañamiento recomendado",
-                                subtitle: "Elige 1 opción",
+                                subtitle: "Selecciona varias opciones",
                                 options: recommendedSides,
-                                selectedId: $selectedSideOptionId
+                                quantities: $sideOptionQuantities
                             )
 
                             optionSection(
                                 title: "Bebidas recomendadas",
-                                subtitle: "Elige 1 opción",
+                                subtitle: "Selecciona varias opciones",
                                 options: recommendedDrinks,
-                                selectedId: $selectedDrinkOptionId
+                                quantities: $drinkOptionQuantities
                             )
 
                             Spacer(minLength: 8)
@@ -1001,8 +1004,8 @@ struct FullMenuView: View {
         }
         selectedDish = dish
         dishQuantity = 1
-        selectedSideOptionId = recommendedSides.first?.id
-        selectedDrinkOptionId = nil
+        sideOptionQuantities = [:]
+        drinkOptionQuantities = [:]
         showDishMiniHeader = false
         dishSheetContentOffsetY = 0
         dishSheetScrollToTopToken += 1
@@ -1152,67 +1155,105 @@ struct FullMenuView: View {
         title: String,
         subtitle: String,
         options: [DishOption],
-        selectedId: Binding<String?>
+        quantities: Binding<[String: Int]>
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                 Text(subtitle)
                     .foregroundColor(.gray)
-                    .font(.system(size: 12))
+                    .font(.system(size: 13))
             }
 
             VStack(spacing: 10) {
                 ForEach(options) { option in
-                    dishOptionRow(option: option, selectedId: selectedId)
+                    dishOptionQuantityRow(option: option, quantities: quantities)
                 }
             }
         }
     }
 
-    private func dishOptionRow(option: DishOption, selectedId: Binding<String?>) -> some View {
-        let isSelected = selectedId.wrappedValue == option.id
-        return Button(action: {
-            selectedId.wrappedValue = option.id
-        }) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 22, height: 22)
-                        .overlay(
-                            Circle()
-                                .stroke(isSelected ? Color.green : Color.gray.opacity(0.25), lineWidth: 2)
-                        )
-
-                    if isSelected {
-                        Circle()
-                            .fill(Color.black)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
+    private func dishOptionQuantityRow(option: DishOption, quantities: Binding<[String: Int]>) -> some View {
+        let qty = quantities.wrappedValue[option.id] ?? 0
+        let isSelected = qty > 0
+        return HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(option.title)
                     .foregroundColor(.black)
-                    .font(.system(size: 14, weight: .semibold))
-
-                Spacer()
+                    .font(.system(size: 16, weight: .semibold))
+                    .lineLimit(1)
 
                 Text(plusPriceText(option.price))
-                    .foregroundColor(.black)
-                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.black.opacity(0.8))
+                    .font(.system(size: 14, weight: .bold))
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 14)
-            .background(isSelected ? Color.white : Color.gray.opacity(0.07))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(isSelected ? Color.green : Color.gray.opacity(0.10), lineWidth: isSelected ? 2 : 1)
-            )
+
+            Spacer()
+
+            if qty <= 0 {
+                Button(action: {
+                    quantities.wrappedValue[option.id] = 1
+                }) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: "plus")
+                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .bold))
+                        )
+                }
+            } else {
+                HStack(spacing: 10) {
+                    Button(action: {
+                        let updated = max(0, qty - 1)
+                        if updated == 0 {
+                            quantities.wrappedValue.removeValue(forKey: option.id)
+                        } else {
+                            quantities.wrappedValue[option.id] = updated
+                        }
+                    }) {
+                        Image(systemName: "minus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 30, height: 30)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+
+                    Text("\(qty)")
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .bold))
+                        .frame(minWidth: 16)
+
+                    Button(action: {
+                        quantities.wrappedValue[option.id] = min(99, qty + 1)
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 30, height: 30)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
         }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 14)
+        .background(isSelected ? Color.white : Color.gray.opacity(0.07))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(isSelected ? Color.green : Color.gray.opacity(0.10), lineWidth: isSelected ? 2 : 1)
+        )
     }
     
     private func priceText(_ value: Double) -> String {
