@@ -374,7 +374,7 @@ struct FullMenuView: View {
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 44)
-            .offset(y: -stretch * 0.35)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(height: 250)
         .padding(.horizontal, -16)
