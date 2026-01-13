@@ -448,23 +448,23 @@ struct FullMenuView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SUCURSAL SELECCIONADA")
                         .foregroundColor(.gray)
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                     Text(currentBranchName)
                         .foregroundColor(.black)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
                     Text("DISTANCIA")
                         .foregroundColor(.gray)
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                     HStack(spacing: 6) {
                         Text(String(format: "%.1f km", distanceKm ?? 2.3))
                             .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 15, weight: .bold))
                         Image(systemName: "chevron.down")
                             .foregroundColor(.gray.opacity(0.8))
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                     }
                 }
             }
@@ -530,9 +530,10 @@ struct FullMenuView: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .foregroundColor(.black)
-            .font(.system(size: 20, weight: .bold))
+            .font(.system(size: 22, weight: .bold))
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 6)
+            .padding(.top, 10)
+            .padding(.bottom, 2)
     }
     
     private func dishRow(_ dish: Dish) -> some View {
