@@ -290,8 +290,7 @@ struct FullMenuView: View {
             Color.white.ignoresSafeArea()
             TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
                 VStack(spacing: 14) {
-                    header
-                    infoRow
+                    heroSection
                     branchCard
                     categoryTabs
                     menuList
@@ -339,46 +338,61 @@ struct FullMenuView: View {
         }
     }
 
+    private var heroSection: some View {
+        VStack(spacing: 0) {
+            header
+
+            identityRow
+                .padding(.top, -92)
+                .padding(.bottom, 10)
+                .zIndex(1)
+
+            infoRow
+                .padding(.top, -96)
+                .zIndex(2)
+        }
+    }
+
     private var header: some View {
         let stretch = max(0, -menuContentOffsetY)
-        return ZStack(alignment: .bottomLeading) {
-            coverImage
-                .frame(height: 250 + stretch)
-                .clipped()
-                .overlay(headerGradient)
-                .offset(y: -stretch)
-
-            HStack(spacing: 12) {
-                avatarImage
-                    .frame(width: 46, height: 46)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.white.opacity(0.85), lineWidth: 2))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(restaurantName)
-                        .foregroundColor(.white)
-                        .font(.system(size: 30, weight: .bold))
-                        .lineLimit(1)
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundColor(.white.opacity(0.9))
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(location.isEmpty ? "CDMX, México" : location)
-                            .foregroundColor(.white.opacity(0.9))
-                            .font(.system(size: 14, weight: .semibold))
-                            .lineLimit(1)
-                    }
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 44)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(height: 250)
+        return coverImage
+            .frame(height: 250 + stretch)
+            .clipped()
+            .overlay(headerGradient)
+            .offset(y: -stretch)
+            .frame(height: 250)
         .padding(.horizontal, -16)
         .ignoresSafeArea(edges: .top)
+    }
+
+    private var identityRow: some View {
+        HStack(spacing: 14) {
+            avatarImage
+                .frame(width: 46, height: 46)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.85), lineWidth: 2))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(restaurantName)
+                    .foregroundColor(.white)
+                    .font(.system(size: 30, weight: .bold))
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 13, weight: .semibold))
+                    Text(location.isEmpty ? "CDMX, México" : location)
+                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 14, weight: .semibold))
+                        .lineLimit(1)
+                }
+            }
+            .padding(.leading, 6)
+
+            Spacer()
+        }
+        .padding(.leading, 8)
     }
 
     private var infoRow: some View {
@@ -408,8 +422,6 @@ struct FullMenuView: View {
                 .padding(.horizontal, 16)
             )
             .padding(.horizontal, 8)
-            .padding(.top, -96)
-            .zIndex(2)
     }
 
     private func metricCard(title: String, value: String, system: String, tint: Color) -> some View {
