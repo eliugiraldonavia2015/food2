@@ -107,6 +107,8 @@ struct FullMenuView: View {
             scrollView.showsVerticalScrollIndicator = showsIndicators
             scrollView.showsHorizontalScrollIndicator = false
             scrollView.alwaysBounceVertical = true
+            scrollView.alwaysBounceHorizontal = false
+            scrollView.isDirectionalLockEnabled = true
             scrollView.contentInsetAdjustmentBehavior = .never
 
             let hostingController = UIHostingController(rootView: content)
@@ -406,7 +408,8 @@ struct FullMenuView: View {
                 .padding(.horizontal, 16)
             )
             .padding(.horizontal, 8)
-            .padding(.top, -46)
+            .padding(.top, -96)
+            .zIndex(2)
     }
 
     private func metricCard(title: String, value: String, system: String, tint: Color) -> some View {
