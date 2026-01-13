@@ -427,14 +427,14 @@ struct FullMenuView: View {
             HStack(spacing: 6) {
                 Image(systemName: system)
                     .foregroundColor(tint)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                 Text(title.uppercased())
                     .foregroundColor(.gray)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
             }
             Text(value)
                 .foregroundColor(.black)
-                .font(.system(size: 15, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
         }
     }
 
@@ -546,17 +546,17 @@ struct FullMenuView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(dish.title)
                         .foregroundColor(.black)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .lineLimit(1)
                     Spacer()
                     Text(priceText(dish.price))
                         .foregroundColor(.black)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                 }
                 
                 Text(dish.subtitle)
                     .foregroundColor(.gray)
-                    .font(.system(size: 12))
+                    .font(.system(size: 13))
                     .lineLimit(2)
             }
             .padding(.bottom, 18)
