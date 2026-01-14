@@ -17,7 +17,6 @@ struct CartScreenView: View {
     private let summaryFixedHeight: CGFloat = 74
 
     @Environment(\.dismiss) private var dismiss
-    @State private var showReviewOrder: Bool = false
 
     private var cartItems: [CartItem] {
         items.filter { (quantities[$0.id] ?? 0) > 0 }
@@ -64,9 +63,6 @@ struct CartScreenView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { bottomSummaryArea }
-        .fullScreenCover(isPresented: $showReviewOrder) {
-            ReviewOrderView(subtotal: total)
-        }
     }
 
     private var topBar: some View {
@@ -273,7 +269,7 @@ struct CartScreenView: View {
     }
     
     private var checkoutButton: some View {
-        Button(action: { showReviewOrder = true }) {
+        Button(action: {}) {
             Text("Ir a checkout • \(priceText(total))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
