@@ -20,6 +20,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
         SDWebImageDownloader.shared.config.maxConcurrentDownloads = 4
         SDWebImagePrefetcher.shared.maxConcurrentPrefetchCount = 2
+        SDImageCache.shared.config.maxMemoryCost = 50 * 1024 * 1024
+        SDImageCache.shared.config.maxMemoryCount = 120
 
         // Queremos recibir APNs (silent push) para Phone Auth
         UNUserNotificationCenter.current().delegate = self
