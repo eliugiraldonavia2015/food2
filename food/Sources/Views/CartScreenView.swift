@@ -2,6 +2,13 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct CartScreenView: View {
+    private struct HeightPreferenceKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
+    
     struct CartItem: Identifiable, Hashable {
         let id: String
         let title: String
@@ -13,6 +20,12 @@ struct CartScreenView: View {
     let restaurantName: String
     let items: [CartItem]
     @Binding var quantities: [String: Int]
+    
+    @State private var totalsFooterHeight: CGFloat = 0
+    
+    private let itemsSummaryHeightPerTwoItems: CGFloat = 44
+    private let totalsPanelPadding: CGFloat = 14
+    private let totalsPanelSpacing: CGFloat = 10
 
     @Environment(\.dismiss) private var dismiss
 
@@ -40,6 +53,19 @@ struct CartScreenView: View {
     
     private var summaryMaxHeight: CGFloat {
         UIScreen.main.bounds.height * 0.4
+    }
+    
+    private var itemsSummaryDesiredHeight: CGFloat {
+        let pairs = max(1, Int(ceil(Double(cartItems.count) / 2.0)))
+        return CGFloat(pairs) * itemsSummaryHeightPerTwoItems
+    }
+    
+    private var itemsSummaryMaxHeight: CGFloat {
+        max(0, summaryMaxHeight - (totalsFooterHeight + (totalsPanelPadding * 2) + totalsPanelSpacing))
+    }
+    
+    private var itemsSummaryHeight: CGFloat {
+        min(itemsSummaryMaxHeight, itemsSummaryDesiredHeight)
     }
 
     var body: some View {
@@ -221,21 +247,24 @@ struct CartScreenView: View {
     }
     
     private var totalsPanel: some View {
-        ViewThatFits(in: .vertical) {
-            totalsPanelContent
+        VStack(spacing: totalsPanelSpacing) {
             ScrollView(showsIndicators: false) {
-                totalsPanelContent
+                cartItemsSummary
             }
+            .frame(height: itemsSummaryHeight)
+            
+            totalsFooter
         }
+        .padding(totalsPanelPadding)
         .frame(maxHeight: summaryMaxHeight)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
+        .onPreferenceChange(HeightPreferenceKey.self) { totalsFooterHeight = $0 }
     }
     
-    private var totalsPanelContent: some View {
+    private var totalsFooter: some View {
         VStack(spacing: 10) {
-            cartItemsSummary
             Divider()
                 .overlay(Color.gray.opacity(0.15))
             HStack {
@@ -268,7 +297,11 @@ struct CartScreenView: View {
                     .font(.system(size: 20, weight: .bold))
             }
         }
-        .padding(14)
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: HeightPreferenceKey.self, value: proxy.size.height)
+            }
+        )
     }
     
     private var cartItemsSummary: some View {
