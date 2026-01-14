@@ -64,8 +64,6 @@ struct ShareOverlayView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             sheet
-                .frame(maxWidth: .infinity)
-                .frame(height: UIScreen.main.bounds.height * 0.6)
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .transition(.move(edge: .bottom))
         }
@@ -113,6 +111,8 @@ struct ShareOverlayView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: UIScreen.main.bounds.height * 0.6)
         .background(sheetBackgroundColor)
         .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
