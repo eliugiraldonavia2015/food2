@@ -27,10 +27,10 @@ struct FullMenuView: View {
     @State private var showDishMiniHeader: Bool = false
     @State private var dishSheetContentOffsetY: CGFloat = 0
     @State private var dishSheetScrollToTopToken: Int = 0
+    @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
-    @State private var activeCover: FullMenuCover? = nil
+    @State private var showCartScreen: Bool = false
     @State private var showReviewOrder: Bool = false
-    @State private var headerMinY: CGFloat = 0
 
     init(
         restaurantId: String,
@@ -75,24 +75,7 @@ struct FullMenuView: View {
         let price: Double
     }
 
-    private enum FullMenuCover: Identifiable {
-        case cart
-
-        var id: Int {
-            switch self {
-            case .cart: 1
-            }
-        }
-    }
-
     private struct DishSheetScrollOffsetKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-            value = nextValue()
-        }
-    }
-
-    private struct HeaderOffsetPreferenceKey: PreferenceKey {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
             value = nextValue()
@@ -311,73 +294,63 @@ struct FullMenuView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
+                VStack(spacing: 14) {
+                    heroSection
+                    branchCard
+                    categoryTabs
+                    menuList
+                    Spacer(minLength: 110)
+                }
+                .padding(.horizontal, 16)
+            }
+            .ignoresSafeArea(edges: .top)
+            .overlay(alignment: .top) {
+                topBar
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            checkoutBar
+        }
+        .tint(.fuchsia)
+        .onChange(of: menuContentOffsetY) { _, newValue in
+            let shouldShow = newValue > 168
+            if shouldShow != showMenuMiniHeader {
+                withAnimation(.easeInOut(duration: 0.16)) {
+                    showMenuMiniHeader = shouldShow
+                }
+            }
+        }
+        .onAppear {
+            SDWebImagePrefetcher.shared.cancelPrefetching()
+            selectedBranchName = branchName ?? location
+            pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
+            if cart.isEmpty {
+                cart["green-burger"] = 1
+            }
+            showMenuMiniHeader = false
+        }
+        .overlay {
             ZStack {
-                Color.white.ignoresSafeArea()
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 14) {
-                        heroSection
-                        branchCard
-                        categoryTabs
-                        menuList
-                        Spacer(minLength: 110)
-                    }
-                    .padding(.horizontal, 16)
-                }
-                .ignoresSafeArea(edges: .top)
-                .overlay(alignment: .top) {
-                    topBar
-                }
+                branchSheetOverlay
+                dishSheetOverlay
             }
-            .safeAreaInset(edge: .bottom) {
-                checkoutBar
-            }
-            .tint(.fuchsia)
-            .onAppear {
-                SDWebImagePrefetcher.shared.cancelPrefetching()
-                selectedBranchName = branchName ?? location
-                pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
-                if cart.isEmpty {
-                    cart["green-burger"] = 1
-                }
-                showMenuMiniHeader = false
-            }
-            .onPreferenceChange(HeaderOffsetPreferenceKey.self) { minY in
-                if abs(headerMinY - minY) > 1.0 {
-                    headerMinY = minY
-                }
-
-                let shouldShow = minY < -168
-                if shouldShow != showMenuMiniHeader {
-                    withAnimation(.easeInOut(duration: 0.16)) {
-                        showMenuMiniHeader = shouldShow
-                    }
-                }
-            }
-            .overlay {
-                ZStack {
-                    branchSheetOverlay
-                    dishSheetOverlay
-                }
-            }
-            .sheet(item: $activeCover) { cover in
-                switch cover {
-                case .cart:
-                    CartScreenView(
-                        restaurantName: restaurantName,
-                        items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
-                        quantities: $cart
-                    )
-                }
-            }
-            .navigationDestination(isPresented: $showReviewOrder) {
-                ReviewOrderView(
-                    subtotal: cartTotal,
-                    onClose: { showReviewOrder = false },
-                    onPlaceOrder: { showReviewOrder = false }
-                )
-            }
-            .toolbar(.hidden, for: .navigationBar)
+        }
+        .fullScreenCover(isPresented: $showCartScreen) {
+            CartScreenView(
+                restaurantName: restaurantName,
+                items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
+                quantities: $cart
+            )
+        }
+        .sheet(isPresented: $showReviewOrder) {
+            ReviewOrderView(
+                subtotal: cartTotal,
+                onClose: { showReviewOrder = false },
+                onPlaceOrder: { showReviewOrder = false }
+            )
         }
     }
 
@@ -395,19 +368,15 @@ struct FullMenuView: View {
     }
 
     private var header: some View {
-        GeometryReader { geo in
-            let minY = geo.frame(in: .global).minY
-            let stretch = max(0, minY)
-            coverImage
-                .frame(height: 250 + stretch)
-                .clipped()
-                .overlay(headerGradient)
-                .offset(y: minY > 0 ? -minY : 0)
-                .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
-        }
-        .frame(height: 250)
-        .padding(.horizontal, -16)
-        .ignoresSafeArea(edges: .top)
+        let stretch = max(0, -menuContentOffsetY)
+        return coverImage
+            .frame(height: 250 + stretch)
+            .clipped()
+            .overlay(headerGradient)
+            .offset(y: -stretch)
+            .frame(height: 250)
+            .padding(.horizontal, -16)
+            .ignoresSafeArea(edges: .top)
     }
 
     private var identityRow: some View {
@@ -656,7 +625,7 @@ struct FullMenuView: View {
                     .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
             }
             Spacer()
-            Button(action: { activeCover = .cart }) {
+            Button(action: { showCartScreen = true }) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(Color.black.opacity(0.35))
@@ -703,7 +672,7 @@ struct FullMenuView: View {
                     .clipShape(Circle())
             }
 
-            Button(action: { activeCover = .cart }) {
+            Button(action: { showCartScreen = true }) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(Color.gray.opacity(0.12))
