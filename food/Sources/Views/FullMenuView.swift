@@ -27,10 +27,10 @@ struct FullMenuView: View {
     @State private var showDishMiniHeader: Bool = false
     @State private var dishSheetContentOffsetY: CGFloat = 0
     @State private var dishSheetScrollToTopToken: Int = 0
-    @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var activeCover: FullMenuCover? = nil
     @State private var showReviewOrder: Bool = false
+    @State private var headerMinY: CGFloat = 0
 
     init(
         restaurantId: String,
@@ -92,7 +92,7 @@ struct FullMenuView: View {
         }
     }
 
-    private struct MenuScrollOffsetKey: PreferenceKey {
+    private struct HeaderOffsetPreferenceKey: PreferenceKey {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
             value = nextValue()
@@ -315,12 +315,6 @@ struct FullMenuView: View {
             ZStack {
                 Color.white.ignoresSafeArea()
                 ScrollView(showsIndicators: false) {
-                    GeometryReader { geo in
-                        Color.clear
-                            .preference(key: MenuScrollOffsetKey.self, value: geo.frame(in: .named("menuScroll")).minY)
-                    }
-                    .frame(height: 0)
-
                     VStack(spacing: 14) {
                         heroSection
                         branchCard
@@ -329,13 +323,6 @@ struct FullMenuView: View {
                         Spacer(minLength: 110)
                     }
                     .padding(.horizontal, 16)
-                }
-                .coordinateSpace(name: "menuScroll")
-                .onPreferenceChange(MenuScrollOffsetKey.self) { minY in
-                    let updated = -minY
-                    if abs(menuContentOffsetY - updated) > 0.5 {
-                        menuContentOffsetY = updated
-                    }
                 }
                 .ignoresSafeArea(edges: .top)
                 .overlay(alignment: .top) {
@@ -346,22 +333,26 @@ struct FullMenuView: View {
                 checkoutBar
             }
             .tint(.fuchsia)
-            .onChange(of: menuContentOffsetY) { _, newValue in
-                let shouldShow = newValue > 168
+            .onAppear {
+                SDWebImagePrefetcher.shared.cancelPrefetching()
+                selectedBranchName = branchName ?? location
+                pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
+                if cart.isEmpty {
+                    cart["green-burger"] = 1
+                }
+                showMenuMiniHeader = false
+            }
+            .onPreferenceChange(HeaderOffsetPreferenceKey.self) { minY in
+                if abs(headerMinY - minY) > 1.0 {
+                    headerMinY = minY
+                }
+
+                let shouldShow = minY < -168
                 if shouldShow != showMenuMiniHeader {
                     withAnimation(.easeInOut(duration: 0.16)) {
                         showMenuMiniHeader = shouldShow
                     }
                 }
-            }
-        .onAppear {
-            SDWebImagePrefetcher.shared.cancelPrefetching()
-            selectedBranchName = branchName ?? location
-            pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
-            if cart.isEmpty {
-                cart["green-burger"] = 1
-            }
-                showMenuMiniHeader = false
             }
             .overlay {
                 ZStack {
@@ -404,13 +395,17 @@ struct FullMenuView: View {
     }
 
     private var header: some View {
-        let stretch = max(0, -menuContentOffsetY)
-        return coverImage
-            .frame(height: 250 + stretch)
-            .clipped()
-            .overlay(headerGradient)
-            .offset(y: -stretch)
-            .frame(height: 250)
+        GeometryReader { geo in
+            let minY = geo.frame(in: .global).minY
+            let stretch = max(0, minY)
+            coverImage
+                .frame(height: 250 + stretch)
+                .clipped()
+                .overlay(headerGradient)
+                .offset(y: minY > 0 ? -minY : 0)
+                .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
+        }
+        .frame(height: 250)
         .padding(.horizontal, -16)
         .ignoresSafeArea(edges: .top)
     }
