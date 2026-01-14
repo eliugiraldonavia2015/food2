@@ -23,11 +23,7 @@ struct ShareOverlayView: View {
     let theme: Theme
     @State private var sent: Set<UUID> = []
     
-    private let sheetHeightReduction: CGFloat = 37
-    
-    private var sheetHeight: CGFloat {
-        max(0, (UIScreen.main.bounds.height * 0.6) - sheetHeightReduction)
-    }
+    private let bottomGapAboveSafeArea: CGFloat = 14
     
     init(
         onClose: @escaping () -> Void,
@@ -68,16 +64,18 @@ struct ShareOverlayView: View {
     ]
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            sheet
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .transition(.move(edge: .bottom))
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                sheet(bottomInset: geo.safeAreaInsets.bottom)
+                    .transition(.move(edge: .bottom))
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(edges: .bottom)
         }
-        .ignoresSafeArea(edges: .bottom)
         .transition(.move(edge: .bottom))
     }
 
-    private var sheet: some View {
+    private func sheet(bottomInset: CGFloat) -> some View {
         VStack(spacing: 0) {
             header
             Divider().background(dividerColor)
@@ -118,7 +116,7 @@ struct ShareOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: sheetHeight, alignment: .top)
+        .padding(.bottom, bottomInset + bottomGapAboveSafeArea)
         .background(sheetBackgroundColor)
         .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
