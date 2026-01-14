@@ -263,7 +263,7 @@ struct CartScreenView: View {
                     .foregroundColor(.black)
                     .font(.system(size: 16, weight: .bold))
             }
-        )
+        }
     }
     
     private var checkoutButton: some View {
