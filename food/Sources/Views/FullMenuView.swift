@@ -28,8 +28,7 @@ struct FullMenuView: View {
     @State private var dishSheetScrollToTopToken: Int = 0
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
-    @State private var showCartScreen: Bool = false
-    @State private var showReviewOrderScreen: Bool = false
+    @State private var activeCover: FullMenuCover? = nil
 
     init(
         restaurantId: String,
@@ -74,7 +73,26 @@ struct FullMenuView: View {
         let price: Double
     }
 
+    private enum FullMenuCover: Identifiable {
+        case cart
+        case reviewOrder
+
+        var id: Int {
+            switch self {
+            case .cart: 1
+            case .reviewOrder: 2
+            }
+        }
+    }
+
     private struct DishSheetScrollOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
+
+    private struct MenuScrollOffsetKey: PreferenceKey {
         static var defaultValue: CGFloat = 0
         static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
             value = nextValue()
@@ -148,13 +166,18 @@ struct FullMenuView: View {
             var parent: TrackableScrollView
             var hostingController: UIHostingController<Content>?
             var lastScrollToTopToken: Int = 0
+            var lastReportedOffsetY: CGFloat = .greatestFiniteMagnitude
 
             init(parent: TrackableScrollView) {
                 self.parent = parent
             }
 
             func scrollViewDidScroll(_ scrollView: UIScrollView) {
-                parent.contentOffsetY = scrollView.contentOffset.y
+                let y = scrollView.contentOffset.y
+                if abs(lastReportedOffsetY - y) > 0.5 {
+                    lastReportedOffsetY = y
+                    parent.contentOffsetY = y
+                }
             }
         }
     }
@@ -290,7 +313,13 @@ struct FullMenuView: View {
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
-            TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
+            ScrollView(showsIndicators: false) {
+                GeometryReader { geo in
+                    Color.clear
+                        .preference(key: MenuScrollOffsetKey.self, value: geo.frame(in: .named("menuScroll")).minY)
+                }
+                .frame(height: 0)
+
                 VStack(spacing: 14) {
                     heroSection
                     branchCard
@@ -299,6 +328,13 @@ struct FullMenuView: View {
                     Spacer(minLength: 110)
                 }
                 .padding(.horizontal, 16)
+            }
+            .coordinateSpace(name: "menuScroll")
+            .onPreferenceChange(MenuScrollOffsetKey.self) { minY in
+                let updated = -minY
+                if abs(menuContentOffsetY - updated) > 0.5 {
+                    menuContentOffsetY = updated
+                }
             }
             .ignoresSafeArea(edges: .top)
             .overlay(alignment: .top) {
@@ -331,19 +367,21 @@ struct FullMenuView: View {
                 dishSheetOverlay
             }
         }
-        .fullScreenCover(isPresented: $showCartScreen) {
-            CartScreenView(
-                restaurantName: restaurantName,
-                items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
-                quantities: $cart
-            )
-        }
-        .fullScreenCover(isPresented: $showReviewOrderScreen) {
-            ReviewOrderView(
-                subtotal: cartTotal,
-                onClose: { showReviewOrderScreen = false },
-                onPlaceOrder: { showReviewOrderScreen = false }
-            )
+        .fullScreenCover(item: $activeCover) { cover in
+            switch cover {
+            case .cart:
+                CartScreenView(
+                    restaurantName: restaurantName,
+                    items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
+                    quantities: $cart
+                )
+            case .reviewOrder:
+                ReviewOrderView(
+                    subtotal: cartTotal,
+                    onClose: { activeCover = nil },
+                    onPlaceOrder: { activeCover = nil }
+                )
+            }
         }
     }
 
@@ -584,7 +622,7 @@ struct FullMenuView: View {
     }
     
     private var checkoutBar: some View {
-        Button(action: { showReviewOrderScreen = true }) {
+        Button(action: { activeCover = .reviewOrder }) {
             Text("Ir al Checkout • \(priceText(cartTotal))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
@@ -618,7 +656,7 @@ struct FullMenuView: View {
                     .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
             }
             Spacer()
-            Button(action: { showCartScreen = true }) {
+            Button(action: { activeCover = .cart }) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(Color.black.opacity(0.35))
