@@ -112,7 +112,7 @@ struct ShareOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: UIScreen.main.bounds.height * 0.6)
+        .frame(height: UIScreen.main.bounds.height * 0.6, alignment: .top)
         .background(sheetBackgroundColor)
         .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
