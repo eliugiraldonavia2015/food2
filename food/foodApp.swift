@@ -2,6 +2,7 @@ import SwiftUI
 import FirebaseCore
 import FirebaseAuth
 import UserNotifications
+import SDWebImage
 #if canImport(GoogleSignIn)
 import GoogleSignIn
 #endif
@@ -16,6 +17,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         FirebaseApp.configure()
         print("[AppDelegate] ✅ Firebase configurado")
         UIWindow.appearance().backgroundColor = UIColor(red: 49/255, green: 209/255, blue: 87/255, alpha: 1)
+
+        SDWebImageDownloader.shared.config.maxConcurrentDownloads = 4
+        SDWebImagePrefetcher.shared.maxConcurrentPrefetchCount = 2
 
         // Queremos recibir APNs (silent push) para Phone Auth
         UNUserNotificationCenter.current().delegate = self

@@ -148,7 +148,8 @@ final class FeedViewModel: ObservableObject {
     }
 
     func prefetch(urls: [String]) {
-        let u = urls.compactMap { URL(string: $0) }
+        SDWebImagePrefetcher.shared.cancelPrefetching()
+        let u = urls.prefix(12).compactMap { URL(string: $0) }
         SDWebImagePrefetcher.shared.prefetchURLs(u)
     }
     func cancelPrefetch() {

@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import SDWebImage
 import UIKit
 
 struct FullMenuView: View {
@@ -353,12 +354,13 @@ struct FullMenuView: View {
                     }
                 }
             }
-            .onAppear {
-                selectedBranchName = branchName ?? location
-                pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
-                if cart.isEmpty {
-                    cart["green-burger"] = 1
-                }
+        .onAppear {
+            SDWebImagePrefetcher.shared.cancelPrefetching()
+            selectedBranchName = branchName ?? location
+            pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
+            if cart.isEmpty {
+                cart["green-burger"] = 1
+            }
                 showMenuMiniHeader = false
             }
             .overlay {
