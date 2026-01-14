@@ -1314,23 +1314,24 @@ struct FullMenuView: View {
     private var coverImage: some View {
         Group {
             if let url = URL(string: coverUrl), !coverUrl.isEmpty {
-                WebImage(url: url)
-                    .resizable()
-                    .placeholder {
-                        LinearGradient(
-                            colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .overlay(
-                            Image(systemName: "fork.knife")
-                                .font(.system(size: 42, weight: .bold))
-                                .foregroundColor(.white.opacity(0.7))
-                        )
-                    }
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.22))
-                    .aspectRatio(contentMode: .fill)
+                WebImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .overlay(
+                        Image(systemName: "fork.knife")
+                            .font(.system(size: 42, weight: .bold))
+                            .foregroundColor(.white.opacity(0.7))
+                    )
+                }
+                .indicator(.activity)
+                .transition(.opacity.animation(.easeInOut(duration: 0.22)))
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
@@ -1349,21 +1350,22 @@ struct FullMenuView: View {
     private var avatarImage: some View {
         Group {
             if let url = URL(string: avatarUrl), !avatarUrl.isEmpty {
-                WebImage(url: url)
-                    .resizable()
-                    .placeholder {
-                        ZStack {
-                            Circle().fill(Color.white.opacity(0.9))
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 44, height: 44)
-                                .foregroundColor(.gray.opacity(0.55))
-                        }
+                WebImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    ZStack {
+                        Circle().fill(Color.white.opacity(0.9))
+                        Image(systemName: "person.crop.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 44, height: 44)
+                            .foregroundColor(.gray.opacity(0.55))
                     }
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.18))
-                    .scaledToFill()
+                }
+                .indicator(.activity)
+                .transition(.opacity.animation(.easeInOut(duration: 0.18)))
             } else {
                 ZStack {
                     Circle().fill(Color.white.opacity(0.9))
@@ -1394,18 +1396,19 @@ struct FullMenuView: View {
     private func dishImage(_ urlString: String) -> some View {
         Group {
             if let url = URL(string: urlString), !urlString.isEmpty {
-                WebImage(url: url)
-                    .resizable()
-                    .placeholder {
-                        LinearGradient(
-                            colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    }
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.18))
-                    .aspectRatio(contentMode: .fill)
+                WebImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+                .indicator(.activity)
+                .transition(.opacity.animation(.easeInOut(duration: 0.18)))
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
