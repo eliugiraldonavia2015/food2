@@ -340,14 +340,9 @@ struct RestaurantProfileView: View {
                     Button(action: {
                         showChat = true
                     }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "paperplane.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.fuchsia)
-                            Text("Mensaje")
-                                .foregroundColor(.black)
-                                .font(.system(size: 16, weight: .semibold))
-                        }
+                        Text("Mensaje")
+                            .foregroundColor(.black)
+                            .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(Color.white)
