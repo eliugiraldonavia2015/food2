@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct ShareOverlayView: View {
+    enum Theme {
+        case dark
+        case light
+    }
+    
     struct Person: Identifiable {
         let id = UUID()
         let name: String
@@ -14,7 +19,19 @@ struct ShareOverlayView: View {
     }
 
     let onClose: () -> Void
+    let showsMoreOptions: Bool
+    let theme: Theme
     @State private var sent: Set<UUID> = []
+    
+    init(
+        onClose: @escaping () -> Void,
+        showsMoreOptions: Bool = true,
+        theme: Theme = .dark
+    ) {
+        self.onClose = onClose
+        self.showsMoreOptions = showsMoreOptions
+        self.theme = theme
+    }
 
     private let people: [Person] = [
         .init(name: "María", emoji: "👩"),
@@ -58,7 +75,7 @@ struct ShareOverlayView: View {
     private var sheet: some View {
         VStack(spacing: 0) {
             header
-            Divider().background(Color.white.opacity(0.08))
+            Divider().background(dividerColor)
             section(title: "Enviar a") {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 18) {
@@ -81,35 +98,37 @@ struct ShareOverlayView: View {
                 }
                 .padding(.vertical, 12)
             }
-            section(title: "Más opciones") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(moreOptions) { t in
-                            actionItem(t)
+            if showsMoreOptions {
+                section(title: "Más opciones") {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 14) {
+                            ForEach(moreOptions) { t in
+                                actionItem(t)
+                            }
                         }
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                 }
-                .padding(.vertical, 12)
             }
         }
-        .background(Color.black)
+        .background(sheetBackgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
+        .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
         .ignoresSafeArea(edges: .bottom)
     }
 
     private var header: some View {
         HStack {
             Text("Compartir")
-                .foregroundColor(.white)
+                .foregroundColor(primaryTextColor)
                 .font(.system(size: 20, weight: .bold))
             Spacer()
             Button(action: onClose) {
                 ZStack {
-                    Circle().fill(Color.white.opacity(0.08)).frame(width: 34, height: 34)
+                    Circle().fill(closeButtonBackgroundColor).frame(width: 34, height: 34)
                     Image(systemName: "xmark")
-                        .foregroundColor(.white)
+                        .foregroundColor(primaryTextColor)
                         .font(.system(size: 16, weight: .bold))
                 }
             }
@@ -121,7 +140,7 @@ struct ShareOverlayView: View {
     private func section<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .foregroundColor(.white)
+                .foregroundColor(primaryTextColor)
                 .font(.system(size: 16, weight: .semibold))
             content()
         }
@@ -132,7 +151,7 @@ struct ShareOverlayView: View {
     private func personItem(_ p: Person) -> some View {
         VStack(spacing: 8) {
             ZStack {
-                Circle().fill(Color.white.opacity(0.12)).frame(width: 56, height: 56)
+                Circle().fill(personCircleBackgroundColor).frame(width: 56, height: 56)
                 Text(p.emoji).font(.system(size: 26))
                 if sent.contains(p.id) {
                     Circle().fill(Color.green).frame(width: 56, height: 56)
@@ -145,7 +164,7 @@ struct ShareOverlayView: View {
                 }
             }
             Text(p.name)
-                .foregroundColor(.white)
+                .foregroundColor(primaryTextColor)
                 .font(.system(size: 12))
         }
         .onTapGesture {
@@ -158,21 +177,77 @@ struct ShareOverlayView: View {
     private func actionItem(_ t: ActionItem) -> some View {
         VStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white.opacity(0.06))
+                .fill(actionBackgroundColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                        .stroke(actionBorderColor, lineWidth: 1)
                 )
                 .frame(width: 64, height: 64)
                 .overlay(
                     Image(systemName: t.systemIcon)
-                        .foregroundColor(t.color)
+                        .foregroundColor(iconColor(for: t))
                         .font(.system(size: 20, weight: .bold))
                 )
             Text(t.title)
-                .foregroundColor(.white)
+                .foregroundColor(primaryTextColor)
                 .font(.system(size: 12))
         }
+    }
+    
+    private var sheetBackgroundColor: Color {
+        switch theme {
+        case .dark: return .black
+        case .light: return .white
+        }
+    }
+    
+    private var primaryTextColor: Color {
+        switch theme {
+        case .dark: return .white
+        case .light: return .black
+        }
+    }
+    
+    private var dividerColor: Color {
+        switch theme {
+        case .dark: return Color.white.opacity(0.08)
+        case .light: return Color.black.opacity(0.08)
+        }
+    }
+    
+    private var closeButtonBackgroundColor: Color {
+        switch theme {
+        case .dark: return Color.white.opacity(0.08)
+        case .light: return Color.black.opacity(0.06)
+        }
+    }
+    
+    private var personCircleBackgroundColor: Color {
+        switch theme {
+        case .dark: return Color.white.opacity(0.12)
+        case .light: return Color.black.opacity(0.06)
+        }
+    }
+    
+    private var actionBackgroundColor: Color {
+        switch theme {
+        case .dark: return Color.white.opacity(0.06)
+        case .light: return Color.black.opacity(0.04)
+        }
+    }
+    
+    private var actionBorderColor: Color {
+        switch theme {
+        case .dark: return Color.white.opacity(0.14)
+        case .light: return Color.black.opacity(0.10)
+        }
+    }
+    
+    private func iconColor(for item: ActionItem) -> Color {
+        if theme == .light, item.color == .white {
+            return .black.opacity(0.85)
+        }
+        return item.color
     }
 }
 

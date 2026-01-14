@@ -15,6 +15,7 @@ struct FullMenuView: View {
     @State private var activeTab: String = "Todo"
     @State private var showBranchSheet = false
     @State private var showDishSheet = false
+    @State private var showDishShare = false
     @State private var selectedBranchName: String = ""
     @State private var pendingBranchName: String = ""
     @State private var cart: [String: Int] = [:]
@@ -752,12 +753,28 @@ struct FullMenuView: View {
                     .opacity(showDishSheet ? 0.35 : 0)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        if showDishSheet { closeDishSheet() }
+                        if showDishShare {
+                            withAnimation(.easeOut(duration: 0.25)) { showDishShare = false }
+                        } else if showDishSheet {
+                            closeDishSheet()
+                        }
                     }
 
                 dishSheetContent(in: geo)
                     .offset(y: showDishSheet ? 0 : (geo.size.height + geo.safeAreaInsets.bottom + 40))
                     .ignoresSafeArea(edges: .bottom)
+                    .allowsHitTesting(!showDishShare)
+                
+                if showDishShare {
+                    ShareOverlayView(
+                        onClose: { withAnimation(.easeOut(duration: 0.25)) { showDishShare = false } },
+                        showsMoreOptions: false,
+                        theme: .light
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .transition(.move(edge: .bottom))
+                    .zIndex(3)
+                }
             }
             .allowsHitTesting(showDishSheet)
             .animation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2), value: showDishSheet)
@@ -817,7 +834,9 @@ struct FullMenuView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
 
                                 HStack(spacing: 10) {
-                                    Button(action: {}) {
+                                    Button(action: {
+                                        withAnimation(.easeOut(duration: 0.25)) { showDishShare = true }
+                                    }) {
                                         Image(systemName: "square.and.arrow.up")
                                             .foregroundColor(.black.opacity(0.75))
                                             .font(.system(size: 16, weight: .semibold))
@@ -1009,12 +1028,14 @@ struct FullMenuView: View {
         showDishMiniHeader = false
         dishSheetContentOffsetY = 0
         dishSheetScrollToTopToken += 1
+        showDishShare = false
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showDishSheet = true
         }
     }
 
     private func closeDishSheet() {
+        showDishShare = false
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86, blendDuration: 0.2)) {
             showDishSheet = false
         }
