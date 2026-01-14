@@ -703,7 +703,7 @@ struct FullMenuView: View {
                     .clipShape(Circle())
             }
 
-            Button(action: { showCartScreen = true }) {
+            Button(action: { activeCover = .cart }) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(Color.gray.opacity(0.12))
