@@ -1,6 +1,5 @@
 import SwiftUI
 import SDWebImageSwiftUI
-import SDWebImage
 import UIKit
 
 struct FullMenuView: View {
@@ -30,7 +29,6 @@ struct FullMenuView: View {
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var showCartScreen: Bool = false
-    @State private var showReviewOrder: Bool = false
 
     init(
         restaurantId: String,
@@ -149,33 +147,32 @@ struct FullMenuView: View {
             var parent: TrackableScrollView
             var hostingController: UIHostingController<Content>?
             var lastScrollToTopToken: Int = 0
-            var lastReportedOffsetY: CGFloat = .greatestFiniteMagnitude
 
             init(parent: TrackableScrollView) {
                 self.parent = parent
             }
 
             func scrollViewDidScroll(_ scrollView: UIScrollView) {
-                let y = scrollView.contentOffset.y
-                if abs(lastReportedOffsetY - y) > 0.5 {
-                    lastReportedOffsetY = y
-                    parent.contentOffsetY = y
-                }
+                parent.contentOffsetY = scrollView.contentOffset.y
             }
         }
     }
 
-    private static let recommendedSidesData: [DishOption] = [
-        .init(id: "fries", title: "Papas Fritas", price: 2.5),
-        .init(id: "onion-rings", title: "Aros de Cebolla", price: 3),
-        .init(id: "caesar-salad", title: "Ensalada César", price: 2)
-    ]
+    private var recommendedSides: [DishOption] {
+        [
+            .init(id: "fries", title: "Papas Fritas", price: 2.5),
+            .init(id: "onion-rings", title: "Aros de Cebolla", price: 3),
+            .init(id: "caesar-salad", title: "Ensalada César", price: 2)
+        ]
+    }
 
-    private static let recommendedDrinksData: [DishOption] = [
-        .init(id: "coke", title: "Coca-Cola", price: 1.5),
-        .init(id: "sparkling", title: "Agua mineral", price: 1.25),
-        .init(id: "lemonade", title: "Limonada", price: 2)
-    ]
+    private var recommendedDrinks: [DishOption] {
+        [
+            .init(id: "coke", title: "Coca-Cola", price: 1.5),
+            .init(id: "sparkling", title: "Agua mineral", price: 1.25),
+            .init(id: "lemonade", title: "Limonada", price: 2)
+        ]
+    }
     
     private let hardcodedBranches: [Branch] = [
         .init(name: "CDMX, México", address: "Av. Horacio 123, Polanco", distanceKm: 2.3),
@@ -185,96 +182,86 @@ struct FullMenuView: View {
         .init(name: "Coyoacán", address: "Calle Cuauhtémoc 12, Del Carmen", distanceKm: 11.2)
     ]
     
-    private static let hardcodedDishesData: [Dish] = [
-        .init(
-            id: "green-burger",
-            category: "Pizzas",
-            title: "Clásica Green Burger",
-            subtitle: "Carne premium, lechuga fresca, jitomate y nuestra salsa especial de la casa.",
-            price: 12.99,
-            imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-            isPopular: true
-        ),
-        .init(
-            id: "pasta-bolo",
-            category: "Pizzas",
-            title: "Pasta Boloñesa Premium",
-            subtitle: "Pasta artesanal con salsa boloñesa tradicional y queso parmesano rallado.",
-            price: 10.50,
-            imageUrl: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9",
-            isPopular: true
-        ),
-        .init(
-            id: "tacos-pastor",
-            category: "Postres",
-            title: "Tacos al Pastor (Orden)",
-            subtitle: "5 tacos con piña, cebolla y cilantro. La receta original de la ciudad.",
-            price: 8.99,
-            imageUrl: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85",
-            isPopular: true
-        ),
-        .init(
-            id: "pizza-pepperoni",
-            category: "Pizzas",
-            title: "Pizza Pepperoni",
-            subtitle: "Pepperoni, mozzarella y salsa pomodoro. Crujiente y deliciosa.",
-            price: 13.75,
-            imageUrl: "https://images.unsplash.com/photo-1548365328-9f547d0f72a9",
-            isPopular: false
-        ),
-        .init(
-            id: "pizza-margarita",
-            category: "Pizzas",
-            title: "Pizza Margarita",
-            subtitle: "Mozzarella fresca, albahaca y aceite de oliva extra virgen.",
-            price: 11.25,
-            imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
-            isPopular: false
-        ),
-        .init(
-            id: "coca",
-            category: "Bebidas",
-            title: "Coca-Cola",
-            subtitle: "355 ml bien fría.",
-            price: 1.50,
-            imageUrl: "https://images.unsplash.com/photo-1612528443702-f6741f70a049",
-            isPopular: false
-        ),
-        .init(
-            id: "limonada",
-            category: "Bebidas",
-            title: "Limonada",
-            subtitle: "Natural, con hielo y un toque de menta.",
-            price: 2.00,
-            imageUrl: "https://images.unsplash.com/photo-1528825871115-3581a5387919",
-            isPopular: false
-        ),
-        .init(
-            id: "cheesecake",
-            category: "Postres",
-            title: "Cheesecake",
-            subtitle: "Clásico, cremoso y con base de galleta.",
-            price: 4.50,
-            imageUrl: "https://images.unsplash.com/photo-1542826438-bd32f43d626f",
-            isPopular: false
-        )
-    ]
-
-    private static let categoriesData: [String] = {
-        let cats = Array(Set(hardcodedDishesData.map { $0.category })).sorted()
-        return ["Todo"] + cats
-    }()
-
-    private static let dishesByCategoryData: [String: [Dish]] = Dictionary(grouping: hardcodedDishesData, by: { $0.category })
-    private static let popularDishesData: [Dish] = hardcodedDishesData.filter { $0.isPopular }
-    private static let nonPopularByCategoryData: [String: [Dish]] = Dictionary(grouping: hardcodedDishesData.filter { !$0.isPopular }, by: { $0.category })
-
-    private var recommendedSides: [DishOption] { Self.recommendedSidesData }
-    private var recommendedDrinks: [DishOption] { Self.recommendedDrinksData }
-    private var hardcodedDishes: [Dish] { Self.hardcodedDishesData }
+    private var hardcodedDishes: [Dish] {
+        [
+            .init(
+                id: "green-burger",
+                category: "Pizzas",
+                title: "Clásica Green Burger",
+                subtitle: "Carne premium, lechuga fresca, jitomate y nuestra salsa especial de la casa.",
+                price: 12.99,
+                imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+                isPopular: true
+            ),
+            .init(
+                id: "pasta-bolo",
+                category: "Pizzas",
+                title: "Pasta Boloñesa Premium",
+                subtitle: "Pasta artesanal con salsa boloñesa tradicional y queso parmesano rallado.",
+                price: 10.50,
+                imageUrl: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9",
+                isPopular: true
+            ),
+            .init(
+                id: "tacos-pastor",
+                category: "Postres",
+                title: "Tacos al Pastor (Orden)",
+                subtitle: "5 tacos con piña, cebolla y cilantro. La receta original de la ciudad.",
+                price: 8.99,
+                imageUrl: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85",
+                isPopular: true
+            ),
+            .init(
+                id: "pizza-pepperoni",
+                category: "Pizzas",
+                title: "Pizza Pepperoni",
+                subtitle: "Pepperoni, mozzarella y salsa pomodoro. Crujiente y deliciosa.",
+                price: 13.75,
+                imageUrl: "https://images.unsplash.com/photo-1548365328-9f547d0f72a9",
+                isPopular: false
+            ),
+            .init(
+                id: "pizza-margarita",
+                category: "Pizzas",
+                title: "Pizza Margarita",
+                subtitle: "Mozzarella fresca, albahaca y aceite de oliva extra virgen.",
+                price: 11.25,
+                imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
+                isPopular: false
+            ),
+            .init(
+                id: "coca",
+                category: "Bebidas",
+                title: "Coca-Cola",
+                subtitle: "355 ml bien fría.",
+                price: 1.50,
+                imageUrl: "https://images.unsplash.com/photo-1612528443702-f6741f70a049",
+                isPopular: false
+            ),
+            .init(
+                id: "limonada",
+                category: "Bebidas",
+                title: "Limonada",
+                subtitle: "Natural, con hielo y un toque de menta.",
+                price: 2.00,
+                imageUrl: "https://images.unsplash.com/photo-1528825871115-3581a5387919",
+                isPopular: false
+            ),
+            .init(
+                id: "cheesecake",
+                category: "Postres",
+                title: "Cheesecake",
+                subtitle: "Clásico, cremoso y con base de galleta.",
+                price: 4.50,
+                imageUrl: "https://images.unsplash.com/photo-1542826438-bd32f43d626f",
+                isPopular: false
+            )
+        ]
+    }
     
     private var categories: [String] {
-        Self.categoriesData
+        let cats = Array(Set(hardcodedDishes.map { $0.category })).sorted()
+        return ["Todo"] + cats
     }
     
     private var nearestBranchId: UUID? {
@@ -282,8 +269,8 @@ struct FullMenuView: View {
     }
     
     private var displayedDishes: [Dish] {
-        if activeTab == "Todo" { return Self.hardcodedDishesData }
-        return Self.dishesByCategoryData[activeTab] ?? []
+        if activeTab == "Todo" { return hardcodedDishes }
+        return hardcodedDishes.filter { $0.category == activeTab }
     }
     
     private var cartCount: Int {
@@ -303,7 +290,7 @@ struct FullMenuView: View {
         ZStack {
             Color.white.ignoresSafeArea()
             TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
-                LazyVStack(spacing: 14) {
+                VStack(spacing: 14) {
                     heroSection
                     branchCard
                     categoryTabs
@@ -330,7 +317,6 @@ struct FullMenuView: View {
             }
         }
         .onAppear {
-            SDWebImagePrefetcher.shared.cancelPrefetching()
             selectedBranchName = branchName ?? location
             pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
             if cart.isEmpty {
@@ -349,13 +335,6 @@ struct FullMenuView: View {
                 restaurantName: restaurantName,
                 items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
                 quantities: $cart
-            )
-        }
-        .sheet(isPresented: $showReviewOrder) {
-            ReviewOrderView(
-                subtotal: cartTotal,
-                onClose: { showReviewOrder = false },
-                onPlaceOrder: { showReviewOrder = false }
             )
         }
     }
@@ -381,8 +360,8 @@ struct FullMenuView: View {
             .overlay(headerGradient)
             .offset(y: -stretch)
             .frame(height: 250)
-            .padding(.horizontal, -16)
-            .ignoresSafeArea(edges: .top)
+        .padding(.horizontal, -16)
+        .ignoresSafeArea(edges: .top)
     }
 
     private var identityRow: some View {
@@ -520,17 +499,17 @@ struct FullMenuView: View {
         VStack(alignment: .leading, spacing: 14) {
             if activeTab == "Todo" {
                 sectionHeader("Populares")
-                LazyVStack(spacing: 12) {
-                    ForEach(Self.popularDishesData) { dish in
+                VStack(spacing: 12) {
+                    ForEach(displayedDishes.filter { $0.isPopular }) { dish in
                         dishRow(dish)
                     }
                 }
                 
                 ForEach(categories.filter { $0 != "Todo" }, id: \.self) { cat in
-                    let items = Self.nonPopularByCategoryData[cat] ?? []
+                    let items = hardcodedDishes.filter { $0.category == cat && !$0.isPopular }
                     if !items.isEmpty {
                         sectionHeader(cat)
-                        LazyVStack(spacing: 12) {
+                        VStack(spacing: 12) {
                             ForEach(items) { dish in
                                 dishRow(dish)
                             }
@@ -539,7 +518,7 @@ struct FullMenuView: View {
                 }
             } else {
                 sectionHeader(activeTab)
-                LazyVStack(spacing: 12) {
+                VStack(spacing: 12) {
                     ForEach(displayedDishes) { dish in
                         dishRow(dish)
                     }
@@ -597,7 +576,7 @@ struct FullMenuView: View {
     }
     
     private var checkoutBar: some View {
-        Button(action: { showReviewOrder = true }) {
+        Button(action: {}) {
             Text("Ir al Checkout • \(priceText(cartTotal))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
@@ -1314,24 +1293,10 @@ struct FullMenuView: View {
     private var coverImage: some View {
         Group {
             if let url = URL(string: coverUrl), !coverUrl.isEmpty {
-                WebImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    LinearGradient(
-                        colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .overlay(
-                        Image(systemName: "fork.knife")
-                            .font(.system(size: 42, weight: .bold))
-                            .foregroundColor(.white.opacity(0.7))
-                    )
-                }
-                .indicator(.activity)
-                .transition(.opacity.animation(.easeInOut(duration: 0.22)))
+                WebImage(url: url)
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
@@ -1350,22 +1315,10 @@ struct FullMenuView: View {
     private var avatarImage: some View {
         Group {
             if let url = URL(string: avatarUrl), !avatarUrl.isEmpty {
-                WebImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    ZStack {
-                        Circle().fill(Color.white.opacity(0.9))
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 44, height: 44)
-                            .foregroundColor(.gray.opacity(0.55))
-                    }
-                }
-                .indicator(.activity)
-                .transition(.opacity.animation(.easeInOut(duration: 0.18)))
+                WebImage(url: url)
+                    .resizable()
+                    .indicator(.activity)
+                    .scaledToFill()
             } else {
                 ZStack {
                     Circle().fill(Color.white.opacity(0.9))
@@ -1396,19 +1349,10 @@ struct FullMenuView: View {
     private func dishImage(_ urlString: String) -> some View {
         Group {
             if let url = URL(string: urlString), !urlString.isEmpty {
-                WebImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    LinearGradient(
-                        colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-                .indicator(.activity)
-                .transition(.opacity.animation(.easeInOut(duration: 0.18)))
+                WebImage(url: url)
+                    .resizable()
+                    .indicator(.activity)
+                    .aspectRatio(contentMode: .fill)
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],

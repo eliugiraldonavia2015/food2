@@ -22,8 +22,7 @@ struct ShareOverlayView: View {
     let showsMoreOptions: Bool
     let theme: Theme
     @State private var sent: Set<UUID> = []
-    
-    private let bottomGapAboveSafeArea: CGFloat = 14
+    private let bottomExtraSpacing: CGFloat = 14
     
     init(
         onClose: @escaping () -> Void,
@@ -67,10 +66,9 @@ struct ShareOverlayView: View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
                 sheet(bottomInset: geo.safeAreaInsets.bottom)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
                     .transition(.move(edge: .bottom))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .ignoresSafeArea(edges: .bottom)
         }
         .transition(.move(edge: .bottom))
     }
@@ -116,7 +114,7 @@ struct ShareOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, bottomInset + bottomGapAboveSafeArea)
+        .padding(.bottom, bottomInset + bottomExtraSpacing)
         .background(sheetBackgroundColor)
         .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
