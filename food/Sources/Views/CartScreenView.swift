@@ -64,7 +64,7 @@ struct CartScreenView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { bottomSummaryArea }
-        .fullScreenCover(isPresented: $showReviewOrder) {
+        .sheet(isPresented: $showReviewOrder) {
             ReviewOrderView(
                 subtotal: subtotal,
                 onClose: { showReviewOrder = false },

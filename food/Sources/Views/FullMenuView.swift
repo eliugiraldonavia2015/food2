@@ -29,6 +29,7 @@ struct FullMenuView: View {
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var activeCover: FullMenuCover? = nil
+    @State private var showReviewOrder: Bool = false
 
     init(
         restaurantId: String,
@@ -75,12 +76,10 @@ struct FullMenuView: View {
 
     private enum FullMenuCover: Identifiable {
         case cart
-        case reviewOrder
 
         var id: Int {
             switch self {
             case .cart: 1
-            case .reviewOrder: 2
             }
         }
     }
@@ -311,77 +310,81 @@ struct FullMenuView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
-                GeometryReader { geo in
-                    Color.clear
-                        .preference(key: MenuScrollOffsetKey.self, value: geo.frame(in: .named("menuScroll")).minY)
-                }
-                .frame(height: 0)
-
-                VStack(spacing: 14) {
-                    heroSection
-                    branchCard
-                    categoryTabs
-                    menuList
-                    Spacer(minLength: 110)
-                }
-                .padding(.horizontal, 16)
-            }
-            .coordinateSpace(name: "menuScroll")
-            .onPreferenceChange(MenuScrollOffsetKey.self) { minY in
-                let updated = -minY
-                if abs(menuContentOffsetY - updated) > 0.5 {
-                    menuContentOffsetY = updated
-                }
-            }
-            .ignoresSafeArea(edges: .top)
-            .overlay(alignment: .top) {
-                topBar
-            }
-        }
-        .safeAreaInset(edge: .bottom) {
-            checkoutBar
-        }
-        .tint(.fuchsia)
-        .onChange(of: menuContentOffsetY) { _, newValue in
-            let shouldShow = newValue > 168
-            if shouldShow != showMenuMiniHeader {
-                withAnimation(.easeInOut(duration: 0.16)) {
-                    showMenuMiniHeader = shouldShow
-                }
-            }
-        }
-        .onAppear {
-            selectedBranchName = branchName ?? location
-            pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
-            if cart.isEmpty {
-                cart["green-burger"] = 1
-            }
-            showMenuMiniHeader = false
-        }
-        .overlay {
+        NavigationStack {
             ZStack {
-                branchSheetOverlay
-                dishSheetOverlay
+                Color.white.ignoresSafeArea()
+                ScrollView(showsIndicators: false) {
+                    GeometryReader { geo in
+                        Color.clear
+                            .preference(key: MenuScrollOffsetKey.self, value: geo.frame(in: .named("menuScroll")).minY)
+                    }
+                    .frame(height: 0)
+
+                    VStack(spacing: 14) {
+                        heroSection
+                        branchCard
+                        categoryTabs
+                        menuList
+                        Spacer(minLength: 110)
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .coordinateSpace(name: "menuScroll")
+                .onPreferenceChange(MenuScrollOffsetKey.self) { minY in
+                    let updated = -minY
+                    if abs(menuContentOffsetY - updated) > 0.5 {
+                        menuContentOffsetY = updated
+                    }
+                }
+                .ignoresSafeArea(edges: .top)
+                .overlay(alignment: .top) {
+                    topBar
+                }
             }
-        }
-        .fullScreenCover(item: $activeCover) { cover in
-            switch cover {
-            case .cart:
-                CartScreenView(
-                    restaurantName: restaurantName,
-                    items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
-                    quantities: $cart
-                )
-            case .reviewOrder:
+            .safeAreaInset(edge: .bottom) {
+                checkoutBar
+            }
+            .tint(.fuchsia)
+            .onChange(of: menuContentOffsetY) { _, newValue in
+                let shouldShow = newValue > 168
+                if shouldShow != showMenuMiniHeader {
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        showMenuMiniHeader = shouldShow
+                    }
+                }
+            }
+            .onAppear {
+                selectedBranchName = branchName ?? location
+                pendingBranchName = selectedBranchName.isEmpty ? (branchName ?? location) : selectedBranchName
+                if cart.isEmpty {
+                    cart["green-burger"] = 1
+                }
+                showMenuMiniHeader = false
+            }
+            .overlay {
+                ZStack {
+                    branchSheetOverlay
+                    dishSheetOverlay
+                }
+            }
+            .sheet(item: $activeCover) { cover in
+                switch cover {
+                case .cart:
+                    CartScreenView(
+                        restaurantName: restaurantName,
+                        items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
+                        quantities: $cart
+                    )
+                }
+            }
+            .navigationDestination(isPresented: $showReviewOrder) {
                 ReviewOrderView(
                     subtotal: cartTotal,
-                    onClose: { activeCover = nil },
-                    onPlaceOrder: { activeCover = nil }
+                    onClose: { showReviewOrder = false },
+                    onPlaceOrder: { showReviewOrder = false }
                 )
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -622,7 +625,7 @@ struct FullMenuView: View {
     }
     
     private var checkoutBar: some View {
-        Button(action: { activeCover = .reviewOrder }) {
+        Button(action: { showReviewOrder = true }) {
             Text("Ir al Checkout • \(priceText(cartTotal))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
