@@ -2,13 +2,6 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct CartScreenView: View {
-    private struct HeightPreferenceKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-            value = nextValue()
-        }
-    }
-    
     struct CartItem: Identifiable, Hashable {
         let id: String
         let title: String
@@ -20,12 +13,8 @@ struct CartScreenView: View {
     let restaurantName: String
     let items: [CartItem]
     @Binding var quantities: [String: Int]
-    
-    @State private var totalsFooterHeight: CGFloat = 0
-    
-    private let itemsSummaryHeightPerTwoItems: CGFloat = 44
-    private let totalsPanelPadding: CGFloat = 14
-    private let totalsPanelSpacing: CGFloat = 10
+        
+    private let summaryFixedHeight: CGFloat = 60
 
     @Environment(\.dismiss) private var dismiss
 
@@ -53,19 +42,6 @@ struct CartScreenView: View {
     
     private var summaryMaxHeight: CGFloat {
         UIScreen.main.bounds.height * 0.4
-    }
-    
-    private var itemsSummaryDesiredHeight: CGFloat {
-        let pairs = max(1, Int(ceil(Double(cartItems.count) / 2.0)))
-        return CGFloat(pairs) * itemsSummaryHeightPerTwoItems
-    }
-    
-    private var itemsSummaryMaxHeight: CGFloat {
-        max(0, summaryMaxHeight - (totalsFooterHeight + (totalsPanelPadding * 2) + totalsPanelSpacing))
-    }
-    
-    private var itemsSummaryHeight: CGFloat {
-        min(itemsSummaryMaxHeight, itemsSummaryDesiredHeight)
     }
 
     var body: some View {
@@ -247,26 +223,17 @@ struct CartScreenView: View {
     }
     
     private var totalsPanel: some View {
-        VStack(spacing: totalsPanelSpacing) {
-            ScrollView(showsIndicators: false) {
-                cartItemsSummary
-            }
-            .frame(height: itemsSummaryHeight)
-            
-            totalsFooter
-        }
-        .padding(totalsPanelPadding)
-        .frame(maxHeight: summaryMaxHeight)
+        totalsFooter
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(height: summaryFixedHeight)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
-        .onPreferenceChange(HeightPreferenceKey.self) { totalsFooterHeight = $0 }
     }
     
     private var totalsFooter: some View {
-        VStack(spacing: 10) {
-            Divider()
-                .overlay(Color.gray.opacity(0.15))
+        VStack(spacing: 6) {
             HStack {
                 Text("Subtotal")
                     .foregroundColor(.gray)
@@ -294,45 +261,9 @@ struct CartScreenView: View {
                 Spacer()
                 Text(priceText(total))
                     .foregroundColor(.black)
-                    .font(.system(size: 20, weight: .bold))
-            }
-        }
-        .background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: HeightPreferenceKey.self, value: proxy.size.height)
+                    .font(.system(size: 16, weight: .bold))
             }
         )
-    }
-    
-    private var cartItemsSummary: some View {
-        VStack(spacing: 8) {
-            if cartItems.isEmpty {
-                HStack {
-                    Text("Tu carrito está vacío")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 13, weight: .semibold))
-                    Spacer()
-                }
-            } else {
-                ForEach(cartItems) { item in
-                    let qty = quantities[item.id] ?? 0
-                    let lineTotal = Double(qty) * item.price
-                    HStack(spacing: 10) {
-                        Text(item.title)
-                            .foregroundColor(.black)
-                            .font(.system(size: 13, weight: .semibold))
-                            .lineLimit(1)
-                        Spacer()
-                        Text("x\(qty)")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 13, weight: .semibold))
-                        Text(priceText(lineTotal))
-                            .foregroundColor(.black)
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                }
-            }
-        }
     }
     
     private var checkoutButton: some View {
