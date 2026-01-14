@@ -67,7 +67,7 @@ struct FeedView: View {
     @State private var showRestaurantProfile = false
     @State private var showUserProfile = false
     @State private var selectedUserId: String? = nil // Nuevo estado para navegación dinámica
-    @State private var showMenu = false
+    @State private var selectedMenuItem: FeedItem? = nil
     @State private var showComments = false
     @State private var showShare = false
     @State private var showMusic = false
@@ -102,7 +102,7 @@ struct FeedView: View {
                         expandedDescriptions: $expandedDescriptions,
                         isCommentsOverlayActive: isCommentsOverlayActive,
                         isActive: idx == selectedVM.currentIndex,
-                        isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
+                        isScreenActive: !(showRestaurantProfile || showUserProfile || selectedMenuItem != nil),
                         viewModel: selectedVM,
                         onShowProfile: {
                             // Lógica de navegación a perfiles
@@ -119,7 +119,10 @@ struct FeedView: View {
                                 showRestaurantProfile = true
                             }
                         },
-                        onShowMenu: { showMenu = true },
+                        onShowMenu: {
+                            VideoPlayerCoordinator.shared.pauseAll()
+                            selectedMenuItem = item
+                        },
                         onShowComments: { onGlobalShowComments?(item.comments, item.backgroundUrl) },
                         onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
                         onShowMusic: { showMusic = true }
@@ -256,8 +259,7 @@ struct FeedView: View {
                 UserProfileView(userId: "mock_user") 
             }
         }
-        .fullScreenCover(isPresented: $showMenu) {
-            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+        .fullScreenCover(item: $selectedMenuItem) { item in
             let rid = item.username.replacingOccurrences(of: " ", with: "").lowercased()
             FullMenuView(
                 restaurantId: rid,
@@ -332,7 +334,7 @@ struct FeedView: View {
                 withAnimation(.easeOut(duration: 0.25)) { showMusic = false }
             }) }
         }
-        .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
+        .animation(.easeInOut, value: showRestaurantProfile || selectedMenuItem != nil || showComments || showShare || showMusic)
     }
 
     private func modalCard(title: String, onClose: @escaping () -> Void) -> some View {

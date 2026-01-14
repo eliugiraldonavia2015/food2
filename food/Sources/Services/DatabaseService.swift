@@ -326,7 +326,7 @@ public final class DatabaseService {
     public func fetchUserVideos(userId: String, completion: @escaping (Result<[Video], Error>) -> Void) {
         db.collection("videos")
             .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
+            .limit(to: 50)
             .getDocuments { snapshot, error in
                 if let error = error {
                     completion(.failure(error))
@@ -341,7 +341,11 @@ public final class DatabaseService {
                 let videos = documents.compactMap { doc -> Video? in
                     try? doc.data(as: Video.self)
                 }
-                completion(.success(videos))
+                let sorted = videos.sorted { lhs, rhs in
+                    if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
+                    return lhs.id > rhs.id
+                }
+                completion(.success(sorted))
             }
     }
     
