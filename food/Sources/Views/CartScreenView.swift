@@ -37,6 +37,10 @@ struct CartScreenView: View {
     }
 
     private var total: Double { subtotal }
+    
+    private var summaryMaxHeight: CGFloat {
+        UIScreen.main.bounds.height * 0.4
+    }
 
     var body: some View {
         ZStack {
@@ -47,14 +51,13 @@ struct CartScreenView: View {
                     restaurantHeader
                     cartList
                     suggestedSection
-                    totalsSection
-                    Spacer(minLength: 120)
+                    Spacer(minLength: 12)
                 }
                 .padding(.horizontal, 16)
             }
         }
         .safeAreaInset(edge: .bottom) {
-            checkoutBar
+            bottomSummaryArea
         }
     }
 
@@ -206,8 +209,35 @@ struct CartScreenView: View {
         }
     }
 
-    private var totalsSection: some View {
+    private var bottomSummaryArea: some View {
         VStack(spacing: 10) {
+            totalsPanel
+            checkoutButton
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .background(Color.white)
+    }
+    
+    private var totalsPanel: some View {
+        ViewThatFits(in: .vertical) {
+            totalsPanelContent
+            ScrollView(showsIndicators: false) {
+                totalsPanelContent
+            }
+        }
+        .frame(maxHeight: summaryMaxHeight)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
+    }
+    
+    private var totalsPanelContent: some View {
+        VStack(spacing: 10) {
+            cartItemsSummary
+            Divider()
+                .overlay(Color.gray.opacity(0.15))
             HStack {
                 Text("Subtotal")
                     .foregroundColor(.gray)
@@ -217,7 +247,6 @@ struct CartScreenView: View {
                     .foregroundColor(.black)
                     .font(.system(size: 13, weight: .bold))
             }
-
             HStack {
                 Text("Costo de envío")
                     .foregroundColor(.gray)
@@ -227,10 +256,8 @@ struct CartScreenView: View {
                     .foregroundColor(.green)
                     .font(.system(size: 13, weight: .bold))
             }
-
             Divider()
                 .overlay(Color.gray.opacity(0.15))
-
             HStack(alignment: .firstTextBaseline) {
                 Text("Total")
                     .foregroundColor(.black)
@@ -242,13 +269,40 @@ struct CartScreenView: View {
             }
         }
         .padding(14)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
-        .padding(.top, 4)
     }
-
-    private var checkoutBar: some View {
+    
+    private var cartItemsSummary: some View {
+        VStack(spacing: 8) {
+            if cartItems.isEmpty {
+                HStack {
+                    Text("Tu carrito está vacío")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                }
+            } else {
+                ForEach(cartItems) { item in
+                    let qty = quantities[item.id] ?? 0
+                    let lineTotal = Double(qty) * item.price
+                    HStack(spacing: 10) {
+                        Text(item.title)
+                            .foregroundColor(.black)
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                        Spacer()
+                        Text("x\(qty)")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(priceText(lineTotal))
+                            .foregroundColor(.black)
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                }
+            }
+        }
+    }
+    
+    private var checkoutButton: some View {
         Button(action: {}) {
             Text("Ir a checkout • \(priceText(total))")
                 .foregroundColor(.white)
@@ -258,10 +312,6 @@ struct CartScreenView: View {
                 .background(Color.green)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
-        .background(Color.white)
     }
 
     private func stepperControl(itemId: String) -> some View {
