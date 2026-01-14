@@ -23,6 +23,12 @@ struct ShareOverlayView: View {
     let theme: Theme
     @State private var sent: Set<UUID> = []
     
+    private let sheetHeightReduction: CGFloat = 37
+    
+    private var sheetHeight: CGFloat {
+        max(0, (UIScreen.main.bounds.height * 0.6) - sheetHeightReduction)
+    }
+    
     init(
         onClose: @escaping () -> Void,
         showsMoreOptions: Bool = true,
@@ -112,7 +118,7 @@ struct ShareOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: UIScreen.main.bounds.height * 0.6, alignment: .top)
+        .frame(height: sheetHeight, alignment: .top)
         .background(sheetBackgroundColor)
         .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
