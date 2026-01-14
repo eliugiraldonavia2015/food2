@@ -69,6 +69,7 @@ struct ShareOverlayView: View {
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .transition(.move(edge: .bottom))
         }
+        .ignoresSafeArea(edges: .bottom)
         .transition(.move(edge: .bottom))
     }
 
@@ -113,7 +114,7 @@ struct ShareOverlayView: View {
             }
         }
         .background(sheetBackgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
         .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
         .ignoresSafeArea(edges: .bottom)
     }
