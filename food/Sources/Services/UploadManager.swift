@@ -259,19 +259,25 @@ final class UploadManager: ObservableObject {
     }
     
     private func handleThumbnail(videoURL: URL, ulid: String, accessKey: String, completion: @escaping (URL?) -> Void) {
-        let asset = AVAsset(url: videoURL)
-        let gen = AVAssetImageGenerator(asset: asset)
-        gen.appliesPreferredTrackTransform = true
-        if let cgImage = try? gen.copyCGImage(at: CMTime.zero, actualTime: nil) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let asset = AVAsset(url: videoURL)
+            let gen = AVAssetImageGenerator(asset: asset)
+            gen.appliesPreferredTrackTransform = true
+
+            guard let cgImage = try? gen.copyCGImage(at: CMTime.zero, actualTime: nil) else {
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+
             let uiImage = UIImage(cgImage: cgImage)
             BunnyUploader.uploadThumbnail(image: uiImage, ulid: ulid, accessKey: accessKey) { result in
-                switch result {
-                case .success(let url): completion(url)
-                case .failure: completion(nil)
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let url): completion(url)
+                    case .failure: completion(nil)
+                    }
                 }
             }
-        } else {
-            completion(nil)
         }
     }
 }

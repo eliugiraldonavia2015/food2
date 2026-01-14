@@ -14,7 +14,9 @@ final class FeedViewModel: ObservableObject {
     
     // 🎛️ CONFIG: Interruptor para permitir duplicados (útil para testing con pocos videos)
     // Cambiar a 'true' para producción
-    private let shouldDeduplicate = false
+    private let shouldDeduplicate = true
+
+    private var lastPrefetchTopUrls: [String] = []
     
     @Published var currentIndex: Int {
         didSet { 
@@ -57,50 +59,41 @@ final class FeedViewModel: ObservableObject {
                 
                 // 2. Resolver perfiles en batch (usando caché inteligente)
                 UserCacheService.shared.resolveUsers(userIds: userIds) { userProfiles in
-                    
-                    DispatchQueue.main.async {
-                        self.isLoading = false
-                        
-                        // 3. Mapear videos hidratados con la data del perfil
+                    DispatchQueue.global(qos: .userInitiated).async {
                         let newItems = fetchedVideos.map { video -> FeedItem in
                             let profile = userProfiles[video.userId] ?? [:]
                             return self.mapToFeedItem(video: video, userProfile: profile)
                         }
-                        
-                        print("📊 [FeedViewModel] Recibidos \(newItems.count) items de Firestore. Reset: \(reset)")
-                        
-                        // 4. Actualizar UI
-                        if !newItems.isEmpty {
-                            // Paso 1: Filtrar items rotos (sin video válido)
-                            let playableItems = newItems.filter { $0.videoUrl != nil && !$0.videoUrl!.isEmpty }
-                            
+
+                        let playableItems = newItems.filter { ($0.videoUrl?.isEmpty == false) }
+
+                        DispatchQueue.main.async {
+                            self.isLoading = false
+
+                            print("📊 [FeedViewModel] Recibidos \(newItems.count) items de Firestore. Reset: \(reset)")
+
                             if reset {
                                 self.videos = playableItems
-                                // Reconstruir el set de vistos
                                 self.seenVideoIds = Set(playableItems.compactMap { $0.videoId })
                                 print("✅ [FeedViewModel] Reset completo. Videos válidos: \(self.videos.count)")
-                            } else {
-                                // 🛑 DEDUPLICACIÓN SCALABLE (O(1)):
+                            } else if !playableItems.isEmpty {
                                 let uniqueItems = playableItems.filter { item in
                                     guard self.shouldDeduplicate else { return true }
                                     guard let vid = item.videoId else { return true }
-                                    if self.seenVideoIds.contains(vid) { return false }
-                                    return true
+                                    return !self.seenVideoIds.contains(vid)
                                 }
-                                
-                                // Registrar los nuevos IDs
-                                uniqueItems.forEach { 
+
+                                uniqueItems.forEach {
                                     if let vid = $0.videoId { self.seenVideoIds.insert(vid) }
                                 }
-                                
+
                                 self.videos.append(contentsOf: uniqueItems)
                                 print("➕ [FeedViewModel] Agregados \(uniqueItems.count) nuevos videos.")
+                            } else {
+                                print("⚠️ [FeedViewModel] Firestore devolvió lista vacía o no reproducible.")
                             }
-                            
-                            // Prefetch de las nuevas miniaturas
-                            self.prefetch(urls: newItems.map { $0.backgroundUrl })
-                        } else {
-                             print("⚠️ [FeedViewModel] Firestore devolvió lista vacía.")
+
+                            self.prefetch(urls: playableItems.map { $0.backgroundUrl })
                         }
                     }
                 }
@@ -148,8 +141,12 @@ final class FeedViewModel: ObservableObject {
     }
 
     func prefetch(urls: [String]) {
+        let top = Array(urls.prefix(12))
+        if top == lastPrefetchTopUrls { return }
+        lastPrefetchTopUrls = top
+
         SDWebImagePrefetcher.shared.cancelPrefetching()
-        let u = urls.prefix(12).compactMap { URL(string: $0) }
+        let u = top.compactMap { URL(string: $0) }
         SDWebImagePrefetcher.shared.prefetchURLs(u)
     }
     func cancelPrefetch() {

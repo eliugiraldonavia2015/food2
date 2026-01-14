@@ -136,13 +136,12 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
             }
             
             // 3. Remove invisible controllers
-            for (index, controller) in visibleControllers {
-                if !neededIndices.contains(index) {
-                    controller.view.removeFromSuperview()
-                    controller.rootView = AnyView(EmptyView()) // Clear content to free memory
-                    visibleControllers.removeValue(forKey: index)
-                    recycledControllers.append(controller)
-                }
+            let indicesToRemove = visibleControllers.keys.filter { !neededIndices.contains($0) }
+            for index in indicesToRemove {
+                guard let controller = visibleControllers.removeValue(forKey: index) else { continue }
+                controller.view.removeFromSuperview()
+                controller.rootView = AnyView(EmptyView())
+                recycledControllers.append(controller)
             }
             
             // 4. Add/Update visible controllers
@@ -191,9 +190,7 @@ struct VerticalPager<Content: View>: UIViewRepresentable {
         }
         
         // 🚀 Trigger layout on scroll to recycle views dynamically
-        func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            layout(in: scrollView, size: lastSize)
-        }
+        func scrollViewDidScroll(_ scrollView: UIScrollView) { }
 
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
             startOffsetY = scrollView.contentOffset.y
