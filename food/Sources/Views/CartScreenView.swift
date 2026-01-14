@@ -47,20 +47,22 @@ struct CartScreenView: View {
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 14) {
-                    topBar
-                    restaurantHeader
-                    cartList
-                    suggestedSection
-                    Spacer(minLength: 12)
+            VStack(spacing: 0) {
+                topBar
+                    .padding(.horizontal, 16)
+                    .background(Color.white)
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        restaurantHeader
+                        cartList
+                        suggestedSection
+                        Spacer(minLength: 12)
+                    }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            bottomSummaryArea
-        }
+        .safeAreaInset(edge: .bottom) { bottomSummaryArea }
     }
 
     private var topBar: some View {
