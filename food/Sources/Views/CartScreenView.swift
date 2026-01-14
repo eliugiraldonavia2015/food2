@@ -14,7 +14,7 @@ struct CartScreenView: View {
     let items: [CartItem]
     @Binding var quantities: [String: Int]
         
-    private let summaryFixedHeight: CGFloat = 60
+    private let summaryFixedHeight: CGFloat = 74
 
     @Environment(\.dismiss) private var dismiss
 
