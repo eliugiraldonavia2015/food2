@@ -29,6 +29,7 @@ struct FullMenuView: View {
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var showCartScreen: Bool = false
+    @State private var showReviewOrder: Bool = false
 
     init(
         restaurantId: String,
@@ -337,6 +338,9 @@ struct FullMenuView: View {
                 quantities: $cart
             )
         }
+        .fullScreenCover(isPresented: $showReviewOrder) {
+            ReviewOrderView(subtotal: cartTotal)
+        }
     }
 
     private var heroSection: some View {
@@ -576,7 +580,7 @@ struct FullMenuView: View {
     }
     
     private var checkoutBar: some View {
-        Button(action: {}) {
+        Button(action: { showReviewOrder = true }) {
             Text("Ir al Checkout • \(priceText(cartTotal))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
