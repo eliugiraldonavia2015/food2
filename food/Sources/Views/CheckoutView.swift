@@ -55,11 +55,11 @@ struct CheckoutView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
-                    .background(Color(.systemGroupedBackground))
+                    .background(Color.white)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 18) {
@@ -77,6 +77,8 @@ struct CheckoutView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { bottomBar }
+        .background(Color.white)
+        .preferredColorScheme(.light)
         .alert("Pedido enviado", isPresented: $showPlaced) {
             Button("OK") { dismiss() }
         } message: {
@@ -175,6 +177,7 @@ struct CheckoutView: View {
                 TextEditor(text: $instructions)
                     .foregroundColor(.black)
                     .font(.system(size: 14, weight: .semibold))
+                    .modifier(HideTextEditorBackground())
                     .frame(height: 90)
                     .padding(10)
                     .background(Color.white)
@@ -270,7 +273,7 @@ struct CheckoutView: View {
         .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 10)
-        .background(Color(.systemGroupedBackground))
+        .background(Color.white)
     }
 
     private func placeOrder() {
@@ -323,6 +326,16 @@ struct CheckoutView: View {
             Text(value)
                 .foregroundColor(totalColor ?? valueColor)
                 .font(.system(size: isEmphasis ? 15 : 13, weight: isEmphasis ? .bold : .bold))
+        }
+    }
+}
+
+private struct HideTextEditorBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content.scrollContentBackground(.hidden)
+        } else {
+            content
         }
     }
 }
