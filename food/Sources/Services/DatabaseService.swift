@@ -338,9 +338,7 @@ public final class DatabaseService {
                     return
                 }
                 
-                let videos = documents.compactMap { doc -> Video? in
-                    try? doc.data(as: Video.self)
-                }
+                let videos = documents.compactMap { Video(document: $0) }
                 completion(.success(videos))
             }
     }

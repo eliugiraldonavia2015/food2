@@ -27,8 +27,9 @@ final class VideoPrefetchService: ObservableObject {
         let task = Task {
             let asset = AVURLAsset(url: videoURL)
             // Cargar claves esenciales para que el player no se bloquee al iniciar
-            let keys = ["playable", "duration", "tracks"]
-            try? await asset.loadValues(forKeys: keys)
+            _ = try? await asset.load(.isPlayable)
+            _ = try? await asset.load(.duration)
+            _ = try? await asset.loadTracks(withMediaType: .video)
             
             // Crear el item (esto inicia el buffer de red automáticamente)
             let item = AVPlayerItem(asset: asset)

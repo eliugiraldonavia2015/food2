@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct AnyShape: Shape {
+public struct AnyShape: Shape, @unchecked Sendable {
     private let _path: (CGRect) -> Path
     
     public init<S: Shape>(_ shape: S) {
