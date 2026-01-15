@@ -576,7 +576,7 @@ struct FullMenuView: View {
     }
     
     private var checkoutBar: some View {
-        Button(action: {}) {
+        Button(action: { showCartScreen = true }) {
             Text("Ir al Checkout • \(priceText(cartTotal))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
@@ -585,6 +585,8 @@ struct FullMenuView: View {
                 .background(Color.green)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
+        .disabled(cartTotal <= 0)
+        .opacity(cartTotal <= 0 ? 0.6 : 1)
         .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 10)

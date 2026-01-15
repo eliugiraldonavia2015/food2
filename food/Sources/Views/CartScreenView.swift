@@ -17,6 +17,7 @@ struct CartScreenView: View {
     private let summaryFixedHeight: CGFloat = 74
 
     @Environment(\.dismiss) private var dismiss
+    @State private var showCheckout = false
 
     private var cartItems: [CartItem] {
         items.filter { (quantities[$0.id] ?? 0) > 0 }
@@ -63,6 +64,22 @@ struct CartScreenView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { bottomSummaryArea }
+        .fullScreenCover(isPresented: $showCheckout) {
+            CheckoutView(
+                restaurantName: restaurantName,
+                items: cartItems.map {
+                    .init(
+                        id: $0.id,
+                        title: $0.title,
+                        subtitle: $0.subtitle,
+                        imageUrl: $0.imageUrl,
+                        unitPrice: $0.price,
+                        quantity: quantities[$0.id] ?? 0
+                    )
+                },
+                total: total
+            )
+        }
     }
 
     private var topBar: some View {
@@ -269,7 +286,7 @@ struct CartScreenView: View {
     }
     
     private var checkoutButton: some View {
-        Button(action: {}) {
+        Button(action: { showCheckout = true }) {
             Text("Ir a checkout • \(priceText(total))")
                 .foregroundColor(.white)
                 .font(.system(size: 16, weight: .bold))
@@ -278,6 +295,8 @@ struct CartScreenView: View {
                 .background(Color.green)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
+        .disabled(cartItems.isEmpty)
+        .opacity(cartItems.isEmpty ? 0.6 : 1)
     }
 
     private func stepperControl(itemId: String) -> some View {
