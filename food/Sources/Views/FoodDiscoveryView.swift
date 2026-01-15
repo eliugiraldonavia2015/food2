@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import UIKit
 
 struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
@@ -1009,7 +1010,7 @@ struct FlowLayout: Layout {
 // Global safe image loader with graceful fallback
 func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
     let finalURL = URL(string: url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-    return WebImage(url: finalURL) { image in
+    var image = WebImage(url: finalURL) { image in
         image
             .resizable()
             .aspectRatio(contentMode: contentMode)
@@ -1021,6 +1022,11 @@ func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, conte
                 .foregroundColor(.white.opacity(0.8))
         }
     }
+    if let w = width, let h = height {
+        let scale = UIScreen.main.scale
+        image = image.context([.imageThumbnailPixelSize: CGSize(width: w * scale, height: h * scale)])
+    }
+    return image
     .transition(.opacity.animation(.easeInOut(duration: 0.3)))
     .frame(width: width, height: height)
     .background(Color.white.opacity(0.06))

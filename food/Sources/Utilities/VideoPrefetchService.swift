@@ -1,5 +1,6 @@
 import AVKit
 import Combine
+import UIKit
 
 final class VideoPrefetchService: ObservableObject {
     static let shared = VideoPrefetchService()
@@ -8,8 +9,14 @@ final class VideoPrefetchService: ObservableObject {
     // Key: URL del video (String)
     private var itemCache: [String: AVPlayerItem] = [:]
     private var loadingTasks: [String: Task<Void, Never>] = [:]
+    private var memoryWarningCancellable: AnyCancellable?
     
-    private init() {}
+    private init() {
+        memoryWarningCancellable = NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)
+            .sink { [weak self] _ in
+                self?.purgeAll()
+            }
+    }
     
     /// Prepara el siguiente video para que esté listo cuando el usuario deslice
     func prefetch(url: String) {
@@ -60,5 +67,13 @@ final class VideoPrefetchService: ObservableObject {
                 itemCache.removeValue(forKey: key)
             }
         }
+    }
+
+    func purgeAll() {
+        for (_, task) in loadingTasks {
+            task.cancel()
+        }
+        loadingTasks.removeAll()
+        itemCache.removeAll()
     }
 }

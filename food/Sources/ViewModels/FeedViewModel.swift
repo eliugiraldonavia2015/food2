@@ -4,6 +4,7 @@ import SDWebImage
 
 final class FeedViewModel: ObservableObject {
     private let storageKey: String
+    private let cursorKey: String
     
     // ✅ Fuente de Verdad: Videos descargados de Firestore
     @Published var videos: [FeedItem] = []
@@ -27,6 +28,7 @@ final class FeedViewModel: ObservableObject {
 
     init(storageKey: String) {
         self.storageKey = storageKey
+        self.cursorKey = storageKey
         self.currentIndex = UserDefaults.standard.object(forKey: storageKey) as? Int ?? 0
         
         // 🚀 Carga inicial automática
@@ -38,18 +40,18 @@ final class FeedViewModel: ObservableObject {
         guard !isLoading else { return }
         
         // Si no hay más contenido, no intentamos cargar más
-        if !reset && !FeedService.shared.hasMoreContent { return }
+        if !reset && !FeedService.shared.hasMoreContent(cursorKey: cursorKey) { return }
         
         isLoading = true
         
         if reset {
-            FeedService.shared.resetPagination()
+            FeedService.shared.resetPagination(cursorKey: cursorKey)
             // No borramos 'videos' aquí para evitar parpadeo visual, 
             // se maneja en el callback si es necesario, o se puede hacer un replace.
             // Para "Pull to Refresh" idealmente reemplazamos todo.
         }
         
-        FeedService.shared.fetchRecentVideos { [weak self] result in
+        FeedService.shared.fetchRecentVideos(cursorKey: cursorKey) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
@@ -121,7 +123,7 @@ final class FeedViewModel: ObservableObject {
         let photoUrl = userProfile["photoURL"] as? String ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2" // Fallback seguro
         
         return FeedItem(
-            id: UUID(),
+            id: StableUUID.fromString(video.id),
             videoId: video.id,
             authorId: video.userId, // ✅ ID del autor real
             backgroundUrl: video.thumbnailUrl,

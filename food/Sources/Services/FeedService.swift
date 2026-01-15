@@ -8,8 +8,10 @@ public final class FeedService {
     private let db: Firestore
     
     // Cache simple para evitar lecturas excesivas
-    private var lastDocument: DocumentSnapshot?
-    private var isFetching = false
+    private var lastDocumentByKey: [String: DocumentSnapshot] = [:]
+    private var isFetchingByKey: [String: Bool] = [:]
+    private var lastBatchCountByKey: [String: Int] = [:]
+    private var lastLimitByKey: [String: Int] = [:]
     
     private init() {
         // Inicializar con la base de datos correcta "logincloud"
@@ -19,19 +21,24 @@ public final class FeedService {
     /// Obtiene los videos más recientes ordenados por ID (ULID)
     /// Esto garantiza orden cronológico inverso sin necesidad de índices complejos
     public func fetchRecentVideos(limit: Int = 10, completion: @escaping (Result<[Video], Error>) -> Void) {
-        guard !isFetching else { return }
-        isFetching = true
+        fetchRecentVideos(limit: limit, cursorKey: "default", completion: completion)
+    }
+
+    public func fetchRecentVideos(limit: Int = 10, cursorKey: String, completion: @escaping (Result<[Video], Error>) -> Void) {
+        if isFetchingByKey[cursorKey] == true { return }
+        isFetchingByKey[cursorKey] = true
+        lastLimitByKey[cursorKey] = limit
         
         var query = db.collection("videos")
             .order(by: "id", descending: true) // ULID ordenable lexicográficamente
             .limit(to: limit)
             
-        if let lastDoc = lastDocument {
+        if let lastDoc = lastDocumentByKey[cursorKey] {
             query = query.start(afterDocument: lastDoc)
         }
         
         query.getDocuments { [weak self] snapshot, error in
-            defer { self?.isFetching = false }
+            defer { self?.isFetchingByKey[cursorKey] = false }
             
             if let error = error {
                 print("❌ [FeedService] Error fetching videos: \(error.localizedDescription)")
@@ -40,11 +47,13 @@ public final class FeedService {
             }
             
             guard let snapshot = snapshot else {
+                self?.lastBatchCountByKey[cursorKey] = 0
                 completion(.success([]))
                 return
             }
             
-            self?.lastDocument = snapshot.documents.last
+            self?.lastDocumentByKey[cursorKey] = snapshot.documents.last
+            self?.lastBatchCountByKey[cursorKey] = snapshot.documents.count
             
             let videos: [Video] = snapshot.documents.compactMap { doc in
                 return Video(document: doc)
@@ -57,15 +66,32 @@ public final class FeedService {
     
     /// Reinicia la paginación (pull to refresh)
     public func resetPagination() {
-        lastDocument = nil
-        isFetching = false
+        resetPagination(cursorKey: "default")
+    }
+
+    public func resetPagination(cursorKey: String) {
+        lastDocumentByKey[cursorKey] = nil
+        isFetchingByKey[cursorKey] = false
+        lastBatchCountByKey[cursorKey] = nil
+        lastLimitByKey[cursorKey] = nil
+    }
+
+    public func resetAllPagination() {
+        lastDocumentByKey.removeAll()
+        isFetchingByKey.removeAll()
+        lastBatchCountByKey.removeAll()
+        lastLimitByKey.removeAll()
     }
     
     /// Comprueba si hay más contenido disponible (útil para UI)
     public var hasMoreContent: Bool {
-        // Si la última consulta devolvió 0 o menos del límite, asumimos que no hay más
-        // Esta es una heurística simple, se puede mejorar
-        return true 
+        hasMoreContent(cursorKey: "default")
+    }
+
+    public func hasMoreContent(cursorKey: String) -> Bool {
+        guard let lastCount = lastBatchCountByKey[cursorKey] else { return true }
+        guard let lastLimit = lastLimitByKey[cursorKey] else { return lastCount > 0 }
+        return lastCount >= lastLimit
     }
     
     /// Obtiene información básica del autor para mostrar en el feed

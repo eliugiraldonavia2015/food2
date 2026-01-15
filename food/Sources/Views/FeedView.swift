@@ -45,6 +45,7 @@ struct FeedView: View {
 
     @StateObject private var forYouVM = FeedViewModel(storageKey: "feed.forYou.index")
     @StateObject private var followingVM = FeedViewModel(storageKey: "feed.following.index")
+    @StateObject private var coordinator = VideoPlayerCoordinator.shared
     private var selectedVM: FeedViewModel { activeTab == .foryou ? forYouVM : followingVM }
     private var selectedIndexBinding: Binding<Int> {
         Binding(
@@ -103,6 +104,7 @@ struct FeedView: View {
                         isCommentsOverlayActive: isCommentsOverlayActive,
                         isActive: idx == selectedVM.currentIndex,
                         isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
+                        activeVideoId: coordinator.activeVideoId,
                         viewModel: selectedVM,
                         onShowProfile: {
                             // Lógica de navegación a perfiles
@@ -124,7 +126,7 @@ struct FeedView: View {
                         onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
                         onShowMusic: { showMusic = true }
                     )
-                    .id(idx) // 🚀 CRÍTICO: Fuerza a SwiftUI a reiniciar el ciclo de vida (onAppear) al reciclar vistas
+                    .id(item.id)
                 }
                 .frame(height: totalHeight)
                 .ignoresSafeArea()
@@ -437,7 +439,8 @@ struct FeedView: View {
         @State private var hapticHeavy = UIImpactFeedbackGenerator(style: .heavy)
         
         // Coordinator
-        @ObservedObject private var coordinator = VideoPlayerCoordinator.shared
+        private let coordinator = VideoPlayerCoordinator.shared
+        let activeVideoId: UUID?
         
         // Animation State
         @State private var showLikeHeart = false
@@ -450,6 +453,7 @@ struct FeedView: View {
         @State private var loadingTask: Task<Void, Never>? = nil // 🔴 Track loading task
         @State private var isVideoReady = false // 🔴 Track if video is actually rendering frames
         @State private var loopCancellable: AnyCancellable? = nil // 🔴 Fix Memory Leak
+        @State private var readyCancellable: AnyCancellable? = nil
         @State private var activationTask: Task<Void, Never>? = nil // ⏳ Debounce Task
 
         // Quick Share
@@ -472,7 +476,7 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, viewModel: FeedViewModel, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
@@ -480,6 +484,7 @@ struct FeedView: View {
             self.isCommentsOverlayActive = isCommentsOverlayActive
             self.isActive = isActive
             self.isScreenActive = isScreenActive
+            self.activeVideoId = activeVideoId
             self.viewModel = viewModel
             self.onShowProfile = onShowProfile
             self.onShowMenu = onShowMenu
@@ -508,7 +513,7 @@ struct FeedView: View {
                                     p.pause()
                                 } else {
                                     // Resume only if we are the active video
-                                    if coordinator.activeVideoId == item.id {
+                                    if activeVideoId == item.id {
                                         p.play()
                                     } else {
                                         // If we weren't active, become active
@@ -561,7 +566,9 @@ struct FeedView: View {
             .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.25), value: isCommentsOverlayActive)
             .onAppear {
+                #if DEBUG
                 print("👀 [ItemView] Renderizando: '\(item.title)' | Video: \(item.videoUrl != nil) | Likes: \(item.likes)")
+                #endif
                 
                 hapticLight.prepare()
                 hapticMedium.prepare()
@@ -610,6 +617,10 @@ struct FeedView: View {
             .onDisappear {
                 loadingTask?.cancel() // 🔴 STOP ZOMBIE LOAD
                 loadingTask = nil
+                readyCancellable?.cancel()
+                readyCancellable = nil
+                loopCancellable?.cancel()
+                loopCancellable = nil
                 
                 // 🗑️ MEMORY NUKE: Destruir player inmediatamente al salir de pantalla
                 if let p = player {
@@ -620,7 +631,7 @@ struct FeedView: View {
                 isVideoReady = false 
                 
                 // Si éramos el activo, soltamos el control
-                if coordinator.activeVideoId == item.id {
+                if activeVideoId == item.id {
                    // Opcional: coordinator.stop(item.id) 
                 }
             }
@@ -659,7 +670,7 @@ struct FeedView: View {
                     isPaused = false
                 }
             }
-            .onChange(of: coordinator.activeVideoId) { _, _ in updatePlayback() }
+            .onChange(of: activeVideoId) { _, _ in updatePlayback() }
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
             .onChange(of: isMuted) { _, _ in updatePlayback() }
@@ -669,6 +680,17 @@ struct FeedView: View {
             let p = AVPlayer(playerItem: item)
             p.automaticallyWaitsToMinimizeStalling = true
             p.isMuted = true
+            isVideoReady = false
+            readyCancellable?.cancel()
+            readyCancellable = item.publisher(for: \.status, options: [.initial, .new])
+                .receive(on: DispatchQueue.main)
+                .sink { status in
+                    if status == .readyToPlay {
+                        withAnimation(.easeOut(duration: 0.2)) { isVideoReady = true }
+                    } else if status == .failed {
+                        isVideoReady = false
+                    }
+                }
             
             // 🛑 MEMORY LEAK FIX: Use Combine for looping instead of block-based NotificationCenter
             // This ensures the observer is released when the view/cancellable is deallocated.
@@ -680,13 +702,6 @@ struct FeedView: View {
             
             self.player = p
             
-            // Simular "ready" tras un breve delay si el status es bueno, 
-            // o esperar a que el observer de timeControlStatus nos diga que fluye.
-            // Para feedback instantáneo mejoramos la percepción visual:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation { isVideoReady = true }
-            }
-            
             // 🚀 AUTO-PLAY RESTAURADO:
             // Si al terminar de cargar seguimos siendo el video activo, iniciamos la reproducción.
             // Esto es crucial para el primer video o cuando la carga termina y el usuario sigue ahí.
@@ -697,9 +712,14 @@ struct FeedView: View {
 
         private func checkLikeStatus() {
             guard let videoId = item.videoId, let userId = AuthService.shared.user?.uid else { return }
+            if let cached = LikeCacheService.shared.get(userId: userId, videoId: videoId) {
+                self.isLiked = cached
+                return
+            }
             DatabaseService.shared.checkIfUserLiked(videoId: videoId, userId: userId) { liked in
                 DispatchQueue.main.async {
                     self.isLiked = liked
+                    LikeCacheService.shared.set(userId: userId, videoId: videoId, liked: liked)
                 }
             }
         }
@@ -752,7 +772,7 @@ struct FeedView: View {
                 // Si pausamos, el updatePlayback (onChange of isPaused) se encargará de detener el player
             } else {
                 // Si damos play, reclamamos el foco de audio
-                if coordinator.activeVideoId != item.id {
+                if activeVideoId != item.id {
                     coordinator.setActive(item.id)
                 } else {
                     // Si ya somos activos, forzamos el play por si acaso
@@ -772,6 +792,7 @@ struct FeedView: View {
             // Optimistic update
             isLiked.toggle()
             likesCount += isLiked ? 1 : -1
+            LikeCacheService.shared.set(userId: userId, videoId: videoId, liked: isLiked)
             
             if isLiked {
                 DatabaseService.shared.likeVideo(videoId: videoId, userId: userId) { _ in }
@@ -1195,7 +1216,7 @@ struct FeedView: View {
             // 1. El coordinador dice que somos el video activo (evita audios simultáneos)
             // 2. La pantalla está activa (no hay menús encima)
             // 3. El usuario no lo pausó manualmente
-            let shouldPlay = (coordinator.activeVideoId == item.id) && isScreenActive && !isPaused
+            let shouldPlay = (activeVideoId == item.id) && isScreenActive && !isPaused
             
             if shouldPlay {
                 // Solo llamar a play si no está reproduciendo para evitar overhead
