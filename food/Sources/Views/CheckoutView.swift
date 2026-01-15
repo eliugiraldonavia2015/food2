@@ -67,7 +67,6 @@ struct CheckoutView: View {
                         paymentSection
                         instructionsSection
                         tipSection
-                        costSummarySection
                         Spacer(minLength: 12)
                     }
                     .padding(.horizontal, 16)
@@ -92,7 +91,7 @@ struct CheckoutView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "chevron.left")
                         .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .frame(width: 40, height: 40)
                 }
                 Spacer()
@@ -100,7 +99,7 @@ struct CheckoutView: View {
 
             Text("Revisar Pedido")
                 .foregroundColor(.black)
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 20, weight: .bold))
         }
         .padding(.top, 8)
         .padding(.bottom, 6)
@@ -117,15 +116,15 @@ struct CheckoutView: View {
                         .overlay(
                             Image(systemName: "house.fill")
                                 .foregroundColor(.fuchsia)
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 15, weight: .bold))
                         )
                     VStack(alignment: .leading, spacing: 3) {
                         Text(addressTitle)
                             .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                         Text(addressDetail)
                             .foregroundColor(.gray)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                             .multilineTextAlignment(.leading)
                     }
                     Spacer()
@@ -148,20 +147,20 @@ struct CheckoutView: View {
                         .overlay(
                             Image(systemName: "creditcard.fill")
                                 .foregroundColor(.blue)
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 14, weight: .bold))
                         )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(paymentTitle)
                             .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                         Text(paymentSubtitle)
                             .foregroundColor(.gray)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray.opacity(0.6))
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                 }
                 .padding(14)
                 .background(Color.white)
@@ -176,7 +175,7 @@ struct CheckoutView: View {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $instructions)
                     .foregroundColor(.black)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .modifier(HideTextEditorBackground())
                     .frame(height: 90)
                     .padding(10)
@@ -185,7 +184,7 @@ struct CheckoutView: View {
                 if instructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text("Ej. El timbre no funciona, llamar al llegar...")
                         .foregroundColor(.gray.opacity(0.8))
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 18)
                         .allowsHitTesting(false)
@@ -199,11 +198,11 @@ struct CheckoutView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("PROPINA PARA EL REPARTIDOR")
                     .foregroundColor(.gray)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                 Spacer()
                 Text("Opcional")
                     .foregroundColor(.gray.opacity(0.8))
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
             }
             
             HStack(spacing: 10) {
@@ -218,11 +217,11 @@ struct CheckoutView: View {
                 HStack(spacing: 10) {
                     Text("$")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                     TextField("0.00", text: $customTipText)
                         .keyboardType(.decimalPad)
                         .foregroundColor(.black)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                 }
                 .padding(14)
                 .background(Color.white)
@@ -231,7 +230,7 @@ struct CheckoutView: View {
             
             Text("La propina es para tu repartidor.")
                 .foregroundColor(.gray.opacity(0.8))
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
         }
     }
     
@@ -239,7 +238,7 @@ struct CheckoutView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("RESUMEN DE COSTOS")
                 .foregroundColor(.gray)
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 13, weight: .bold))
             
             VStack(spacing: 10) {
                 costRow(title: "Subtotal", value: priceText(subtotal), valueColor: .black)
@@ -255,12 +254,13 @@ struct CheckoutView: View {
     }
 
     private var bottomBar: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
+            totalsPanel
             Button(action: placeOrder) {
                 ZStack {
                     Text(placingOrder ? "Enviando..." : "Realizar Pedido")
                         .foregroundColor(.white)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.green)
@@ -274,6 +274,27 @@ struct CheckoutView: View {
         .padding(.top, 10)
         .padding(.bottom, 10)
         .background(Color.white)
+    }
+    
+    private var totalsPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("RESUMEN DE COSTOS")
+                .foregroundColor(.gray)
+                .font(.system(size: 13, weight: .bold))
+            
+            VStack(spacing: 10) {
+                costRow(title: "Subtotal", value: priceText(subtotal), valueColor: .black)
+                costRow(title: "Costo de envío", value: shipping == 0 ? "¡GRATIS!" : priceText(shipping), valueColor: shipping == 0 ? .green : .black)
+                costRow(title: "Propina", value: priceText(tip), valueColor: .black)
+                Divider().overlay(Color.gray.opacity(0.18))
+                costRow(title: "Total", value: priceText(grandTotal), valueColor: .black, isEmphasis: true, totalColor: .green)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
     }
 
     private func placeOrder() {
@@ -294,12 +315,12 @@ struct CheckoutView: View {
         HStack {
             Text(title)
                 .foregroundColor(.gray)
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 13, weight: .bold))
             Spacer()
             Button(action: {}) {
                 Text("Cambiar")
                     .foregroundColor(.fuchsia)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
             }
         }
     }
@@ -308,7 +329,7 @@ struct CheckoutView: View {
         Button(action: action) {
             Text(title)
                 .foregroundColor(isSelected ? .white : .black)
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
                 .padding(.vertical, 10)
                 .padding(.horizontal, 14)
                 .background(isSelected ? Color.fuchsia : Color.white)
@@ -321,11 +342,11 @@ struct CheckoutView: View {
         HStack {
             Text(title)
                 .foregroundColor(isEmphasis ? .black : .gray)
-                .font(.system(size: isEmphasis ? 15 : 13, weight: isEmphasis ? .bold : .semibold))
+                .font(.system(size: isEmphasis ? 16 : 14, weight: isEmphasis ? .bold : .semibold))
             Spacer()
             Text(value)
                 .foregroundColor(totalColor ?? valueColor)
-                .font(.system(size: isEmphasis ? 15 : 13, weight: isEmphasis ? .bold : .bold))
+                .font(.system(size: isEmphasis ? 16 : 14, weight: isEmphasis ? .bold : .bold))
         }
     }
 }
