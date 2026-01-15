@@ -16,37 +16,62 @@ struct CheckoutView: View {
     let total: Double
 
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedPaymentMethod: PaymentMethod = .card
-    @State private var address: String = "Av. Reforma 123, CDMX"
+    @State private var addressTitle: String = "Mi Casa"
+    @State private var addressDetail: String = "Av. Paseo de la Reforma 222, Juárez,\nCuauhtémoc, 06600 Ciudad de México, CDMX"
+    @State private var paymentTitle: String = "•••• 4242"
+    @State private var paymentSubtitle: String = "VISA DÉBITO"
+    @State private var instructions: String = ""
+    @State private var tipSelection: TipSelection = .p10
+    @State private var customTipText: String = ""
     @State private var placingOrder = false
     @State private var showPlaced = false
-
-    enum PaymentMethod: String, CaseIterable, Identifiable {
-        case card = "Tarjeta"
-        case cash = "Efectivo"
-        case applePay = "Apple Pay"
-
-        var id: String { rawValue }
+    
+    private enum TipSelection: Hashable {
+        case p10
+        case p15
+        case p20
+        case other
+        
+        var percentValue: Double? {
+            switch self {
+            case .p10: return 0.10
+            case .p15: return 0.15
+            case .p20: return 0.20
+            case .other: return nil
+            }
+        }
     }
+    
+    private var subtotal: Double { total }
+    private var shipping: Double { 0 }
+    private var tip: Double {
+        if let p = tipSelection.percentValue {
+            return subtotal * p
+        }
+        let sanitized = customTipText.replacingOccurrences(of: ",", with: ".")
+        return Double(sanitized) ?? 0
+    }
+    private var grandTotal: Double { subtotal + shipping + tip }
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(.systemGroupedBackground).ignoresSafeArea()
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
-                    .background(Color.white)
+                    .background(Color(.systemGroupedBackground))
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 14) {
-                        header
-                        itemsPanel
-                        addressPanel
-                        paymentPanel
-                        Spacer(minLength: 16)
+                    VStack(spacing: 18) {
+                        addressSection
+                        paymentSection
+                        instructionsSection
+                        tipSection
+                        costSummarySection
+                        Spacer(minLength: 12)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.top, 10)
                     .padding(.bottom, 18)
                 }
             }
@@ -71,169 +96,166 @@ struct CheckoutView: View {
                 Spacer()
             }
 
-            Text("Checkout")
+            Text("Revisar Pedido")
                 .foregroundColor(.black)
                 .font(.system(size: 18, weight: .bold))
         }
         .padding(.top, 8)
         .padding(.bottom, 6)
     }
-
-    private var header: some View {
-        HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.green.opacity(0.15))
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Image(systemName: "storefront.fill")
-                        .foregroundColor(.green)
-                        .font(.system(size: 14, weight: .bold))
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Pedido a")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 12, weight: .semibold))
-                Text(restaurantName)
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
-                    .lineLimit(1)
-            }
-            Spacer()
-        }
-        .padding(.vertical, 6)
-    }
-
-    private var itemsPanel: some View {
+    
+    private var addressSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Tu orden")
-                .foregroundColor(.black)
-                .font(.system(size: 18, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            VStack(spacing: 10) {
-                ForEach(items) { item in
-                    itemRow(item)
+            sectionHeader("DIRECCIÓN DE ENTREGA")
+            Button(action: {}) {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(Color.fuchsia.opacity(0.14))
+                        .frame(width: 36, height: 36)
+                        .overlay(
+                            Image(systemName: "house.fill")
+                                .foregroundColor(.fuchsia)
+                                .font(.system(size: 14, weight: .bold))
+                        )
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(addressTitle)
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                        Text(addressDetail)
+                            .foregroundColor(.gray)
+                            .font(.system(size: 11, weight: .semibold))
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer()
+                }
+                .padding(14)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+    }
+    
+    private var paymentSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("MÉTODO DE PAGO")
+            Button(action: {}) {
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.blue.opacity(0.12))
+                        .frame(width: 36, height: 28)
+                        .overlay(
+                            Image(systemName: "creditcard.fill")
+                                .foregroundColor(.blue)
+                                .font(.system(size: 13, weight: .bold))
+                        )
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(paymentTitle)
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                        Text(paymentSubtitle)
+                            .foregroundColor(.gray)
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray.opacity(0.6))
+                        .font(.system(size: 14, weight: .bold))
+                }
+                .padding(14)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+    }
+    
+    private var instructionsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("INSTRUCCIONES ESPECIALES")
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $instructions)
+                    .foregroundColor(.black)
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(height: 90)
+                    .padding(10)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                if instructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("Ej. El timbre no funciona, llamar al llegar...")
+                        .foregroundColor(.gray.opacity(0.8))
+                        .font(.system(size: 14, weight: .semibold))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 18)
+                        .allowsHitTesting(false)
                 }
             }
-            .padding(12)
-            .background(Color.gray.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
     }
-
-    private func itemRow(_ item: LineItem) -> some View {
-        let lineTotal = Double(item.quantity) * item.unitPrice
-
-        return HStack(spacing: 12) {
-            WebImage(url: URL(string: item.imageUrl))
-                .resizable()
-                .indicator(.activity)
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 54, height: 54)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.title)
-                    .foregroundColor(.black)
-                    .font(.system(size: 14, weight: .bold))
-                    .lineLimit(1)
-                Text(item.subtitle.isEmpty ? " " : item.subtitle)
+    
+    private var tipSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("PROPINA PARA EL REPARTIDOR")
                     .foregroundColor(.gray)
-                    .font(.system(size: 11))
-                    .lineLimit(1)
-                HStack(spacing: 8) {
-                    Text("x\(item.quantity)")
+                    .font(.system(size: 12, weight: .bold))
+                Spacer()
+                Text("Opcional")
+                    .foregroundColor(.gray.opacity(0.8))
+                    .font(.system(size: 12, weight: .bold))
+            }
+            
+            HStack(spacing: 10) {
+                tipChip("10%", isSelected: tipSelection == .p10) { tipSelection = .p10 }
+                tipChip("15%", isSelected: tipSelection == .p15) { tipSelection = .p15 }
+                tipChip("20%", isSelected: tipSelection == .p20) { tipSelection = .p20 }
+                tipChip("Otro", isSelected: tipSelection == .other) { tipSelection = .other }
+                Spacer(minLength: 0)
+            }
+            
+            if tipSelection == .other {
+                HStack(spacing: 10) {
+                    Text("$")
                         .foregroundColor(.gray)
-                        .font(.system(size: 12, weight: .semibold))
-                    Spacer()
-                    Text(priceText(lineTotal))
+                        .font(.system(size: 14, weight: .bold))
+                    TextField("0.00", text: $customTipText)
+                        .keyboardType(.decimalPad)
                         .foregroundColor(.black)
                         .font(.system(size: 14, weight: .bold))
                 }
+                .padding(14)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
+            
+            Text("La propina es para tu repartidor.")
+                .foregroundColor(.gray.opacity(0.8))
+                .font(.system(size: 12, weight: .semibold))
         }
-        .padding(10)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
-
-    private var addressPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Dirección")
-                .foregroundColor(.black)
-                .font(.system(size: 18, weight: .bold))
-
-            HStack(spacing: 10) {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundColor(.fuchsia)
-                    .font(.system(size: 14, weight: .bold))
-                TextField("Dirección de entrega", text: $address)
-                    .textInputAutocapitalization(.words)
-                    .disableAutocorrection(true)
+    
+    private var costSummarySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("RESUMEN DE COSTOS")
+                .foregroundColor(.gray)
+                .font(.system(size: 12, weight: .bold))
+            
+            VStack(spacing: 10) {
+                costRow(title: "Subtotal", value: priceText(subtotal), valueColor: .black)
+                costRow(title: "Costo de envío", value: shipping == 0 ? "¡GRATIS!" : priceText(shipping), valueColor: shipping == 0 ? .green : .black)
+                costRow(title: "Propina", value: priceText(tip), valueColor: .black)
+                Divider().overlay(Color.gray.opacity(0.18))
+                costRow(title: "Total", value: priceText(grandTotal), valueColor: .black, isEmphasis: true, totalColor: .green)
             }
             .padding(14)
-            .background(Color.gray.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-    }
-
-    private var paymentPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Pago")
-                .foregroundColor(.black)
-                .font(.system(size: 18, weight: .bold))
-
-            VStack(spacing: 10) {
-                ForEach(PaymentMethod.allCases) { method in
-                    Button(action: { selectedPaymentMethod = method }) {
-                        HStack {
-                            Text(method.rawValue)
-                                .foregroundColor(.black)
-                                .font(.system(size: 14, weight: .bold))
-                            Spacer()
-                            if selectedPaymentMethod == method {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                    .font(.system(size: 18, weight: .bold))
-                            } else {
-                                Image(systemName: "circle")
-                                    .foregroundColor(.gray.opacity(0.35))
-                                    .font(.system(size: 18, weight: .bold))
-                            }
-                        }
-                        .padding(14)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    }
-                }
-            }
-            .padding(12)
-            .background(Color.gray.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 
     private var bottomBar: some View {
         VStack(spacing: 10) {
-            HStack {
-                Text("Total")
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
-                Spacer()
-                Text(priceText(total))
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
-
             Button(action: placeOrder) {
                 ZStack {
-                    Text(placingOrder ? "Enviando..." : "Confirmar pedido")
+                    Text(placingOrder ? "Enviando..." : "Realizar Pedido")
                         .foregroundColor(.white)
                         .font(.system(size: 16, weight: .bold))
                         .frame(maxWidth: .infinity)
@@ -248,7 +270,7 @@ struct CheckoutView: View {
         .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 10)
-        .background(Color.white)
+        .background(Color(.systemGroupedBackground))
     }
 
     private func placeOrder() {
@@ -263,6 +285,45 @@ struct CheckoutView: View {
     private func priceText(_ value: Double) -> String {
         let formatted = String(format: "%.2f", value)
         return "$\(formatted)"
+    }
+    
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundColor(.gray)
+                .font(.system(size: 12, weight: .bold))
+            Spacer()
+            Button(action: {}) {
+                Text("Cambiar")
+                    .foregroundColor(.fuchsia)
+                    .font(.system(size: 12, weight: .bold))
+            }
+        }
+    }
+    
+    private func tipChip(_ title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .foregroundColor(isSelected ? .white : .black)
+                .font(.system(size: 13, weight: .bold))
+                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .background(isSelected ? Color.fuchsia : Color.white)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(Color.gray.opacity(0.18), lineWidth: isSelected ? 0 : 1))
+        }
+    }
+    
+    private func costRow(title: String, value: String, valueColor: Color, isEmphasis: Bool = false, totalColor: Color? = nil) -> some View {
+        HStack {
+            Text(title)
+                .foregroundColor(isEmphasis ? .black : .gray)
+                .font(.system(size: isEmphasis ? 15 : 13, weight: isEmphasis ? .bold : .semibold))
+            Spacer()
+            Text(value)
+                .foregroundColor(totalColor ?? valueColor)
+                .font(.system(size: isEmphasis ? 15 : 13, weight: isEmphasis ? .bold : .bold))
+        }
     }
 }
 
