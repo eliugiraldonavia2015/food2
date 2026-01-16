@@ -25,6 +25,7 @@ struct CheckoutView: View {
     @State private var customTipText: String = ""
     @State private var placingOrder = false
     @State private var showPlaced = false
+    @State private var showAddressSelection = false
     
     private enum TipSelection: Hashable {
         case p10
@@ -78,6 +79,34 @@ struct CheckoutView: View {
         .safeAreaInset(edge: .bottom) { bottomBar }
         .background(Color.white)
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $showAddressSelection) {
+            DeliveryAddressSelectionView(
+                addresses: [
+                    .init(
+                        id: "home",
+                        title: "Casa",
+                        detail: "Av. Paseo de la Reforma 222,\nJuárez, Cuauhtémoc, 06600\nCiudad de México, CDMX",
+                        systemIcon: "house.fill"
+                    ),
+                    .init(
+                        id: "office",
+                        title: "Oficina",
+                        detail: "Torre Virreyes, Pedregal 24, Molino\ndel Rey, 11040 Ciudad de México,\nCDMX",
+                        systemIcon: "briefcase.fill"
+                    ),
+                    .init(
+                        id: "partner",
+                        title: "Novia",
+                        detail: "Calle Colima 123, Roma Norte,\nCuauhtémoc, 06700 Ciudad de\nMéxico, CDMX",
+                        systemIcon: "heart.fill"
+                    )
+                ],
+                initialSelectedId: addressTitle.lowercased().contains("casa") ? "home" : nil
+            ) { selected in
+                addressTitle = selected.title
+                addressDetail = selected.detail
+            }
+        }
         .alert("Pedido enviado", isPresented: $showPlaced) {
             Button("OK") { dismiss() }
         } message: {
@@ -107,7 +136,7 @@ struct CheckoutView: View {
     
     private var addressSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("DIRECCIÓN DE ENTREGA")
+            sectionHeader("DIRECCIÓN DE ENTREGA") { showAddressSelection = true }
             Button(action: {}) {
                 HStack(spacing: 12) {
                     Circle()
@@ -138,7 +167,7 @@ struct CheckoutView: View {
     
     private var paymentSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("MÉTODO DE PAGO")
+            sectionHeader("MÉTODO DE PAGO") { }
             Button(action: {}) {
                 HStack(spacing: 12) {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -171,7 +200,7 @@ struct CheckoutView: View {
     
     private var instructionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("INSTRUCCIONES ESPECIALES")
+            sectionHeader("INSTRUCCIONES ESPECIALES") { }
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $instructions)
                     .foregroundColor(.black)
@@ -263,7 +292,7 @@ struct CheckoutView: View {
                         .font(.system(size: 18, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Color.green)
+                        .background(Color.brandGreen)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                         .opacity(placingOrder ? 0.7 : 1)
                 }
@@ -284,10 +313,10 @@ struct CheckoutView: View {
             
             VStack(spacing: 10) {
                 costRow(title: "Subtotal", value: priceText(subtotal), valueColor: .black)
-                costRow(title: "Costo de envío", value: shipping == 0 ? "¡GRATIS!" : priceText(shipping), valueColor: shipping == 0 ? .green : .black)
+                costRow(title: "Costo de envío", value: shipping == 0 ? "¡GRATIS!" : priceText(shipping), valueColor: shipping == 0 ? .brandGreen : .black)
                 costRow(title: "Propina", value: priceText(tip), valueColor: .black)
                 Divider().overlay(Color.gray.opacity(0.18))
-                costRow(title: "Total", value: priceText(grandTotal), valueColor: .black, isEmphasis: true, totalColor: .green)
+                costRow(title: "Total", value: priceText(grandTotal), valueColor: .black, isEmphasis: true, totalColor: .brandGreen)
             }
         }
         .padding(.horizontal, 14)
@@ -311,13 +340,13 @@ struct CheckoutView: View {
         return "$\(formatted)"
     }
     
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: String, onChange: @escaping () -> Void = {}) -> some View {
         HStack {
             Text(title)
                 .foregroundColor(.gray)
                 .font(.system(size: 13, weight: .bold))
             Spacer()
-            Button(action: {}) {
+            Button(action: onChange) {
                 Text("Cambiar")
                     .foregroundColor(.fuchsia)
                     .font(.system(size: 13, weight: .bold))
