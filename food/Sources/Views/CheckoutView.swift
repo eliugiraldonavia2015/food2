@@ -226,7 +226,10 @@ struct CheckoutView: View {
     
     private var instructionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("INSTRUCCIONES ESPECIALES") { }
+            Text("INSTRUCCIONES ESPECIALES")
+                .foregroundColor(.gray)
+                .font(.system(size: 13, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $instructions)
                     .foregroundColor(.black)
