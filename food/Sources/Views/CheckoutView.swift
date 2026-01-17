@@ -26,6 +26,7 @@ struct CheckoutView: View {
     @State private var placingOrder = false
     @State private var showPlaced = false
     @State private var showAddressSelection = false
+    @State private var showPaymentSelection = false
     
     private enum TipSelection: Hashable {
         case p10
@@ -107,6 +108,31 @@ struct CheckoutView: View {
                 addressDetail = selected.detail
             }
         }
+        .fullScreenCover(isPresented: $showPaymentSelection) {
+            PaymentMethodSelectionView(
+                cards: [
+                    .init(id: "card_main", kind: .card, title: "Principal - Visa", subtitle: "•••• 4242", systemIcon: "creditcard.fill"),
+                    .init(id: "card_secondary", kind: .card, title: "Nómina - Mastercard", subtitle: "•••• 8899", systemIcon: "creditcard.fill")
+                ],
+                otherMethods: [
+                    .init(id: "applepay", kind: .applePay, title: "Apple Pay", subtitle: "", systemIcon: "apple.logo"),
+                    .init(id: "cash", kind: .cash, title: "Efectivo", subtitle: "Paga al recibir el pedido", systemIcon: "banknote.fill")
+                ],
+                initialSelectedId: paymentTitle.contains("4242") ? "card_main" : nil
+            ) { selected in
+                switch selected.kind {
+                case .card:
+                    paymentTitle = selected.subtitle.isEmpty ? "Tarjeta" : selected.subtitle
+                    paymentSubtitle = selected.title.uppercased()
+                case .applePay:
+                    paymentTitle = "Apple Pay"
+                    paymentSubtitle = ""
+                case .cash:
+                    paymentTitle = "Efectivo"
+                    paymentSubtitle = "Paga al recibir el pedido"
+                }
+            }
+        }
         .alert("Pedido enviado", isPresented: $showPlaced) {
             Button("OK") { dismiss() }
         } message: {
@@ -167,7 +193,7 @@ struct CheckoutView: View {
     
     private var paymentSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("MÉTODO DE PAGO") { }
+            sectionHeader("MÉTODO DE PAGO") { showPaymentSelection = true }
             Button(action: {}) {
                 HStack(spacing: 12) {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
