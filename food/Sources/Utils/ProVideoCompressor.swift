@@ -3,6 +3,11 @@ import Foundation
 import UIKit
 import VideoToolbox
 
+final class UncheckedBox<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
+}
+
 /// Configuración de compresión calculada dinámicamente
 struct ProCompressionConfig {
     let width: Int
@@ -228,30 +233,36 @@ final class ProVideoCompressor {
                 let videoQueue = DispatchQueue(label: "videoQueue")
                 let audioQueue = DispatchQueue(label: "audioQueue")
                 let group = DispatchGroup()
+                let writerBox = UncheckedBox(writer)
+                let readerBox = UncheckedBox(reader)
+                let readerOutputBox = UncheckedBox(readerOutput)
+                let groupBox = UncheckedBox(group)
+                let writerInputBox = UncheckedBox(writerInput)
                 
                 // Video Loop
                 group.enter()
                 writerInput.requestMediaDataWhenReady(on: videoQueue) {
-                    while writerInput.isReadyForMoreMediaData {
-                        if reader.status == .failed {
-                            writerInput.markAsFinished()
-                            group.leave()
+                    let wInput = writerInputBox.value
+                    let rd = readerBox.value
+                    let rOut = readerOutputBox.value
+                    let grp = groupBox.value
+                    while wInput.isReadyForMoreMediaData {
+                        if rd.status == .failed {
+                            wInput.markAsFinished()
+                            grp.leave()
                             return
                         }
-                        
-                        if let buffer = readerOutput.copyNextSampleBuffer() {
-                            // Calcular progreso
+                        if let buffer = rOut.copyNextSampleBuffer() {
                             let timestamp = CMSampleBufferGetPresentationTimeStamp(buffer).seconds
                             if totalDuration > 0 {
                                 onProgress(timestamp / totalDuration)
                             }
-                            
-                            if writerInput.isReadyForMoreMediaData {
-                                writerInput.append(buffer)
+                            if wInput.isReadyForMoreMediaData {
+                                wInput.append(buffer)
                             }
                         } else {
-                            writerInput.markAsFinished()
-                            group.leave()
+                            wInput.markAsFinished()
+                            grp.leave()
                             break
                         }
                     }
@@ -259,22 +270,27 @@ final class ProVideoCompressor {
                 
                 // Audio Loop
                 if let aInput = audioInput, let aOutput = audioReaderOutput {
+                    let aInputBox = UncheckedBox(aInput)
+                    let aOutputBox = UncheckedBox(aOutput)
+                    let rd = readerBox.value
+                    let grp = groupBox.value
                     group.enter()
                     aInput.requestMediaDataWhenReady(on: audioQueue) {
-                        while aInput.isReadyForMoreMediaData {
-                            if reader.status == .failed {
-                                aInput.markAsFinished()
-                                group.leave()
+                        let ai = aInputBox.value
+                        let ao = aOutputBox.value
+                        while ai.isReadyForMoreMediaData {
+                            if rd.status == .failed {
+                                ai.markAsFinished()
+                                grp.leave()
                                 return
                             }
-                            
-                            if let buffer = aOutput.copyNextSampleBuffer() {
-                                if aInput.isReadyForMoreMediaData {
-                                    aInput.append(buffer)
+                            if let buffer = ao.copyNextSampleBuffer() {
+                                if ai.isReadyForMoreMediaData {
+                                    ai.append(buffer)
                                 }
                             } else {
-                                aInput.markAsFinished()
-                                group.leave()
+                                ai.markAsFinished()
+                                grp.leave()
                                 break
                             }
                         }
@@ -283,12 +299,13 @@ final class ProVideoCompressor {
                 
                 // --- 5. FINALIZACIÓN ---
                 group.notify(queue: .global()) {
-                    writer.finishWriting {
-                        if writer.status == .completed {
+                    let w = writerBox.value
+                    w.finishWriting {
+                        if w.status == .completed {
                             onProgress(1.0)
                             completion(.success(outURL))
                         } else {
-                            completion(.failure(writer.error ?? NSError(domain: "ProCompressor", code: -3)))
+                            completion(.failure(w.error ?? NSError(domain: "ProCompressor", code: -3)))
                         }
                     }
                 }
