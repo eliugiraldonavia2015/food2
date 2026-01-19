@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 import SDWebImageSwiftUI
 
 struct CheckoutView: View {
@@ -453,14 +454,253 @@ struct OrderPlacedOverlayView: View {
 }
 
 struct OrderTrackingView: View {
+    private let restaurantCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
+    private let destinationCoord = CLLocationCoordinate2D(latitude: 19.426, longitude: -99.170)
+    @State private var courierCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
+    @State private var elapsed: Int = 0
+    @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 19.423, longitude: -99.1725), span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015))
+    @State private var sheetY: CGFloat = 0
+    @State private var sheetState: SheetState = .half
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            Text("Seguimiento del pedido")
-                .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
+        GeometryReader { geo in
+            ZStack {
+                Color.white.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    header
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 10)
+                        .background(Color.white)
+
+                    progressStages
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+
+                    Map(coordinateRegion: $region, interactionModes: [.pan, .zoom]) {
+                        MapAnnotation(coordinate: restaurantCoord) {
+                            iconCircle(system: "fork.knife", color: .brandGreen)
+                        }
+                        MapAnnotation(coordinate: destinationCoord) {
+                            iconCircle(system: "house.fill", color: .black)
+                        }
+                        MapAnnotation(coordinate: courierCoord) {
+                            iconCircle(system: "bicycle", color: .fuchsia)
+                        }
+                    }
+                    .frame(height: geo.size.height * 0.48)
+                    .overlay(alignment: .topLeading) {
+                        deliveryEta
+                            .padding(16)
+                    }
+                }
+
+                bottomSheet(height: geo.size.height)
+                    .offset(y: sheetY == 0 ? targetY(for: .half, height: geo.size.height) : sheetY)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                let minY = targetY(for: .half, height: geo.size.height)
+                                let maxY = targetY(for: .low, height: geo.size.height)
+                                sheetY = max(minY, min(maxY, value.location.y))
+                            }
+                            .onEnded { value in
+                                let mid = (targetY(for: .half, height: geo.size.height) + targetY(for: .low, height: geo.size.height)) / 2
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                                    sheetY = value.location.y < mid ? targetY(for: .half, height: geo.size.height) : targetY(for: .low, height: geo.size.height)
+                                }
+                            }
+                    )
+            }
+            .onAppear {
+                sheetY = targetY(for: .half, height: geo.size.height)
+            }
+            .onReceive(timer) { _ in
+                guard elapsed < 60 else { return }
+                elapsed += 1
+                let t = Double(elapsed) / 60.0
+                let next = interpolate(from: restaurantCoord, to: destinationCoord, t: t)
+                withAnimation(.linear(duration: 1.0)) {
+                    courierCoord = next
+                }
+            }
         }
         .preferredColorScheme(.light)
+    }
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            Text("Tu pedido va en camino")
+                .foregroundColor(.black)
+                .font(.system(size: 20, weight: .bold))
+            Spacer()
+            Text("Help")
+                .foregroundColor(.white)
+                .font(.system(size: 13, weight: .bold))
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color.brandGreen)
+                .clipShape(Capsule())
+        }
+    }
+
+    private var progressStages: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 18) {
+                stageIcon(system: "checkmark", index: 0)
+                connector(index: 1)
+                stageIcon(system: "bag.fill", index: 2)
+                connector(index: 3)
+                stageIcon(system: "bicycle", index: 4)
+                connector(index: 5)
+                stageIcon(system: "house.fill", index: 6)
+            }
+            ProgressView(value: Double(elapsed) / 60.0)
+                .tint(.brandGreen)
+        }
+    }
+
+    private var deliveryEta: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color.brandGreen)
+                .frame(width: 10, height: 10)
+            Text("Entrega estimada")
+                .foregroundColor(.black)
+                .font(.system(size: 14, weight: .bold))
+            Spacer()
+            Text(timeString(remaining: max(0, 60 - elapsed)))
+                .foregroundColor(.brandGreen)
+                .font(.system(size: 14, weight: .bold))
+        }
+        .padding(12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+    }
+
+    private func bottomSheet(height: CGFloat) -> some View {
+        VStack(spacing: 12) {
+            Capsule()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 50, height: 5)
+                .padding(.top, 8)
+            HStack {
+                Text("Detalles del pedido")
+                    .foregroundColor(.black)
+                    .font(.system(size: 16, weight: .bold))
+                Spacer()
+                Text("Agregar productos")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .bold))
+            }
+            .padding(.horizontal, 6)
+            Divider().overlay(Color.gray.opacity(0.18))
+            VStack(spacing: 12) {
+                HStack(spacing: 10) {
+                    Circle().fill(Color.fuchsia.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "person.fill").foregroundColor(.fuchsia))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Repartidor")
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                        Text("Maria • 5.0")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    Spacer()
+                    Image(systemName: "phone.fill").foregroundColor(.brandGreen)
+                }
+                HStack(spacing: 10) {
+                    Circle().fill(Color.brandGreen.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "mappin.and.ellipse").foregroundColor(.brandGreen))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Dirección de entrega")
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                        Text("Av. Paseo de la Reforma 1870")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    Spacer()
+                }
+                HStack(spacing: 10) {
+                    Circle().fill(Color.orange.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "fork.knife").foregroundColor(.orange))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Restaurante")
+                            .foregroundColor(.black)
+                            .font(.system(size: 14, weight: .bold))
+                        Text("McDonald's • 3 productos")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 10)
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
+    }
+
+    private func stageIcon(system: String, index: Int) -> some View {
+        let active = stage >= index
+        return ZStack {
+            Circle()
+                .fill(active ? Color.brandGreen : Color.gray.opacity(0.2))
+                .frame(width: 34, height: 34)
+            Image(systemName: system)
+                .foregroundColor(active ? .white : .gray)
+                .font(.system(size: 16, weight: .bold))
+        }
+        .animation(.easeInOut(duration: 0.3), value: stage)
+    }
+
+    private func connector(index: Int) -> some View {
+        Rectangle()
+            .fill(stage >= index ? Color.brandGreen : Color.gray.opacity(0.2))
+            .frame(height: 3)
+            .frame(maxWidth: .infinity)
+            .cornerRadius(2)
+            .animation(.easeInOut(duration: 0.3), value: stage)
+    }
+
+    private var stage: Int { min(6, elapsed / 10) }
+
+    private func timeString(remaining: Int) -> String {
+        let m = remaining / 60
+        let s = remaining % 60
+        let ms = String(format: "%02d:%02d", m, s)
+        return ms
+    }
+
+    private func interpolate(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, t: Double) -> CLLocationCoordinate2D {
+        let lat = from.latitude + (to.latitude - from.latitude) * t
+        let lon = from.longitude + (to.longitude - from.longitude) * t
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+
+    private func iconCircle(system: String, color: Color) -> some View {
+        ZStack {
+            Circle().fill(Color.white).frame(width: 38, height: 38)
+            Circle().stroke(color, lineWidth: 2).frame(width: 38, height: 38)
+            Image(systemName: system)
+                .foregroundColor(color)
+                .font(.system(size: 16, weight: .bold))
+        }
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 4)
+    }
+
+    private enum SheetState { case half, low }
+
+    private func targetY(for state: SheetState, height: CGFloat) -> CGFloat {
+        switch state {
+        case .half: return height * 0.48
+        case .low: return height * 0.70
+        }
     }
 }
 
