@@ -130,9 +130,7 @@ struct UploadVideoView: View {
                 
                 // Generar thumbnail
                 self.thumbnailURL = nil
-                if let thumb = self.generateLocalThumbnail(url: url) {
-                    // Opcional: guardar thumb local
-                }
+                _ = self.generateLocalThumbnail(url: url)
             }
         }
     }

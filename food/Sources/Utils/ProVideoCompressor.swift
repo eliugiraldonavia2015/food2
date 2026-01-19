@@ -272,16 +272,14 @@ final class ProVideoCompressor {
                 if let aInput = audioInput, let aOutput = audioReaderOutput {
                     let aInputBox = UncheckedBox(aInput)
                     let aOutputBox = UncheckedBox(aOutput)
-                    let rd = readerBox.value
-                    let grp = groupBox.value
                     group.enter()
                     aInput.requestMediaDataWhenReady(on: audioQueue) {
                         let ai = aInputBox.value
                         let ao = aOutputBox.value
                         while ai.isReadyForMoreMediaData {
-                            if rd.status == .failed {
+                            if readerBox.value.status == .failed {
                                 ai.markAsFinished()
-                                grp.leave()
+                                groupBox.value.leave()
                                 return
                             }
                             if let buffer = ao.copyNextSampleBuffer() {
@@ -290,7 +288,7 @@ final class ProVideoCompressor {
                                 }
                             } else {
                                 ai.markAsFinished()
-                                grp.leave()
+                                groupBox.value.leave()
                                 break
                             }
                         }
@@ -299,13 +297,12 @@ final class ProVideoCompressor {
                 
                 // --- 5. FINALIZACIÓN ---
                 group.notify(queue: .global()) {
-                    let w = writerBox.value
-                    w.finishWriting {
-                        if w.status == .completed {
+                    writerBox.value.finishWriting {
+                        if writerBox.value.status == .completed {
                             onProgress(1.0)
                             completion(.success(outURL))
                         } else {
-                            completion(.failure(w.error ?? NSError(domain: "ProCompressor", code: -3)))
+                            completion(.failure(writerBox.value.error ?? NSError(domain: "ProCompressor", code: -3)))
                         }
                     }
                 }

@@ -480,15 +480,14 @@ struct OrderTrackingView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 8)
 
-                    Map(coordinateRegion: $region, interactionModes: [.pan, .zoom]) {
-                        MapAnnotation(coordinate: restaurantCoord) {
-                            iconCircle(system: "fork.knife", color: .brandGreen)
-                        }
-                        MapAnnotation(coordinate: destinationCoord) {
-                            iconCircle(system: "house.fill", color: .black)
-                        }
-                        MapAnnotation(coordinate: courierCoord) {
-                            iconCircle(system: "bicycle", color: .fuchsia)
+                    Map(
+                        coordinateRegion: $region,
+                        interactionModes: [.pan, .zoom],
+                        showsUserLocation: false,
+                        annotationItems: pins
+                    ) { pin in
+                        MapAnnotation(coordinate: pin.coordinate) {
+                            iconCircle(system: pin.system, color: pin.color)
                         }
                     }
                     .frame(height: geo.size.height * 0.48)
@@ -705,3 +704,17 @@ struct OrderTrackingView: View {
     }
 }
 
+    private struct Pin: Identifiable {
+        let id: String
+        let coordinate: CLLocationCoordinate2D
+        let system: String
+        let color: Color
+    }
+
+    private var pins: [Pin] {
+        [
+            .init(id: "restaurant", coordinate: restaurantCoord, system: "fork.knife", color: .brandGreen),
+            .init(id: "destination", coordinate: destinationCoord, system: "house.fill", color: .black),
+            .init(id: "courier", coordinate: courierCoord, system: "bicycle", color: .fuchsia)
+        ]
+    }
