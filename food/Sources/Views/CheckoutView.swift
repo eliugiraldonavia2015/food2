@@ -25,6 +25,7 @@ struct CheckoutView: View {
     @State private var customTipText: String = ""
     @State private var placingOrder = false
     @State private var showPlaced = false
+    @State private var showOrderTracking = false
     @State private var showAddressSelection = false
     @State private var showPaymentSelection = false
     
@@ -133,10 +134,14 @@ struct CheckoutView: View {
                 }
             }
         }
-        .alert("Pedido enviado", isPresented: $showPlaced) {
-            Button("OK") { dismiss() }
-        } message: {
-            Text("Tu pedido fue enviado al restaurante.")
+        .fullScreenCover(isPresented: $showPlaced) {
+            OrderPlacedOverlayView {
+                showPlaced = false
+                showOrderTracking = true
+            }
+        }
+        .fullScreenCover(isPresented: $showOrderTracking) {
+            OrderTrackingView()
         }
     }
 
@@ -416,6 +421,46 @@ private struct HideTextEditorBackground: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+struct OrderPlacedOverlayView: View {
+    let onDone: () -> Void
+    var body: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            VStack(spacing: 16) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.brandGreen)
+                    .font(.system(size: 60, weight: .bold))
+                Text("Pedido enviado")
+                    .foregroundColor(.black)
+                    .font(.system(size: 22, weight: .bold))
+                Text("Tu pedido ya fue enviado")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding(24)
+            .background(Color.white)
+        }
+        .preferredColorScheme(.light)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                onDone()
+            }
+        }
+    }
+}
+
+struct OrderTrackingView: View {
+    var body: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            Text("Seguimiento del pedido")
+                .foregroundColor(.black)
+                .font(.system(size: 20, weight: .bold))
+        }
+        .preferredColorScheme(.light)
     }
 }
 
