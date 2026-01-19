@@ -702,7 +702,6 @@ struct OrderTrackingView: View {
         case .low: return height * 0.70
         }
     }
-}
 
     private struct Pin: Identifiable {
         let id: String
@@ -718,3 +717,4 @@ struct OrderTrackingView: View {
             .init(id: "courier", coordinate: courierCoord, system: "bicycle", color: .fuchsia)
         ]
     }
+}
