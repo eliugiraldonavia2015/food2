@@ -143,7 +143,15 @@ struct CheckoutView: View {
             }
         }
         .fullScreenCover(isPresented: $showOrderTracking) {
-            OrderTrackingView()
+            OrderTrackingView(
+                restaurantId: restaurantName.lowercased().replacingOccurrences(of: " ", with: "_"),
+                restaurantName: restaurantName,
+                coverUrl: "",
+                avatarUrl: "",
+                location: addressTitle,
+                branchName: nil,
+                distanceKm: nil
+            )
         }
     }
 
@@ -455,6 +463,13 @@ struct OrderPlacedOverlayView: View {
 }
 
 struct OrderTrackingView: View {
+    let restaurantId: String
+    let restaurantName: String
+    let coverUrl: String
+    let avatarUrl: String
+    let location: String
+    let branchName: String?
+    let distanceKm: Double?
     private let restaurantCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
     private let destinationCoord = CLLocationCoordinate2D(latitude: 19.426, longitude: -99.170)
     @State private var courierCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
@@ -463,6 +478,8 @@ struct OrderTrackingView: View {
     @State private var sheetY: CGFloat = 0
     @State private var sheetState: SheetState = .half
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @State private var showMenu: Bool = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         GeometryReader { geo in
@@ -473,12 +490,8 @@ struct OrderTrackingView: View {
                     header
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
-                        .padding(.bottom, 10)
+                        .padding(.bottom, 4)
                         .background(Color.white)
-
-                    progressStages
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
 
                     Map(
                         coordinateRegion: $region,
@@ -490,11 +503,15 @@ struct OrderTrackingView: View {
                             iconCircle(system: pin.system, color: pin.color)
                         }
                     }
-                    .frame(height: geo.size.height * 0.48)
+                    .frame(height: geo.size.height * 0.56)
                     .overlay(alignment: .topLeading) {
                         deliveryEta
                             .padding(16)
                     }
+
+                    progressStages
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                 }
 
                 bottomSheet(height: geo.size.height)
@@ -513,6 +530,11 @@ struct OrderTrackingView: View {
                                 }
                             }
                     )
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            sheetY = targetY(for: .half, height: geo.size.height)
+                        }
+                    }
             }
             .onAppear {
                 sheetY = targetY(for: .half, height: geo.size.height)
@@ -528,21 +550,43 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $showMenu) {
+            FullMenuView(
+                restaurantId: restaurantId,
+                restaurantName: restaurantName,
+                coverUrl: coverUrl,
+                avatarUrl: avatarUrl,
+                location: location,
+                branchName: branchName,
+                distanceKm: distanceKm,
+                isEditing: false
+            )
+        }
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: 12) {
+            Button(action: { showMenu = true }) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(.black)
+                    .font(.system(size: 18, weight: .bold))
+                    .frame(width: 40, height: 40)
+            }
             Text("Tu pedido va en camino")
                 .foregroundColor(.black)
                 .font(.system(size: 20, weight: .bold))
             Spacer()
-            Text("Help")
-                .foregroundColor(.white)
-                .font(.system(size: 13, weight: .bold))
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
-                .background(Color.brandGreen)
-                .clipShape(Capsule())
+            HStack(spacing: 8) {
+                Circle().fill(Color.brandGreen).frame(width: 10, height: 10)
+                Text(timeString(remaining: max(0, 60 - elapsed)))
+                    .foregroundColor(.brandGreen)
+                    .font(.system(size: 13, weight: .bold))
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(Color.white)
+            .clipShape(Capsule())
+            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
     }
 
@@ -699,7 +743,7 @@ struct OrderTrackingView: View {
     private func targetY(for state: SheetState, height: CGFloat) -> CGFloat {
         switch state {
         case .half: return height * 0.48
-        case .low: return height * 0.70
+        case .low: return height * 0.91
         }
     }
 
