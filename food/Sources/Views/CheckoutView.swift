@@ -489,8 +489,8 @@ struct OrderTrackingView: View {
                 VStack(spacing: 0) {
                     header
                         .padding(.horizontal, 16)
-                        .padding(.top, 12)
-                        .padding(.bottom, 4)
+                        .padding(.top, 0)
+                        .padding(.bottom, 0)
                         .background(Color.white)
 
                     Map(
@@ -503,15 +503,15 @@ struct OrderTrackingView: View {
                             iconCircle(system: pin.system, color: pin.color)
                         }
                     }
-                    .frame(height: geo.size.height * 0.56)
+                    .frame(height: geo.size.height * 0.60)
                     .overlay(alignment: .topLeading) {
                         deliveryEta
                             .padding(16)
                     }
 
                     progressStages
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
                 }
 
                 bottomSheet(height: geo.size.height)
@@ -742,7 +742,7 @@ struct OrderTrackingView: View {
 
     private func targetY(for state: SheetState, height: CGFloat) -> CGFloat {
         switch state {
-        case .half: return height * 0.48
+        case .half: return height * 0.45
         case .low: return height * 0.91
         }
     }
