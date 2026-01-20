@@ -513,6 +513,7 @@ struct OrderTrackingView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 6)
                 }
+                .ignoresSafeArea(edges: .top)
 
                 bottomSheet(height: geo.size.height)
                     .offset(y: sheetY == 0 ? targetY(for: .half, height: geo.size.height) : sheetY)
