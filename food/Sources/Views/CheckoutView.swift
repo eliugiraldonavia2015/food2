@@ -535,6 +535,7 @@ struct OrderTrackingView: View {
                         }
                     }
             }
+            .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 sheetY = targetY(for: .half, height: geo.size.height)
             }
