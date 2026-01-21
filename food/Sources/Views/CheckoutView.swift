@@ -487,10 +487,6 @@ struct OrderTrackingView: View {
                 Color.white.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    header(geo.safeAreaInsets.top)
-                        .padding(.horizontal, 16)
-                        .background(Color.white)
-
                     Map(
                         coordinateRegion: $region,
                         interactionModes: [.pan, .zoom],
@@ -535,7 +531,6 @@ struct OrderTrackingView: View {
                         }
                     }
             }
-            .ignoresSafeArea(.container, edges: .top)
             .onAppear {
                 sheetY = targetY(for: .half, height: geo.size.height)
             }
@@ -550,6 +545,11 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
+        .safeAreaInset(edge: .top) {
+            headerBar
+                .padding(.horizontal, 16)
+                .background(Color.white)
+        }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
                 restaurantId: restaurantId,
@@ -564,7 +564,7 @@ struct OrderTrackingView: View {
         }
     }
 
-    private func header(_ safeTop: CGFloat) -> some View {
+    private var headerBar: some View {
         HStack(alignment: .center, spacing: 12) {
             Button(action: { showMenu = true }) {
                 Image(systemName: "chevron.left")
@@ -588,7 +588,6 @@ struct OrderTrackingView: View {
             .clipShape(Capsule())
             .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
-        .padding(.top, -safeTop)
     }
 
     private var progressStages: some View {
