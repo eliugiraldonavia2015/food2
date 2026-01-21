@@ -487,10 +487,8 @@ struct OrderTrackingView: View {
                 Color.white.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    header
+                    header(geo.safeAreaInsets.top)
                         .padding(.horizontal, 16)
-                        .padding(.top, 0)
-                        .padding(.bottom, 0)
                         .background(Color.white)
 
                     Map(
@@ -565,7 +563,7 @@ struct OrderTrackingView: View {
         }
     }
 
-    private var header: some View {
+    private func header(_ safeTop: CGFloat) -> some View {
         HStack(alignment: .center, spacing: 12) {
             Button(action: { showMenu = true }) {
                 Image(systemName: "chevron.left")
@@ -589,6 +587,7 @@ struct OrderTrackingView: View {
             .clipShape(Capsule())
             .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
+        .offset(y: -safeTop)
     }
 
     private var progressStages: some View {
