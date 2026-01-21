@@ -565,28 +565,35 @@ struct OrderTrackingView: View {
     }
 
     private var headerBar: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Button(action: { showMenu = true }) {
-                Image(systemName: "chevron.left")
+        VStack(spacing: 6) {
+            HStack(alignment: .center, spacing: 12) {
+                Button(action: { showMenu = true }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.black)
+                        .font(.system(size: 18, weight: .bold))
+                        .frame(width: 40, height: 40)
+                }
+                Text("Tu pedido va en camino")
                     .foregroundColor(.black)
-                    .font(.system(size: 18, weight: .bold))
-                    .frame(width: 40, height: 40)
+                    .font(.system(size: 20, weight: .bold))
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                Spacer()
             }
-            Text("Tu pedido va en camino")
-                .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
-            Spacer()
-            HStack(spacing: 8) {
-                Circle().fill(Color.brandGreen).frame(width: 10, height: 10)
-                Text(timeString(remaining: max(0, 60 - elapsed)))
-                    .foregroundColor(.brandGreen)
-                    .font(.system(size: 13, weight: .bold))
+            HStack {
+                Spacer()
+                HStack(spacing: 8) {
+                    Circle().fill(Color.brandGreen).frame(width: 10, height: 10)
+                    Text(timeString(remaining: max(0, 60 - elapsed)))
+                        .foregroundColor(.brandGreen)
+                        .font(.system(size: 13, weight: .bold))
+                }
+                .padding(.vertical, 6)
+                .padding(.horizontal, 12)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(Color.white)
-            .clipShape(Capsule())
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
         }
     }
 
