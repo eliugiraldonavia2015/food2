@@ -547,8 +547,11 @@ struct OrderTrackingView: View {
         }
         .preferredColorScheme(.light)
         .overlay(alignment: .top) {
-            headerBar
-                .padding(.horizontal, 12)
+            GeometryReader { proxy in
+                headerBar
+                    .padding(.horizontal, 12)
+                    .offset(y: -proxy.safeAreaInsets.top)
+            }
         }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
