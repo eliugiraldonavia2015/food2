@@ -502,7 +502,7 @@ struct OrderTrackingView: View {
                     .overlay(alignment: .topLeading) {
                         deliveryEta
                             .padding(.horizontal, 12)
-                            .padding(.top, 6)
+                            .padding(.top, 2)
                     }
 
                     progressStages
@@ -577,12 +577,12 @@ struct OrderTrackingView: View {
             }
             Text("Tu pedido va en camino")
                 .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer()
         }
-        .padding(.vertical, 0)
+        .frame(height: 28)
     }
 
     private var progressStages: some View {
