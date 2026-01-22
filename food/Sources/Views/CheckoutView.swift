@@ -485,7 +485,7 @@ struct OrderTrackingView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack {
+            ZStack(alignment: .bottom) {
                 VStack(spacing: 0) {
                     headerBar
                         .padding(.horizontal, 12)
@@ -524,6 +524,10 @@ struct OrderTrackingView: View {
                             sheetOffset = sheetOffset >= maxOffset ? 0 : 0
                         }
                     }
+            }
+            .onAppear {
+                let peek: CGFloat = 28
+                sheetOffset = geo.size.height * 0.35 - peek
             }
         }
         .preferredColorScheme(.light)
