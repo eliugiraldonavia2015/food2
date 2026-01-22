@@ -550,7 +550,7 @@ struct OrderTrackingView: View {
             GeometryReader { proxy in
                 headerBar
                     .padding(.horizontal, 12)
-                    .offset(y: -proxy.safeAreaInsets.top)
+                    .offset(y: -proxy.safeAreaInsets.top + 12)
             }
         }
         .fullScreenCover(isPresented: $showMenu) {
@@ -568,12 +568,12 @@ struct OrderTrackingView: View {
     }
 
     private var headerBar: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
             Button(action: { showMenu = true }) {
                 Image(systemName: "chevron.left")
                     .foregroundColor(.black)
                     .font(.system(size: 18, weight: .bold))
-                    .frame(width: 32, height: 32)
+                    .imageScale(.medium)
             }
             Text("Tu pedido va en camino")
                 .foregroundColor(.black)
