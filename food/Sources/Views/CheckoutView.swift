@@ -486,7 +486,7 @@ struct OrderTrackingView: View {
             VStack(spacing: 0) {
                 headerBar
                     .padding(.horizontal, 12)
-                WazeLikeMapView(region: $region)
+                WazeLikeMapView(region: $region, tileTemplate: nil)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
@@ -508,20 +508,42 @@ struct OrderTrackingView: View {
 
 struct WazeLikeMapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
+    let tileTemplate: String?
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
-        map.mapType = .mutedStandard
+        if #available(iOS 13.0, *) {
+            let config = MKStandardMapConfiguration(elevationStyle: .flat, emphasisStyle: .muted)
+            config.showsTraffic = false
+            map.preferredConfiguration = config
+        } else {
+            map.mapType = .standard
+        }
         map.pointOfInterestFilter = .excludingAll
         map.showsCompass = false
         map.showsScale = false
         map.showsBuildings = false
+        map.isRotateEnabled = false
+        map.isPitchEnabled = false
         map.setRegion(region, animated: false)
+        if let template = tileTemplate, let overlay = tileOverlay(from: template) {
+            overlay.canReplaceMapContent = true
+            map.addOverlay(overlay, level: .aboveLabels)
+        }
+        map.delegate = context.coordinator
         return map
     }
     func updateUIView(_ uiView: MKMapView, context: Context) {
         if uiView.region.center.latitude != region.center.latitude || uiView.region.center.longitude != region.center.longitude {
             uiView.setRegion(region, animated: false)
         }
+    }
+    func makeCoordinator() -> Coordinator { Coordinator() }
+    final class Coordinator: NSObject, MKMapViewDelegate {}
+    private func tileOverlay(from template: String) -> MKTileOverlay? {
+        let overlay = MKTileOverlay(urlTemplate: template)
+        overlay.minimumZ = 0
+        overlay.maximumZ = 19
+        return overlay
     }
 }
 
