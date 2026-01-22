@@ -499,6 +499,7 @@ struct OrderTrackingView: View {
                     }
                     .frame(height: geo.size.height * 0.60)
                     .ignoresSafeArea(.container, edges: .top)
+                    .padding(.top, -28)
                     .overlay(alignment: .topLeading) {
                         deliveryEta
                             .padding(.horizontal, 12)
