@@ -483,77 +483,14 @@ struct OrderTrackingView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack {
-                Color.white.ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    Map(
-                        coordinateRegion: $region,
-                        interactionModes: [.pan, .zoom],
-                        showsUserLocation: false,
-                        annotationItems: pins
-                    ) { pin in
-                        MapAnnotation(coordinate: pin.coordinate) {
-                            iconCircle(system: pin.system, color: pin.color)
-                        }
-                    }
-                    .frame(height: geo.size.height * 0.60)
-                    .ignoresSafeArea(.container, edges: .top)
-                    .padding(.top, -28)
-                    .overlay(alignment: .topLeading) {
-                        deliveryEta
-                            .padding(.horizontal, 12)
-                            .padding(.top, 2)
-                    }
-
-                    progressStages
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                }
-
-                bottomSheet(height: geo.size.height)
-                    .offset(y: sheetY == 0 ? targetY(for: .half, height: geo.size.height) : sheetY)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                let minY = targetY(for: .half, height: geo.size.height)
-                                let maxY = targetY(for: .low, height: geo.size.height)
-                                sheetY = max(minY, min(maxY, value.location.y))
-                            }
-                            .onEnded { value in
-                                let mid = (targetY(for: .half, height: geo.size.height) + targetY(for: .low, height: geo.size.height)) / 2
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                                    sheetY = value.location.y < mid ? targetY(for: .half, height: geo.size.height) : targetY(for: .low, height: geo.size.height)
-                                }
-                            }
-                    )
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                            sheetY = targetY(for: .half, height: geo.size.height)
-                        }
-                    }
-            }
-            .onAppear {
-                sheetY = targetY(for: .half, height: geo.size.height)
-            }
-            .onReceive(timer) { _ in
-                guard elapsed < 60 else { return }
-                elapsed += 1
-                let t = Double(elapsed) / 60.0
-                let next = interpolate(from: restaurantCoord, to: destinationCoord, t: t)
-                withAnimation(.linear(duration: 1.0)) {
-                    courierCoord = next
-                }
+            VStack(spacing: 0) {
+                headerBar
+                    .padding(.horizontal, 12)
+                Color.blue
+                    .ignoresSafeArea(.container, edges: .bottom)
             }
         }
         .preferredColorScheme(.light)
-        .overlay(alignment: .top) {
-            GeometryReader { proxy in
-                headerBar
-                    .padding(.horizontal, 12)
-                    .offset(y: -proxy.safeAreaInsets.top + 12)
-            }
-        }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
                 restaurantId: restaurantId,
