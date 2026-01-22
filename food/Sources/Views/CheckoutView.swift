@@ -480,15 +480,48 @@ struct OrderTrackingView: View {
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var showMenu: Bool = false
     @Environment(\.dismiss) private var dismiss
+    @State private var sheetOffset: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
-            VStack(spacing: 0) {
-                headerBar
-                    .padding(.horizontal, 12)
-                WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea(.container, edges: .bottom)
+            ZStack {
+                VStack(spacing: 0) {
+                    headerBar
+                        .padding(.horizontal, 12)
+                    WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea(.container, edges: .bottom)
+                }
+
+                bottomSheet(height: geo.size.height)
+                    .frame(height: geo.size.height * 0.35)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
+                    .offset(y: sheetOffset)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                let peek: CGFloat = 28
+                                let maxOffset = geo.size.height * 0.35 - peek
+                                sheetOffset = min(max(0, sheetOffset + value.translation.y), maxOffset)
+                            }
+                            .onEnded { _ in
+                                let peek: CGFloat = 28
+                                let maxOffset = geo.size.height * 0.35 - peek
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                                    sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
+                                }
+                            }
+                    )
+                    .onTapGesture {
+                        let peek: CGFloat = 28
+                        let maxOffset = geo.size.height * 0.35 - peek
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            sheetOffset = sheetOffset >= maxOffset ? 0 : 0
+                        }
+                    }
             }
         }
         .preferredColorScheme(.light)
@@ -563,6 +596,18 @@ struct WazeLikeMapView: UIViewRepresentable {
             Spacer()
         }
         .frame(height: 28)
+    }
+
+    private func bottomSheet(height: CGFloat) -> some View {
+        VStack(spacing: 12) {
+            Capsule()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 50, height: 5)
+                .padding(.top, 8)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 
     private var progressStages: some View {

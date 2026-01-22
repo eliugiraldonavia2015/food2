@@ -8,6 +8,6 @@ enum MapBaseStyleOption: String {
 }
 
 final class MinimalMapStyle {
-    static var template: String? = nil
+    static var template: String? = "https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
     static var base: MapBaseStyleOption = .muted
 }
