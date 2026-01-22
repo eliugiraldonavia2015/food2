@@ -487,8 +487,6 @@ struct OrderTrackingView: View {
                 Color.white.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    headerBar
-                        .padding(.horizontal, 12)
                     Map(
                         coordinateRegion: $region,
                         interactionModes: [.pan, .zoom],
@@ -500,6 +498,7 @@ struct OrderTrackingView: View {
                         }
                     }
                     .frame(height: geo.size.height * 0.60)
+                    .ignoresSafeArea(.container, edges: .top)
                     .overlay(alignment: .topLeading) {
                         deliveryEta
                             .padding(.horizontal, 12)
@@ -547,6 +546,10 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
+        .overlay(alignment: .top) {
+            headerBar
+                .padding(.horizontal, 12)
+        }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
                 restaurantId: restaurantId,
