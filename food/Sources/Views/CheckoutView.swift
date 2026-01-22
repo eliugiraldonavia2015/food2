@@ -498,9 +498,14 @@ struct OrderTrackingView: View {
                         }
                     }
                     .frame(height: geo.size.height * 0.60)
-                    .overlay(alignment: .topLeading) {
-                        deliveryEta
-                            .padding(6)
+                    .overlay(alignment: .top) {
+                        VStack(spacing: 6) {
+                            headerBar
+                                .padding(.horizontal, 12)
+                            deliveryEta
+                                .padding(.horizontal, 12)
+                                .padding(.top, 0)
+                        }
                     }
 
                     progressStages
@@ -545,10 +550,6 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
-        .overlay(alignment: .top) {
-            headerBar
-                .padding(.horizontal, 4)
-        }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
                 restaurantId: restaurantId,
@@ -564,16 +565,16 @@ struct OrderTrackingView: View {
     }
 
     private var headerBar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 12) {
             Button(action: { showMenu = true }) {
                 Image(systemName: "chevron.left")
                     .foregroundColor(.black)
                     .font(.system(size: 18, weight: .bold))
-                    .frame(width: 26, height: 26)
+                    .frame(width: 32, height: 32)
             }
             Text("Tu pedido va en camino")
                 .foregroundColor(.black)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 20, weight: .bold))
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer()
