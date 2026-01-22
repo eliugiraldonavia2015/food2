@@ -481,6 +481,7 @@ struct OrderTrackingView: View {
     @State private var showMenu: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var sheetOffset: CGFloat = 0
+    @State private var sheetStartOffset: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -505,7 +506,8 @@ struct OrderTrackingView: View {
                             .onChanged { value in
                                 let peek: CGFloat = 28
                                 let maxOffset = geo.size.height * 0.35 - peek
-                                sheetOffset = min(max(0, sheetOffset + value.translation.y), maxOffset)
+                                if value.translation.width == 0 && value.translation.height == 0 { sheetStartOffset = sheetOffset }
+                                sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
                             }
                             .onEnded { _ in
                                 let peek: CGFloat = 28
@@ -598,17 +600,7 @@ struct WazeLikeMapView: UIViewRepresentable {
         .frame(height: 28)
     }
 
-    private func bottomSheet(height: CGFloat) -> some View {
-        VStack(spacing: 12) {
-            Capsule()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 50, height: 5)
-                .padding(.top, 8)
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
-    }
+    
 
     private var progressStages: some View {
         VStack(spacing: 8) {
