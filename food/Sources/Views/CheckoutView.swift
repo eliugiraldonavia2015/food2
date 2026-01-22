@@ -495,6 +495,10 @@ struct OrderTrackingView: View {
                         .ignoresSafeArea(.container, edges: .bottom)
                 }
 
+                Color.white
+                    .frame(height: geo.safeAreaInsets.bottom)
+                    .ignoresSafeArea(.container, edges: .bottom)
+
                 bottomSheet(height: geo.size.height)
                     .frame(height: geo.size.height * 0.40)
                     .frame(maxWidth: .infinity)
@@ -502,7 +506,7 @@ struct OrderTrackingView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
                     .ignoresSafeArea(.container, edges: .bottom)
-                    .offset(y: sheetOffset)
+                    .offset(y: sheetOffset - 10)
                     .gesture(
                         DragGesture()
                             .onChanged { value in
