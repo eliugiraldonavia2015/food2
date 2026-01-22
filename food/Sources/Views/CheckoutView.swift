@@ -482,6 +482,7 @@ struct OrderTrackingView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var sheetOffset: CGFloat = 0
     @State private var sheetStartOffset: CGFloat = 0
+    @State private var isDraggingSheet: Bool = false
 
     var body: some View {
         GeometryReader { geo in
@@ -495,7 +496,7 @@ struct OrderTrackingView: View {
                 }
 
                 bottomSheet(height: geo.size.height)
-                    .frame(height: geo.size.height * 0.35)
+                    .frame(height: geo.size.height * 0.40)
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -505,13 +506,14 @@ struct OrderTrackingView: View {
                         DragGesture()
                             .onChanged { value in
                                 let peek: CGFloat = 28
-                                let maxOffset = geo.size.height * 0.35 - peek
-                                if value.translation.width == 0 && value.translation.height == 0 { sheetStartOffset = sheetOffset }
+                                let maxOffset = geo.size.height * 0.40 - peek
+                                if !isDraggingSheet { sheetStartOffset = sheetOffset; isDraggingSheet = true }
                                 sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
                             }
                             .onEnded { _ in
                                 let peek: CGFloat = 28
-                                let maxOffset = geo.size.height * 0.35 - peek
+                                let maxOffset = geo.size.height * 0.40 - peek
+                                isDraggingSheet = false
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                                     sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
                                 }
@@ -519,15 +521,14 @@ struct OrderTrackingView: View {
                     )
                     .onTapGesture {
                         let peek: CGFloat = 28
-                        let maxOffset = geo.size.height * 0.35 - peek
+                        let maxOffset = geo.size.height * 0.40 - peek
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                            sheetOffset = sheetOffset >= maxOffset ? 0 : 0
+                            sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
                         }
                     }
             }
             .onAppear {
-                let peek: CGFloat = 28
-                sheetOffset = geo.size.height * 0.35 - peek
+                sheetOffset = 0
             }
         }
         .preferredColorScheme(.light)
