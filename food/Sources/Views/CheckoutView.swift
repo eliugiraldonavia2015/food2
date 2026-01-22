@@ -648,11 +648,11 @@ struct WazeLikeMapView: UIViewRepresentable {
     }
 
     private func bottomSheet(height: CGFloat) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             Capsule()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 50, height: 5)
-                .padding(.top, 4)
+                .fill(Color.gray.opacity(0.28))
+                .frame(width: 44, height: 4)
+                .padding(.top, 2)
             HStack {
                 Text("Detalles del pedido")
                     .foregroundColor(.black)
