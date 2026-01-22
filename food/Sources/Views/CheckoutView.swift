@@ -547,7 +547,7 @@ struct OrderTrackingView: View {
         .preferredColorScheme(.light)
         .overlay(alignment: .top) {
             headerBar
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 8)
         }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
@@ -564,16 +564,16 @@ struct OrderTrackingView: View {
     }
 
     private var headerBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Button(action: { showMenu = true }) {
                 Image(systemName: "chevron.left")
                     .foregroundColor(.black)
                     .font(.system(size: 18, weight: .bold))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 28, height: 28)
             }
             Text("Tu pedido va en camino")
                 .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .lineLimit(1)
                 .layoutPriority(1)
             Spacer()
