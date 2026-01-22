@@ -501,6 +501,7 @@ struct OrderTrackingView: View {
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
+                    .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: sheetOffset)
                     .gesture(
                         DragGesture()
