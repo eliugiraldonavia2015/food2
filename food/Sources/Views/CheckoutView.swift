@@ -649,10 +649,6 @@ struct WazeLikeMapView: UIViewRepresentable {
 
     private func bottomSheet(height: CGFloat) -> some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(Color.gray.opacity(0.28))
-                .frame(width: 44, height: 4)
-                .padding(.top, 2)
             HStack {
                 Text("Detalles del pedido")
                     .foregroundColor(.black)
@@ -663,7 +659,12 @@ struct WazeLikeMapView: UIViewRepresentable {
                     .font(.system(size: 14, weight: .bold))
             }
             .padding(.horizontal, 6)
+            .padding(.top, 0)
             Divider().overlay(Color.gray.opacity(0.18))
+            Capsule()
+                .fill(Color.gray.opacity(0.28))
+                .frame(width: 44, height: 4)
+                .padding(.top, 2)
             VStack(spacing: 12) {
                 HStack(spacing: 10) {
                     Circle().fill(Color.fuchsia.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "person.fill").foregroundColor(.fuchsia))
