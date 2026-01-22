@@ -486,7 +486,8 @@ struct OrderTrackingView: View {
             VStack(spacing: 0) {
                 headerBar
                     .padding(.horizontal, 12)
-                Color.blue
+                WazeLikeMapView(region: $region)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
         }
@@ -504,6 +505,25 @@ struct OrderTrackingView: View {
             )
         }
     }
+
+struct WazeLikeMapView: UIViewRepresentable {
+    @Binding var region: MKCoordinateRegion
+    func makeUIView(context: Context) -> MKMapView {
+        let map = MKMapView()
+        map.mapType = .mutedStandard
+        map.pointOfInterestFilter = .excludingAll
+        map.showsCompass = false
+        map.showsScale = false
+        map.showsBuildings = false
+        map.setRegion(region, animated: false)
+        return map
+    }
+    func updateUIView(_ uiView: MKMapView, context: Context) {
+        if uiView.region.center.latitude != region.center.latitude || uiView.region.center.longitude != region.center.longitude {
+            uiView.setRegion(region, animated: false)
+        }
+    }
+}
 
     private var headerBar: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
