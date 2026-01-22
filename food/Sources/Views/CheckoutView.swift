@@ -486,7 +486,7 @@ struct OrderTrackingView: View {
             VStack(spacing: 0) {
                 headerBar
                     .padding(.horizontal, 12)
-                WazeLikeMapView(region: $region, tileTemplate: nil)
+                WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.container, edges: .bottom)
             }
