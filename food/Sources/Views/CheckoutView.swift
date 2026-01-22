@@ -659,7 +659,7 @@ struct WazeLikeMapView: UIViewRepresentable {
                     .font(.system(size: 14, weight: .bold))
             }
             .padding(.horizontal, 6)
-            .padding(.top, 0)
+            .padding(.top, -8)
             Divider().overlay(Color.gray.opacity(0.18))
             VStack(spacing: 12) {
                 HStack(spacing: 10) {
@@ -703,6 +703,7 @@ struct WazeLikeMapView: UIViewRepresentable {
             .padding(.horizontal, 10)
         }
         .padding(.horizontal, 16)
+        .padding(.top, -12)
         .padding(.bottom, 16)
     }
 
