@@ -643,11 +643,11 @@ struct WazeLikeMapView: UIViewRepresentable {
     }
 
     private func bottomSheet(height: CGFloat) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             Capsule()
                 .fill(Color.gray.opacity(0.3))
                 .frame(width: 50, height: 5)
-                .padding(.top, 8)
+                .padding(.top, 4)
             HStack {
                 Text("Detalles del pedido")
                     .foregroundColor(.black)
@@ -702,9 +702,6 @@ struct WazeLikeMapView: UIViewRepresentable {
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
     }
 
     private func stageIcon(system: String, index: Int) -> some View {
