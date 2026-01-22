@@ -487,6 +487,8 @@ struct OrderTrackingView: View {
                 Color.white.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    headerBar
+                        .padding(.horizontal, 12)
                     Map(
                         coordinateRegion: $region,
                         interactionModes: [.pan, .zoom],
@@ -498,21 +500,16 @@ struct OrderTrackingView: View {
                         }
                     }
                     .frame(height: geo.size.height * 0.60)
-                    .overlay(alignment: .top) {
-                        VStack(spacing: 6) {
-                            headerBar
-                                .padding(.horizontal, 12)
-                            deliveryEta
-                                .padding(.horizontal, 12)
-                                .padding(.top, 0)
-                        }
+                    .overlay(alignment: .topLeading) {
+                        deliveryEta
+                            .padding(.horizontal, 12)
+                            .padding(.top, 6)
                     }
 
                     progressStages
                         .padding(.horizontal, 16)
                         .padding(.vertical, 6)
                 }
-                .ignoresSafeArea(edges: .top)
 
                 bottomSheet(height: geo.size.height)
                     .offset(y: sheetY == 0 ? targetY(for: .half, height: geo.size.height) : sheetY)
