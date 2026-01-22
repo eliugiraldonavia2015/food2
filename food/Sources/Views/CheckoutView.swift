@@ -545,10 +545,9 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
-        .safeAreaInset(edge: .top) {
+        .overlay(alignment: .top) {
             headerBar
-                .padding(.horizontal, 16)
-                .background(Color.white)
+                .padding(.horizontal, 12)
         }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
@@ -579,7 +578,7 @@ struct OrderTrackingView: View {
                 .layoutPriority(1)
             Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 0)
     }
 
     private var progressStages: some View {
