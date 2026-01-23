@@ -1017,95 +1017,113 @@ struct DeliveryChatView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header
-                HStack(spacing: 12) {
-                    ZStack(alignment: .bottomTrailing) {
-                        Circle()
-                            .fill(Color.white.opacity(0.10))
-                            .frame(width: 40, height: 40)
-                            .overlay(Image(systemName: "person.fill").foregroundColor(.white))
-                            .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(Color.black, lineWidth: 2))
-                            .offset(x: 2, y: 2)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Juan Pérez")
-                            .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .bold))
-                        Text("Repartidor • Toyota Prius")
-                            .foregroundColor(.white.opacity(0.7))
-                            .font(.caption)
-                    }
-                    Spacer()
-                    
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.white.opacity(0.4))
-                            .font(.system(size: 24))
-                    }
-                }
-                .padding(16)
-                .background(Color.black)
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                Color.black.ignoresSafeArea()
                 
-                // Messages
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(messages) { msg in
-                                messageBubble(msg)
-                                    .id(msg.id)
+                VStack(spacing: 0) {
+                    // Header
+                    HStack(spacing: 12) {
+                        ZStack(alignment: .bottomTrailing) {
+                            Circle()
+                                .fill(Color.white.opacity(0.10))
+                                .frame(width: 40, height: 40)
+                                .overlay(Image(systemName: "person.fill").foregroundColor(.white))
+                                .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 10, height: 10)
+                                .overlay(Circle().stroke(Color.black, lineWidth: 2))
+                                .offset(x: 2, y: 2)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Juan Pérez")
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .bold))
+                            Text("Repartidor • Toyota Prius")
+                                .foregroundColor(.white.opacity(0.7))
+                                .font(.caption)
+                        }
+                        Spacer()
+                        
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.white.opacity(0.4))
+                                .font(.system(size: 24))
+                        }
+                    }
+                    .padding(16)
+                    .background(Color.black)
+                    .simultaneousGesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.height > geo.size.height * 0.1 {
+                                    dismiss()
+                                }
+                            }
+                    )
+                    
+                    // Messages
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(messages) { msg in
+                                    messageBubble(msg)
+                                        .id(msg.id)
+                                }
+                            }
+                            .padding(16)
+                        }
+                        .onChange(of: messages.count) { _ in
+                            if let last = messages.last {
+                                withAnimation {
+                                    proxy.scrollTo(last.id, anchor: .bottom)
+                                }
                             }
                         }
-                        .padding(16)
-                    }
-                    .onChange(of: messages.count) { _ in
-                        if let last = messages.last {
-                            withAnimation {
-                                proxy.scrollTo(last.id, anchor: .bottom)
-                            }
-                        }
-                    }
-                }
-                
-                // Composer
-                HStack(spacing: 12) {
-                    Button(action: {}) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 20))
                     }
                     
-                    TextField("Escribe un mensaje...", text: $composerText)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.white.opacity(0.1))
-                        .clipShape(Capsule())
-                        .foregroundColor(.white)
-                    
-                    if !composerText.isEmpty {
-                        Button(action: sendMessage) {
-                            Image(systemName: "paperplane.fill")
-                                .foregroundColor(.brandGreen)
-                                .font(.system(size: 20))
-                        }
-                    } else {
+                    // Composer
+                    HStack(spacing: 12) {
                         Button(action: {}) {
-                            Image(systemName: "mic.fill")
+                            Image(systemName: "plus")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 20))
                         }
+                        
+                        TextField("Escribe un mensaje...", text: $composerText)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Capsule())
+                            .foregroundColor(.white)
+                        
+                        if !composerText.isEmpty {
+                            Button(action: sendMessage) {
+                                Image(systemName: "paperplane.fill")
+                                .foregroundColor(.brandGreen)
+                                .font(.system(size: 20))
+                            }
+                        } else {
+                            Button(action: {}) {
+                                Image(systemName: "mic.fill")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 20))
+                            }
+                        }
                     }
+                    .padding(16)
+                    .background(Color.black)
+                    .simultaneousGesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.height > geo.size.height * 0.1 {
+                                    dismiss()
+                                }
+                            }
+                    )
                 }
-                .padding(16)
-                .background(Color.black)
             }
         }
         .preferredColorScheme(.dark)
