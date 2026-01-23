@@ -508,30 +508,7 @@ struct OrderTrackingView: View {
                     
                     .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: sheetOffset)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                let peek: CGFloat = 28
-                                let maxOffset = geo.size.height * 0.40 - peek
-                                if !isDraggingSheet { sheetStartOffset = sheetOffset; isDraggingSheet = true }
-                                sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
-                            }
-                            .onEnded { _ in
-                                let peek: CGFloat = 28
-                                let maxOffset = geo.size.height * 0.40 - peek
-                                isDraggingSheet = false
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                                    sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
-                                }
-                            }
-                    )
-                    .onTapGesture {
-                        let peek: CGFloat = 28
-                        let maxOffset = geo.size.height * 0.40 - peek
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                            sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
-                        }
-                    }
+                    
             }
             .onAppear {
                 sheetOffset = 0
@@ -661,6 +638,32 @@ struct WazeLikeMapView: UIViewRepresentable {
             }
             .padding(.horizontal, 6)
             .padding(.top, 0)
+            .frame(height: 28)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let peek: CGFloat = 28
+                        let maxOffset = height * 0.40 - peek
+                        if !isDraggingSheet { sheetStartOffset = sheetOffset; isDraggingSheet = true }
+                        sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
+                    }
+                    .onEnded { _ in
+                        let peek: CGFloat = 28
+                        let maxOffset = height * 0.40 - peek
+                        isDraggingSheet = false
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
+                        }
+                    }
+            )
+            .onTapGesture {
+                let peek: CGFloat = 28
+                let maxOffset = height * 0.40 - peek
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                    sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
+                }
+            }
             Divider().overlay(Color.gray.opacity(0.18))
             VStack(spacing: 12) {
                 HStack(spacing: 10) {
