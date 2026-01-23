@@ -492,11 +492,10 @@ struct OrderTrackingView: View {
                         .padding(.horizontal, 12)
                     WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .ignoresSafeArea(.container, edges: .bottom)
                 }
 
                 Color.white
-                    .frame(height: geo.safeAreaInsets.bottom)
+                    .frame(height: geo.size.height * 0.40 + geo.safeAreaInsets.bottom)
                     .ignoresSafeArea(.container, edges: .bottom)
 
                 bottomSheet(height: geo.size.height)
