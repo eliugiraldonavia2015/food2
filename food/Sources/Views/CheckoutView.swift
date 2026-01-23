@@ -496,7 +496,7 @@ struct OrderTrackingView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
 
                 let sheetH = geo.size.height * 0.45
-                bottomSheet(height: sheetH)
+                bottomSheet(height: sheetH, collapsed: $isSheetCollapsed)
                     .frame(height: sheetH)
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
@@ -683,7 +683,7 @@ struct WazeLikeMapView: UIViewRepresentable {
         ]
     }
 }
-    private func bottomSheet(height: CGFloat) -> some View {
+    private func bottomSheet(height: CGFloat, collapsed: Binding<Bool>) -> some View {
         let headerHeight: CGFloat = 36
         return VStack(spacing: 0) {
             ZStack(alignment: .center) {
@@ -698,10 +698,10 @@ struct WazeLikeMapView: UIViewRepresentable {
                     Spacer()
                     Button(action: {
                         withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) {
-                            isSheetCollapsed.toggle()
+                            collapsed.wrappedValue.toggle()
                         }
                     }) {
-                        Image(systemName: isSheetCollapsed ? "chevron.up" : "chevron.down")
+                        Image(systemName: collapsed.wrappedValue ? "chevron.up" : "chevron.down")
                             .foregroundColor(.black)
                             .font(.system(size: 16, weight: .bold))
                     }
