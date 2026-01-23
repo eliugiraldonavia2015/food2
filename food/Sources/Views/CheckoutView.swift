@@ -1005,24 +1005,36 @@ struct OrderTrackingView: View {
 
 struct OrderCompletedOverlayView: View {
     let onDismiss: () -> Void
+    @State private var showBackground = false
     @State private var showCard = false
     @State private var showContent = false
     @State private var checkTrim: CGFloat = 0
-    @State private var starStates: [Bool] = [false, false, false, false, false]
+    
+    // Rating State
+    enum RatingStep: Int, CaseIterable {
+        case delivery
+        case attention
+        case experience
+        case finished
+    }
+    
+    @State private var currentStep: RatingStep = .delivery
+    @State private var deliveryRating: Int = 0
+    @State private var attentionRating: Int = 0
+    @State private var experienceRating: Int = 0
     
     // Canvas Particle State
     @State private var particleSystem = ParticleSystem()
-    @State private var lastUpdate = Date()
     
     var body: some View {
         ZStack {
-            // 1. Dimmed Background with Blur
+            // 1. Simple Fade Background (No Blur to avoid lag)
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
-                .opacity(showCard ? 1 : 0)
-                .animation(.easeOut(duration: 0.4), value: showCard)
+                .opacity(showBackground ? 1 : 0)
+                .animation(.linear(duration: 0.3), value: showBackground)
             
-            // 2. Confetti Canvas (Behind and Over)
+            // 2. Confetti Canvas
             TimelineView(.animation) { timeline in
                 Canvas { context, size in
                     particleSystem.update(date: timeline.date, size: size)
@@ -1033,7 +1045,6 @@ struct OrderCompletedOverlayView: View {
                         pContext.rotate(by: .degrees(particle.rotation))
                         
                         let shapeSize = CGSize(width: particle.size, height: particle.size)
-                        // Simple shapes for performance
                         if particle.id % 2 == 0 {
                             pContext.fill(Circle().path(in: CGRect(origin: .zero, size: shapeSize)), with: .color(particle.color))
                         } else {
@@ -1060,7 +1071,6 @@ struct OrderCompletedOverlayView: View {
                                 .scaleEffect(showContent ? 1 : 0.5)
                                 .animation(.spring(response: 0.6, dampingFraction: 0.6), value: showContent)
                             
-                            // Checkmark Path
                             CheckmarkShape()
                                 .trim(from: 0, to: checkTrim)
                                 .stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
@@ -1068,60 +1078,24 @@ struct OrderCompletedOverlayView: View {
                                 .offset(y: 4)
                         }
                     }
-                    .frame(height: 180)
+                    .frame(height: 160)
                     .clipShape(CustomCorner(radius: 30, corners: [.topLeft, .topRight]))
                     
                     // Body Content
-                    VStack(spacing: 24) {
-                        VStack(spacing: 12) {
-                            Text("¡Disfruta tu comida!")
-                                .font(.system(size: 26, weight: .heavy))
-                                .foregroundColor(.black)
-                                .multilineTextAlignment(.center)
-                            
-                            Text("Tu pedido ha sido completado.\nAyúdanos a mejorar calificando el servicio.")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(4)
+                    VStack(spacing: 0) {
+                        if currentStep == .finished {
+                            finishedView
+                                .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
+                        } else {
+                            ratingStepView
+                                .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
                         }
-                        .padding(.top, 10)
-                        
-                        // Interactive Rating
-                        HStack(spacing: 12) {
-                            ForEach(0..<5) { i in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(starStates[i] ? .yellow : .gray.opacity(0.2))
-                                    .scaleEffect(starStates[i] ? 1.2 : 1)
-                                    .animation(.spring(response: 0.3, dampingFraction: 0.5), value: starStates[i])
-                                    .onTapGesture {
-                                        triggerHaptic()
-                                        animateStars(upto: i)
-                                    }
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // Action Button
-                        Button(action: onDismiss) {
-                            Text("Volver al Inicio")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 18)
-                                .background(Color.brandGreen)
-                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                .shadow(color: .brandGreen.opacity(0.4), radius: 10, x: 0, y: 5)
-                        }
-                        .padding(.bottom, 10)
                     }
-                    .padding(24)
+                    .frame(height: 320) // Fixed height to prevent resizing layout jumps
                     .background(Color.white)
                     .clipShape(CustomCorner(radius: 30, corners: [.bottomLeft, .bottomRight]))
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.85, height: 480)
+                .frame(width: UIScreen.main.bounds.width * 0.85)
                 .shadow(color: Color.black.opacity(0.25), radius: 30, x: 0, y: 15)
                 .scaleEffect(showContent ? 1 : 0.8)
                 .opacity(showContent ? 1 : 0)
@@ -1129,38 +1103,157 @@ struct OrderCompletedOverlayView: View {
             }
         }
         .onAppear {
-            // Sequence
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                showCard = true
+            // Optimized Sequence
+            withAnimation { showBackground = true }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                    showCard = true
+                }
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                     showContent = true
                 }
                 particleSystem.emit()
             }
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 withAnimation(.easeInOut(duration: 0.6)) {
                     checkTrim = 1
                 }
                 triggerHaptic(type: .success)
             }
+        }
+    }
+    
+    // MARK: - Subviews
+    
+    private var ratingStepView: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 12) {
+                Text("Califica el servicio")
+                    .font(.system(size: 26, weight: .heavy))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                
+                Text(subtitleForStep)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .id("subtitle-\(currentStep.rawValue)") // Force transition
+                    .transition(.opacity.animation(.easeInOut(duration: 0.2)))
+            }
+            .padding(.top, 30)
             
-            // Auto fill 5 stars nicely
-            for i in 0..<5 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.1) {
-                    starStates[i] = true
-                    triggerHaptic(type: .light)
+            // Stars
+            HStack(spacing: 12) {
+                ForEach(1...5, id: \.self) { i in
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(i <= currentRating ? .yellow : .gray.opacity(0.2))
+                        .scaleEffect(i <= currentRating ? 1.2 : 1)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: currentRating)
+                        .onTapGesture {
+                            handleRating(i)
+                        }
                 }
+            }
+            .padding(.vertical, 20)
+            
+            Spacer()
+            
+            // Progress dots
+            HStack(spacing: 8) {
+                ForEach(RatingStep.allCases.prefix(3), id: \.self) { step in
+                    Circle()
+                        .fill(step == currentStep ? Color.brandGreen : Color.gray.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                }
+            }
+            .padding(.bottom, 30)
+        }
+    }
+    
+    private var finishedView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            
+            Text("¡Muchas Gracias!")
+                .font(.system(size: 28, weight: .black))
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+                .scaleEffect(1.1)
+            
+            Text("Tu opinión nos ayuda a mejorar\nla experiencia para todos.")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+            
+            Spacer()
+            
+            Button(action: onDismiss) {
+                Text("Volver al Inicio")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(Color.brandGreen)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .shadow(color: .brandGreen.opacity(0.4), radius: 10, x: 0, y: 5)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 30)
+        }
+    }
+    
+    // MARK: - Logic
+    
+    private var subtitleForStep: String {
+        switch currentStep {
+        case .delivery: return "Delivery"
+        case .attention: return "Atención"
+        case .experience: return "Experiencia"
+        default: return ""
+        }
+    }
+    
+    private var currentRating: Int {
+        switch currentStep {
+        case .delivery: return deliveryRating
+        case .attention: return attentionRating
+        case .experience: return experienceRating
+        default: return 0
+        }
+    }
+    
+    private func handleRating(_ value: Int) {
+        triggerHaptic(type: .light)
+        
+        // Update rating
+        switch currentStep {
+        case .delivery: deliveryRating = value
+        case .attention: attentionRating = value
+        case .experience: experienceRating = value
+        default: break
+        }
+        
+        // Auto advance after delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                advanceStep()
             }
         }
     }
     
-    private func animateStars(upto index: Int) {
-        for i in 0..<5 {
-            starStates[i] = i <= index
+    private func advanceStep() {
+        switch currentStep {
+        case .delivery: currentStep = .attention
+        case .attention: currentStep = .experience
+        case .experience: currentStep = .finished
+        default: break
         }
     }
     
