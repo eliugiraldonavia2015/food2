@@ -451,24 +451,75 @@ struct OrderTrackingView: View {
     let location: String
     let branchName: String?
     let distanceKm: Double?
-    private let restaurantCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
-    private let destinationCoord = CLLocationCoordinate2D(latitude: 19.426, longitude: -99.170)
-    @State private var courierCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
-    @State private var elapsed: Int = 0
+    
+    // MARK: - Simulation State
+    enum OrderStatus: CaseIterable {
+        case sent
+        case confirmed
+        case preparing
+        case courierToRestaurant
+        case pickup
+        case courierToCustomer
+        case arrived
+        case completed
+        
+        var title: String {
+            switch self {
+            case .sent: return "Enviando pedido..."
+            case .confirmed: return "¡Pedido confirmado!"
+            case .preparing: return "Preparando tus alimentos"
+            case .courierToRestaurant: return "Repartidor en camino al restaurante"
+            case .pickup: return "Repartidor recogiendo tu pedido"
+            case .courierToCustomer: return "¡Tu pedido va en camino!"
+            case .arrived: return "¡El repartidor llegó!"
+            case .completed: return "Entregado"
+            }
+        }
+        
+        var progress: Double {
+            switch self {
+            case .sent: return 0.05
+            case .confirmed: return 0.15
+            case .preparing: return 0.35
+            case .courierToRestaurant: return 0.50
+            case .pickup: return 0.65
+            case .courierToCustomer: return 0.80
+            case .arrived: return 0.95
+            case .completed: return 1.0
+            }
+        }
+        
+        var systemIcon: String {
+            switch self {
+            case .sent: return "paperplane.fill"
+            case .confirmed: return "checkmark.circle.fill"
+            case .preparing: return "flame.fill"
+            case .courierToRestaurant: return "bicycle"
+            case .pickup: return "bag.fill"
+            case .courierToCustomer: return "figure.wave"
+            case .arrived: return "house.fill"
+            case .completed: return "star.fill"
+            }
+        }
+    }
+    
+    @State private var status: OrderStatus = .sent
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 19.423, longitude: -99.1725), span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015))
+    @State private var deliveryCode: String = String(Int.random(in: 1000...9999))
     
     // Sheet State
-    @State private var sheetHeight: CGFloat = .zero
     @State private var offset: CGFloat = 0
     @State private var lastOffset: CGFloat = 0
     @GestureState private var gestureOffset: CGFloat = 0
-    
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    @State private var showMenu: Bool = false
+    @State private var showChat = false
+    @State private var showMenu = false
     @Environment(\.dismiss) private var dismiss
     
+    // Simulation Timer
+    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    
     // Constants
-    private let collapsedHeight: CGFloat = 80 // Visible part when minimized
+    private let collapsedHeight: CGFloat = 100
     private let cornerRadius: CGFloat = 20
 
     var body: some View {
@@ -479,7 +530,6 @@ struct OrderTrackingView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
                     .overlay(
-                        // Back Button
                         Button(action: { showMenu = true }) {
                             Image(systemName: "chevron.left")
                                 .font(.title2.bold())
@@ -494,31 +544,56 @@ struct OrderTrackingView: View {
                         , alignment: .topLeading
                     )
 
-                // 2. Bottom Sheet Overlay
-                // The sheet content itself
+                // 2. Bottom Sheet
                 VStack(spacing: 0) {
                     // Drag Handle
                     Capsule()
-                        .fill(Color.gray.opacity(0.4))
+                        .fill(Color.gray.opacity(0.3))
                         .frame(width: 40, height: 4)
-                        .padding(.top, 10)
-                        .padding(.bottom, 10)
+                        .padding(.top, 12)
+                        .padding(.bottom, 8)
                     
-                    // Header Content
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Tu pedido va en camino")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                            Text("Entrega estimada: 12:15 PM - 12:30 PM")
-                                .font(.subheadline)
-                                .foregroundColor(.brandGreen)
+                    // Header (Always Visible)
+                    VStack(spacing: 12) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(status.title)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .animation(.none, value: status)
+                                
+                                if status != .completed {
+                                    Text("Entrega estimada: 12:30 PM")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            Spacer()
+                            // Status Icon
+                            ZStack {
+                                Circle()
+                                    .fill(Color.brandGreen.opacity(0.1))
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: status.systemIcon)
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.brandGreen)
+                            }
                         }
-                        Spacer()
-                        CircularProgressView(progress: Double(elapsed) / 60.0)
-                            .frame(width: 40, height: 40)
+                        
+                        // Linear Progress Bar
+                        if status != .completed {
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(height: 6)
+                                Capsule()
+                                    .fill(Color.brandGreen)
+                                    .frame(width: geo.size.width * 0.85 * status.progress, height: 6)
+                                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: status)
+                            }
+                        }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
                     .padding(.bottom, 20)
                     
                     Divider()
@@ -526,26 +601,27 @@ struct OrderTrackingView: View {
                     // Scrollable Content
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 24) {
-                            // Status Steps
-                            statusStepsView
+                            if status == .arrived {
+                                verificationCodeView
+                            }
                             
-                            // Driver Info
-                            driverInfoView
+                            driverCardView
                             
-                            // Address Info
-                            addressInfoView
+                            if status == .preparing || status == .confirmed {
+                                preparingAnimationView
+                            }
                             
-                            // Order Items Preview
-                            orderItemsView
+                            addressCardView
+                            orderSummaryView
                         }
-                        .padding(20)
+                        .padding(24)
+                        .padding(.bottom, geo.safeAreaInsets.bottom)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .background(Color.white)
                 .clipShape(CustomCorner(radius: cornerRadius, corners: [.topLeft, .topRight]))
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
-                // Offset Calculation
+                .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: -5)
                 .offset(y: getOffset(height: geo.size.height))
                 .gesture(
                     DragGesture()
@@ -557,14 +633,12 @@ struct OrderTrackingView: View {
                             let velocity = value.predictedEndTranslation.height
                             let height = geo.size.height
                             
-                            // Determine snap points
                             let expanded = 0.0
                             let half = height * 0.4
                             let collapsed = height - collapsedHeight - geo.safeAreaInsets.bottom
                             
                             let currentPos = offset + translation
                             
-                            // Snap logic
                             if currentPos < half / 2 || velocity < -500 {
                                 offset = expanded
                             } else if currentPos > (collapsed + half) / 2 || velocity > 500 {
@@ -575,17 +649,25 @@ struct OrderTrackingView: View {
                             lastOffset = offset
                         }
                 )
-                // Initial State
-                .onAppear {
-                    let height = geo.size.height
-                    offset = height * 0.4 // Start at half
-                    lastOffset = offset
+                
+                // 3. Completion Overlay
+                if status == .completed {
+                    completionOverlay
+                        .transition(.opacity.combined(with: .scale))
                 }
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: offset)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: gestureOffset)
             }
         }
         .preferredColorScheme(.light)
+        .onAppear {
+            offset = 0 // Start expanded
+            lastOffset = 0
+        }
+        .onReceive(timer) { _ in
+            advanceSimulation()
+        }
+        .sheet(isPresented: $showChat) {
+            ChatView()
+        }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
                 restaurantId: restaurantId,
@@ -600,129 +682,287 @@ struct OrderTrackingView: View {
         }
     }
     
-    // MARK: - Helper Views
-    
-    private var statusStepsView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Estado del pedido")
-                .font(.headline)
+    // MARK: - Simulation Logic
+    func advanceSimulation() {
+        guard status != .completed else { return }
+        
+        let allCases = OrderStatus.allCases
+        if let currentIndex = allCases.firstIndex(of: status), currentIndex < allCases.count - 1 {
+            // Stop auto-advance at 'arrived' to let user verify code
+            if status == .arrived { return }
             
-            HStack(spacing: 0) {
-                // Step 1: Cooking
-                VStack {
-                    Image(systemName: "flame.fill")
-                        .foregroundColor(.brandGreen)
-                        .padding(8)
-                        .background(Color.brandGreen.opacity(0.1))
-                        .clipShape(Circle())
-                    Text("Cocinando")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                        .padding(.top, 4)
-                }
-                
-                // Connector
-                Rectangle()
-                    .fill(Color.brandGreen)
-                    .frame(height: 2)
-                    .frame(maxWidth: .infinity)
-                
-                // Step 2: Delivery
-                VStack {
-                    Image(systemName: "bicycle")
-                        .foregroundColor(.gray)
-                        .padding(8)
-                        .background(Color.gray.opacity(0.1))
-                        .clipShape(Circle())
-                    Text("Reparto")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                        .padding(.top, 4)
-                }
+            withAnimation(.spring()) {
+                status = allCases[currentIndex + 1]
             }
         }
     }
     
-    private var driverInfoView: some View {
+    func verifyDelivery() {
+        withAnimation(.spring()) {
+            status = .completed
+            // Confetti or haptic could go here
+        }
+    }
+    
+    func getOffset(height: CGFloat) -> CGFloat {
+        let minOffset = 0.0
+        let maxOffset = height - collapsedHeight - 40
+        let current = offset + gestureOffset
+        return min(max(minOffset, current), maxOffset)
+    }
+    
+    // MARK: - Components
+    
+    var verificationCodeView: some View {
+        VStack(spacing: 16) {
+            Text("Entrégale este código al repartidor")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            
+            Text(deliveryCode)
+                .font(.system(size: 48, weight: .heavy, design: .monospaced))
+                .foregroundColor(.black)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 30)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(16)
+            
+            Button(action: verifyDelivery) {
+                Text("Simular Entrega Exitosa")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.brandGreen)
+                    .cornerRadius(14)
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.05), radius: 10)
+    }
+    
+    var driverCardView: some View {
         HStack(spacing: 16) {
-            Circle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 50, height: 50)
-                .overlay(Image(systemName: "person.fill").foregroundColor(.gray))
+            ZStack {
+                Circle().fill(Color.gray.opacity(0.2))
+                    .frame(width: 56, height: 56)
+                Image(systemName: "person.fill")
+                    .font(.title2)
+                    .foregroundColor(.gray)
+            }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Repartidor")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
                 Text("Juan Pérez")
                     .font(.headline)
+                    .foregroundColor(.black)
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.caption)
+                        .foregroundColor(.yellow)
+                    Text("4.9")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    Text("• Toyota Prius")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
             }
             
             Spacer()
             
-            Button(action: {}) {
-                Image(systemName: "phone.fill")
-                    .foregroundColor(.brandGreen)
-                    .padding(10)
-                    .background(Color.brandGreen.opacity(0.1))
+            Button(action: { showChat = true }) {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.brandGreen)
                     .clipShape(Circle())
+                    .shadow(color: .brandGreen.opacity(0.4), radius: 5, x: 0, y: 3)
             }
         }
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
     }
     
-    private var addressInfoView: some View {
+    var preparingAnimationView: some View {
+        HStack {
+            Image(systemName: "flame.fill")
+                .font(.largeTitle)
+                .foregroundColor(.orange)
+                .padding()
+            VStack(alignment: .leading) {
+                Text("El restaurante está preparando tu pedido")
+                    .font(.subheadline)
+                    .bold()
+                Text("Cuidando cada detalle...")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            Spacer()
+        }
+        .padding()
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(16)
+    }
+    
+    var addressCardView: some View {
         HStack(spacing: 16) {
             Image(systemName: "mappin.circle.fill")
-                .font(.title)
+                .font(.largeTitle)
                 .foregroundColor(.red)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Dirección de entrega")
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundColor(.gray)
-                Text("Av. Paseo de la Reforma 222")
-                    .font(.headline)
+                    .textCase(.uppercase)
+                Text(location)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
             }
             Spacer()
         }
+        .padding(16)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(16)
     }
     
-    private var orderItemsView: some View {
+    var orderSummaryView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Tu pedido")
+            Text("Resumen")
                 .font(.headline)
             
             HStack {
                 Text("1x Big Mac Combo")
-                    .font(.subheadline)
                 Spacer()
-                Text("$125.00")
-                    .font(.subheadline)
-                    .bold()
+                Text("$125.00").bold()
             }
+            .font(.subheadline)
+            
+            Divider()
             
             HStack {
-                Text("1x McFlurry Oreo")
-                    .font(.subheadline)
-                Spacer()
-                Text("$45.00")
-                    .font(.subheadline)
+                Text("Total")
                     .bold()
+                Spacer()
+                Text("$125.00")
+                    .bold()
+                    .foregroundColor(.brandGreen)
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8)
     }
-
-    // MARK: - Logic
     
-    func getOffset(height: CGFloat) -> CGFloat {
-        let minOffset = 0.0 // Fully expanded (top)
-        let maxOffset = height - collapsedHeight - 30 // Collapsed (bottom)
-        
-        let current = offset + gestureOffset
-        return min(max(minOffset, current), maxOffset)
+    var completionOverlay: some View {
+        ZStack {
+            Color.brandGreen.ignoresSafeArea()
+            VStack(spacing: 20) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 80))
+                    .foregroundColor(.white)
+                    .scaleEffect(1.2)
+                    .padding(.bottom, 20)
+                
+                Text("¡Disfruta tu pedido!")
+                    .font(.system(size: 32, weight: .heavy))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                
+                Text("Gracias por confiar en nosotros")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.9))
+                
+                Button(action: { dismiss() }) {
+                    Text("Volver al Inicio")
+                        .font(.headline)
+                        .foregroundColor(.brandGreen)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 16)
+                        .background(Color.white)
+                        .cornerRadius(30)
+                        .shadow(radius: 10)
+                }
+                .padding(.top, 40)
+            }
+            .padding()
+        }
+    }
+}
+
+// MARK: - Chat View
+struct ChatView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var message = ""
+    @State private var messages: [ChatMessage] = [
+        ChatMessage(text: "¡Hola! Ya recogí tu pedido, llego en 10 min.", isUser: false)
+    ]
+    
+    struct ChatMessage: Identifiable, Hashable {
+        let id = UUID()
+        let text: String
+        let isUser: Bool
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(messages) { msg in
+                            HStack {
+                                if msg.isUser { Spacer() }
+                                Text(msg.text)
+                                    .padding(12)
+                                    .background(msg.isUser ? Color.brandGreen : Color.gray.opacity(0.2))
+                                    .foregroundColor(msg.isUser ? .white : .black)
+                                    .cornerRadius(16)
+                                    .frame(maxWidth: 250, alignment: msg.isUser ? .trailing : .leading)
+                                if !msg.isUser { Spacer() }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                
+                HStack {
+                    TextField("Escribe un mensaje...", text: $message)
+                        .padding(10)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(20)
+                    
+                    Button(action: sendMessage) {
+                        Image(systemName: "paperplane.fill")
+                            .font(.title2)
+                            .foregroundColor(.brandGreen)
+                    }
+                    .disabled(message.isEmpty)
+                }
+                .padding()
+                .background(Color.white)
+                .shadow(radius: 2)
+            }
+            .navigationTitle("Chat con Juan")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Cerrar") { dismiss() })
+        }
+    }
+    
+    func sendMessage() {
+        guard !message.isEmpty else { return }
+        messages.append(ChatMessage(text: message, isUser: true))
+        message = ""
     }
 }
 
