@@ -521,10 +521,12 @@ struct OrderTrackingView: View {
     // Constants
     private let collapsedHeight: CGFloat = 100
     private let cornerRadius: CGFloat = 20
+    @State private var hasInitializedPosition = false
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
+                // ... (Map Layer code remains same) ...
                 // 1. Map Layer
                 WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -543,6 +545,15 @@ struct OrderTrackingView: View {
                         .padding(.leading, 16)
                         , alignment: .topLeading
                     )
+                    .onAppear {
+                        if !hasInitializedPosition {
+                            let height = geo.size.height
+                            let halfOffset = height * 0.4
+                            offset = halfOffset
+                            lastOffset = halfOffset
+                            hasInitializedPosition = true
+                        }
+                    }
 
                 // 2. Bottom Sheet
                 VStack(spacing: 0) {
@@ -595,6 +606,72 @@ struct OrderTrackingView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 20)
+                    .background(Color.white) // Ensure hit target
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                let height = geo.size.height
+                                let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                                
+                                // Calculate new offset with rubber banding or direct tracking
+                                let newOffset = lastOffset + value.translation.height
+                                
+                                // Limit the drag range
+                                if newOffset < 0 {
+                                    offset = newOffset / 3 // Resistance at top
+                                } else if newOffset > maxOffset {
+                                    offset = maxOffset + (newOffset - maxOffset) / 3 // Resistance at bottom
+                                } else {
+                                    offset = newOffset
+                                }
+                            }
+                            .onEnded { value in
+                                let height = geo.size.height
+                                let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                                let halfOffset = height * 0.4
+                                let velocity = value.predictedEndTranslation.height
+                                
+                                // Determine snap point based on position and velocity
+                                let targetOffset: CGFloat
+                                
+                                let currentPos = offset
+                                
+                                // Velocity based decisions
+                                if velocity < -600 {
+                                    // Fast swipe up -> go to next higher state
+                                    if currentPos > halfOffset {
+                                        targetOffset = halfOffset
+                                    } else {
+                                        targetOffset = 0
+                                    }
+                                } else if velocity > 600 {
+                                    // Fast swipe down -> go to next lower state
+                                    if currentPos < halfOffset {
+                                        targetOffset = halfOffset
+                                    } else {
+                                        targetOffset = maxOffset
+                                    }
+                                } else {
+                                    // Position based decisions (closest snap point)
+                                    let distToExpanded = abs(currentPos - 0)
+                                    let distToHalf = abs(currentPos - halfOffset)
+                                    let distToCollapsed = abs(currentPos - maxOffset)
+                                    
+                                    if distToExpanded < distToHalf && distToExpanded < distToCollapsed {
+                                        targetOffset = 0
+                                    } else if distToHalf < distToExpanded && distToHalf < distToCollapsed {
+                                        targetOffset = halfOffset
+                                    } else {
+                                        targetOffset = maxOffset
+                                    }
+                                }
+                                
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    offset = targetOffset
+                                }
+                                lastOffset = targetOffset
+                            }
+                    )
                     
                     Divider()
                     
@@ -615,79 +692,34 @@ struct OrderTrackingView: View {
                             orderSummaryView
                         }
                         .padding(24)
-                        .padding(.bottom, geo.safeAreaInsets.bottom)
+                        .padding(.bottom, geo.safeAreaInsets.bottom + 100) // Extra padding for scrolling
                     }
+                    // Allow interaction even when offset pushes it down, but prioritize drag gesture on header/handle
+                    // The ScrollView naturally handles its own gestures, but if the whole sheet moves it might conflict.
+                    // Usually ScrollView inside a draggable sheet works if the drag is on the header or if we use simultaneous gestures.
+                    // Here we only put the drag gesture on the whole VStack container.
+                    // To fix scroll at half position, we should ensure the gesture doesn't eat scroll events.
+                    // However, standard DragGesture on parent often blocks scroll.
+                    // A common fix is to only put the drag gesture on the header/handle, or use a high priority gesture on the scroll view?
+                    // No, usually dragging the content should scroll, dragging the header should move the sheet.
+                    // Let's move the drag gesture to be ONLY on the header/handle area, or specific parts, not the whole sheet.
                 }
                 .frame(maxWidth: .infinity)
                 .background(Color.white)
                 .clipShape(CustomCorner(radius: cornerRadius, corners: [.topLeft, .topRight]))
                 .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: -5)
                 .offset(y: offset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            let height = geo.size.height
-                            let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
-                            
-                            // Calculate new offset with rubber banding or direct tracking
-                            let newOffset = lastOffset + value.translation.height
-                            
-                            // Limit the drag range
-                            if newOffset < 0 {
-                                offset = newOffset / 3 // Resistance at top
-                            } else if newOffset > maxOffset {
-                                offset = maxOffset + (newOffset - maxOffset) / 3 // Resistance at bottom
-                            } else {
-                                offset = newOffset
-                            }
-                        }
-                        .onEnded { value in
-                            let height = geo.size.height
-                            let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
-                            let halfOffset = height * 0.4
-                            let velocity = value.predictedEndTranslation.height
-                            
-                            // Determine snap point based on position and velocity
-                            let targetOffset: CGFloat
-                            
-                            let currentPos = offset
-                            
-                            // Velocity based decisions
-                            if velocity < -600 {
-                                // Fast swipe up -> go to next higher state
-                                if currentPos > halfOffset {
-                                    targetOffset = halfOffset
-                                } else {
-                                    targetOffset = 0
-                                }
-                            } else if velocity > 600 {
-                                // Fast swipe down -> go to next lower state
-                                if currentPos < halfOffset {
-                                    targetOffset = halfOffset
-                                } else {
-                                    targetOffset = maxOffset
-                                }
-                            } else {
-                                // Position based decisions (closest snap point)
-                                let distToExpanded = abs(currentPos - 0)
-                                let distToHalf = abs(currentPos - halfOffset)
-                                let distToCollapsed = abs(currentPos - maxOffset)
-                                
-                                if distToExpanded < distToHalf && distToExpanded < distToCollapsed {
-                                    targetOffset = 0
-                                } else if distToHalf < distToExpanded && distToHalf < distToCollapsed {
-                                    targetOffset = halfOffset
-                                } else {
-                                    targetOffset = maxOffset
-                                }
-                            }
-                            
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                offset = targetOffset
-                            }
-                            lastOffset = targetOffset
-                        }
-                )
+                // We move the drag gesture from here (whole sheet) to just the header/background if we want scroll to work freely.
+                // BUT user wants to drag the sheet up/down.
+                // If we remove it from here, user can only drag by header.
+                // If we keep it, scroll might be blocked.
+                // Let's try putting it on the background but let ScrollView be on top?
+                // Actually, the issue "can't scroll at half position" is likely because the sheet height is huge and offset pushes it down,
+                // but the touch area is still valid. The DragGesture on the parent is consuming the touches.
+                // Correct approach: Apply DragGesture to the whole view but use simultaneousGesture or restricted hit testing?
+                // Better approach: Only allow dragging the sheet via the header area.
+                // Let's move the gesture modifier to the Header VStack.
+
                 
                 // 3. Completion Overlay
                 if status == .completed {
@@ -698,12 +730,13 @@ struct OrderTrackingView: View {
         }
         .preferredColorScheme(.light)
         .onAppear {
-            // Calculate initial half position based on screen height
-            // We need a slight delay or geometry awareness, but for simplicity we start at 0 (expanded)
-            // or we can use a geometry reader value if available.
-            // Let's default to expanded as it's safe.
-            offset = 0 
-            lastOffset = 0
+            // Initial position logic handled via geometry reader if needed, 
+            // but here we set a flag or let the first geometry update set it.
+            // We'll set it to a value that triggers the .onChange of geometry or just rely on state.
+            // Since we need geometry to know what "half" is, we can't set exact pixels here easily 
+            // without hardcoding or waiting for layout.
+            // A common trick is to use a high value and let the clamping logic fix it, 
+            // or initialize it when we have size.
         }
         .onReceive(timer) { _ in
             advanceSimulation()
@@ -870,6 +903,20 @@ struct OrderTrackingView: View {
                     .lineLimit(2)
             }
             Spacer()
+            
+            // Mini Map Preview
+            Map(coordinateRegion: .constant(MKCoordinateRegion(center: destinationCoord, span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005))), interactionModes: [])
+                .frame(width: 60, height: 60)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+                .overlay(
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                )
         }
         .padding(16)
         .background(Color.gray.opacity(0.05))
