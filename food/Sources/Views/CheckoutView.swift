@@ -733,6 +733,8 @@ struct OrderTrackingView: View {
         }
         .sheet(isPresented: $showChat) {
             DeliveryChatView()
+                .presentationDetents([.fraction(0.6), .large])
+                .presentationDragIndicator(.visible)
         }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
@@ -981,65 +983,179 @@ struct OrderTrackingView: View {
 // MARK: - Chat View
 struct DeliveryChatView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var message = ""
+    @State private var composerText = ""
     @State private var messages: [ChatMessage] = [
-        ChatMessage(text: "¡Hola! Ya recogí tu pedido, llego en 10 min.", isUser: false)
+        ChatMessage(text: "¡Hola! Ya recogí tu pedido, llego en 10 min.", isMe: false, time: "Hace 10 min", status: nil),
+        ChatMessage(text: "¡Excelente! Te espero, gracias.", isMe: true, time: "Hace 9 min", status: .seen),
+        ChatMessage(text: "Voy llegando, hay un poco de tráfico.", isMe: false, time: "Ahora", status: nil)
     ]
     
     struct ChatMessage: Identifiable, Hashable {
         let id = UUID()
         let text: String
-        let isUser: Bool
+        let isMe: Bool
+        let time: String
+        let status: MessageStatus?
     }
     
-    var body: some View {
-        NavigationView {
-            VStack {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(messages) { msg in
-                            HStack {
-                                if msg.isUser { Spacer() }
-                                Text(msg.text)
-                                    .padding(12)
-                                    .background(msg.isUser ? Color.brandGreen : Color.gray.opacity(0.2))
-                                    .foregroundColor(msg.isUser ? .white : .black)
-                                    .cornerRadius(16)
-                                    .frame(maxWidth: 250, alignment: msg.isUser ? .trailing : .leading)
-                                if !msg.isUser { Spacer() }
-                            }
-                        }
-                    }
-                    .padding()
-                }
-                
-                HStack {
-                    TextField("Escribe un mensaje...", text: $message)
-                        .padding(10)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(20)
-                    
-                    Button(action: sendMessage) {
-                        Image(systemName: "paperplane.fill")
-                            .font(.title2)
-                            .foregroundColor(.brandGreen)
-                    }
-                    .disabled(message.isEmpty)
-                }
-                .padding()
-                .background(Color.white)
-                .shadow(radius: 2)
+    enum MessageStatus {
+        case sent, delivered, seen
+        var icon: String {
+            switch self {
+            case .sent: return "paperplane"
+            case .delivered: return "checkmark.circle"
+            case .seen: return "checkmark.circle.fill"
             }
-            .navigationTitle("Chat con Juan")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Cerrar") { dismiss() })
+        }
+        var label: String {
+            switch self {
+            case .sent: return "Enviado"
+            case .delivered: return "Entregado"
+            case .seen: return "Visto"
+            }
         }
     }
     
-    func sendMessage() {
-        guard !message.isEmpty else { return }
-        messages.append(ChatMessage(text: message, isUser: true))
-        message = ""
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack(spacing: 12) {
+                    ZStack(alignment: .bottomTrailing) {
+                        Circle()
+                            .fill(Color.white.opacity(0.10))
+                            .frame(width: 40, height: 40)
+                            .overlay(Image(systemName: "person.fill").foregroundColor(.white))
+                            .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 10, height: 10)
+                            .overlay(Circle().stroke(Color.black, lineWidth: 2))
+                            .offset(x: 2, y: 2)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Juan Pérez")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .bold))
+                        Text("Repartidor • Toyota Prius")
+                            .foregroundColor(.white.opacity(0.7))
+                            .font(.caption)
+                    }
+                    Spacer()
+                    
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.white.opacity(0.4))
+                            .font(.system(size: 24))
+                    }
+                }
+                .padding(16)
+                .background(Color.black)
+                
+                // Messages
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(messages) { msg in
+                                messageBubble(msg)
+                                    .id(msg.id)
+                            }
+                        }
+                        .padding(16)
+                    }
+                    .onChange(of: messages.count) { _ in
+                        if let last = messages.last {
+                            withAnimation {
+                                proxy.scrollTo(last.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                }
+                
+                // Composer
+                HStack(spacing: 12) {
+                    Button(action: {}) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 20))
+                    }
+                    
+                    TextField("Escribe un mensaje...", text: $composerText)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.1))
+                        .clipShape(Capsule())
+                        .foregroundColor(.white)
+                    
+                    if !composerText.isEmpty {
+                        Button(action: sendMessage) {
+                            Image(systemName: "paperplane.fill")
+                                .foregroundColor(.brandGreen)
+                                .font(.system(size: 20))
+                        }
+                    } else {
+                        Button(action: {}) {
+                            Image(systemName: "mic.fill")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 20))
+                        }
+                    }
+                }
+                .padding(16)
+                .background(Color.black)
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+    
+    private func messageBubble(_ msg: ChatMessage) -> some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            if msg.isMe { Spacer() }
+            
+            VStack(alignment: msg.isMe ? .trailing : .leading, spacing: 4) {
+                Text(msg.text)
+                    .foregroundColor(.white)
+                    .font(.system(size: 15))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(msg.isMe ? Color.brandGreen : Color.white.opacity(0.15))
+                    .clipShape(CustomCorner(radius: 18, corners: msg.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
+                
+                HStack(spacing: 4) {
+                    Text(msg.time)
+                        .foregroundColor(.gray)
+                        .font(.caption2)
+                    
+                    if msg.isMe, let status = msg.status {
+                        Image(systemName: status.icon)
+                            .foregroundColor(status == .seen ? .brandGreen : .gray)
+                            .font(.caption2)
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+            
+            if !msg.isMe { Spacer() }
+        }
+    }
+    
+    private func sendMessage() {
+        guard !composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let newMsg = ChatMessage(text: composerText, isMe: true, time: "Ahora", status: .sent)
+        withAnimation {
+            messages.append(newMsg)
+            composerText = ""
+        }
+        
+        // Simulate reply
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                messages.append(ChatMessage(text: "¡Entendido!", isMe: false, time: "Ahora", status: nil))
+            }
+        }
     }
 }
 
