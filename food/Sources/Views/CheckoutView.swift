@@ -1005,139 +1005,255 @@ struct OrderTrackingView: View {
 
 struct OrderCompletedOverlayView: View {
     let onDismiss: () -> Void
+    @State private var showCard = false
     @State private var showContent = false
+    @State private var checkTrim: CGFloat = 0
+    @State private var starStates: [Bool] = [false, false, false, false, false]
+    
+    // Canvas Particle State
+    @State private var particleSystem = ParticleSystem()
+    @State private var lastUpdate = Date()
     
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            // 1. Dimmed Background with Blur
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .opacity(showCard ? 1 : 0)
+                .animation(.easeOut(duration: 0.4), value: showCard)
             
-            // Confetti Rain
-            ConfettiView()
-                .opacity(showContent ? 1 : 0)
-            
-            VStack(spacing: 30) {
-                // Success Icon
-                ZStack {
-                    Circle()
-                        .fill(Color.brandGreen.opacity(0.1))
-                        .frame(width: 140, height: 140)
-                        .scaleEffect(showContent ? 1 : 0.5)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showContent)
-                    
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 60, weight: .bold))
-                        .foregroundColor(.brandGreen)
-                        .scaleEffect(showContent ? 1 : 0)
-                        .rotationEffect(.degrees(showContent ? 0 : -45))
-                        .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1), value: showContent)
-                }
-                .padding(.top, 60)
-                
-                // Text
-                VStack(spacing: 16) {
-                    Text("¡Buen Provecho!")
-                        .font(.system(size: 32, weight: .black))
-                        .foregroundColor(.black)
-                        .scaleEffect(showContent ? 1 : 0.9)
-                        .opacity(showContent ? 1 : 0)
-                        .animation(.easeOut(duration: 0.5).delay(0.2), value: showContent)
-                    
-                    Text("Esperamos que disfrutes tu comida.\nNo olvides calificar al repartidor.")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .opacity(showContent ? 1 : 0)
-                        .offset(y: showContent ? 0 : 20)
-                        .animation(.easeOut(duration: 0.5).delay(0.3), value: showContent)
-                }
-                
-                // Rating Placeholder (Animated Stars)
-                HStack(spacing: 12) {
-                    ForEach(0..<5) { i in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.yellow)
-                            .scaleEffect(showContent ? 1 : 0)
-                            .rotationEffect(.degrees(showContent ? 0 : 180))
-                            .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.4 + Double(i) * 0.1), value: showContent)
+            // 2. Confetti Canvas (Behind and Over)
+            TimelineView(.animation) { timeline in
+                Canvas { context, size in
+                    particleSystem.update(date: timeline.date, size: size)
+                    for particle in particleSystem.particles {
+                        var pContext = context
+                        pContext.opacity = particle.opacity
+                        pContext.translateBy(x: particle.x, y: particle.y)
+                        pContext.rotate(by: .degrees(particle.rotation))
+                        
+                        let shapeSize = CGSize(width: particle.size, height: particle.size)
+                        // Simple shapes for performance
+                        if particle.id % 2 == 0 {
+                            pContext.fill(Circle().path(in: CGRect(origin: .zero, size: shapeSize)), with: .color(particle.color))
+                        } else {
+                            pContext.fill(Rectangle().path(in: CGRect(origin: .zero, size: shapeSize)), with: .color(particle.color))
+                        }
                     }
                 }
-                .padding(.vertical, 10)
-                
-                Spacer()
-                
-                // Button
-                Button(action: onDismiss) {
-                    Text("Volver al Inicio")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(Color.brandGreen)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .shadow(color: .brandGreen.opacity(0.3), radius: 10, x: 0, y: 5)
+            }
+            .ignoresSafeArea()
+            .opacity(showContent ? 1 : 0)
+            
+            // 3. Premium Card
+            if showCard {
+                VStack(spacing: 0) {
+                    // Header Graphic
+                    ZStack {
+                        LinearGradient(colors: [Color.brandGreen, Color.brandGreen.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        
+                        // Animated Checkmark
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 100, height: 100)
+                                .scaleEffect(showContent ? 1 : 0.5)
+                                .animation(.spring(response: 0.6, dampingFraction: 0.6), value: showContent)
+                            
+                            // Checkmark Path
+                            CheckmarkShape()
+                                .trim(from: 0, to: checkTrim)
+                                .stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                                .frame(width: 44, height: 44)
+                                .offset(y: 4)
+                        }
+                    }
+                    .frame(height: 180)
+                    .clipShape(CustomCorner(radius: 30, corners: [.topLeft, .topRight]))
+                    
+                    // Body Content
+                    VStack(spacing: 24) {
+                        VStack(spacing: 12) {
+                            Text("¡Disfruta tu comida!")
+                                .font(.system(size: 26, weight: .heavy))
+                                .foregroundColor(.black)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Tu pedido ha sido completado.\nAyúdanos a mejorar calificando el servicio.")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
+                        }
+                        .padding(.top, 10)
+                        
+                        // Interactive Rating
+                        HStack(spacing: 12) {
+                            ForEach(0..<5) { i in
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(starStates[i] ? .yellow : .gray.opacity(0.2))
+                                    .scaleEffect(starStates[i] ? 1.2 : 1)
+                                    .animation(.spring(response: 0.3, dampingFraction: 0.5), value: starStates[i])
+                                    .onTapGesture {
+                                        triggerHaptic()
+                                        animateStars(upto: i)
+                                    }
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // Action Button
+                        Button(action: onDismiss) {
+                            Text("Volver al Inicio")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(Color.brandGreen)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .shadow(color: .brandGreen.opacity(0.4), radius: 10, x: 0, y: 5)
+                        }
+                        .padding(.bottom, 10)
+                    }
+                    .padding(24)
+                    .background(Color.white)
+                    .clipShape(CustomCorner(radius: 30, corners: [.bottomLeft, .bottomRight]))
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 40)
-                .offset(y: showContent ? 0 : 50)
+                .frame(width: UIScreen.main.bounds.width * 0.85, height: 480)
+                .shadow(color: Color.black.opacity(0.25), radius: 30, x: 0, y: 15)
+                .scaleEffect(showContent ? 1 : 0.8)
                 .opacity(showContent ? 1 : 0)
-                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6), value: showContent)
+                .offset(y: showContent ? 0 : 40)
             }
         }
         .onAppear {
-            showContent = true
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-        }
-    }
-}
-
-struct ConfettiView: View {
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                ForEach(0..<30) { _ in
-                    ConfettiParticle(
-                        startPos: CGPoint(x: CGFloat.random(in: 0...geo.size.width), y: -20),
-                        endPos: CGPoint(x: CGFloat.random(in: 0...geo.size.width), y: geo.size.height + 20),
-                        delay: Double.random(in: 0...1.0)
-                    )
+            // Sequence
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                showCard = true
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                    showContent = true
+                }
+                particleSystem.emit()
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    checkTrim = 1
+                }
+                triggerHaptic(type: .success)
+            }
+            
+            // Auto fill 5 stars nicely
+            for i in 0..<5 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 + Double(i) * 0.1) {
+                    starStates[i] = true
+                    triggerHaptic(type: .light)
                 }
             }
         }
     }
-}
-
-struct ConfettiParticle: View {
-    let startPos: CGPoint
-    let endPos: CGPoint
-    let delay: Double
-    @State private var position: CGPoint
-    @State private var rotation: Double = 0
     
-    let color: Color
-    
-    init(startPos: CGPoint, endPos: CGPoint, delay: Double) {
-        self.startPos = startPos
-        self.endPos = endPos
-        self.delay = delay
-        self._position = State(initialValue: startPos)
-        self.color = [Color.brandGreen, .yellow, .orange, .pink, .purple, .blue].randomElement() ?? .green
+    private func animateStars(upto index: Int) {
+        for i in 0..<5 {
+            starStates[i] = i <= index
+        }
     }
     
-    var body: some View {
-        Circle()
-            .fill(color)
-            .frame(width: 8, height: 8)
-            .position(position)
-            .rotationEffect(.degrees(rotation))
-            .onAppear {
-                withAnimation(.linear(duration: 3.0).delay(delay).repeatForever(autoreverses: false)) {
-                    position = endPos
-                    rotation = 360
-                }
+    private func triggerHaptic(type: UINotificationFeedbackGenerator.FeedbackType = .success) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(type)
+    }
+    
+    private func triggerHaptic(type: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: type)
+        generator.impactOccurred()
+    }
+}
+
+// MARK: - High Performance Particle System
+struct Particle {
+    let id: Int
+    var x: Double
+    var y: Double
+    var vx: Double
+    var vy: Double
+    var color: Color
+    var size: Double
+    var opacity: Double
+    var rotation: Double
+    var vRotation: Double
+}
+
+class ParticleSystem {
+    var particles: [Particle] = []
+    private var lastTime: TimeInterval = 0
+    
+    func emit() {
+        // Explosion from center
+        for i in 0..<60 {
+            let angle = Double.random(in: 0...360) * .pi / 180
+            let speed = Double.random(in: 200...800)
+            let color: Color = [.red, .green, .blue, .orange, .purple, .yellow, .pink].randomElement()!
+            
+            let p = Particle(
+                id: i,
+                x: UIScreen.main.bounds.width / 2,
+                y: UIScreen.main.bounds.height / 2,
+                vx: cos(angle) * speed,
+                vy: sin(angle) * speed - 300, // Upward bias
+                color: color,
+                size: Double.random(in: 6...12),
+                opacity: 1,
+                rotation: Double.random(in: 0...360),
+                vRotation: Double.random(in: -5...5)
+            )
+            particles.append(p)
+        }
+    }
+    
+    func update(date: Date, size: CGSize) {
+        let currentTime = date.timeIntervalSinceReferenceDate
+        if lastTime == 0 { lastTime = currentTime }
+        let dt = currentTime - lastTime
+        lastTime = currentTime
+        
+        for i in 0..<particles.count {
+            // Gravity
+            particles[i].vy += 1000 * dt
+            
+            // Movement
+            particles[i].x += particles[i].vx * dt
+            particles[i].y += particles[i].vy * dt
+            
+            // Air resistance
+            particles[i].vx *= 0.95
+            particles[i].vy *= 0.95
+            
+            // Rotation
+            particles[i].rotation += particles[i].vRotation
+            
+            // Fade out
+            if particles[i].y > size.height + 50 {
+                particles[i].opacity = 0
             }
+        }
+        
+        particles.removeAll { $0.opacity <= 0 }
+    }
+}
+
+struct CheckmarkShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.4, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        return path
     }
 }
 
