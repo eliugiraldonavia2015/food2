@@ -476,7 +476,7 @@ struct OrderTrackingView: View {
     @State private var elapsed: Int = 0
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 19.423, longitude: -99.1725), span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015))
     @State private var isSheetCollapsed: Bool = false
-    private let sheetHeaderHeight: CGFloat = 28
+    private let sheetHeaderHeight: CGFloat = 60
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var showMenu: Bool = false
     @Environment(\.dismiss) private var dismiss
