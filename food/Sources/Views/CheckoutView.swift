@@ -498,6 +498,7 @@ struct OrderTrackingView: View {
                     .frame(height: geo.size.height * 0.40 + geo.safeAreaInsets.bottom)
                     .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: sheetOffset)
+                    .animation(nil, value: sheetOffset)
                     .allowsHitTesting(false)
 
                 bottomSheet(height: geo.size.height)
@@ -508,6 +509,7 @@ struct OrderTrackingView: View {
                     
                     .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: sheetOffset)
+                    .animation(nil, value: sheetOffset)
                     
             }
             .onAppear {
@@ -626,7 +628,8 @@ struct WazeLikeMapView: UIViewRepresentable {
     }
 
     private func bottomSheet(height: CGFloat) -> some View {
-        VStack(spacing: 0) {
+        let headerHeight: CGFloat = 28
+        return VStack(spacing: 0) {
             ZStack(alignment: .center) {
                 HStack {
                     Text("Detalles del pedido")
@@ -639,19 +642,17 @@ struct WazeLikeMapView: UIViewRepresentable {
                 }
                 .padding(.horizontal, 6)
             }
-            .frame(height: 28)
+            .frame(height: headerHeight)
             .contentShape(Rectangle())
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        let peek: CGFloat = 28
-                        let maxOffset = height * 0.40 - peek
+                        let maxOffset = height * 0.40 - headerHeight
                         if !isDraggingSheet { sheetStartOffset = sheetOffset; isDraggingSheet = true }
                         sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
                     }
                     .onEnded { _ in
-                        let peek: CGFloat = 28
-                        let maxOffset = height * 0.40 - peek
+                        let maxOffset = height * 0.40 - headerHeight
                         isDraggingSheet = false
                         withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
                             sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
@@ -659,8 +660,7 @@ struct WazeLikeMapView: UIViewRepresentable {
                     }
             )
             .onTapGesture {
-                let peek: CGFloat = 28
-                let maxOffset = height * 0.40 - peek
+                let maxOffset = height * 0.40 - headerHeight
                 withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
                     sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
                 }
