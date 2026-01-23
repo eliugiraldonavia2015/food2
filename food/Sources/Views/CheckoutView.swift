@@ -733,7 +733,7 @@ struct OrderTrackingView: View {
         }
         .sheet(isPresented: $showChat) {
             DeliveryChatView()
-                .presentationDetents([.fraction(0.6), .large])
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
         .fullScreenCover(isPresented: $showMenu) {
