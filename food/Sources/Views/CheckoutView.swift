@@ -644,16 +644,42 @@ struct OrderTrackingView: View {
                         .onEnded { value in
                             let height = geo.size.height
                             let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                            let halfOffset = height * 0.4
                             let velocity = value.predictedEndTranslation.height
                             
                             // Determine snap point based on position and velocity
                             let targetOffset: CGFloat
                             
-                            // If dragging up fast or moved past halfway up
-                            if (value.translation.height < -50 && velocity < -500) || offset < maxOffset / 2 {
-                                targetOffset = 0 // Expanded
+                            let currentPos = offset
+                            
+                            // Velocity based decisions
+                            if velocity < -600 {
+                                // Fast swipe up -> go to next higher state
+                                if currentPos > halfOffset {
+                                    targetOffset = halfOffset
+                                } else {
+                                    targetOffset = 0
+                                }
+                            } else if velocity > 600 {
+                                // Fast swipe down -> go to next lower state
+                                if currentPos < halfOffset {
+                                    targetOffset = halfOffset
+                                } else {
+                                    targetOffset = maxOffset
+                                }
                             } else {
-                                targetOffset = maxOffset // Collapsed
+                                // Position based decisions (closest snap point)
+                                let distToExpanded = abs(currentPos - 0)
+                                let distToHalf = abs(currentPos - halfOffset)
+                                let distToCollapsed = abs(currentPos - maxOffset)
+                                
+                                if distToExpanded < distToHalf && distToExpanded < distToCollapsed {
+                                    targetOffset = 0
+                                } else if distToHalf < distToExpanded && distToHalf < distToCollapsed {
+                                    targetOffset = halfOffset
+                                } else {
+                                    targetOffset = maxOffset
+                                }
                             }
                             
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -672,7 +698,11 @@ struct OrderTrackingView: View {
         }
         .preferredColorScheme(.light)
         .onAppear {
-            offset = 0 // Start expanded
+            // Calculate initial half position based on screen height
+            // We need a slight delay or geometry awareness, but for simplicity we start at 0 (expanded)
+            // or we can use a geometry reader value if available.
+            // Let's default to expanded as it's safe.
+            offset = 0 
             lastOffset = 0
         }
         .onReceive(timer) { _ in
