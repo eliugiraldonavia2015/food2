@@ -688,19 +688,11 @@ struct OrderTrackingView: View {
                             orderSummaryView
                         }
                         .padding(24)
-                        .padding(.bottom, geo.safeAreaInsets.bottom + 100) // Extra padding for scrolling
+                        .padding(.bottom, geo.safeAreaInsets.bottom + (geo.size.height * 0.6)) // Ensure content can be scrolled into view even when sheet is offset
                     }
-                    // Allow interaction even when offset pushes it down, but prioritize drag gesture on header/handle
-                    // The ScrollView naturally handles its own gestures, but if the whole sheet moves it might conflict.
-                    // Usually ScrollView inside a draggable sheet works if the drag is on the header or if we use simultaneous gestures.
-                    // Here we only put the drag gesture on the whole VStack container.
-                    // To fix scroll at half position, we should ensure the gesture doesn't eat scroll events.
-                    // However, standard DragGesture on parent often blocks scroll.
-                    // A common fix is to only put the drag gesture on the header/handle, or use a high priority gesture on the scroll view?
-                    // No, usually dragging the content should scroll, dragging the header should move the sheet.
-                    // Let's move the drag gesture to be ONLY on the header/handle area, or specific parts, not the whole sheet.
                 }
                 .frame(maxWidth: .infinity)
+                .frame(height: geo.size.height)
                 .background(Color.white)
                 .clipShape(CustomCorner(radius: cornerRadius, corners: [.topLeft, .topRight]))
                 .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: -5)
