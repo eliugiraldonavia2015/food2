@@ -510,7 +510,7 @@ struct OrderTrackingView: View {
     // Sheet State
     @State private var offset: CGFloat = 0
     @State private var lastOffset: CGFloat = 0
-    @GestureState private var gestureOffset: CGFloat = 0
+    @State private var isDragging: Bool = false
     @State private var showChat = false
     @State private var showMenu = false
     @Environment(\.dismiss) private var dismiss
@@ -622,31 +622,44 @@ struct OrderTrackingView: View {
                 .background(Color.white)
                 .clipShape(CustomCorner(radius: cornerRadius, corners: [.topLeft, .topRight]))
                 .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: -5)
-                .offset(y: getOffset(height: geo.size.height))
+                .offset(y: offset)
                 .gesture(
                     DragGesture()
-                        .updating($gestureOffset) { value, out, _ in
-                            out = value.translation.height
+                        .onChanged { value in
+                            let height = geo.size.height
+                            let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                            
+                            // Calculate new offset with rubber banding or direct tracking
+                            let newOffset = lastOffset + value.translation.height
+                            
+                            // Limit the drag range
+                            if newOffset < 0 {
+                                offset = newOffset / 3 // Resistance at top
+                            } else if newOffset > maxOffset {
+                                offset = maxOffset + (newOffset - maxOffset) / 3 // Resistance at bottom
+                            } else {
+                                offset = newOffset
+                            }
                         }
                         .onEnded { value in
-                            let translation = value.translation.height
-                            let velocity = value.predictedEndTranslation.height
                             let height = geo.size.height
+                            let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                            let velocity = value.predictedEndTranslation.height
                             
-                            let expanded = 0.0
-                            let half = height * 0.4
-                            let collapsed = height - collapsedHeight - geo.safeAreaInsets.bottom
+                            // Determine snap point based on position and velocity
+                            let targetOffset: CGFloat
                             
-                            let currentPos = offset + translation
-                            
-                            if currentPos < half / 2 || velocity < -500 {
-                                offset = expanded
-                            } else if currentPos > (collapsed + half) / 2 || velocity > 500 {
-                                offset = collapsed
+                            // If dragging up fast or moved past halfway up
+                            if (value.translation.height < -50 && velocity < -500) || offset < maxOffset / 2 {
+                                targetOffset = 0 // Expanded
                             } else {
-                                offset = half
+                                targetOffset = maxOffset // Collapsed
                             }
-                            lastOffset = offset
+                            
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                offset = targetOffset
+                            }
+                            lastOffset = targetOffset
                         }
                 )
                 
@@ -704,12 +717,9 @@ struct OrderTrackingView: View {
         }
     }
     
-    func getOffset(height: CGFloat) -> CGFloat {
-        let minOffset = 0.0
-        let maxOffset = height - collapsedHeight - 40
-        let current = offset + gestureOffset
-        return min(max(minOffset, current), maxOffset)
-    }
+    // MARK: - Logic
+    
+    // Removed complex getOffset logic in favor of direct state manipulation
     
     // MARK: - Components
     
