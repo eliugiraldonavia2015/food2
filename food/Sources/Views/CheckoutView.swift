@@ -495,8 +495,9 @@ struct OrderTrackingView: View {
                 }
 
                 Color.white
-                    .frame(height: geo.size.height * 0.40 + sheetOffset + geo.safeAreaInsets.bottom)
+                    .frame(height: geo.size.height * 0.40 + geo.safeAreaInsets.bottom)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    .offset(y: sheetOffset - 10)
                     .allowsHitTesting(false)
 
                 bottomSheet(height: geo.size.height)
