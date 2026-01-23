@@ -511,7 +511,7 @@ struct OrderTrackingView: View {
     // Sheet State
     @State private var offset: CGFloat = 0
     @State private var lastOffset: CGFloat = 0
-    @State private var isDragging: Bool = false
+    @GestureState private var gestureOffset: CGFloat = 0
     @State private var showChat = false
     @State private var showMenu = false
     @Environment(\.dismiss) private var dismiss
@@ -610,20 +610,19 @@ struct OrderTrackingView: View {
                     .background(Color.white) // Ensure hit target
                     .gesture(
                         DragGesture()
-                            .onChanged { value in
+                            .updating($gestureOffset) { value, out, _ in
                                 let height = geo.size.height
                                 let maxOffset = height - collapsedHeight - geo.safeAreaInsets.bottom
+                                let currentOffset = offset + value.translation.height
                                 
-                                // Calculate new offset with rubber banding or direct tracking
-                                let newOffset = lastOffset + value.translation.height
-                                
-                                // Limit the drag range
-                                if newOffset < 0 {
-                                    offset = newOffset / 3 // Resistance at top
-                                } else if newOffset > maxOffset {
-                                    offset = maxOffset + (newOffset - maxOffset) / 3 // Resistance at bottom
+                                // Rubber banding logic during drag
+                                if currentOffset < 0 {
+                                    out = value.translation.height / 3.0
+                                } else if currentOffset > maxOffset {
+                                    let excess = currentOffset - maxOffset
+                                    out = value.translation.height - (excess / 1.5) // Simplified dampening
                                 } else {
-                                    offset = newOffset
+                                    out = value.translation.height
                                 }
                             }
                             .onEnded { value in
@@ -632,44 +631,40 @@ struct OrderTrackingView: View {
                                 let halfOffset = height * 0.4
                                 let velocity = value.predictedEndTranslation.height
                                 
-                                // Determine snap point based on position and velocity
+                                let currentPos = offset + value.translation.height
                                 let targetOffset: CGFloat
                                 
-                                let currentPos = offset
-                                
-                                // Velocity based decisions
-                                if velocity < -600 {
-                                    // Fast swipe up -> go to next higher state
-                                    if currentPos > halfOffset {
-                                        targetOffset = halfOffset
-                                    } else {
-                                        targetOffset = 0
-                                    }
-                                } else if velocity > 600 {
-                                    // Fast swipe down -> go to next lower state
+                                // Snap logic based on velocity and position
+                                if velocity < -400 {
+                                    // Swipe Up
                                     if currentPos < halfOffset {
-                                        targetOffset = halfOffset
+                                        targetOffset = 0 // Go to Top
                                     } else {
-                                        targetOffset = maxOffset
+                                        targetOffset = halfOffset // Go to Middle
+                                    }
+                                } else if velocity > 400 {
+                                    // Swipe Down
+                                    if currentPos < halfOffset {
+                                        targetOffset = halfOffset // Go to Middle
+                                    } else {
+                                        targetOffset = maxOffset // Go to Bottom
                                     }
                                 } else {
-                                    // Position based decisions (closest snap point)
-                                    let distToExpanded = abs(currentPos - 0)
-                                    let distToHalf = abs(currentPos - halfOffset)
-                                    let distToCollapsed = abs(currentPos - maxOffset)
+                                    // Nearest snap point
+                                    let distToTop = abs(currentPos - 0)
+                                    let distToMid = abs(currentPos - halfOffset)
+                                    let distToBot = abs(currentPos - maxOffset)
                                     
-                                    if distToExpanded < distToHalf && distToExpanded < distToCollapsed {
+                                    if distToTop < distToMid && distToTop < distToBot {
                                         targetOffset = 0
-                                    } else if distToHalf < distToExpanded && distToHalf < distToCollapsed {
+                                    } else if distToMid < distToTop && distToMid < distToBot {
                                         targetOffset = halfOffset
                                     } else {
                                         targetOffset = maxOffset
                                     }
                                 }
                                 
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    offset = targetOffset
-                                }
+                                offset = targetOffset
                                 lastOffset = targetOffset
                             }
                     )
@@ -709,7 +704,9 @@ struct OrderTrackingView: View {
                 .background(Color.white)
                 .clipShape(CustomCorner(radius: cornerRadius, corners: [.topLeft, .topRight]))
                 .shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: -5)
-                .offset(y: offset)
+                .offset(y: offset + gestureOffset)
+                .animation(.spring(response: 0.5, dampingFraction: 0.75, blendDuration: 0), value: offset)
+                .animation(.interactiveSpring(), value: gestureOffset)
                 // We move the drag gesture from here (whole sheet) to just the header/background if we want scroll to work freely.
                 // BUT user wants to drag the sheet up/down.
                 // If we remove it from here, user can only drag by header.
