@@ -501,7 +501,7 @@ struct OrderTrackingView: View {
                     .frame(height: sheetH)
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .clipShape(CustomCorner(radius: 18, corners: [.topLeft, .topRight]))
                     .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: isSheetCollapsed ? (sheetH - sheetHeaderHeight) : 0)
             }
@@ -674,6 +674,16 @@ struct WazeLikeMapView: UIViewRepresentable {
         let coordinate: CLLocationCoordinate2D
         let system: String
         let color: Color
+    }
+    
+    struct CustomCorner: Shape {
+        var radius: CGFloat = .infinity
+        var corners: UIRectCorner = .allCorners
+        
+        func path(in rect: CGRect) -> Path {
+            let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+            return Path(path.cgPath)
+        }
     }
 
     private var pins: [Pin] {
