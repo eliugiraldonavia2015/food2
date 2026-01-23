@@ -495,15 +495,16 @@ struct OrderTrackingView: View {
                 }
 
                 Color.white
-                    .frame(height: geo.size.height * 0.40 + geo.safeAreaInsets.bottom)
+                    .frame(height: geo.size.height * 0.40 + sheetOffset + geo.safeAreaInsets.bottom)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    .allowsHitTesting(false)
 
                 bottomSheet(height: geo.size.height)
                     .frame(height: geo.size.height * 0.40)
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: -4)
+                    
                     .ignoresSafeArea(.container, edges: .bottom)
                     .offset(y: sheetOffset - 10)
                     .gesture(
