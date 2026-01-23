@@ -476,6 +476,7 @@ struct OrderTrackingView: View {
     @State private var elapsed: Int = 0
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 19.423, longitude: -99.1725), span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015))
     @State private var isSheetCollapsed: Bool = false
+    private let sheetHeaderHeight: CGFloat = 28
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var showMenu: Bool = false
     @Environment(\.dismiss) private var dismiss
@@ -496,13 +497,13 @@ struct OrderTrackingView: View {
                     .ignoresSafeArea(.container, edges: .bottom)
 
                 let sheetH = geo.size.height * 0.45
-                bottomSheet(height: sheetH, collapsed: $isSheetCollapsed)
+                bottomSheet(height: sheetH, headerHeight: sheetHeaderHeight, collapsed: $isSheetCollapsed)
                     .frame(height: sheetH)
                     .frame(maxWidth: .infinity)
                     .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .ignoresSafeArea(.container, edges: .bottom)
-                    .offset(y: isSheetCollapsed ? (sheetH - 36) : 0)
+                    .offset(y: isSheetCollapsed ? (sheetH - sheetHeaderHeight) : 0)
             }
         }
         .preferredColorScheme(.light)
@@ -683,8 +684,7 @@ struct WazeLikeMapView: UIViewRepresentable {
         ]
     }
 }
-    private func bottomSheet(height: CGFloat, collapsed: Binding<Bool>) -> some View {
-        let headerHeight: CGFloat = 36
+    private func bottomSheet(height: CGFloat, headerHeight: CGFloat, collapsed: Binding<Bool>) -> some View {
         return VStack(spacing: 0) {
             ZStack(alignment: .center) {
                 HStack {
