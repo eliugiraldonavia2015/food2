@@ -666,7 +666,7 @@ struct OrderTrackingView: View {
             advanceSimulation()
         }
         .sheet(isPresented: $showChat) {
-            ChatView()
+            DeliveryChatView()
         }
         .fullScreenCover(isPresented: $showMenu) {
             FullMenuView(
@@ -902,7 +902,7 @@ struct OrderTrackingView: View {
 }
 
 // MARK: - Chat View
-struct ChatView: View {
+struct DeliveryChatView: View {
     @Environment(\.dismiss) var dismiss
     @State private var message = ""
     @State private var messages: [ChatMessage] = [
