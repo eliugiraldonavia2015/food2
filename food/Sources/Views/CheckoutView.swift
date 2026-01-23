@@ -451,6 +451,7 @@ struct OrderTrackingView: View {
     let location: String
     let branchName: String?
     let distanceKm: Double?
+    private let destinationCoord = CLLocationCoordinate2D(latitude: 19.426, longitude: -99.170)
     
     // MARK: - Simulation State
     enum OrderStatus: CaseIterable {
