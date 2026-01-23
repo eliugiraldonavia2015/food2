@@ -627,17 +627,18 @@ struct WazeLikeMapView: UIViewRepresentable {
 
     private func bottomSheet(height: CGFloat) -> some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Detalles del pedido")
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
-                Spacer()
-                Text("Agregar productos")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 14, weight: .bold))
+            ZStack(alignment: .center) {
+                HStack {
+                    Text("Detalles del pedido")
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .bold))
+                    Spacer()
+                    Text("Agregar productos")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14, weight: .bold))
+                }
+                .padding(.horizontal, 6)
             }
-            .padding(.horizontal, 6)
-            .padding(.top, 0)
             .frame(height: 28)
             .contentShape(Rectangle())
             .gesture(
@@ -652,7 +653,7 @@ struct WazeLikeMapView: UIViewRepresentable {
                         let peek: CGFloat = 28
                         let maxOffset = height * 0.40 - peek
                         isDraggingSheet = false
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                        withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
                             sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
                         }
                     }
@@ -660,7 +661,7 @@ struct WazeLikeMapView: UIViewRepresentable {
             .onTapGesture {
                 let peek: CGFloat = 28
                 let maxOffset = height * 0.40 - peek
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
                     sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
                 }
             }
