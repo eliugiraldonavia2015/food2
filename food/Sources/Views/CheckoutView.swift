@@ -664,7 +664,9 @@ struct WazeLikeMapView: UIViewRepresentable {
             Divider().overlay(Color.gray.opacity(0.18))
             VStack(spacing: 12) {
                 HStack(spacing: 10) {
-                    Circle().fill(Color.fuchsia.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "person.fill").foregroundColor(.fuchsia))
+                    Circle().fill(Color.fuchsia.opacity(0.14)).frame(width: 36, height: 36).overlay {
+                        Image(systemName: "person.fill").foregroundColor(.fuchsia)
+                    }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Repartidor")
                             .foregroundColor(.black)
@@ -677,7 +679,9 @@ struct WazeLikeMapView: UIViewRepresentable {
                     Image(systemName: "phone.fill").foregroundColor(.brandGreen)
                 }
                 HStack(spacing: 10) {
-                    Circle().fill(Color.brandGreen.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "mappin.and.ellipse").foregroundColor(.brandGreen))
+                    Circle().fill(Color.brandGreen.opacity(0.14)).frame(width: 36, height: 36).overlay {
+                        Image(systemName: "mappin.and.ellipse").foregroundColor(.brandGreen)
+                    }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Dirección de entrega")
                             .foregroundColor(.black)
@@ -689,7 +693,9 @@ struct WazeLikeMapView: UIViewRepresentable {
                     Spacer()
                 }
                 HStack(spacing: 10) {
-                    Circle().fill(Color.orange.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "fork.knife").foregroundColor(.orange))
+                    Circle().fill(Color.orange.opacity(0.14)).frame(width: 36, height: 36).overlay {
+                        Image(systemName: "fork.knife").foregroundColor(.orange)
+                    }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Restaurante")
                             .foregroundColor(.black)
