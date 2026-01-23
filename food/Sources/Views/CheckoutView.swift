@@ -475,45 +475,20 @@ struct OrderTrackingView: View {
     @State private var courierCoord = CLLocationCoordinate2D(latitude: 19.420, longitude: -99.175)
     @State private var elapsed: Int = 0
     @State private var region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 19.423, longitude: -99.1725), span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015))
-    @State private var sheetY: CGFloat = 0
-    @State private var sheetState: SheetState = .half
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var showMenu: Bool = false
     @Environment(\.dismiss) private var dismiss
-    @State private var sheetOffset: CGFloat = 0
-    @State private var sheetStartOffset: CGFloat = 0
-    @State private var isDraggingSheet: Bool = false
+    
 
     var body: some View {
         GeometryReader { geo in
-            ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
                 VStack(spacing: 0) {
                     headerBar
                         .padding(.horizontal, 12)
                     WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-
-                Color.white
-                    .frame(height: geo.size.height * 0.40 + geo.safeAreaInsets.bottom)
-                    .ignoresSafeArea(.container, edges: .bottom)
-                    .offset(y: sheetOffset)
-                    .animation(nil, value: sheetOffset)
-                    .allowsHitTesting(false)
-
-                bottomSheet(height: geo.size.height)
-                    .frame(height: geo.size.height * 0.40)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    
-                    .ignoresSafeArea(.container, edges: .bottom)
-                    .offset(y: sheetOffset)
-                    .animation(nil, value: sheetOffset)
-                    
-            }
-            .onAppear {
-                sheetOffset = 0
             }
         }
         .preferredColorScheme(.light)
@@ -627,90 +602,7 @@ struct WazeLikeMapView: UIViewRepresentable {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
-    private func bottomSheet(height: CGFloat) -> some View {
-        let headerHeight: CGFloat = 28
-        return VStack(spacing: 0) {
-            ZStack(alignment: .center) {
-                HStack {
-                    Text("Detalles del pedido")
-                        .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .bold))
-                    Spacer()
-                    Text("Agregar productos")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 14, weight: .bold))
-                }
-                .padding(.horizontal, 6)
-            }
-            .frame(height: headerHeight)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        let maxOffset = height * 0.40 - headerHeight
-                        if !isDraggingSheet { sheetStartOffset = sheetOffset; isDraggingSheet = true }
-                        sheetOffset = min(max(0, sheetStartOffset + value.translation.height), maxOffset)
-                    }
-                    .onEnded { _ in
-                        let maxOffset = height * 0.40 - headerHeight
-                        isDraggingSheet = false
-                        withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
-                            sheetOffset = sheetOffset > maxOffset / 2 ? maxOffset : 0
-                        }
-                    }
-            )
-            .onTapGesture {
-                let maxOffset = height * 0.40 - headerHeight
-                withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.85, blendDuration: 0.0)) {
-                    sheetOffset = sheetOffset >= maxOffset ? 0 : sheetOffset
-                }
-            }
-            Divider().overlay(Color.gray.opacity(0.18))
-            VStack(spacing: 12) {
-                HStack(spacing: 10) {
-                    Circle().fill(Color.fuchsia.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "person.fill").foregroundColor(.fuchsia))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Repartidor")
-                            .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
-                        Text("Maria • 5.0")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    Spacer()
-                    Image(systemName: "phone.fill").foregroundColor(.brandGreen)
-                }
-                HStack(spacing: 10) {
-                    Circle().fill(Color.brandGreen.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "mappin.and.ellipse").foregroundColor(.brandGreen))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Dirección de entrega")
-                            .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
-                        Text("Av. Paseo de la Reforma 1870")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    Spacer()
-                }
-                HStack(spacing: 10) {
-                    Circle().fill(Color.orange.opacity(0.14)).frame(width: 36, height: 36).overlay(Image(systemName: "fork.knife").foregroundColor(.orange))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Restaurante")
-                            .foregroundColor(.black)
-                            .font(.system(size: 14, weight: .bold))
-                        Text("McDonald's • 3 productos")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    Spacer()
-                }
-            }
-            .padding(.horizontal, 10)
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
-    }
+    
 
     private func stageIcon(system: String, index: Int) -> some View {
         let active = stage >= index
@@ -760,14 +652,7 @@ struct WazeLikeMapView: UIViewRepresentable {
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 4)
     }
 
-    private enum SheetState { case half, low }
-
-    private func targetY(for state: SheetState, height: CGFloat) -> CGFloat {
-        switch state {
-        case .half: return height * 0.45
-        case .low: return height * 0.91
-        }
-    }
+    
 
     private struct Pin: Identifiable {
         let id: String
