@@ -341,23 +341,3 @@ struct WazeLikeMapView: UIViewRepresentable {
         }
     }
 }
-
-struct FullMenuView: View {
-    let restaurantId: String
-    let restaurantName: String
-    let coverUrl: String
-    let avatarUrl: String
-    let location: String
-    let branchName: String?
-    let distanceKm: Double?
-    let isEditing: Bool
-    
-    var body: some View {
-        Text("Menu Placeholder")
-    }
-}
-
-extension Color {
-    static let brandGreen = Color.green // Placeholder if not defined elsewhere
-    static let fuchsia = Color.pink
-}
