@@ -771,7 +771,7 @@ struct OrderTrackingView: View {
                 
                 // 3. Completion Overlay
                 if status == .completed {
-                    completionOverlay
+                    OrderCompletedOverlayView(onDismiss: { dismiss() })
                         .transition(.opacity.combined(with: .scale))
                 }
             }
@@ -1001,40 +1001,143 @@ struct OrderTrackingView: View {
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8)
     }
+}
+
+struct OrderCompletedOverlayView: View {
+    let onDismiss: () -> Void
+    @State private var showContent = false
     
-    var completionOverlay: some View {
+    var body: some View {
         ZStack {
-            Color.brandGreen.ignoresSafeArea()
-            VStack(spacing: 20) {
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.white)
-                    .scaleEffect(1.2)
-                    .padding(.bottom, 20)
+            Color.white.ignoresSafeArea()
+            
+            // Confetti Rain
+            ConfettiView()
+                .opacity(showContent ? 1 : 0)
+            
+            VStack(spacing: 30) {
+                // Success Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.brandGreen.opacity(0.1))
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(showContent ? 1 : 0.5)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showContent)
+                    
+                    Image(systemName: "fork.knife")
+                        .font(.system(size: 60, weight: .bold))
+                        .foregroundColor(.brandGreen)
+                        .scaleEffect(showContent ? 1 : 0)
+                        .rotationEffect(.degrees(showContent ? 0 : -45))
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1), value: showContent)
+                }
+                .padding(.top, 60)
                 
-                Text("¡Disfruta tu pedido!")
-                    .font(.system(size: 32, weight: .heavy))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
+                // Text
+                VStack(spacing: 16) {
+                    Text("¡Buen Provecho!")
+                        .font(.system(size: 32, weight: .black))
+                        .foregroundColor(.black)
+                        .scaleEffect(showContent ? 1 : 0.9)
+                        .opacity(showContent ? 1 : 0)
+                        .animation(.easeOut(duration: 0.5).delay(0.2), value: showContent)
+                    
+                    Text("Esperamos que disfrutes tu comida.\nNo olvides calificar al repartidor.")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(.easeOut(duration: 0.5).delay(0.3), value: showContent)
+                }
                 
-                Text("Gracias por confiar en nosotros")
-                    .font(.headline)
-                    .foregroundColor(.white.opacity(0.9))
+                // Rating Placeholder (Animated Stars)
+                HStack(spacing: 12) {
+                    ForEach(0..<5) { i in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.yellow)
+                            .scaleEffect(showContent ? 1 : 0)
+                            .rotationEffect(.degrees(showContent ? 0 : 180))
+                            .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.4 + Double(i) * 0.1), value: showContent)
+                    }
+                }
+                .padding(.vertical, 10)
                 
-                Button(action: { dismiss() }) {
+                Spacer()
+                
+                // Button
+                Button(action: onDismiss) {
                     Text("Volver al Inicio")
                         .font(.headline)
-                        .foregroundColor(.brandGreen)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 16)
-                        .background(Color.white)
-                        .cornerRadius(30)
-                        .shadow(radius: 10)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(Color.brandGreen)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .shadow(color: .brandGreen.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
-                .padding(.top, 40)
+                .padding(.horizontal, 32)
+                .padding(.bottom, 40)
+                .offset(y: showContent ? 0 : 50)
+                .opacity(showContent ? 1 : 0)
+                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6), value: showContent)
             }
-            .padding()
         }
+        .onAppear {
+            showContent = true
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        }
+    }
+}
+
+struct ConfettiView: View {
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(0..<30) { _ in
+                    ConfettiParticle(
+                        startPos: CGPoint(x: CGFloat.random(in: 0...geo.size.width), y: -20),
+                        endPos: CGPoint(x: CGFloat.random(in: 0...geo.size.width), y: geo.size.height + 20),
+                        delay: Double.random(in: 0...1.0)
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct ConfettiParticle: View {
+    let startPos: CGPoint
+    let endPos: CGPoint
+    let delay: Double
+    @State private var position: CGPoint
+    @State private var rotation: Double = 0
+    
+    let color: Color
+    
+    init(startPos: CGPoint, endPos: CGPoint, delay: Double) {
+        self.startPos = startPos
+        self.endPos = endPos
+        self.delay = delay
+        self._position = State(initialValue: startPos)
+        self.color = [Color.brandGreen, .yellow, .orange, .pink, .purple, .blue].randomElement() ?? .green
+    }
+    
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 8, height: 8)
+            .position(position)
+            .rotationEffect(.degrees(rotation))
+            .onAppear {
+                withAnimation(.linear(duration: 3.0).delay(delay).repeatForever(autoreverses: false)) {
+                    position = endPos
+                    rotation = 360
+                }
+            }
     }
 }
 
