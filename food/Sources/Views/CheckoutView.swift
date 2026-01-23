@@ -688,7 +688,7 @@ struct OrderTrackingView: View {
                             orderSummaryView
                         }
                         .padding(24)
-                        .padding(.bottom, geo.safeAreaInsets.bottom + (geo.size.height * 0.6)) // Ensure content can be scrolled into view even when sheet is offset
+                        .padding(.bottom, max(0, offset) + geo.safeAreaInsets.bottom + 20) // Dynamic padding: ensures content is reachable in all sheet positions, but minimizes empty space (approx 1cm visual buffer)
                     }
                 }
                 .frame(maxWidth: .infinity)
