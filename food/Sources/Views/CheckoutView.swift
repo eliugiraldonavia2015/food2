@@ -589,6 +589,8 @@ struct OrderTrackingView: View {
     private let cornerRadius: CGFloat = 20
     @State private var hasInitializedPosition = false
 
+    @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
@@ -778,7 +780,7 @@ struct OrderTrackingView: View {
                 // 3. Completion Overlay
                 if status == .completed {
                     OrderCompletedOverlayView(onDismiss: {
-                        onFinish?()
+                        showRatingScreen = true
                     })
                     .transition(.opacity)
                     .zIndex(2) // Ensure it stays on top
@@ -786,6 +788,12 @@ struct OrderTrackingView: View {
             }
         }
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $showRatingScreen) {
+            RatingView(onDismiss: {
+                showRatingScreen = false
+                onFinish?()
+            })
+        }
         .onAppear {
             // Initial position logic handled via geometry reader if needed, 
             // but here we set a flag or let the first geometry update set it.
@@ -1018,51 +1026,17 @@ struct OrderCompletedOverlayView: View {
     
     // Animation States
     @State private var phase: AnimationPhase = .initial
-    @State private var showRatingCard = false
-    
-    // Rating Data
-    @State private var currentCategory: RatingCategory = .delivery
-    @State private var ratings: [RatingCategory: Int] = [:]
+    @State private var ripple = false // Re-using ripple state for clarity
     
     // Haptics
     private let impact = UIImpactFeedbackGenerator(style: .heavy)
-    private let selection = UISelectionFeedbackGenerator()
     
     enum AnimationPhase {
         case initial
         case circleFadeIn
         case checkmarkDraw
-        case cardPresentation
         case finalSuccess
         case finished
-    }
-    
-    enum RatingCategory: CaseIterable {
-        case delivery, food, app
-        
-        var title: String {
-            switch self {
-            case .delivery: return "Entrega"
-            case .food: return "Comida"
-            case .app: return "Experiencia"
-            }
-        }
-        
-        var question: String {
-            switch self {
-            case .delivery: return "¿Llegó a tiempo?"
-            case .food: return "¿Estaba deliciosa?"
-            case .app: return "¿Todo bien con la App?"
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .delivery: return "bicycle"
-            case .food: return "fork.knife"
-            case .app: return "iphone"
-            }
-        }
     }
     
     var body: some View {
@@ -1074,44 +1048,36 @@ struct OrderCompletedOverlayView: View {
             
             // 2. The Intro Element (Fade In)
             VStack {
-                if phase == .circleFadeIn || phase == .checkmarkDraw {
+                if phase == .circleFadeIn || phase == .checkmarkDraw || phase == .finalSuccess {
                     ZStack {
+                        // Background Pulse
+                        Circle()
+                            .fill(Color.brandGreen.opacity(0.3))
+                            .scaleEffect(ripple ? 2.5 : 0.8)
+                            .opacity(ripple ? 0 : 1)
+                            .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: ripple)
+                            .frame(width: 100, height: 100)
+                        
                         Circle()
                             .fill(Color.brandGreen)
                             .frame(width: 100, height: 100)
                             .shadow(color: .brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
                         
-                        if phase == .checkmarkDraw {
+                        if phase == .checkmarkDraw || phase == .finalSuccess {
                             AnimatedCheckmark()
                         }
                     }
-                    // FIX: Simple Fade In, no scaling to avoid "growing" look
-                    .transition(.opacity)
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 3. The Interactive Card
-            if showRatingCard {
-                VStack {
-                    Spacer()
-                    RatingCard(
-                        category: currentCategory,
-                        onRate: handleRating,
-                        onSkip: handleSkip
-                    )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .id("rating-card") // Stable ID for the container
-                }
-                .ignoresSafeArea(edges: .bottom)
-                .zIndex(2)
-            }
-            
-            // 4. Final Success Animation (The "Visto")
+            // 3. Final Success Animation (The "Visto")
             if phase == .finalSuccess {
                 FinalSuccessView()
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                    .transition(.opacity)
                     .zIndex(3)
+                    .offset(y: 80) // Below the checkmark
             }
         }
         .onAppear {
@@ -1129,67 +1095,21 @@ struct OrderCompletedOverlayView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                 phase = .checkmarkDraw
+                ripple = true
             }
             impact.impactOccurred()
         }
         
-        // Step 3: Transition to Card
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        // Step 3: Show Success Text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                phase = .cardPresentation // Hides the center circle
-                showRatingCard = true
-            }
-        }
-    }
-    
-    private func handleRating(_ score: Int) {
-        ratings[currentCategory] = score
-        selection.selectionChanged()
-        
-        // Advance or Finish
-        if let next = getNextCategory() {
-            // Small delay to let the user see the selection
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    currentCategory = next
-                }
-            }
-        } else {
-            finishExperience()
-        }
-    }
-    
-    private func handleSkip() {
-        if let next = getNextCategory() {
-            withAnimation { currentCategory = next }
-        } else {
-            finishExperience()
-        }
-    }
-    
-    private func getNextCategory() -> RatingCategory? {
-        let all = RatingCategory.allCases
-        guard let idx = all.firstIndex(of: currentCategory), idx < all.count - 1 else { return nil }
-        return all[idx + 1]
-    }
-    
-    private func finishExperience() {
-        // Hide card first
-        withAnimation(.easeIn(duration: 0.2)) {
-            showRatingCard = false
-        }
-        
-        // Show Final Success
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
                 phase = .finalSuccess
             }
-            impact.impactOccurred() // Success Haptic
-            
-            // Dismiss after showing success
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-                onDismiss()
-            }
+        }
+        
+        // Step 4: Dismiss to Rating Screen
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            onDismiss()
         }
     }
 }
