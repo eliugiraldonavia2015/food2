@@ -428,8 +428,6 @@ struct OrderPlacedOverlayView: View {
     
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
-            
             // Background Pulse
             Circle()
                 .fill(Color.brandGreen.opacity(0.1))
@@ -487,7 +485,8 @@ struct OrderPlacedOverlayView: View {
                 }
             }
         }
-        .preferredColorScheme(.light)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white.ignoresSafeArea())
         .onAppear {
             isAnimating = true
             ripple = true
