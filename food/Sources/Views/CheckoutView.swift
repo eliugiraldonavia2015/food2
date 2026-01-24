@@ -420,90 +420,84 @@ private struct HideTextEditorBackground: ViewModifier {
 }
 
 struct OrderPlacedOverlayView: View {
-    let onDone: () -> Void
-    @State private var isAnimating = false
-    @State private var showText = false
-    @State private var ripple = false
-    
-    var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            
-            // Background Pulse
-            Circle()
-                .fill(Color.brandGreen.opacity(0.1))
-                .scaleEffect(ripple ? 3 : 0.5)
-                .opacity(ripple ? 0 : 1)
-                .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: ripple)
-                .frame(width: 200, height: 200)
-            
-            Circle()
-                .fill(Color.brandGreen.opacity(0.1))
-                .scaleEffect(ripple ? 2.5 : 0.5)
-                .opacity(ripple ? 0 : 1)
-                .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false).delay(0.3), value: ripple)
-                .frame(width: 200, height: 200)
-            
-            VStack(spacing: 40) {
-                // Animated Checkmark Icon
-                ZStack {
-                    Circle()
-                        .fill(Color.brandGreen)
-                        .frame(width: 100, height: 100)
-                        .scaleEffect(isAnimating ? 1 : 0.2)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
-                        .shadow(color: Color.brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
-                    
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 45, weight: .heavy))
-                        .foregroundColor(.white)
-                        .scaleEffect(isAnimating ? 1 : 0)
-                        .rotationEffect(.degrees(isAnimating ? 0 : -90))
-                        .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.2), value: isAnimating)
-                }
-                .padding(.top, 40)
+        let onDone: () -> Void
+        @State private var isAnimating = false
+        @State private var showText = false
+        @State private var ripple = false
+        
+        var body: some View {
+            ZStack {
+                Color.white.ignoresSafeArea()
                 
-                // Text Content
-                VStack(spacing: 12) {
-                    Text("¡Pedido Recibido!")
-                        .font(.system(size: 28, weight: .black)) // Rappi-style bold font
-                        .foregroundColor(.black)
-                        .scaleEffect(showText ? 1 : 0.9)
-                        .opacity(showText ? 1 : 0)
-                        .animation(.easeOut(duration: 0.5).delay(0.3), value: showText)
+                // Background Pulse - FIXED: No expanding shadow, just fade in
+                Circle()
+                    .fill(Color.brandGreen.opacity(0.1))
+                    .frame(width: 200, height: 200)
+                    .scaleEffect(ripple ? 1.0 : 0.8) // Reduced scale range to avoid "growing" lag
+                    .opacity(ripple ? 1 : 0) // Fade in instead of growing shadow
+                    .animation(.easeOut(duration: 0.8), value: ripple)
+                
+                VStack(spacing: 40) {
+                    // Animated Checkmark Icon
+                    ZStack {
+                        Circle()
+                            .fill(Color.brandGreen)
+                            .frame(width: 100, height: 100)
+                            .scaleEffect(isAnimating ? 1 : 0.2)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
+                            .shadow(color: Color.brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 45, weight: .heavy))
+                            .foregroundColor(.white)
+                            .scaleEffect(isAnimating ? 1 : 0)
+                            .rotationEffect(.degrees(isAnimating ? 0 : -90))
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.2), value: isAnimating)
+                    }
+                    .padding(.top, 40)
                     
-                    Text("Tu orden ha sido enviada a la cocina\ny está siendo preparada.")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 40)
-                        .opacity(showText ? 1 : 0)
-                        .offset(y: showText ? 0 : 10)
-                        .animation(.easeOut(duration: 0.5).delay(0.5), value: showText)
+                    // Text Content
+                    VStack(spacing: 12) {
+                        Text("¡Pedido Recibido!")
+                            .font(.system(size: 28, weight: .black))
+                            .foregroundColor(.black)
+                            .opacity(showText ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.3), value: showText)
+                        
+                        Text("Tu orden ha sido enviada a la cocina\ny está siendo preparada.")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                            .padding(.horizontal, 40)
+                            .opacity(showText ? 1 : 0)
+                            .offset(y: showText ? 0 : 10)
+                            .animation(.easeOut(duration: 0.5).delay(0.5), value: showText)
+                    }
                 }
             }
-        }
-        .preferredColorScheme(.light)
-        .onAppear {
-            isAnimating = true
-            ripple = true
-            showText = true
-            
-            // Haptic Feedback
-            let generator = UINotificationFeedbackGenerator()
-            generator.prepare()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                generator.notificationOccurred(.success)
-            }
-            
-            // Auto dismiss smoothly
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
-                onDone()
+            .preferredColorScheme(.light)
+            .onAppear {
+                isAnimating = true
+                withAnimation {
+                    ripple = true
+                }
+                showText = true
+                
+                // Haptic Feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.prepare()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    generator.notificationOccurred(.success)
+                }
+                
+                // Auto dismiss smoothly
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+                    onDone()
+                }
             }
         }
     }
-}
 
 struct OrderTrackingView: View {
     let restaurantId: String
@@ -1189,6 +1183,7 @@ struct OrderCompletedOverlayView: View {
             
             // Dismiss after showing success
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                // Ensure onDismiss is called before onFinish to prevent flash
                 onDismiss()
             }
         }
