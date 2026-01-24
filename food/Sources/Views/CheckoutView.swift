@@ -1005,341 +1005,370 @@ struct OrderTrackingView: View {
 
 struct OrderCompletedOverlayView: View {
     let onDismiss: () -> Void
-    @State private var showBackground = false
-    @State private var showCard = false
-    @State private var showContent = false
     
-    // Rating State
+    // Animation States
+    @State private var showBackground = false
+    @State private var showContent = false
+    @State private var showCard = false
+    @State private var cardScale: CGFloat = 0.8
+    @State private var iconScale: CGFloat = 0.0
+    @State private var iconRotation: Double = -180
+    @State private var showSuccessText = false
+    
+    // Rating Logic
+    @State private var currentStep: RatingStep = .delivery
+    @State private var ratings: [RatingStep: Int] = [.delivery: 0, .attention: 0, .experience: 0]
+    
+    // Confetti
+    @State private var confettiCounter = 0
+    
     enum RatingStep: Int, CaseIterable {
-        case delivery
-        case attention
-        case experience
-        case finished
+        case delivery, attention, experience, finished
         
         var title: String {
             switch self {
             case .delivery: return "Entrega"
             case .attention: return "Atención"
-            case .experience: return "Sabor"
-            case .finished: return ""
+            case .experience: return "Calidad"
+            case .finished: return "¡Todo Listo!"
+            }
+        }
+        
+        var question: String {
+            switch self {
+            case .delivery: return "¿Qué tal estuvo el tiempo de entrega?"
+            case .attention: return "¿El repartidor fue amable contigo?"
+            case .experience: return "¿Disfrutaste tus alimentos?"
+            case .finished: return "Gracias por ayudarnos a mejorar."
             }
         }
         
         var icon: String {
             switch self {
             case .delivery: return "bicycle"
-            case .attention: return "person.fill"
+            case .attention: return "person.fill.checkmark"
             case .experience: return "fork.knife"
-            case .finished: return "checkmark.seal.fill"
+            case .finished: return "heart.fill"
             }
         }
         
         var color: Color {
             switch self {
-            case .delivery: return Color.blue
-            case .attention: return Color.orange
-            case .experience: return Color.brandGreen
-            case .finished: return Color.brandGreen
+            case .delivery: return .blue
+            case .attention: return .orange
+            case .experience: return .brandGreen
+            case .finished: return .red
             }
         }
     }
     
-    @State private var currentStep: RatingStep = .delivery
-    @State private var deliveryRating: Int = 0
-    @State private var attentionRating: Int = 0
-    @State private var experienceRating: Int = 0
-    @State private var contentOffset: CGFloat = 0
-    
-    // Canvas Particle State
-    @State private var particleSystem = ParticleSystem()
-    
     var body: some View {
         ZStack {
-            // 1. Simple Fade Background
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .opacity(showBackground ? 1 : 0)
-                .animation(.easeOut(duration: 0.3), value: showBackground)
-            
-            // 2. Confetti Canvas
-            TimelineView(.animation) { timeline in
-                Canvas { context, size in
-                    particleSystem.update(date: timeline.date, size: size)
-                    for particle in particleSystem.particles {
-                        var pContext = context
-                        pContext.opacity = particle.opacity
-                        pContext.translateBy(x: particle.x, y: particle.y)
-                        pContext.rotate(by: .degrees(particle.rotation))
-                        
-                        let shapeSize = CGSize(width: particle.size, height: particle.size)
-                        if particle.id % 2 == 0 {
-                            pContext.fill(Circle().path(in: CGRect(origin: .zero, size: shapeSize)), with: .color(particle.color))
-                        } else {
-                            pContext.fill(Rectangle().path(in: CGRect(origin: .zero, size: shapeSize)), with: .color(particle.color))
-                        }
-                    }
-                }
+            // 1. Premium Blurred Background
+            if #available(iOS 15.0, *) {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .opacity(showBackground ? 1 : 0)
+                    .ignoresSafeArea()
+            } else {
+                Color.black.opacity(0.85)
+                    .opacity(showBackground ? 1 : 0)
+                    .ignoresSafeArea()
             }
-            .ignoresSafeArea()
-            .opacity(showContent ? 1 : 0)
             
-            // 3. Main Card Container
+            // 2. Ambient Glow
+            if showContent {
+                Circle()
+                    .fill(currentStep.color.opacity(0.2))
+                    .frame(width: 400, height: 400)
+                    .blur(radius: 60)
+                    .transition(.opacity)
+            }
+            
+            // 3. Confetti Layer
+            PremiumConfettiView(counter: $confettiCounter)
+            
+            // 4. Main Content Card
             if showCard {
                 VStack(spacing: 0) {
-                    // Dynamic Header
+                    // Header Image Area
                     ZStack {
                         currentStep.color
                             .overlay(
-                                LinearGradient(colors: [.white.opacity(0.2), .clear], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                LinearGradient(
+                                    colors: [.white.opacity(0.25), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
                         
-                        // Animated Icon
+                        // Icon Animation
                         Image(systemName: currentStep.icon)
-                            .font(.system(size: 50, weight: .bold))
+                            .font(.system(size: 64, weight: .black))
                             .foregroundColor(.white)
-                            .scaleEffect(showContent ? 1 : 0.5)
-                            .rotationEffect(.degrees(showContent ? 0 : -20))
-                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: currentStep)
-                            .id("icon-\(currentStep.rawValue)") // Force transition
-                            .transition(.scale.combined(with: .opacity))
+                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                            .scaleEffect(iconScale)
+                            .rotationEffect(.degrees(iconRotation))
+                            .id("icon-\(currentStep.rawValue)") // Triggers transition
                     }
-                    .frame(height: 140)
-                    .clipShape(CustomCorner(radius: 24, corners: [.topLeft, .topRight]))
+                    .frame(height: 180)
+                    .clipShape(CustomCorner(radius: 32, corners: [.topLeft, .topRight]))
+                    .overlay(
+                        // Ripple rings decoration
+                        ZStack {
+                            Circle().stroke(Color.white.opacity(0.2), lineWidth: 2).frame(width: 120, height: 120)
+                            Circle().stroke(Color.white.opacity(0.1), lineWidth: 2).frame(width: 180, height: 180)
+                        }
+                    )
                     
-                    // Body Content with Slide Transition
-                    ZStack {
+                    // Rating Body
+                    VStack(spacing: 24) {
                         if currentStep == .finished {
-                            finishedView
-                                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            finishedBody
                         } else {
-                            ratingStepView
-                                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            ratingBody
                         }
                     }
-                    .frame(height: 340)
+                    .padding(32)
+                    .frame(width: UIScreen.main.bounds.width * 0.85)
                     .background(Color.white)
-                    .clipShape(CustomCorner(radius: 24, corners: [.bottomLeft, .bottomRight]))
-                    .id("step-\(currentStep.rawValue)") // Crucial for slide animation
+                    .clipShape(CustomCorner(radius: 32, corners: [.bottomLeft, .bottomRight]))
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.85)
-                .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
-                .scaleEffect(showCard ? 1 : 0.9)
-                .opacity(showCard ? 1 : 0)
+                .shadow(color: Color.black.opacity(0.25), radius: 30, x: 0, y: 15)
+                .scaleEffect(cardScale)
+                .onTapGesture {
+                    // Prevent dismissal by tapping card
+                }
             }
         }
         .onAppear {
-            // Orchestrated Entry
-            withAnimation { showBackground = true }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    showCard = true
-                }
-            }
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                withAnimation { showContent = true }
-                particleSystem.emit()
-            }
+            animateEntrance()
         }
     }
     
     // MARK: - Subviews
     
-    private var ratingStepView: some View {
+    private var ratingBody: some View {
         VStack(spacing: 20) {
-            // Title & Subtitle
             VStack(spacing: 8) {
-                Text("Califica:")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.gray)
-                    .textCase(.uppercase)
-                
                 Text(currentStep.title)
-                    .font(.system(size: 32, weight: .heavy))
+                    .font(.system(size: 28, weight: .heavy))
                     .foregroundColor(.black)
+                    .transition(.push(from: .trailing))
+                    .id("title-\(currentStep.rawValue)")
+                
+                Text(currentStep.question)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+                    .id("q-\(currentStep.rawValue)")
             }
-            .padding(.top, 30)
             
-            // Big Stars
-            HStack(spacing: 15) {
-                ForEach(1...5, id: \.self) { i in
+            HStack(spacing: 12) {
+                ForEach(1...5, id: \.self) { star in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 38))
-                        .foregroundColor(i <= currentRating ? .yellow : Color(white: 0.9))
-                        .scaleEffect(i <= currentRating ? 1.2 : 1)
-                        .shadow(color: i <= currentRating ? .orange.opacity(0.4) : .clear, radius: 5)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: currentRating)
+                        .font(.system(size: 32))
+                        .foregroundColor(star <= (ratings[currentStep] ?? 0) ? .yellow : Color.gray.opacity(0.2))
+                        .scaleEffect(star <= (ratings[currentStep] ?? 0) ? 1.2 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: ratings[currentStep])
                         .onTapGesture {
-                            handleRating(i)
+                            rate(star)
                         }
                 }
             }
-            .padding(.vertical, 20)
+            .padding(.top, 10)
             
-            Spacer()
-            
-            // Progress Indicator
-            HStack(spacing: 12) {
-                ForEach(RatingStep.allCases.prefix(3), id: \.self) { step in
-                    Capsule()
+            // Progress dots
+            HStack(spacing: 8) {
+                ForEach(RatingStep.allCases.filter { $0 != .finished }, id: \.self) { step in
+                    Circle()
                         .fill(step == currentStep ? currentStep.color : Color.gray.opacity(0.2))
-                        .frame(width: step == currentStep ? 24 : 12, height: 6)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(step == currentStep ? 1.2 : 1.0)
                         .animation(.spring(), value: currentStep)
                 }
             }
-            .padding(.bottom, 30)
+            .padding(.top, 20)
         }
-        .frame(maxWidth: .infinity)
     }
     
-    private var finishedView: some View {
+    private var finishedBody: some View {
         VStack(spacing: 24) {
-            Spacer()
-            
-            Text("¡Gracias por tu opinión!")
-                .font(.system(size: 28, weight: .black))
+            Text("¡Gracias!")
+                .font(.system(size: 32, weight: .black))
                 .foregroundColor(.black)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
             
-            Text("Hemos registrado tus calificaciones\npara mejorar nuestro servicio.")
-                .font(.system(size: 16, weight: .medium))
+            Text("Tu opinión nos ayuda a ser mejores cada día.")
+                .font(.system(size: 16))
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
-            
-            Spacer()
             
             Button(action: onDismiss) {
-                Text("Finalizar")
+                Text("Continuar")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(Color.black)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                    .cornerRadius(20)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 30)
+            .padding(.top, 10)
         }
-        .frame(maxWidth: .infinity)
+        .transition(.move(edge: .trailing))
     }
     
-    // MARK: - Logic
+    // MARK: - Animation Logic
     
-    private var currentRating: Int {
-        switch currentStep {
-        case .delivery: return deliveryRating
-        case .attention: return attentionRating
-        case .experience: return experienceRating
-        default: return 0
-        }
-    }
-    
-    private func handleRating(_ value: Int) {
-        triggerHaptic(type: .light)
-        
-        switch currentStep {
-        case .delivery: deliveryRating = value
-        case .attention: attentionRating = value
-        case .experience: experienceRating = value
-        default: break
+    private func animateEntrance() {
+        // 1. Background Fade In
+        withAnimation(.easeOut(duration: 0.4)) {
+            showBackground = true
         }
         
-        // Clear pause then slide
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                advanceStep()
+        // 2. Card Pop Up
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            showCard = true
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                cardScale = 1.0
+            }
+        }
+        
+        // 3. Icon Animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            showContent = true
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                iconScale = 1.0
+                iconRotation = 0
+            }
+            // Trigger Confetti
+            confettiCounter += 1
+            playHaptic(.success)
+        }
+    }
+    
+    private func rate(_ value: Int) {
+        ratings[currentStep] = value
+        playHaptic(.light)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                if let nextIndex = RatingStep.allCases.firstIndex(of: currentStep),
+                   nextIndex + 1 < RatingStep.allCases.count {
+                    currentStep = RatingStep.allCases[nextIndex + 1]
+                    
+                    // Reset icon animation for next step
+                    iconScale = 0.5
+                    iconRotation = -45
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1)) {
+                        iconScale = 1.0
+                        iconRotation = 0
+                    }
+                    
+                    if currentStep == .finished {
+                        confettiCounter += 1
+                        playHaptic(.success)
+                    }
+                }
             }
         }
     }
     
-    private func advanceStep() {
-        switch currentStep {
-        case .delivery: currentStep = .attention
-        case .attention: currentStep = .experience
-        case .experience: currentStep = .finished
-        default: break
-        }
+    private func playHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(type)
     }
     
-    private func triggerHaptic(type: UIImpactFeedbackGenerator.FeedbackStyle) {
+    private func playHaptic(_ type: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: type)
         generator.impactOccurred()
     }
 }
 
-// MARK: - High Performance Particle System
-struct Particle {
-    let id: Int
-    var x: Double
-    var y: Double
-    var vx: Double
-    var vy: Double
-    var color: Color
-    var size: Double
-    var opacity: Double
-    var rotation: Double
-    var vRotation: Double
-}
-
-class ParticleSystem {
-    var particles: [Particle] = []
-    private var lastTime: TimeInterval = 0
+// MARK: - Premium Confetti Engine
+struct PremiumConfettiView: View {
+    @Binding var counter: Int
+    @State private var particles: [ConfettiParticle] = []
+    @State private var timer: Timer?
     
-    func emit() {
-        // Explosion from center
-        for i in 0..<60 {
-            let angle = Double.random(in: 0...360) * .pi / 180
-            let speed = Double.random(in: 200...800)
-            let color: Color = [.red, .green, .blue, .orange, .purple, .yellow, .pink].randomElement()!
-            
-            let p = Particle(
-                id: i,
-                x: UIScreen.main.bounds.width / 2,
-                y: UIScreen.main.bounds.height / 2,
-                vx: cos(angle) * speed,
-                vy: sin(angle) * speed - 300, // Upward bias
-                color: color,
-                size: Double.random(in: 6...12),
-                opacity: 1,
-                rotation: Double.random(in: 0...360),
-                vRotation: Double.random(in: -5...5)
-            )
-            particles.append(p)
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(particles) { particle in
+                    ConfettiPiece(particle: particle)
+                }
+            }
+        }
+        .onChange(of: counter) { _ in
+            emitConfetti()
         }
     }
     
-    func update(date: Date, size: CGSize) {
-        let currentTime = date.timeIntervalSinceReferenceDate
-        if lastTime == 0 { lastTime = currentTime }
-        let dt = currentTime - lastTime
-        lastTime = currentTime
-        
-        for i in 0..<particles.count {
-            // Gravity
-            particles[i].vy += 1000 * dt
-            
-            // Movement
-            particles[i].x += particles[i].vx * dt
-            particles[i].y += particles[i].vy * dt
-            
-            // Air resistance
-            particles[i].vx *= 0.95
-            particles[i].vy *= 0.95
-            
-            // Rotation
-            particles[i].rotation += particles[i].vRotation
-            
-            // Fade out
-            if particles[i].y > size.height + 50 {
-                particles[i].opacity = 0
-            }
+    private func emitConfetti() {
+        for _ in 0..<50 {
+            let p = ConfettiParticle(
+                id: UUID(),
+                x: UIScreen.main.bounds.width / 2,
+                y: UIScreen.main.bounds.height / 2,
+                color: [.red, .blue, .green, .yellow, .purple, .orange].randomElement()!,
+                scale: Double.random(in: 0.5...1.2),
+                speedX: Double.random(in: -300...300),
+                speedY: Double.random(in: -600...(-200)), // Upward burst
+                rotationSpeed: Double.random(in: -10...10)
+            )
+            particles.append(p)
         }
         
-        particles.removeAll { $0.opacity <= 0 }
+        // Physics Loop
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
+            updateParticles()
+        }
+    }
+    
+    private func updateParticles() {
+        for i in particles.indices {
+            particles[i].x += particles[i].speedX * 0.016
+            particles[i].y += particles[i].speedY * 0.016
+            particles[i].rotation += particles[i].rotationSpeed
+            particles[i].speedY += 800 * 0.016 // Gravity
+            particles[i].opacity -= 0.005 // Fade out
+        }
+        
+        particles.removeAll { $0.y > UIScreen.main.bounds.height + 100 || $0.opacity <= 0 }
+        
+        if particles.isEmpty {
+            timer?.invalidate()
+        }
+    }
+}
+
+struct ConfettiParticle: Identifiable {
+    let id: UUID
+    var x: Double
+    var y: Double
+    let color: Color
+    let scale: Double
+    var speedX: Double
+    var speedY: Double
+    let rotationSpeed: Double
+    var rotation: Double = 0
+    var opacity: Double = 1.0
+}
+
+struct ConfettiPiece: View {
+    let particle: ConfettiParticle
+    
+    var body: some View {
+        Image(systemName: "square.fill") // or "star.fill" for variety
+            .foregroundColor(particle.color)
+            .font(.system(size: 10))
+            .scaleEffect(particle.scale)
+            .rotationEffect(.degrees(particle.rotation))
+            .position(x: particle.x, y: particle.y)
+            .opacity(particle.opacity)
     }
 }
 
