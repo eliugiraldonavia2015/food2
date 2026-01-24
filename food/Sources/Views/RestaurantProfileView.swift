@@ -32,6 +32,7 @@ struct RestaurantProfileView: View {
     @State private var didHapticThreshold = false
     @State private var refreshedData: DataModel?
     @State private var showFullMenu = false
+    @State private var showRatingOverlay = false
     @State private var showChat = false
     @StateObject private var messagesStore = MessagesStore()
 
@@ -62,87 +63,100 @@ struct RestaurantProfileView: View {
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Header ocupando todo el ancho
-                header
-                
-                // Contenido del perfil
-                VStack(spacing: 20) {
-                    profileInfo
-                    menuButtonView
-                    aboutSection
+        ZStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header ocupando todo el ancho
+                    header
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        sectionHeader("Ubicaciones disponibles")
-                        HStack {
-                            locationSelector
-                            Spacer()
-                        }
-                        .overlay(alignment: .topLeading) {
-                            if showLocationList {
-                                locationList
-                                    .padding(.top, 52)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .zIndex(20)
+                    // Contenido del perfil
+                    VStack(spacing: 20) {
+                        profileInfo
+                        menuButtonView
+                        aboutSection
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader("Ubicaciones disponibles")
+                            HStack {
+                                locationSelector
+                                Spacer()
                             }
+                            .overlay(alignment: .topLeading) {
+                                if showLocationList {
+                                    locationList
+                                        .padding(.top, 52)
+                                        .transition(.move(edge: .top).combined(with: .opacity))
+                                        .zIndex(20)
+                                }
+                            }
+                            .zIndex(showLocationList ? 20 : 1)
                         }
                         .zIndex(showLocationList ? 20 : 1)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionHeader("Fotos y Videos")
+                            photoGrid
+                        }
                     }
-                    .zIndex(showLocationList ? 20 : 1)
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        sectionHeader("Fotos y Videos")
-                        photoGrid
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 40)
+                }
+            }
+            .coordinateSpace(name: "profileScroll")
+            .ignoresSafeArea(edges: .top)
+            .overlay(alignment: .topLeading) {
+                Button(action: { dismiss() }) {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 40, height: 40)
+                        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                        .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.black))
+                }
+                .padding(.leading, 16)
+                .padding(.top, 50) // Posición más baja para evitar el notch/isla
+            }
+            .background(Color.white.ignoresSafeArea())
+            .onAppear {
+                loadVideos()
+            }
+            .fullScreenCover(isPresented: $showFullMenu) {
+                FullMenuView(
+                    restaurantId: currentData.username.replacingOccurrences(of: " ", with: "").lowercased(),
+                    restaurantName: currentData.name,
+                    coverUrl: currentData.coverUrl,
+                    avatarUrl: currentData.avatarUrl,
+                    location: currentData.location,
+                    branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
+                    distanceKm: 2.3,
+                    onDismissToRoot: {
+                        // Presentar Rating y cerrar FullMenu
+                        withAnimation { showRatingOverlay = true }
+                        showFullMenu = false
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 40)
+                )
             }
-        }
-        .coordinateSpace(name: "profileScroll")
-        .ignoresSafeArea(edges: .top)
-        .overlay(alignment: .topLeading) {
-            Button(action: { dismiss() }) {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 40, height: 40)
-                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.black))
+            .sheet(isPresented: $showChat) {
+                ChatView(
+                    conversation: Conversation(
+                        title: currentData.name,
+                        subtitle: "Responde habitualmente en 1 hora",
+                        timestamp: "Ahora",
+                        unreadCount: 0,
+                        avatarSystemName: "storefront.fill",
+                        isOnline: true
+                    ),
+                    store: messagesStore
+                )
             }
-            .padding(.leading, 16)
-            .padding(.top, 50) // Posición más baja para evitar el notch/isla
-        }
-        .background(Color.white.ignoresSafeArea())
-        .onAppear {
-            loadVideos()
-        }
-        .fullScreenCover(isPresented: $showFullMenu) {
-            FullMenuView(
-                restaurantId: currentData.username.replacingOccurrences(of: " ", with: "").lowercased(),
-                restaurantName: currentData.name,
-                coverUrl: currentData.coverUrl,
-                avatarUrl: currentData.avatarUrl,
-                location: currentData.location,
-                branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
-                distanceKm: 2.3,
-                onDismissToRoot: {
-                    showFullMenu = false
-                }
-            )
-        }
-        .sheet(isPresented: $showChat) {
-            ChatView(
-                conversation: Conversation(
-                    title: currentData.name,
-                    subtitle: "Responde habitualmente en 1 hora",
-                    timestamp: "Ahora",
-                    unreadCount: 0,
-                    avatarSystemName: "storefront.fill",
-                    isOnline: true
-                ),
-                store: messagesStore
-            )
+            
+            // Rating View Overlay
+            if showRatingOverlay {
+                RatingView(onDismiss: {
+                    withAnimation { showRatingOverlay = false }
+                })
+                .transition(.move(edge: .bottom))
+                .zIndex(100)
+            }
         }
     }
 
