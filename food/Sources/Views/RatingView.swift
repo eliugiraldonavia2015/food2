@@ -125,7 +125,7 @@ struct RatingView: View {
                                                     )
                                                     .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
                                             }
-                                            .buttonStyle(ScaleButtonStyle())
+                                            .buttonStyle(RatingScaleButtonStyle())
                                         }
                                     }
                                     .padding(.horizontal, 24)
@@ -304,7 +304,8 @@ extension Color {
 }
 
 // Reusing FlowLayout helper from FoodDiscoveryView
-fileprivate struct FlowLayout: Layout {
+// Using private FlowLayout implementation instead of shared one to ensure independence
+private struct RatingFlowLayout: Layout {
     var spacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
