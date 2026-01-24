@@ -23,8 +23,6 @@ struct RestaurantProfileView: View {
     let onRefresh: (() async -> DataModel?)?
     @Environment(\.dismiss) private var dismiss
     @State private var isFollowing = false
-    @State private var showLocationList = false
-    @State private var selectedBranchName = ""
     @State private var isRefreshing = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
@@ -34,14 +32,17 @@ struct RestaurantProfileView: View {
     @State private var showFullMenu = false
     @State private var showChat = false
     @StateObject private var messagesStore = MessagesStore()
+    
+    // Animation States
+    @State private var animateContent = false
 
     private var currentData: DataModel { refreshedData ?? data }
     private let headerHeight: CGFloat = 220
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2),
+        GridItem(.flexible(), spacing: 2)
     ]
     @State private var fetchedVideos: [Video] = []
     
@@ -51,15 +52,8 @@ struct RestaurantProfileView: View {
                 PhotoItem(url: video.thumbnailUrl, title: video.title)
             }
         }
-        return (0..<12).map { i in i < currentData.photos.count ? currentData.photos[i] : PhotoItem(url: "", title: "") }
+        return currentData.photos
     }
-
-    private let locations: [LocationItem] = [
-        .init(name: "Sucursal Centro", address: "Av. Juárez 123, Centro", distanceKm: 3194.7),
-        .init(name: "Sucursal Condesa", address: "Av. Michoacán 78, Condesa", distanceKm: 3195.6),
-        .init(name: "Sucursal Roma", address: "Calle Orizaba 45, Roma Norte", distanceKm: 3195.6),
-        .init(name: "Sucursal Polanco", address: "Masaryk 200, Polanco", distanceKm: 3196.1)
-    ]
 
     var body: some View {
         ScrollView {
@@ -68,33 +62,28 @@ struct RestaurantProfileView: View {
                 header
                 
                 // Contenido del perfil
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
                     profileInfo
-                    menuButtonView
-                    aboutSection
+                        .offset(y: animateContent ? 0 : 20)
+                        .opacity(animateContent ? 1 : 0)
                     
-                    VStack(alignment: .leading, spacing: 12) {
-                        sectionHeader("Ubicaciones disponibles")
-                        HStack {
-                            locationSelector
-                            Spacer()
-                        }
-                        .overlay(alignment: .topLeading) {
-                            if showLocationList {
-                                locationList
-                                    .padding(.top, 52)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .zIndex(20)
-                            }
-                        }
-                        .zIndex(showLocationList ? 20 : 1)
-                    }
-                    .zIndex(showLocationList ? 20 : 1)
+                    menuButtonView
+                        .offset(y: animateContent ? 0 : 30)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateContent)
+
+                    aboutSection
+                        .offset(y: animateContent ? 0 : 40)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: animateContent)
                     
                     VStack(alignment: .leading, spacing: 12) {
                         sectionHeader("Fotos y Videos")
                         photoGrid
                     }
+                    .offset(y: animateContent ? 0 : 50)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: animateContent)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 40)
@@ -105,17 +94,21 @@ struct RestaurantProfileView: View {
         .overlay(alignment: .topLeading) {
             Button(action: { dismiss() }) {
                 Circle()
-                    .fill(Color.white)
+                    .fill(Material.ultraThinMaterial)
                     .frame(width: 40, height: 40)
-                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.black))
+                    .overlay(Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold)).foregroundColor(.primary))
             }
             .padding(.leading, 16)
-            .padding(.top, 50) // Posición más baja para evitar el notch/isla
+            .padding(.top, 50)
+            .opacity(animateContent ? 1 : 0)
+            .animation(.easeIn.delay(0.4), value: animateContent)
         }
         .background(Color.white.ignoresSafeArea())
         .onAppear {
             loadVideos()
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animateContent = true
+            }
         }
         .fullScreenCover(isPresented: $showFullMenu) {
             FullMenuView(
@@ -124,7 +117,7 @@ struct RestaurantProfileView: View {
                 coverUrl: currentData.coverUrl,
                 avatarUrl: currentData.avatarUrl,
                 location: currentData.location,
-                branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
+                branchName: currentData.branch,
                 distanceKm: 2.3
             )
         }
@@ -400,93 +393,6 @@ struct RestaurantProfileView: View {
             .cornerRadius(12)
     }
 
-    private var locationSelector: some View {
-        Button(action: { withAnimation(.spring(response: 0.35, dampingFraction: 0.82, blendDuration: 0.2)) { showLocationList.toggle() } }) {
-            HStack(spacing: 10) {
-                Image(systemName: "mappin")
-                    .foregroundColor(.green)
-                    .font(.system(size: 18))
-                Text(selectedBranchName.isEmpty ? currentData.branch : selectedBranchName)
-                    .foregroundColor(.black)
-                    .font(.subheadline)
-                Spacer()
-                Image(systemName: "chevron.down")
-                    .foregroundColor(.gray)
-                    .rotationEffect(.degrees(showLocationList ? 180 : 0))
-            }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity)
-        }
-        .background(Color.gray.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var locationList: some View {
-        let nearestId = locations.min(by: { $0.distanceKm < $1.distanceKm })?.id
-        return ScrollView {
-            VStack(spacing: 8) {
-                ForEach(locations) { loc in
-                    locationRow(loc: loc, nearestId: nearestId)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: CGFloat(min(locations.count, 3)) * 76)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    private func locationRow(loc: LocationItem, nearestId: UUID?) -> some View {
-        Button(action: {
-            selectedBranchName = loc.name
-            showLocationList = false
-        }) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(loc.name)
-                        .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .bold))
-                    Text(loc.address)
-                        .foregroundColor(.gray)
-                        .font(.footnote)
-                }
-                Spacer()
-                HStack(spacing: 8) {
-                    nearestBadge(nearest: nearestId == loc.id)
-                    distanceText(km: loc.distanceKm)
-                }
-            }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 14)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.gray.opacity(nearestId == loc.id ? 0.3 : 0.2), lineWidth: 1))
-        }
-    }
-
-    private func nearestBadge(nearest: Bool) -> some View {
-        Group {
-            if nearest {
-                Text("Más cercano")
-                    .foregroundColor(.green)
-                    .font(.caption2.weight(.semibold))
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .background(Color.green.opacity(0.15))
-                    .clipShape(Capsule())
-            }
-        }
-    }
-
-    private func distanceText(km: Double) -> some View {
-        Text(String(format: "%.1f km", km))
-            .foregroundColor(.green)
-            .font(.system(size: 14, weight: .semibold))
-    }
-
     private func loadVideos() {
         // Intentar cargar videos reales si el usuario existe
         DatabaseService.shared.getUidForUsername(currentData.username) { uid in
@@ -515,9 +421,9 @@ struct RestaurantProfileView: View {
     }
 
     private var photoGrid: some View {
-        LazyVGrid(columns: photoColumns, spacing: 12) {
+        LazyVGrid(columns: photoColumns, spacing: 2) {
             ForEach(0..<photoItems.count, id: \.self) { i in
-                PhotoTileView(url: photoItems[i].url)
+                PhotoTileView(url: photoItems[i].url, index: i)
             }
         }
     }
@@ -531,43 +437,30 @@ struct RestaurantProfileView: View {
 
     struct PhotoTileView: View {
         let url: String
+        let index: Int
+        @State private var appear = false
+        
         var body: some View {
-            let finalURL = URL(string: url.isEmpty ? "" : url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-            AsyncImage(url: finalURL) { phase in
-                switch phase {
-                case .empty:
-                    placeholder
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(1, contentMode: .fill)
-                case .failure(_):
-                    errorView
-                @unknown default:
-                    Color.gray.opacity(0.3)
-                }
+            GeometryReader { geo in
+                let finalURL = URL(string: url.isEmpty ? "" : url)
+                WebImage(url: finalURL)
+                    .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.4))
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .opacity(appear ? 1 : 0)
+                    .scaleEffect(appear ? 1 : 0.9)
+                    .onAppear {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.05)) {
+                            appear = true
+                        }
+                    }
             }
-            .frame(height: 120)
-            .background(Color.gray.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-        }
-
-        private var placeholder: some View {
-            ZStack {
-                LinearGradient(colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.25)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: "photo")
-                    .font(.system(size: 20))
-                    .foregroundColor(.gray)
-            }
-        }
-
-        private var errorView: some View {
-            ZStack {
-                LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Text("🍽️")
-                    .font(.system(size: 28))
-            }
+            .aspectRatio(1, contentMode: .fit)
+            .background(Color.gray.opacity(0.1))
         }
     }
 
