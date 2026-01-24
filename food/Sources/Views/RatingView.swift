@@ -109,7 +109,7 @@ struct RatingView: View {
                                         .font(.system(size: 16, weight: .semibold))
                                         .foregroundColor(.black.opacity(0.7))
                                     
-                                    RatingFlowLayout(spacing: 10) {
+                                    FlowLayout(spacing: 10) {
                                         ForEach(feedbackTags, id: \.self) { tag in
                                             Button(action: { toggleTag(tag) }) {
                                                 Text(tag)

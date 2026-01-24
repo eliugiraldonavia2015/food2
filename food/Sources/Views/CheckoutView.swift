@@ -428,6 +428,8 @@ struct OrderPlacedOverlayView: View {
     
     var body: some View {
         ZStack {
+            Color.white.ignoresSafeArea()
+            
             // Background Pulse
             Circle()
                 .fill(Color.brandGreen.opacity(0.1))
@@ -485,8 +487,7 @@ struct OrderPlacedOverlayView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white.ignoresSafeArea())
+        .preferredColorScheme(.light)
         .onAppear {
             isAnimating = true
             ripple = true
@@ -589,7 +590,9 @@ struct OrderTrackingView: View {
     private let cornerRadius: CGFloat = 20
     @State private var hasInitializedPosition = false
 
+    @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
     @State private var showCompletionOverlay = true
+    @State private var isRatingDismissed = false
 
     var body: some View {
         GeometryReader { geo in
@@ -624,7 +627,8 @@ struct OrderTrackingView: View {
                     }
 
                 // 2. Bottom Sheet
-                VStack(spacing: 0) {
+                if !isRatingDismissed {
+                    VStack(spacing: 0) {
                         // Drag Handle
                         Capsule()
                         .fill(Color.gray.opacity(0.3))
@@ -776,16 +780,25 @@ struct OrderTrackingView: View {
                     // Correct approach: Apply DragGesture to the whole view but use simultaneousGesture or restricted hit testing?
                     // Better approach: Only allow dragging the sheet via the header area.
                     // Let's move the gesture modifier to the Header VStack.
-                
+                } // End of conditional for isRatingDismissed
             
                 // 3. Completion Overlay
                 if status == .completed && showCompletionOverlay {
                     OrderCompletedOverlayView(onDismiss: {
                         showCompletionOverlay = false
-                        onFinish?()
+                        showRatingScreen = true
                     })
                     .transition(.opacity)
                     .zIndex(2) // Ensure it stays on top
+                }
+                
+                // 4. Rating View (Embedded for smooth transition)
+                if showRatingScreen {
+                    RatingView(onDismiss: {
+                        onFinish?()
+                    })
+                    .transition(.move(edge: .bottom))
+                    .zIndex(3)
                 }
             }
         }
