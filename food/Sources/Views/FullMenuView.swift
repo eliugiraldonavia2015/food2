@@ -1,6 +1,7 @@
 import SwiftUI
 import SDWebImageSwiftUI
 import UIKit
+import Combine
 
 class FullMenuViewModel: ObservableObject {
     @Published var dishes: [FullMenuView.Dish] = []
