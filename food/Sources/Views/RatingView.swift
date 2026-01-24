@@ -268,7 +268,7 @@ struct RatingView: View {
 
 // MARK: - Helpers
 
-struct ScaleButtonStyle: ButtonStyle {
+struct RatingScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.95 : 1)
