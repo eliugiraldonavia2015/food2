@@ -592,6 +592,7 @@ struct OrderTrackingView: View {
 
     @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
     @State private var showCompletionOverlay = true
+    @State private var isRatingDismissed = false // Nueva bandera para controlar la transición final
 
     var body: some View {
         GeometryReader { geo in
