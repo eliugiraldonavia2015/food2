@@ -66,11 +66,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                      didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("[AppDelegate] ❌ Falló registro APNs: \(error.localizedDescription)")
     }
-
-    // Bloquear orientación a solo vertical (Portrait)
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        return .portrait
-    }
 }
 
 // MARK: - Main App (SwiftUI)
