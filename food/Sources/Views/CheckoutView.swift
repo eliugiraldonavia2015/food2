@@ -436,6 +436,7 @@ struct OrderPlacedOverlayView: View {
                 .opacity(ripple ? 0 : 1)
                 .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: ripple)
                 .frame(width: 200, height: 200)
+                .offset(y: -70) // Ajuste para centrar con el checkmark
             
             Circle()
                 .fill(Color.brandGreen.opacity(0.1))
@@ -443,6 +444,7 @@ struct OrderPlacedOverlayView: View {
                 .opacity(ripple ? 0 : 1)
                 .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false).delay(0.3), value: ripple)
                 .frame(width: 200, height: 200)
+                .offset(y: -70) // Ajuste para centrar con el checkmark
             
             VStack(spacing: 40) {
                 // Animated Checkmark Icon
