@@ -777,7 +777,6 @@ struct OrderTrackingView: View {
                 // 3. Completion Overlay
                 if status == .completed {
                     OrderCompletedOverlayView(onDismiss: {
-                        dismiss()
                         onFinish?()
                     })
                         .transition(.opacity)

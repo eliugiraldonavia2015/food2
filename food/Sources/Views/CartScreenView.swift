@@ -80,12 +80,7 @@ struct CartScreenView: View {
                 },
                 total: total,
                 onOrderCompleted: {
-                    // Cierra CheckoutView
-                    showCheckout = false
-                    // Notifica a FullMenuView para cerrar CartScreenView
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        onOrderCompleted?()
-                    }
+                    onOrderCompleted?()
                 }
             )
         }
