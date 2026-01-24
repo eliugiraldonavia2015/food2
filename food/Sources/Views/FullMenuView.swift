@@ -325,14 +325,30 @@ struct FullMenuView: View {
         return total
     }
 
+    private var currentBranchName: String {
+        selectedBranchName.isEmpty ? (branchName ?? (location.isEmpty ? "CDMX, México" : location)) : selectedBranchName
+    }
+
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
             TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
                 VStack(spacing: 14) {
                     heroSection
-                    branchCard
-                    categoryTabs
+                    
+                    // Optimized: Using Struct
+                    FullMenuBranchCard(
+                        branchName: currentBranchName,
+                        distanceKm: distanceKm,
+                        onTap: { openBranchSheet() }
+                    )
+                    
+                    // Optimized: Using Struct
+                    FullMenuCategoryTabs(
+                        categories: categories,
+                        activeTab: $activeTab
+                    )
+                    
                     menuList
                     Spacer(minLength: 110)
                 }
@@ -487,70 +503,20 @@ struct FullMenuView: View {
                 .font(.system(size: 16, weight: .bold))
         }
     }
-
-    private var currentBranchName: String {
-        selectedBranchName.isEmpty ? (branchName ?? (location.isEmpty ? "CDMX, México" : location)) : selectedBranchName
-    }
     
-    private var branchCard: some View {
-        Button(action: { openBranchSheet() }) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("SUCURSAL SELECCIONADA")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 11, weight: .bold))
-                    Text(currentBranchName)
-                        .foregroundColor(.black)
-                        .font(.system(size: 15, weight: .bold))
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 6) {
-                    Text("DISTANCIA")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 11, weight: .bold))
-                    HStack(spacing: 6) {
-                        Text(String(format: "%.1f km", distanceKm ?? 2.3))
-                            .foregroundColor(.black)
-                            .font(.system(size: 15, weight: .bold))
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.gray.opacity(0.8))
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                }
-            }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
-        }
-    }
-
-    private var categoryTabs: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(categories, id: \.self) { t in
-                    Button(action: { withAnimation(.easeInOut(duration: 0.18)) { activeTab = t } }) {
-                        Text(t)
-                            .foregroundColor(activeTab == t ? .white : .black.opacity(0.7))
-                            .font(.system(size: 13, weight: .bold))
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 16)
-                            .background(activeTab == t ? Color.fuchsia : Color.gray.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-            .padding(.vertical, 6)
-        }
-    }
     private var menuList: some View {
         VStack(alignment: .leading, spacing: 14) {
             if activeTab == "Todo" {
                 sectionHeader("Populares")
                 VStack(spacing: 12) {
                     ForEach(displayedDishes.filter { $0.isPopular }) { dish in
-                        dishRow(dish)
+                        FullMenuDishRow(
+                            dish: dish,
+                            quantity: cart[dish.id] ?? 0,
+                            onTap: { openDishSheet(dish) },
+                            onAdd: { addToCart(dish) },
+                            onRemove: { removeFromCart(dish) }
+                        )
                     }
                 }
                 
@@ -560,7 +526,13 @@ struct FullMenuView: View {
                         sectionHeader(cat)
                         VStack(spacing: 12) {
                             ForEach(items) { dish in
-                                dishRow(dish)
+                                FullMenuDishRow(
+                                    dish: dish,
+                                    quantity: cart[dish.id] ?? 0,
+                                    onTap: { openDishSheet(dish) },
+                                    onAdd: { addToCart(dish) },
+                                    onRemove: { removeFromCart(dish) }
+                                )
                             }
                         }
                     }
@@ -569,7 +541,13 @@ struct FullMenuView: View {
                 sectionHeader(activeTab)
                 VStack(spacing: 12) {
                     ForEach(displayedDishes) { dish in
-                        dishRow(dish)
+                        FullMenuDishRow(
+                            dish: dish,
+                            quantity: cart[dish.id] ?? 0,
+                            onTap: { openDishSheet(dish) },
+                            onAdd: { addToCart(dish) },
+                            onRemove: { removeFromCart(dish) }
+                        )
                     }
                 }
             }
@@ -584,44 +562,6 @@ struct FullMenuView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 10)
             .padding(.bottom, 2)
-    }
-    
-    private func dishRow(_ dish: Dish) -> some View {
-        let qty = cart[dish.id] ?? 0
-        return HStack(spacing: 12) {
-            dishImage(dish.imageUrl)
-                .frame(width: 66, height: 66)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(dish.title)
-                        .foregroundColor(.black)
-                        .font(.system(size: 16, weight: .bold))
-                        .lineLimit(1)
-                    Spacer()
-                    Text(priceText(dish.price))
-                        .foregroundColor(.black)
-                        .font(.system(size: 15, weight: .bold))
-                }
-                
-                Text(dish.subtitle)
-                    .foregroundColor(.gray)
-                    .font(.system(size: 13))
-                    .lineLimit(2)
-            }
-            .padding(.bottom, 18)
-        }
-        .padding(14)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
-        .overlay(alignment: .bottomTrailing) {
-            menuItemQuantityControl(dish, quantity: qty)
-                .padding(10)
-        }
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .onTapGesture { openDishSheet(dish) }
     }
     
     private var checkoutBar: some View {
@@ -685,11 +625,11 @@ struct FullMenuView: View {
         HStack(spacing: 10) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .bold))
-                    .frame(width: 34, height: 34)
-                    .background(Color.gray.opacity(0.12))
-                    .clipShape(Circle())
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+                .frame(width: 34, height: 34)
+                .background(Color.gray.opacity(0.12))
+                .clipShape(Circle())
             }
 
             Text(restaurantName)
@@ -1424,3 +1364,173 @@ struct FullMenuRoundedCorners: Shape {
     }
 }
 
+// MARK: - Refactored Components for Performance
+
+struct FullMenuBranchCard: View {
+    let branchName: String
+    let distanceKm: Double?
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("SUCURSAL SELECCIONADA")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 11, weight: .bold))
+                    Text(branchName)
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .bold))
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text("DISTANCIA")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 11, weight: .bold))
+                    HStack(spacing: 6) {
+                        Text(String(format: "%.1f km", distanceKm ?? 2.3))
+                            .foregroundColor(.black)
+                            .font(.system(size: 15, weight: .bold))
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray.opacity(0.8))
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                }
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+        }
+    }
+}
+
+struct FullMenuCategoryTabs: View {
+    let categories: [String]
+    @Binding var activeTab: String
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(categories, id: \.self) { t in
+                    Button(action: { withAnimation(.easeInOut(duration: 0.18)) { activeTab = t } }) {
+                        Text(t)
+                            .foregroundColor(activeTab == t ? .white : .black.opacity(0.7))
+                            .font(.system(size: 13, weight: .bold))
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 16)
+                            .background(activeTab == t ? Color.fuchsia : Color.gray.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+        }
+    }
+}
+
+struct FullMenuDishRow: View {
+    let dish: FullMenuView.Dish
+    let quantity: Int
+    let onTap: () -> Void
+    let onAdd: () -> Void
+    let onRemove: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Group {
+                if let url = URL(string: dish.imageUrl), !dish.imageUrl.isEmpty {
+                    WebImage(url: url)
+                        .resizable()
+                        .indicator(.activity)
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+            }
+            .frame(width: 66, height: 66)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(dish.title)
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .bold))
+                        .lineLimit(1)
+                    Spacer()
+                    Text(String(format: "$%.2f", dish.price))
+                        .foregroundColor(.black)
+                        .font(.system(size: 15, weight: .bold))
+                }
+                
+                Text(dish.subtitle)
+                    .foregroundColor(.gray)
+                    .font(.system(size: 13))
+                    .lineLimit(2)
+            }
+            .padding(.bottom, 18)
+        }
+        .padding(14)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
+        .overlay(alignment: .bottomTrailing) {
+            quantityControl
+                .padding(10)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .onTapGesture(perform: onTap)
+    }
+    
+    private var quantityControl: some View {
+        Group {
+            if quantity <= 0 {
+                Button(action: onAdd) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: "plus")
+                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .bold))
+                        )
+                }
+            } else {
+                HStack(spacing: 10) {
+                    Button(action: onRemove) {
+                        Image(systemName: "minus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 28, height: 28)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+
+                    Text("\(quantity)")
+                        .foregroundColor(.black)
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(minWidth: 14)
+
+                    Button(action: onAdd) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.green)
+                            .font(.system(size: 12, weight: .bold))
+                            .frame(width: 28, height: 28)
+                            .background(Color.gray.opacity(0.10))
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
+        }
+    }
+}
