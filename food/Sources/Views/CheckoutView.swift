@@ -1065,7 +1065,7 @@ struct OrderCompletedOverlayView: View {
                             .shadow(color: .brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
                         
                         if phase == .checkmarkDraw || phase == .finalSuccess {
-                            // Removing duplicate animated checkmark as requested
+                            AnimatedCheckmark()
                         }
                     }
                     .transition(.scale.combined(with: .opacity))
@@ -1075,10 +1075,7 @@ struct OrderCompletedOverlayView: View {
             
             // 3. Final Success Animation (The "Visto")
             if phase == .finalSuccess {
-                FinalSuccessView()
-                    .transition(.opacity)
-                    .zIndex(3)
-                    .offset(y: 80) // Below the checkmark
+                // Removed white "Opinion Sent" view as requested
             }
         }
         .onAppear {
