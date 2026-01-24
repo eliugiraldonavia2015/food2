@@ -592,7 +592,6 @@ struct OrderTrackingView: View {
 
     @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
     @State private var showCompletionOverlay = true
-    @State private var isRatingDismissed = false // Nueva bandera para controlar la transición final
 
     var body: some View {
         GeometryReader { geo in
@@ -602,7 +601,6 @@ struct OrderTrackingView: View {
                 WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
-                    .opacity(isRatingDismissed ? 0 : 1) // Ocultar mapa inmediatamente al finalizar rating
                     .overlay(
                         Button(action: { showMenu = true }) {
                             Image(systemName: "chevron.left")
@@ -792,20 +790,18 @@ struct OrderTrackingView: View {
                     .transition(.opacity)
                     .zIndex(2) // Ensure it stays on top
                 }
+                
+                // 4. Rating View (Embedded for smooth transition)
+                if showRatingScreen {
+                    RatingView(onDismiss: {
+                        onFinish?()
+                    })
+                    .transition(.move(edge: .bottom))
+                    .zIndex(3)
+                }
             }
         }
         .preferredColorScheme(.light)
-        .fullScreenCover(isPresented: $showRatingScreen) {
-            RatingView(onDismiss: {
-                isRatingDismissed = true // 1. Ocultar todo el contenido de tracking instantáneamente
-                showRatingScreen = false
-                
-                // 2. Ejecutar cierre sin animación visible de la pantalla anterior
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    onFinish?()
-                }
-            })
-        }
         .onAppear {
             // Initial position logic handled via geometry reader if needed, 
             // but here we set a flag or let the first geometry update set it.
