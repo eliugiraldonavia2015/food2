@@ -38,5 +38,9 @@
 	<string>foodtook-videos</string>
 	<key>BUNNY_STORAGE_HOST</key>
 	<string>br.storage.bunnycdn.com</string>
+	<key>UISupportedInterfaceOrientations_iPad</key>
+	<string>UIInterfaceOrientationPortrait</string>
+	<key>UISupportedInterfaceOrientations_iPhone</key>
+	<string>UIInterfaceOrientationPortrait</string>
 </dict>
 </plist>
