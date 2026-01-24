@@ -26,7 +26,7 @@ struct RatingView: View {
                         .clipped()
                         .overlay(
                             LinearGradient(
-                                colors: [.black.opacity(0.6), .transparent],
+                                colors: [.black.opacity(0.6), .clear],
                                 startPoint: .bottom,
                                 endPoint: .top
                             )
