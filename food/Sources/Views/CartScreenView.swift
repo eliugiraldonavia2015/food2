@@ -13,6 +13,7 @@ struct CartScreenView: View {
     let restaurantName: String
     let items: [CartItem]
     @Binding var quantities: [String: Int]
+    var onOrderCompleted: (() -> Void)?
         
     private let summaryFixedHeight: CGFloat = 74
 
@@ -79,7 +80,12 @@ struct CartScreenView: View {
                 },
                 total: total,
                 onOrderCompleted: {
-                    dismiss()
+                    // Cierra CheckoutView
+                    showCheckout = false
+                    // Notifica a FullMenuView para cerrar CartScreenView
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        onOrderCompleted?()
+                    }
                 }
             )
         }

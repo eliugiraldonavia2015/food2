@@ -29,6 +29,7 @@ struct FullMenuView: View {
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var showCartScreen: Bool = false
+    @State private var shouldResetNavigation: Bool = false
 
     init(
         restaurantId: String,
@@ -330,11 +331,20 @@ struct FullMenuView: View {
                 dishSheetOverlay
             }
         }
-        .fullScreenCover(isPresented: $showCartScreen) {
+        .fullScreenCover(isPresented: $showCartScreen, onDismiss: {
+            if shouldResetNavigation {
+                shouldResetNavigation = false
+                cart.removeAll() // Opcional: limpiar carrito al terminar
+            }
+        }) {
             CartScreenView(
                 restaurantName: restaurantName,
                 items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
-                quantities: $cart
+                quantities: $cart,
+                onOrderCompleted: {
+                    shouldResetNavigation = true
+                    showCartScreen = false
+                }
             )
         }
     }
