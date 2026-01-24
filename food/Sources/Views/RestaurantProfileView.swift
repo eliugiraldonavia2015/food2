@@ -130,9 +130,7 @@ struct RestaurantProfileView: View {
                     distanceKm: 2.3,
                     onDismissToRoot: {
                         // Presentar Rating y cerrar FullMenu
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            withAnimation { showRatingOverlay = true }
-                        }
+                        showRatingOverlay = true
                         showFullMenu = false
                     }
                 )
@@ -156,7 +154,6 @@ struct RestaurantProfileView: View {
                 RatingView(onDismiss: {
                     withAnimation { showRatingOverlay = false }
                 })
-                .transition(.move(edge: .bottom))
                 .zIndex(100)
             }
         }
