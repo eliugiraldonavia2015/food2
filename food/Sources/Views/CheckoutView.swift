@@ -592,6 +592,7 @@ struct OrderTrackingView: View {
 
     @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
     @State private var showCompletionOverlay = true
+    @State private var isRatingDismissed = false // Nueva bandera para controlar la transición final
 
     var body: some View {
         GeometryReader { geo in
@@ -601,6 +602,7 @@ struct OrderTrackingView: View {
                 WazeLikeMapView(region: $region, tileTemplate: MinimalMapStyle.template)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
+                    .opacity(isRatingDismissed ? 0 : 1) // Ocultar mapa inmediatamente al finalizar rating
                     .overlay(
                         Button(action: { showMenu = true }) {
                             Image(systemName: "chevron.left")
@@ -626,9 +628,10 @@ struct OrderTrackingView: View {
                     }
 
                 // 2. Bottom Sheet
-                VStack(spacing: 0) {
-                    // Drag Handle
-                    Capsule()
+                if !isRatingDismissed {
+                    VStack(spacing: 0) {
+                        // Drag Handle
+                        Capsule()
                         .fill(Color.gray.opacity(0.3))
                         .frame(width: 40, height: 4)
                         .padding(.top, 12)
@@ -768,16 +771,17 @@ struct OrderTrackingView: View {
                 .offset(y: offset + gestureOffset)
                 .animation(.spring(response: 0.5, dampingFraction: 0.75, blendDuration: 0), value: offset)
                 .animation(.interactiveSpring(), value: gestureOffset)
-                // We move the drag gesture from here (whole sheet) to just the header/background if we want scroll to work freely.
-                // BUT user wants to drag the sheet up/down.
-                // If we remove it from here, user can only drag by header.
-                // If we keep it, scroll might be blocked.
-                // Let's try putting it on the background but let ScrollView be on top?
-                // Actually, the issue "can't scroll at half position" is likely because the sheet height is huge and offset pushes it down,
-                // but the touch area is still valid. The DragGesture on the parent is consuming the touches.
-                // Correct approach: Apply DragGesture to the whole view but use simultaneousGesture or restricted hit testing?
-                // Better approach: Only allow dragging the sheet via the header area.
-                // Let's move the gesture modifier to the Header VStack.
+                    // We move the drag gesture from here (whole sheet) to just the header/background if we want scroll to work freely.
+                    // BUT user wants to drag the sheet up/down.
+                    // If we remove it from here, user can only drag by header.
+                    // If we keep it, scroll might be blocked.
+                    // Let's try putting it on the background but let ScrollView be on top?
+                    // Actually, the issue "can't scroll at half position" is likely because the sheet height is huge and offset pushes it down,
+                    // but the touch area is still valid. The DragGesture on the parent is consuming the touches.
+                    // Correct approach: Apply DragGesture to the whole view but use simultaneousGesture or restricted hit testing?
+                    // Better approach: Only allow dragging the sheet via the header area.
+                    // Let's move the gesture modifier to the Header VStack.
+                } // End of conditional for isRatingDismissed
             
                 // 3. Completion Overlay
                 if status == .completed && showCompletionOverlay {
@@ -793,8 +797,13 @@ struct OrderTrackingView: View {
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $showRatingScreen) {
             RatingView(onDismiss: {
+                isRatingDismissed = true // 1. Ocultar todo el contenido de tracking instantáneamente
                 showRatingScreen = false
-                onFinish?()
+                
+                // 2. Ejecutar cierre sin animación visible de la pantalla anterior
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    onFinish?()
+                }
             })
         }
         .onAppear {
