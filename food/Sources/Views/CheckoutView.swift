@@ -780,7 +780,7 @@ struct OrderTrackingView: View {
                         dismiss()
                         onFinish?()
                     })
-                        .transition(.opacity.combined(with: .scale))
+                        .transition(.opacity)
                 }
             }
         }
