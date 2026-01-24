@@ -153,6 +153,7 @@ struct CheckoutView: View {
                 branchName: nil,
                 distanceKm: nil,
                 onFinish: {
+                    showOrderTracking = false
                     onOrderCompleted?()
                 }
             )
