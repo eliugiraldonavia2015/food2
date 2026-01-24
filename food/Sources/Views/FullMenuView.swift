@@ -2,10 +2,12 @@ import SwiftUI
 import SDWebImageSwiftUI
 import UIKit
 import Combine
+import Foundation
 
 class FullMenuViewModel: ObservableObject {
     @Published var dishes: [FullMenuView.Dish] = []
     @Published var branches: [FullMenuView.Branch] = []
+    @Published var categories: [String] = []
     @Published var isLoading = false
     
     private let restaurantId: String
@@ -16,8 +18,18 @@ class FullMenuViewModel: ObservableObject {
     }
     
     func loadData() {
-        // SIMULATION: In the future, this will be an API call using restaurantId
-        // e.g. RestaurantService.getMenu(for: restaurantId)
+        // SCALABILITY NOTE:
+        // This function is designed to fetch data from a database (e.g., Firebase, REST API).
+        // Currently simulating data, but 'restaurantId' would be used to query the specific restaurant's menu.
+        // Example:
+        // Task {
+        //     let menu = await Database.fetchMenu(for: restaurantId)
+        //     await MainActor.run {
+        //         self.dishes = menu.dishes
+        //         self.branches = menu.branches
+        //         self.updateCategories()
+        //     }
+        // }
         
         self.dishes = [
             .init(
@@ -101,6 +113,9 @@ class FullMenuViewModel: ObservableObject {
             .init(name: "Santa Fe", address: "Vasco de Quiroga 3800, Santa Fe", distanceKm: 8.4),
             .init(name: "Coyoacán", address: "Calle Cuauhtémoc 12, Del Carmen", distanceKm: 11.2)
         ]
+        
+        let cats = Array(Set(self.dishes.map { $0.category })).sorted()
+        self.categories = ["Todo"] + cats
     }
 }
 
@@ -285,8 +300,7 @@ struct FullMenuView: View {
     private var hardcodedDishes: [Dish] { viewModel.dishes }
     
     private var categories: [String] {
-        let cats = Array(Set(viewModel.dishes.map { $0.category })).sorted()
-        return ["Todo"] + cats
+        viewModel.categories
     }
     
     private var nearestBranchId: UUID? {
@@ -358,7 +372,8 @@ struct FullMenuView: View {
         .fullScreenCover(isPresented: $showCartScreen, onDismiss: {
             if shouldResetNavigation {
                 shouldResetNavigation = false
-                cart.removeAll() // Opcional: limpiar carrito al terminar
+                cart.removeAll()
+                dismiss()
             }
         }) {
             CartScreenView(

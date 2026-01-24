@@ -772,14 +772,14 @@ struct OrderTrackingView: View {
                 // Correct approach: Apply DragGesture to the whole view but use simultaneousGesture or restricted hit testing?
                 // Better approach: Only allow dragging the sheet via the header area.
                 // Let's move the gesture modifier to the Header VStack.
-
-                
+            
                 // 3. Completion Overlay
                 if status == .completed {
                     OrderCompletedOverlayView(onDismiss: {
                         onFinish?()
                     })
-                        .transition(.opacity)
+                    .transition(.opacity)
+                    .zIndex(2) // Ensure it stays on top
                 }
             }
         }
