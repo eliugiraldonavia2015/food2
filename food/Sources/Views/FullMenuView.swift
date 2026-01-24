@@ -148,7 +148,9 @@ struct FullMenuView: View {
     @State private var menuContentOffsetY: CGFloat = 0
     @State private var showMenuMiniHeader: Bool = false
     @State private var showCartScreen: Bool = false
-    @State private var shouldResetNavigation: Bool = false
+    
+    // Callback para cerrar todo el flujo de navegación hasta la raíz (o vista padre)
+    var onDismissToRoot: (() -> Void)?
 
     init(
         restaurantId: String,
@@ -158,7 +160,8 @@ struct FullMenuView: View {
         location: String,
         branchName: String?,
         distanceKm: Double?,
-        isEditing: Bool = false
+        isEditing: Bool = false,
+        onDismissToRoot: (() -> Void)? = nil
     ) {
         self.restaurantId = restaurantId
         self.restaurantName = restaurantName
@@ -168,6 +171,7 @@ struct FullMenuView: View {
         self.branchName = branchName
         self.distanceKm = distanceKm
         self.isEditing = isEditing
+        self.onDismissToRoot = onDismissToRoot
         self._viewModel = StateObject(wrappedValue: FullMenuViewModel(restaurantId: restaurantId))
     }
     
@@ -385,20 +389,19 @@ struct FullMenuView: View {
                 dishSheetOverlay
             }
         }
-        .fullScreenCover(isPresented: $showCartScreen, onDismiss: {
-            if shouldResetNavigation {
-                shouldResetNavigation = false
-                cart.removeAll()
-                dismiss()
-            }
-        }) {
+        .fullScreenCover(isPresented: $showCartScreen) {
             CartScreenView(
                 restaurantName: restaurantName,
                 items: hardcodedDishes.map { .init(id: $0.id, title: $0.title, subtitle: $0.subtitle, price: $0.price, imageUrl: $0.imageUrl) },
                 quantities: $cart,
                 onOrderCompleted: {
-                    shouldResetNavigation = true
-                    showCartScreen = false
+                    cart.removeAll()
+                    // Si existe el callback para ir a raíz, lo usamos. Si no, cerramos el carrito.
+                    if let onDismissToRoot = onDismissToRoot {
+                        onDismissToRoot()
+                    } else {
+                        showCartScreen = false
+                    }
                 }
             )
         }

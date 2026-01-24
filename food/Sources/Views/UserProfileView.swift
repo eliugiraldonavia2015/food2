@@ -131,7 +131,10 @@ struct UserProfileView: View {
                     avatarUrl: user.photoUrl,
                     location: user.location.isEmpty ? "CDMX, México" : user.location,
                     branchName: user.location.isEmpty ? "CDMX, México" : user.location,
-                    distanceKm: 2.3
+                    distanceKm: 2.3,
+                    onDismissToRoot: {
+                        showFullMenu = false
+                    }
                 )
             } else {
                 Color.black.ignoresSafeArea()
