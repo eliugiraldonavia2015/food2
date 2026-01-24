@@ -125,7 +125,10 @@ struct RestaurantProfileView: View {
                 avatarUrl: currentData.avatarUrl,
                 location: currentData.location,
                 branchName: selectedBranchName.isEmpty ? currentData.branch : selectedBranchName,
-                distanceKm: 2.3
+                distanceKm: 2.3,
+                onDismissToRoot: {
+                    showFullMenu = false
+                }
             )
         }
         .sheet(isPresented: $showChat) {
