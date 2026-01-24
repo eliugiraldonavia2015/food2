@@ -184,8 +184,8 @@ struct UserProfileView: View {
                         .clipShape(Circle())
                 }
             }
-            .offset(y: -55)
-            .padding(.bottom, -40)
+            .offset(y: -75) // Subido de -55 a -75
+            .padding(.bottom, -60) // Ajustado de -40 a -60 para compensar
             
             VStack(spacing: 8) {
                 Text(user.name)
