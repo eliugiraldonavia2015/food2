@@ -2,6 +2,107 @@ import SwiftUI
 import SDWebImageSwiftUI
 import UIKit
 
+class FullMenuViewModel: ObservableObject {
+    @Published var dishes: [FullMenuView.Dish] = []
+    @Published var branches: [FullMenuView.Branch] = []
+    @Published var isLoading = false
+    
+    private let restaurantId: String
+    
+    init(restaurantId: String) {
+        self.restaurantId = restaurantId
+        loadData()
+    }
+    
+    func loadData() {
+        // SIMULATION: In the future, this will be an API call using restaurantId
+        // e.g. RestaurantService.getMenu(for: restaurantId)
+        
+        self.dishes = [
+            .init(
+                id: "green-burger",
+                category: "Pizzas",
+                title: "Clásica Green Burger",
+                subtitle: "Carne premium, lechuga fresca, jitomate y nuestra salsa especial de la casa.",
+                price: 12.99,
+                imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+                isPopular: true
+            ),
+            .init(
+                id: "avocado-toast",
+                category: "Desayunos",
+                title: "Avocado Toast",
+                subtitle: "Pan de masa madre, aguacate hass, huevo pochado y semillas de girasol.",
+                price: 8.50,
+                imageUrl: "https://images.unsplash.com/photo-1588137372308-15f75323ca8d",
+                isPopular: true
+            ),
+            .init(
+                id: "sushi-bowl",
+                category: "Comida Asiática",
+                title: "Salmon Poke Bowl",
+                subtitle: "Salmón fresco, arroz de sushi, edamames, aguacate y salsa ponzu.",
+                price: 14.20,
+                imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
+                isPopular: true
+            ),
+            .init(
+                id: "tacos-pastor",
+                category: "Mexicana",
+                title: "Orden de Tacos al Pastor",
+                subtitle: "5 tacos con todo: piña, cilantro, cebolla y salsa de la casa.",
+                price: 6.00,
+                imageUrl: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b",
+                isPopular: true
+            ),
+            .init(
+                id: "pizza-margarita",
+                category: "Pizzas",
+                title: "Pizza Margarita",
+                subtitle: "Mozzarella fresca, albahaca y aceite de oliva extra virgen.",
+                price: 11.25,
+                imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
+                isPopular: false
+            ),
+            .init(
+                id: "coca",
+                category: "Bebidas",
+                title: "Coca-Cola",
+                subtitle: "355 ml bien fría.",
+                price: 1.50,
+                imageUrl: "https://images.unsplash.com/photo-1612528443702-f6741f70a049",
+                isPopular: false
+            ),
+            .init(
+                id: "limonada",
+                category: "Bebidas",
+                title: "Limonada",
+                subtitle: "Natural, con hielo y un toque de menta.",
+                price: 2.00,
+                imageUrl: "https://images.unsplash.com/photo-1528825871115-3581a5387919",
+                isPopular: false
+            ),
+            .init(
+                id: "cheesecake",
+                category: "Postres",
+                title: "Cheesecake",
+                subtitle: "Clásico, cremoso y con base de galleta.",
+                price: 4.50,
+                imageUrl: "https://images.unsplash.com/photo-1542826438-bd32f43d626f",
+                isPopular: false
+            )
+        ]
+        
+        self.branches = [
+            .init(name: "CDMX, México", address: "Av. Horacio 123, Polanco", distanceKm: 2.3),
+            .init(name: "Condesa", address: "Tamaulipas 45, Hipódromo Condesa", distanceKm: 2.5),
+            .init(name: "Roma Norte", address: "Colima 234, Roma Norte", distanceKm: 3.1),
+            .init(name: "Santa Fe", address: "Vasco de Quiroga 3800, Santa Fe", distanceKm: 8.4),
+            .init(name: "Coyoacán", address: "Calle Cuauhtémoc 12, Del Carmen", distanceKm: 11.2)
+        ]
+    }
+}
+
 struct FullMenuView: View {
     let restaurantId: String
     let restaurantName: String
@@ -11,6 +112,8 @@ struct FullMenuView: View {
     let branchName: String?
     let distanceKm: Double?
     let isEditing: Bool
+    
+    @StateObject private var viewModel: FullMenuViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var activeTab: String = "Todo"
     @State private var showBranchSheet = false
@@ -49,16 +152,17 @@ struct FullMenuView: View {
         self.branchName = branchName
         self.distanceKm = distanceKm
         self.isEditing = isEditing
+        self._viewModel = StateObject(wrappedValue: FullMenuViewModel(restaurantId: restaurantId))
     }
     
-    private struct Branch: Identifiable {
+    struct Branch: Identifiable {
         let id = UUID()
         let name: String
         let address: String
         let distanceKm: Double
     }
     
-    private struct Dish: Identifiable {
+    struct Dish: Identifiable {
         let id: String
         let category: String
         let title: String
@@ -175,93 +279,12 @@ struct FullMenuView: View {
         ]
     }
     
-    private let hardcodedBranches: [Branch] = [
-        .init(name: "CDMX, México", address: "Av. Horacio 123, Polanco", distanceKm: 2.3),
-        .init(name: "Condesa", address: "Tamaulipas 45, Hipódromo Condesa", distanceKm: 2.5),
-        .init(name: "Roma Norte", address: "Colima 234, Roma Norte", distanceKm: 3.1),
-        .init(name: "Santa Fe", address: "Vasco de Quiroga 3800, Santa Fe", distanceKm: 8.4),
-        .init(name: "Coyoacán", address: "Calle Cuauhtémoc 12, Del Carmen", distanceKm: 11.2)
-    ]
-    
-    private var hardcodedDishes: [Dish] {
-        [
-            .init(
-                id: "green-burger",
-                category: "Pizzas",
-                title: "Clásica Green Burger",
-                subtitle: "Carne premium, lechuga fresca, jitomate y nuestra salsa especial de la casa.",
-                price: 12.99,
-                imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-                isPopular: true
-            ),
-            .init(
-                id: "pasta-bolo",
-                category: "Pizzas",
-                title: "Pasta Boloñesa Premium",
-                subtitle: "Pasta artesanal con salsa boloñesa tradicional y queso parmesano rallado.",
-                price: 10.50,
-                imageUrl: "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9",
-                isPopular: true
-            ),
-            .init(
-                id: "tacos-pastor",
-                category: "Postres",
-                title: "Tacos al Pastor (Orden)",
-                subtitle: "5 tacos con piña, cebolla y cilantro. La receta original de la ciudad.",
-                price: 8.99,
-                imageUrl: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85",
-                isPopular: true
-            ),
-            .init(
-                id: "pizza-pepperoni",
-                category: "Pizzas",
-                title: "Pizza Pepperoni",
-                subtitle: "Pepperoni, mozzarella y salsa pomodoro. Crujiente y deliciosa.",
-                price: 13.75,
-                imageUrl: "https://images.unsplash.com/photo-1548365328-9f547d0f72a9",
-                isPopular: false
-            ),
-            .init(
-                id: "pizza-margarita",
-                category: "Pizzas",
-                title: "Pizza Margarita",
-                subtitle: "Mozzarella fresca, albahaca y aceite de oliva extra virgen.",
-                price: 11.25,
-                imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba",
-                isPopular: false
-            ),
-            .init(
-                id: "coca",
-                category: "Bebidas",
-                title: "Coca-Cola",
-                subtitle: "355 ml bien fría.",
-                price: 1.50,
-                imageUrl: "https://images.unsplash.com/photo-1612528443702-f6741f70a049",
-                isPopular: false
-            ),
-            .init(
-                id: "limonada",
-                category: "Bebidas",
-                title: "Limonada",
-                subtitle: "Natural, con hielo y un toque de menta.",
-                price: 2.00,
-                imageUrl: "https://images.unsplash.com/photo-1528825871115-3581a5387919",
-                isPopular: false
-            ),
-            .init(
-                id: "cheesecake",
-                category: "Postres",
-                title: "Cheesecake",
-                subtitle: "Clásico, cremoso y con base de galleta.",
-                price: 4.50,
-                imageUrl: "https://images.unsplash.com/photo-1542826438-bd32f43d626f",
-                isPopular: false
-            )
-        ]
-    }
+    // MARK: - Computed Data
+    private var hardcodedBranches: [Branch] { viewModel.branches }
+    private var hardcodedDishes: [Dish] { viewModel.dishes }
     
     private var categories: [String] {
-        let cats = Array(Set(hardcodedDishes.map { $0.category })).sorted()
+        let cats = Array(Set(viewModel.dishes.map { $0.category })).sorted()
         return ["Todo"] + cats
     }
     
