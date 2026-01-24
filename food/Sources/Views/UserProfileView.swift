@@ -21,6 +21,9 @@ struct UserProfileView: View {
         GridItem(.flexible(), spacing: 2)
     ]
     
+    private let hardcodedDescriptionText =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco."
+    
     init(userId: String) {
         _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
     }
