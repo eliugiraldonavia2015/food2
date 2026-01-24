@@ -779,7 +779,7 @@ struct OrderTrackingView: View {
                 // Let's move the gesture modifier to the Header VStack.
             
                 // 3. Completion Overlay
-                if status == .completed {
+                if status == .completed && !showRatingScreen {
                     OrderCompletedOverlayView(onDismiss: {
                         showRatingScreen = true
                     })
