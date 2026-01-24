@@ -226,50 +226,5 @@ struct RatingView: View {
     }
 }
 
-// Reusing FlowLayout helper from FoodDiscoveryView if available, 
-// otherwise defining a simple one or just using HStacks.
-// Assuming FlowLayout is available in scope or needs to be copied.
-// For safety, I'll use a simple LazyVGrid or just HStacks if I can't find it,
-// but since I saw it in FoodDiscoveryView, I'll assume I can copy it or it's global.
-// Actually, FoodDiscoveryView had it as a private helper. I should define it here or make it public.
-// I will define a simple version here to avoid dependencies.
+// Reusing FlowLayout helper from FoodDiscoveryView
 
-fileprivate struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = flow(subviews: subviews, containerWidth: proposal.width ?? .infinity)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = flow(subviews: subviews, containerWidth: bounds.width)
-        for (index, point) in result.points.enumerated() {
-            subviews[index].place(at: CGPoint(x: bounds.minX + point.x, y: bounds.minY + point.y), proposal: .unspecified)
-        }
-    }
-
-    private func flow(subviews: Subviews, containerWidth: CGFloat) -> (size: CGSize, points: [CGPoint]) {
-        var points: [CGPoint] = []
-        var currentX: CGFloat = 0
-        var currentY: CGFloat = 0
-        var lineHeight: CGFloat = 0
-        var maxWidth: CGFloat = 0
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if currentX + size.width > containerWidth {
-                currentX = 0
-                currentY += lineHeight + spacing
-                lineHeight = 0
-            }
-            
-            points.append(CGPoint(x: currentX, y: currentY))
-            lineHeight = max(lineHeight, size.height)
-            currentX += size.width + spacing
-            maxWidth = max(maxWidth, currentX)
-        }
-        
-        return (CGSize(width: maxWidth, height: currentY + lineHeight), points)
-    }
-}
