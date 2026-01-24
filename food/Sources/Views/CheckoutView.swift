@@ -1066,12 +1066,10 @@ struct OrderCompletedOverlayView: View {
     
     var body: some View {
         ZStack {
-            // 1. Cinematic Backdrop (Fade In Only - No Growth)
-            if phase != .initial {
-                Color.black.opacity(0.8)
-                    .ignoresSafeArea()
-                    .transition(.opacity.animation(.easeOut(duration: 0.3)))
-            }
+            // 1. Cinematic Backdrop (Pure Fade In)
+            Color.black.opacity(phase == .initial ? 0 : 0.8)
+                .ignoresSafeArea()
+                .animation(.easeOut(duration: 0.3), value: phase)
             
             // 2. The Intro Element (Fade In)
             VStack {
