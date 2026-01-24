@@ -590,6 +590,7 @@ struct OrderTrackingView: View {
     @State private var hasInitializedPosition = false
 
     @State private var showRatingScreen = false // Nueva bandera para la pantalla completa de rating
+    @State private var showCompletionOverlay = true
 
     var body: some View {
         GeometryReader { geo in
@@ -1064,7 +1065,7 @@ struct OrderCompletedOverlayView: View {
                             .shadow(color: .brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
                         
                         if phase == .checkmarkDraw || phase == .finalSuccess {
-                            AnimatedCheckmark()
+                            // Removing duplicate animated checkmark as requested
                         }
                     }
                     .transition(.scale.combined(with: .opacity))
