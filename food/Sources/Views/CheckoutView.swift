@@ -16,7 +16,8 @@ struct CheckoutView: View {
     let restaurantName: String
     let items: [LineItem]
     let total: Double
-
+    var onOrderCompleted: (() -> Void)?
+    
     @Environment(\.dismiss) private var dismiss
     @State private var addressTitle: String = "Mi Casa"
     @State private var addressDetail: String = "Av. Paseo de la Reforma 222, Juárez,\nCuauhtémoc, 06600 Ciudad de México, CDMX"
@@ -150,7 +151,10 @@ struct CheckoutView: View {
                 avatarUrl: "",
                 location: addressTitle,
                 branchName: nil,
-                distanceKm: nil
+                distanceKm: nil,
+                onFinish: {
+                    onOrderCompleted?()
+                }
             )
         }
     }
@@ -509,6 +513,7 @@ struct OrderTrackingView: View {
     let location: String
     let branchName: String?
     let distanceKm: Double?
+    var onFinish: (() -> Void)?
     private let destinationCoord = CLLocationCoordinate2D(latitude: 19.426, longitude: -99.170)
     
     // MARK: - Simulation State
@@ -771,7 +776,10 @@ struct OrderTrackingView: View {
                 
                 // 3. Completion Overlay
                 if status == .completed {
-                    OrderCompletedOverlayView(onDismiss: { dismiss() })
+                    OrderCompletedOverlayView(onDismiss: {
+                        dismiss()
+                        onFinish?()
+                    })
                         .transition(.opacity.combined(with: .scale))
                 }
             }
@@ -1021,9 +1029,10 @@ struct OrderCompletedOverlayView: View {
     
     enum AnimationPhase {
         case initial
-        case circleExpand
+        case circleFadeIn
         case checkmarkDraw
         case cardPresentation
+        case finalSuccess
         case finished
     }
     
@@ -1057,27 +1066,28 @@ struct OrderCompletedOverlayView: View {
     
     var body: some View {
         ZStack {
-            // 1. Cinematic Backdrop
+            // 1. Cinematic Backdrop (Fade In Only - No Growth)
             if phase != .initial {
-                Color.black.opacity(0.6)
+                Color.black.opacity(0.8)
                     .ignoresSafeArea()
                     .transition(.opacity)
             }
             
-            // 2. The Morphing Element
+            // 2. The Intro Element (Fade In)
             VStack {
-                if phase == .circleExpand || phase == .checkmarkDraw {
+                if phase == .circleFadeIn || phase == .checkmarkDraw {
                     ZStack {
                         Circle()
                             .fill(Color.brandGreen)
-                            .frame(width: 120, height: 120)
-                            .shadow(color: .brandGreen.opacity(0.5), radius: 30, x: 0, y: 15)
+                            .frame(width: 100, height: 100)
+                            .shadow(color: .brandGreen.opacity(0.4), radius: 20, x: 0, y: 10)
                         
                         if phase == .checkmarkDraw {
                             AnimatedCheckmark()
                         }
                     }
-                    .transition(.scale(scale: 0.1, anchor: .center))
+                    // FIX: Simple Fade In, no scaling to avoid "growing" look
+                    .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1092,9 +1102,17 @@ struct OrderCompletedOverlayView: View {
                         onSkip: handleSkip
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .id("rating-card") // Stable ID for the container
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .zIndex(2)
+            }
+            
+            // 4. Final Success Animation (The "Visto")
+            if phase == .finalSuccess {
+                FinalSuccessView()
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+                    .zIndex(3)
             }
         }
         .onAppear {
@@ -1103,21 +1121,21 @@ struct OrderCompletedOverlayView: View {
     }
     
     private func startCinematicSequence() {
-        // Step 1: Backdrop
-        withAnimation(.easeOut(duration: 0.3)) {
-            phase = .circleExpand
+        // Step 1: Backdrop & Circle Fade In
+        withAnimation(.easeOut(duration: 0.4)) {
+            phase = .circleFadeIn
         }
         
         // Step 2: Checkmark
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                 phase = .checkmarkDraw
             }
             impact.impactOccurred()
         }
         
         // Step 3: Transition to Card
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 phase = .cardPresentation // Hides the center circle
                 showRatingCard = true
@@ -1131,8 +1149,11 @@ struct OrderCompletedOverlayView: View {
         
         // Advance or Finish
         if let next = getNextCategory() {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                currentCategory = next
+            // Small delay to let the user see the selection
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    currentCategory = next
+                }
             }
         } else {
             finishExperience()
@@ -1154,12 +1175,22 @@ struct OrderCompletedOverlayView: View {
     }
     
     private func finishExperience() {
-        withAnimation(.easeIn(duration: 0.3)) {
+        // Hide card first
+        withAnimation(.easeIn(duration: 0.2)) {
             showRatingCard = false
-            phase = .finished
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            onDismiss()
+        
+        // Show Final Success
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+                phase = .finalSuccess
+            }
+            impact.impactOccurred() // Success Haptic
+            
+            // Dismiss after showing success
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                onDismiss()
+            }
         }
     }
 }
@@ -1172,13 +1203,49 @@ struct AnimatedCheckmark: View {
     var body: some View {
         CheckmarkShape()
             .trim(from: 0, to: trimEnd)
-            .stroke(Color.white, style: StrokeStyle(lineWidth: 8, lineCap: .round, lineJoin: .round))
-            .frame(width: 50, height: 50)
+            .stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+            .frame(width: 40, height: 40)
             .onAppear {
-                withAnimation(.easeInOut(duration: 0.6)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     trimEnd = 1
                 }
             }
+    }
+}
+
+struct FinalSuccessView: View {
+    @State private var showIcon = false
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 88, height: 88)
+                    .shadow(color: .white.opacity(0.2), radius: 30, x: 0, y: 0)
+                
+                Image(systemName: "checkmark")
+                    .font(.system(size: 38, weight: .black))
+                    .foregroundColor(.brandGreen)
+                    .scaleEffect(showIcon ? 1 : 0.5)
+                    .opacity(showIcon ? 1 : 0)
+            }
+            
+            VStack(spacing: 8) {
+                Text("¡Opinión Enviada!")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("Gracias por ayudarnos a mejorar.")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1)) {
+                showIcon = true
+            }
+        }
     }
 }
 
@@ -1186,9 +1253,6 @@ struct RatingCard: View {
     let category: OrderCompletedOverlayView.RatingCategory
     let onRate: (Int) -> Void
     let onSkip: () -> Void
-    
-    @State private var dragOffset: CGFloat = 0
-    @State private var selectedStar: Int = 0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -1223,14 +1287,17 @@ struct RatingCard: View {
                     Spacer()
                 }
                 .padding(.horizontal, 24)
-                .id(category) // Triggers transition
+                // Transition for content change
+                .id(category)
                 .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .move(edge: .leading).combined(with: .opacity)))
                 
                 // Interactive Star Slider
+                // FIX: Added .id(category) to reset state on slide change
                 StarSlider(onCommit: { score in
                     onRate(score)
                 })
                 .frame(height: 80)
+                .id(category) 
                 
                 // Skip Button
                 Button(action: onSkip) {
@@ -1285,7 +1352,7 @@ struct StarSlider: View {
                 HStack(spacing: 0) {
                     ForEach(1...5, id: \.self) { i in
                         Image(systemName: "star.fill")
-                            .font(.system(size: 24)) // Slightly larger when active
+                            .font(.system(size: 24))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .scaleEffect(i <= activeIndex ? 1.2 : 0.8)

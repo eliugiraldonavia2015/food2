@@ -77,7 +77,10 @@ struct CartScreenView: View {
                         quantity: quantities[$0.id] ?? 0
                     )
                 },
-                total: total
+                total: total,
+                onOrderCompleted: {
+                    dismiss()
+                }
             )
         }
     }
