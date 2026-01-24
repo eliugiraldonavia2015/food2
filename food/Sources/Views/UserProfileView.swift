@@ -291,8 +291,6 @@ struct UserProfileView: View {
                 }
                 .padding(.top, 12)
 
-                descriptionCard
-                    .padding(.top, 10)
             }
             .padding(.horizontal, 8)
         }
@@ -311,8 +309,14 @@ struct UserProfileView: View {
 
     private var mediaGrid: some View {
         LazyVGrid(columns: photoColumns, spacing: 2) {
-            ForEach(Array(viewModel.videos.enumerated()), id: \.element.id) { index, video in
-                PhotoTileView(video: video, index: index)
+            ForEach(0..<15, id: \.self) { index in
+                // Si hay videos reales, úsalos; si no, usa placeholders hardcodeados
+                if index < viewModel.videos.count {
+                    PhotoTileView(video: viewModel.videos[index], index: index)
+                } else {
+                    // Placeholder hardcodeado con diseño bonito
+                    HardcodedTileView(index: index)
+                }
             }
         }
     }
@@ -363,6 +367,70 @@ struct UserProfileView: View {
                             Image(systemName: "play.fill")
                                 .font(.caption2)
                             Text("\(video.likes)")
+                                .font(.caption2.bold())
+                        }
+                        .foregroundColor(.white)
+                        .padding(4)
+                        .background(Color.black.opacity(0.4))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .padding(4)
+                        , alignment: .bottomLeading
+                    )
+                    .opacity(appear ? 1 : 0)
+                    .scaleEffect(appear ? 1 : 0.9)
+                    .onAppear {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.05)) {
+                            appear = true
+                        }
+                    }
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .background(Color.gray.opacity(0.1))
+        }
+    }
+
+    // Componente Placeholder Hardcodeado (Diseño Bonito)
+    struct HardcodedTileView: View {
+        let index: Int
+        @State private var appear = false
+        
+        // Imágenes de ejemplo de Unsplash (Comida atractiva)
+        let sampleImages = [
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+            "https://images.unsplash.com/photo-1604908176997-431199f7c209",
+            "https://images.unsplash.com/photo-1600891964599-f61ba0e24092",
+            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
+            "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+            "https://images.unsplash.com/photo-1565958011703-44f9829ba187",
+            "https://images.unsplash.com/photo-1482049016688-2d3e1b311543",
+            "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+            "https://images.unsplash.com/photo-1484723091739-30a097e8f929",
+            "https://images.unsplash.com/photo-1467003909585-2f8a7270028d",
+            "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
+            "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f",
+            "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327",
+            "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd",
+            "https://images.unsplash.com/photo-1496417263034-38ec4f0d665a"
+        ]
+        
+        var body: some View {
+            GeometryReader { geo in
+                let urlString = sampleImages[index % sampleImages.count]
+                let url = URL(string: urlString + "?auto=format&fit=crop&w=400&q=80")
+                
+                WebImage(url: url)
+                    .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.4))
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .overlay(
+                        HStack(spacing: 4) {
+                            Image(systemName: "play.fill")
+                                .font(.caption2)
+                            Text("\(Int.random(in: 100...5000))")
                                 .font(.caption2.bold())
                         }
                         .foregroundColor(.white)
