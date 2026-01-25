@@ -289,7 +289,7 @@ struct RestaurantProfileView: View {
                         HStack(spacing: 4) {
                             Text(String(format: "%.1f", currentData.rating))
                                 .foregroundColor(.black)
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
                                 .font(.system(size: 20))
@@ -303,7 +303,7 @@ struct RestaurantProfileView: View {
                     VStack(spacing: 2) {
                         Text(formatCount(currentData.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 22, weight: .bold))
+                            .font(.system(size: 22))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 13))

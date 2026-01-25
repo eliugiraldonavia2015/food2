@@ -202,7 +202,7 @@ struct UserProfileView: View {
                         HStack(spacing: 4) {
                             Text("4.8")
                                 .foregroundColor(.black)
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
                                 .font(.system(size: 20))
@@ -216,7 +216,7 @@ struct UserProfileView: View {
                     VStack(spacing: 2) {
                         Text(formatCount(user.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 22, weight: .bold))
+                            .font(.system(size: 22))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 13))
