@@ -57,7 +57,7 @@ struct RestaurantProfileView: View {
         return currentData.photos
     }
 
-    private var body: some View {
+    var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header ocupando todo el ancho
