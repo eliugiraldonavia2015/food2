@@ -150,6 +150,9 @@ struct UserProfileView: View {
             let height = minY > 0 ? headerHeight + minY : headerHeight
             
             ZStack(alignment: .topLeading) {
+                // 🛑 FIX: Fondo blanco absoluto para evitar franja gris al hacer pull
+                Color.white.ignoresSafeArea()
+                
                 // 1. Placeholder Layer (Always visible underneath)
                 ShimmerView()
                     .frame(height: height)
@@ -188,6 +191,7 @@ struct UserProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
+        .background(Color.white) // 🛑 FIX: Fondo blanco para el contenedor
     }
 
     struct ShimmerView: View {

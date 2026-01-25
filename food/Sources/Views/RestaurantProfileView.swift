@@ -57,11 +57,15 @@ struct RestaurantProfileView: View {
         return currentData.photos
     }
 
-    var body: some View {
+    private var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header ocupando todo el ancho
-                header
+                // 🛑 FIX: Usar ZStack para que el color de fondo cubra el rebote (pull)
+                ZStack(alignment: .top) {
+                    Color.white.ignoresSafeArea() // Fondo blanco para cubrir el gris del rebote
+                    header
+                }
                 
                 // Contenido del perfil
                 VStack(spacing: 24) {
@@ -143,6 +147,9 @@ struct RestaurantProfileView: View {
         GeometryReader { geo in
             let minY = geo.frame(in: .global).minY
             ZStack(alignment: .topLeading) {
+                // 🛑 FIX: Fondo blanco absoluto detrás de la imagen para evitar franjas grises al estirar
+                Color.white.ignoresSafeArea()
+                
                 coverImage(minY: minY)
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
@@ -151,6 +158,7 @@ struct RestaurantProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
+        .background(Color.white) // 🛑 FIX: Fondo blanco adicional para el contenedor
     }
 
     private var coverGradient: LinearGradient {
