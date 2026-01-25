@@ -427,13 +427,13 @@ struct FullMenuView: View {
         let stretch = max(0, -menuContentOffsetY)
         return GeometryReader { geo in
             coverImage
-                .frame(width: geo.size.width, height: 250 + stretch)
+                .frame(width: UIScreen.main.bounds.width, height: 250 + stretch) // FIX: Usar ancho de pantalla directo para evitar retraso de GeometryReader
                 .clipped()
                 .overlay(headerGradient)
                 .offset(y: -stretch)
         }
         .frame(height: 250)
-        .padding(.horizontal, -16) // Cancelar padding del padre
+        .padding(.horizontal, -16)
         .ignoresSafeArea(edges: .top)
     }
 
