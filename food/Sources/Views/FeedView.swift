@@ -1002,7 +1002,7 @@ struct FeedView: View {
                             }
                         }) {
                             Capsule()
-                        .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
+                        .fill(Color.brandGreen)
                         .frame(width: 216, height: 48)
                         .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                         .scaleEffect(orderPressed ? 0.95 : 1.0)
