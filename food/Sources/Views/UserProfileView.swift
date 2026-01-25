@@ -128,22 +128,24 @@ struct UserProfileView: View {
     private func header(user: PublicProfileViewModel.UserProfileData) -> some View {
         GeometryReader { geo in
             let minY = geo.frame(in: .global).minY
+            let height = minY > 0 ? headerHeight + minY : headerHeight
+            
             ZStack(alignment: .topLeading) {
+                // 1. Placeholder Layer (Always visible underneath)
+                ShimmerView()
+                    .frame(height: height)
+                    .frame(maxWidth: .infinity)
+                
+                // 2. Image Layer
                 WebImage(url: URL(string: user.coverUrl))
                     .onSuccess { image, _, _ in
-                        // Capturar imagen cuando se carga para pasarla al menú completo sin delay
                         self.loadedCoverImage = image
                     }
                     .resizable()
                     .indicator(.activity)
+                    .transition(.fade(duration: 0.5)) // Fade suave al cargar
                     .aspectRatio(contentMode: .fill)
-                    .background(
-                        ZStack {
-                            Color.gray.opacity(0.15)
-                            ShimmerView()
-                        }
-                    )
-                    .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
+                    .frame(height: height)
                     .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
                     .clipped()
                     .overlay(coverGradient)
@@ -163,17 +165,21 @@ struct UserProfileView: View {
         @State private var endPoint = UnitPoint(x: 0, y: -0.2)
         
         var body: some View {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.gray.opacity(0.1),
-                    Color.gray.opacity(0.3),
-                    Color.gray.opacity(0.1)
-                ]),
-                startPoint: startPoint,
-                endPoint: endPoint
-            )
+            ZStack {
+                Color.gray.opacity(0.2) // Color base más oscuro para contraste
+                
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.gray.opacity(0.2),
+                        Color.white.opacity(0.3), // Brillo más notable
+                        Color.gray.opacity(0.2)
+                    ]),
+                    startPoint: startPoint,
+                    endPoint: endPoint
+                )
+            }
             .onAppear {
-                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                withAnimation(Animation.linear(duration: 1.2).repeatForever(autoreverses: false)) {
                     startPoint = UnitPoint(x: 1, y: 0)
                     endPoint = UnitPoint(x: 2.8, y: 1.0)
                 }

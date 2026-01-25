@@ -165,25 +165,29 @@ struct RestaurantProfileView: View {
     }
 
     private func coverImage(minY: CGFloat) -> some View {
-        WebImage(url: URL(string: currentData.coverUrl))
-            .onSuccess { image, _, _ in
-                // Capturar imagen cuando se carga para pasarla al menú completo sin delay
-                self.loadedCoverImage = image
-            }
-            .resizable()
-            .indicator(.activity)
-            .aspectRatio(contentMode: .fill)
-            .background(
-                ZStack {
-                    Color.gray.opacity(0.15)
-                    ShimmerView()
+        let height = minY > 0 ? headerHeight + minY : headerHeight
+        
+        return ZStack(alignment: .topLeading) {
+            // 1. Placeholder Layer
+            ShimmerView()
+                .frame(height: height)
+                .frame(maxWidth: .infinity)
+            
+            // 2. Image Layer
+            WebImage(url: URL(string: currentData.coverUrl))
+                .onSuccess { image, _, _ in
+                    self.loadedCoverImage = image
                 }
-            )
-            .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
-            .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-            .clipped()
-            .overlay(coverGradient)
-            .offset(y: minY > 0 ? -minY : 0)
+                .resizable()
+                .indicator(.activity)
+                .transition(.fade(duration: 0.5))
+                .aspectRatio(contentMode: .fill)
+                .frame(height: height)
+                .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                .clipped()
+                .overlay(coverGradient)
+                .offset(y: minY > 0 ? -minY : 0)
+        }
     }
 
     // MARK: - Components
@@ -193,17 +197,21 @@ struct RestaurantProfileView: View {
         @State private var endPoint = UnitPoint(x: 0, y: -0.2)
         
         var body: some View {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.gray.opacity(0.1),
-                    Color.gray.opacity(0.3),
-                    Color.gray.opacity(0.1)
-                ]),
-                startPoint: startPoint,
-                endPoint: endPoint
-            )
+            ZStack {
+                Color.gray.opacity(0.2) // Color base
+                
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.gray.opacity(0.2),
+                        Color.white.opacity(0.3),
+                        Color.gray.opacity(0.2)
+                    ]),
+                    startPoint: startPoint,
+                    endPoint: endPoint
+                )
+            }
             .onAppear {
-                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                withAnimation(Animation.linear(duration: 1.2).repeatForever(autoreverses: false)) {
                     startPoint = UnitPoint(x: 1, y: 0)
                     endPoint = UnitPoint(x: 2.8, y: 1.0)
                 }
