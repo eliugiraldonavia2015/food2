@@ -154,8 +154,7 @@ struct RestaurantProfileView: View {
         LinearGradient(
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
-                .init(color: .clear, location: 0.85),
-                .init(color: Color.white.opacity(0.8), location: 0.95),
+                .init(color: .clear, location: 0.6),
                 .init(color: Color.white, location: 1.0)
             ]),
             startPoint: .top,
