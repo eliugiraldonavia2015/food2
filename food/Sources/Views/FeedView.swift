@@ -498,12 +498,11 @@ struct FeedView: View {
         private var preloaderImage: some View {
             Group {
                 if isActive {
-                    WebImage(url: URL(string: item.backgroundUrl))
+                    WebImage(url: URL(string: item.backgroundUrl), options: [.highPriority])
                         .resizable()
                         .frame(width: 1, height: 1)
                         .opacity(0.001)
                         .allowsHitTesting(false)
-                        .priority(.high)
                 }
             }
         }
