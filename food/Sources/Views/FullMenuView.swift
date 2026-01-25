@@ -431,6 +431,7 @@ struct FullMenuView: View {
         }
         .frame(height: 250)
         .padding(.horizontal, -16) // Cancelar padding del padre
+        .ignoresSafeArea(edges: .top)
     }
 
     private var identityRow: some View {
