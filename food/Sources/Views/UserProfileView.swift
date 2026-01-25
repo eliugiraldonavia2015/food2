@@ -196,40 +196,33 @@ struct UserProfileView: View {
                     .foregroundColor(.gray)
                     .font(.system(size: 15))
                 
-                HStack(spacing: 12) {
-                    if !user.location.isEmpty {
+                HStack(spacing: 40) {
+                    // Rating (Reemplaza Categoría)
+                    VStack(spacing: 0) {
                         HStack(spacing: 4) {
-                            Image(systemName: "mappin.and.ellipse").foregroundColor(.fuchsia).font(.caption)
-                            Text(user.location).foregroundColor(.gray).font(.caption)
+                            Text("4.8")
+                                .foregroundColor(.black)
+                                .font(.system(size: 18, weight: .bold))
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                                .font(.system(size: 16))
                         }
+                        Text("Calificación")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 11))
                     }
-                    HStack(spacing: 4) {
-                        if !user.location.isEmpty { Text("•").foregroundColor(.gray) }
-                        Image(systemName: "star.fill").foregroundColor(.yellow).font(.caption)
-                        Text("4.8").foregroundColor(.black).font(.caption.bold())
-                    }
-                }
-                
-                // Categoría y Seguidores
-                HStack(spacing: 16) {
-                    Text("Foodie")
-                        .foregroundColor(.black.opacity(0.8))
-                        .font(.system(size: 13, weight: .semibold))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 12)
-                        .background(Color.green.opacity(0.15))
-                        .clipShape(Capsule())
                     
+                    // Seguidores
                     VStack(spacing: 0) {
                         Text(formatCount(user.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 11))
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, 8)
                 
                 // Botones
                 HStack(spacing: 12) {
@@ -240,16 +233,17 @@ struct UserProfileView: View {
                             Text(isFollowing ? "Siguiendo" : "Seguir")
                                 .foregroundColor(.white)
                                 .font(.system(size: 16, weight: .semibold))
+                                .fixedSize()
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(isFollowing ? Color.gray : Color.fuchsia)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
+                    .animation(nil, value: isFollowing)
                     
                     Button(action: {}) {
                         HStack(spacing: 8) {
-                            Text("✈️").font(.system(size: 16))
                             Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
