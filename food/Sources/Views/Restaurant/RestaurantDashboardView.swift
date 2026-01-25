@@ -218,21 +218,8 @@ struct RestaurantDashboardView: View {
                         .padding(.horizontal, 20)
                     }
                     
-                    Spacer(minLength: bottomInset + 80) // Extra space for FAB
+                    Spacer(minLength: bottomInset)
                 }
-            }
-            
-            // Floating Action Button (Center)
-            VStack {
-                Spacer()
-                Button(action: { showUploadVideo = true }) {
-                    Circle()
-                        .fill(brandPink)
-                        .frame(width: 60, height: 60)
-                        .shadow(color: brandPink.opacity(0.4), radius: 10, x: 0, y: 5)
-                        .overlay(Image(systemName: "plus").font(.title.bold()).foregroundColor(.white))
-                }
-                .padding(.bottom, bottomInset + 10)
             }
         }
         .fullScreenCover(isPresented: $showUploadVideo) {

@@ -145,7 +145,7 @@ struct MainTabView: View {
     }
 
     private var plusButton: some View {
-        centerAccentButton(icon: "plus", title: "Crear", color: .green) {
+        centerAccentButton(icon: "plus", title: "Crear", color: Color(red: 244/255, green: 37/255, blue: 123/255)) {
             withAnimation(.easeOut(duration: 0.25)) { showUploadPicker = true }
         }
         .frame(maxWidth: .infinity)
