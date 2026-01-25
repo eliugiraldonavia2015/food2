@@ -37,7 +37,7 @@ struct RestaurantProfileView: View {
     @State private var animateContent = false
 
     private var currentData: DataModel { refreshedData ?? data }
-    private let headerHeight: CGFloat = 220
+    private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 2),
@@ -154,8 +154,8 @@ struct RestaurantProfileView: View {
         LinearGradient(
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
-                .init(color: .clear, location: 0.7),
-                .init(color: Color.white.opacity(0.8), location: 0.9),
+                .init(color: .clear, location: 0.85),
+                .init(color: Color.white.opacity(0.8), location: 0.95),
                 .init(color: Color.white, location: 1.0)
             ]),
             startPoint: .top,
