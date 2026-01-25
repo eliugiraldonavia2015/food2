@@ -2,10 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDisplayName</key>
-	<string>foodtook</string>
-	<key>CFBundleName</key>
-	<string>foodtook</string>
+	<key>BUNNY_CDN_BASE_URL</key>
+	<string>https://foodtook-videos-cdn.b-cdn.net</string>
+	<key>BUNNY_STORAGE_HOST</key>
+	<string>br.storage.bunnycdn.com</string>
+	<key>BUNNY_STORAGE_ZONE_NAME</key>
+	<string>foodtook-videos</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -28,25 +30,5 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Necesitamos acceso a tu galería para que puedas seleccionar y subir videos de tus platillos.</string>
-	<key>BUNNY_CDN_BASE_URL</key>
-	<string>https://foodtook-videos-cdn.b-cdn.net</string>
-	<key>BUNNY_STORAGE_ZONE_NAME</key>
-	<string>foodtook-videos</string>
-	<key>BUNNY_STORAGE_HOST</key>
-	<string>br.storage.bunnycdn.com</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UIRequiresFullScreen</key>
-	<true/>
 </dict>
 </plist>
