@@ -20,8 +20,11 @@ class PublicProfileViewModel: ObservableObject {
     
     private let userId: String
     
-    init(userId: String) {
+    init(userId: String, initialData: UserProfileData? = nil) {
         self.userId = userId
+        if let data = initialData {
+            self.user = data
+        }
     }
     
     func loadData() {

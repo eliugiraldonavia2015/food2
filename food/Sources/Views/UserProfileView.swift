@@ -25,8 +25,27 @@ struct UserProfileView: View {
     private let hardcodedDescriptionText =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco."
     
-    init(userId: String) {
-        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId))
+    init(userId: String, initialCoverUrl: String? = nil, initialAvatarUrl: String? = nil, initialName: String? = nil, cachedImage: UIImage? = nil) {
+        let initialData: PublicProfileViewModel.UserProfileData? = {
+            if let cover = initialCoverUrl, let avatar = initialAvatarUrl, let name = initialName {
+                return .init(
+                    id: userId,
+                    username: name.replacingOccurrences(of: " ", with: "").lowercased(),
+                    name: name,
+                    bio: "...",
+                    photoUrl: avatar,
+                    coverUrl: cover,
+                    followers: 0,
+                    location: ""
+                )
+            }
+            return nil
+        }()
+        
+        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId, initialData: initialData))
+        if let img = cachedImage {
+            _loadedCoverImage = State(initialValue: img)
+        }
     }
     
     var body: some View {
@@ -137,19 +156,30 @@ struct UserProfileView: View {
                     .frame(maxWidth: .infinity)
                 
                 // 2. Image Layer
-                WebImage(url: URL(string: user.coverUrl))
-                    .onSuccess { image, _, _ in
-                        self.loadedCoverImage = image
-                    }
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.5)) // Fade suave al cargar
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: height)
-                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                    .clipped()
-                    .overlay(coverGradient)
-                    .offset(y: minY > 0 ? -minY : 0)
+                if let img = loadedCoverImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: height)
+                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                        .clipped()
+                        .overlay(coverGradient)
+                        .offset(y: minY > 0 ? -minY : 0)
+                } else {
+                    WebImage(url: URL(string: user.coverUrl))
+                        .onSuccess { image, _, _ in
+                            self.loadedCoverImage = image
+                        }
+                        .resizable()
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.5)) // Fade suave al cargar
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: height)
+                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                        .clipped()
+                        .overlay(coverGradient)
+                        .offset(y: minY > 0 ? -minY : 0)
+                }
                 
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)

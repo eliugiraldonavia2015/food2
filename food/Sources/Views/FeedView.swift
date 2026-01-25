@@ -68,6 +68,7 @@ struct FeedView: View {
     @State private var showRestaurantProfile = false
     @State private var showUserProfile = false
     @State private var selectedUserId: String? = nil // Nuevo estado para navegación dinámica
+    @State private var selectedProfileImage: UIImage? = nil // 🚀 Imagen precargada para transición instantánea
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
@@ -106,7 +107,8 @@ struct FeedView: View {
                         isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
                         activeVideoId: coordinator.activeVideoId,
                         viewModel: selectedVM,
-                        onShowProfile: {
+                        onShowProfile: { capturedImage in
+                            self.selectedProfileImage = capturedImage
                             // Lógica de navegación a perfiles
                             if let authorId = item.authorId {
                                 // 🚀 Usuario Real: Navegar al perfil público dinámico
@@ -212,7 +214,8 @@ struct FeedView: View {
                     followers: 45200,
                     description: "Los auténticos tacos al pastor de la ciudad. Receta familiar desde 1985. Disfruta de la tradición en cada bocado 🌮✨",
                     branch: "Sucursal Condesa",
-                    photos: photos
+                    photos: photos,
+                    cachedImage: selectedProfileImage
                 ),
                 onRefresh: {
                     try? await Task.sleep(nanoseconds: UInt64(0.8 * 1_000_000_000))
@@ -241,7 +244,14 @@ struct FeedView: View {
             // Decidir qué perfil mostrar (Real vs Mock)
             if let uid = selectedUserId {
                 // ✅ Perfil Real Conectado
-                UserProfileView(userId: uid)
+                let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                UserProfileView(
+                    userId: uid,
+                    initialCoverUrl: item.backgroundUrl,
+                    initialAvatarUrl: item.avatarUrl,
+                    initialName: item.username,
+                    cachedImage: selectedProfileImage
+                )
             } else {
                 // ⚠️ Legacy Mock Profile (Mantenemos para demos)
                 let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
@@ -255,7 +265,13 @@ struct FeedView: View {
                 // FIX: Para no romper los mocks existentes, pasamos un ID falso "mock_user"
                 // y el ViewModel debería manejarlo (o simplemente fallar gracefuly).
                 // Lo ideal sería migrar los mocks a datos reales en Firebase, pero por tiempo:
-                UserProfileView(userId: "mock_user") 
+                UserProfileView(
+                    userId: "mock_user",
+                    initialCoverUrl: item.backgroundUrl,
+                    initialAvatarUrl: item.avatarUrl,
+                    initialName: item.username,
+                    cachedImage: selectedProfileImage
+                ) 
             }
         }
         .fullScreenCover(isPresented: $showMenu) {
@@ -420,13 +436,14 @@ struct FeedView: View {
         @ObservedObject var viewModel: FeedViewModel 
         
         // Callbacks
-        let onShowProfile: () -> Void
+        let onShowProfile: (UIImage?) -> Void
         let onShowMenu: () -> Void
         let onShowComments: () -> Void
         let onShowShare: () -> Void
         let onShowMusic: () -> Void
         
         // State
+        @State private var loadedImage: UIImage? = nil // 🚀 Imagen capturada del feed
         @State private var isLiked = false
         @State private var likesCount: Int
         @State private var isFollowing = false
@@ -476,7 +493,7 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, onShowProfile: @escaping () -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
@@ -889,7 +906,7 @@ struct FeedView: View {
 
             return VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 8) {
-                    Button(action: onShowProfile) {
+                    Button(action: { onShowProfile(loadedImage) }) {
                         Text(item.username)
                             .foregroundColor(.white)
                             .font(.system(size: 20, weight: .bold))
@@ -1227,6 +1244,7 @@ struct FeedView: View {
                             .animation(.easeOut(duration: 0.3), value: isVideoReady)
                         } else {
                             WebImage(url: URL(string: item.backgroundUrl))
+                                .onSuccess { image, _, _ in self.loadedImage = image }
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .allowsHitTesting(false) // 🛑 Desactivar interacción
@@ -1252,6 +1270,7 @@ struct FeedView: View {
                     }
                 } else {
                     WebImage(url: URL(string: item.backgroundUrl))
+                        .onSuccess { image, _, _ in self.loadedImage = image }
                         .resizable()
                         .indicator(.activity)
                         .transition(.fade(duration: 0.5))

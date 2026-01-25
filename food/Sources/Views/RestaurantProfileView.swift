@@ -17,6 +17,7 @@ struct RestaurantProfileView: View {
         let description: String
         let branch: String
         let photos: [PhotoItem]
+        var cachedImage: UIImage? = nil
     }
 
     let data: DataModel
@@ -173,20 +174,32 @@ struct RestaurantProfileView: View {
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
             
-            // 2. Image Layer
-            WebImage(url: URL(string: currentData.coverUrl))
-                .onSuccess { image, _, _ in
-                    self.loadedCoverImage = image
-                }
-                .resizable()
-                .indicator(.activity)
-                .transition(.fade(duration: 0.5))
-                .aspectRatio(contentMode: .fill)
-                .frame(height: height)
-                .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                .clipped()
-                .overlay(coverGradient)
-                .offset(y: minY > 0 ? -minY : 0)
+            // 2. Image Layer (Prioridad: Caché manual -> WebImage)
+            if let cached = currentData.cachedImage {
+                Image(uiImage: cached)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: height)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                    .clipped()
+                    .overlay(coverGradient)
+                    .offset(y: minY > 0 ? -minY : 0)
+                    .onAppear { self.loadedCoverImage = cached } // Propagar a FullMenuView
+            } else {
+                WebImage(url: URL(string: currentData.coverUrl))
+                    .onSuccess { image, _, _ in
+                        self.loadedCoverImage = image
+                    }
+                    .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.5))
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: height)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                    .clipped()
+                    .overlay(coverGradient)
+                    .offset(y: minY > 0 ? -minY : 0)
+            }
         }
     }
 
