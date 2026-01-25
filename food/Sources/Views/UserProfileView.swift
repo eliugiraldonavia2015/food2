@@ -149,11 +149,10 @@ struct UserProfileView: View {
     private var coverGradient: LinearGradient {
         LinearGradient(
             gradient: Gradient(stops: [
-                .init(color: Color.black.opacity(0.0), location: 0.0),
-                .init(color: Color.black.opacity(0.0), location: 0.55),
-                .init(color: Color.black.opacity(0.15), location: 0.75),
-                .init(color: Color.black.opacity(0.25), location: 0.9),
-                .init(color: Color.black.opacity(0.3), location: 1.0)
+                .init(color: .clear, location: 0.0),
+                .init(color: .clear, location: 0.8),
+                .init(color: Color.white.opacity(0.6), location: 0.9),
+                .init(color: Color.white, location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
