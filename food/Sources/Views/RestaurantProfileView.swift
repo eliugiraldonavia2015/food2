@@ -282,38 +282,34 @@ struct RestaurantProfileView: View {
                     .foregroundColor(.gray)
                     .font(.system(size: 15))
                 
-                HStack(spacing: 12) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "mappin.and.ellipse").foregroundColor(.fuchsia).font(.caption)
-                        Text(currentData.location).foregroundColor(.gray).font(.caption)
+                // Rating y Seguidores alineados
+                HStack(spacing: 40) {
+                    // Rating (Reemplaza Categoría)
+                    VStack(spacing: 0) {
+                        HStack(spacing: 4) {
+                            Text(String(format: "%.1f", currentData.rating))
+                                .foregroundColor(.black)
+                                .font(.system(size: 18, weight: .bold))
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                                .font(.system(size: 16))
+                        }
+                        Text("Calificación")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 11))
                     }
-                    HStack(spacing: 4) {
-                        Text("•").foregroundColor(.gray)
-                        Image(systemName: "star.fill").foregroundColor(.yellow).font(.caption)
-                        Text(String(format: "%.1f", currentData.rating)).foregroundColor(.black).font(.caption.bold())
-                    }
-                }
-                
-                // Categoría y Seguidores alineados
-                HStack(spacing: 16) {
-                    Text(currentData.category)
-                        .foregroundColor(.black.opacity(0.8))
-                        .font(.system(size: 13, weight: .semibold))
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 12)
-                        .background(Color.green.opacity(0.15))
-                        .clipShape(Capsule())
-                    
+
+                    // Seguidores
                     VStack(spacing: 0) {
                         Text(formatCount(currentData.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 11))
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, 8)
                 
                 // Botones
                 HStack(spacing: 12) {
@@ -324,23 +320,26 @@ struct RestaurantProfileView: View {
                             Text(isFollowing ? "Siguiendo" : "Seguir")
                                 .foregroundColor(.white)
                                 .font(.system(size: 16, weight: .semibold))
+                                .fixedSize()
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(Color.fuchsia)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
+                    .animation(nil, value: isFollowing)
+
                     Button(action: {
                         showChat = true
                     }) {
                         Text("Mensaje")
                             .foregroundColor(.black)
                             .font(.system(size: 16, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
                 }
                 .padding(.top, 12)
