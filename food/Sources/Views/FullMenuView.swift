@@ -422,13 +422,15 @@ struct FullMenuView: View {
 
     private var header: some View {
         let stretch = max(0, -menuContentOffsetY)
-        return coverImage
-            .frame(height: 250 + stretch)
-            .clipped()
-            .overlay(headerGradient)
-            .offset(y: -stretch)
-            .frame(height: 250)
-            .padding(.horizontal, -16) // FIX: Mantener este padding negativo para cancelar el padding horizontal del VStack padre
+        return GeometryReader { geo in
+            coverImage
+                .frame(width: geo.size.width, height: 250 + stretch)
+                .clipped()
+                .overlay(headerGradient)
+                .offset(y: -stretch)
+        }
+        .frame(height: 250)
+        .padding(.horizontal, -16) // Cancelar padding del padre
     }
 
     private var identityRow: some View {
@@ -1290,7 +1292,6 @@ struct FullMenuView: View {
                     .resizable()
                     .indicator(.activity)
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity) // FIX: Asegurar que ocupe todo el ancho
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],
