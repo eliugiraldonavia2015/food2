@@ -298,6 +298,197 @@ struct RestaurantDashboardView: View {
         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
     }
     
+    // MARK: - New Sections Components
+    
+    private var popularDishesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Platos más populares")
+                    .font(.title3.bold())
+                    .foregroundColor(.black)
+                Spacer()
+                Button("Ver ranking") { }
+                    .font(.subheadline.bold())
+                    .foregroundColor(brandPink)
+            }
+            .padding(.horizontal, 20)
+            
+            VStack(spacing: 12) {
+                popularDishRow(rank: 1, name: "Classic Cheese Burger", count: "420 órdenes este mes", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd")
+                popularDishRow(rank: 2, name: "Double Bacon Combo", count: "315 órdenes este mes", image: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5")
+                popularDishRow(rank: 3, name: "Onion Rings XL", count: "280 órdenes este mes", image: "https://images.unsplash.com/photo-1639024471283-03518883512d")
+            }
+            .padding(20)
+            .background(Color.white)
+            .cornerRadius(24)
+            .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+            .padding(.horizontal, 20)
+        }
+    }
+    
+    private func popularDishRow(rank: Int, name: String, count: String, image: String) -> some View {
+        HStack(spacing: 16) {
+            WebImage(url: URL(string: image))
+                .resizable()
+                .scaledToFill()
+                .frame(width: 48, height: 48)
+                .clipShape(Circle())
+                .background(Circle().fill(Color.gray.opacity(0.1)))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(name)
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
+                Text(count)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            Text("#\(rank)")
+                .font(.headline.bold())
+                .foregroundColor(rank == 1 ? .green : (rank == 2 ? brandPink : .orange))
+        }
+    }
+    
+    private var ratingsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Resumen de Calificaciones")
+                .font(.title3.bold())
+                .foregroundColor(.black)
+                .padding(.horizontal, 20)
+            
+            HStack(spacing: 24) {
+                VStack(spacing: 4) {
+                    Text("4.8")
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.black)
+                    HStack(spacing: 2) {
+                        ForEach(0..<5) { _ in
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundColor(brandPink)
+                        }
+                    }
+                    Text("1,240 ratings")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                VStack(spacing: 8) {
+                    ratingBar(star: 5, value: 0.8)
+                    ratingBar(star: 4, value: 0.15)
+                    ratingBar(star: 3, value: 0.03)
+                    ratingBar(star: 2, value: 0.01)
+                    ratingBar(star: 1, value: 0.01)
+                }
+            }
+            .padding(20)
+            .background(Color.white)
+            .cornerRadius(24)
+            .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+            .padding(.horizontal, 20)
+        }
+    }
+    
+    private func ratingBar(star: Int, value: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            Text("\(star)")
+                .font(.caption.bold())
+                .foregroundColor(.gray)
+                .frame(width: 12)
+            
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.gray.opacity(0.1))
+                    Capsule().fill(brandPink).frame(width: geo.size.width * value)
+                }
+            }
+            .frame(height: 6)
+        }
+    }
+    
+    private var payoutsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Liquidaciones")
+                .font(.title3.bold())
+                .foregroundColor(.black)
+                .padding(.horizontal, 20)
+            
+            VStack(spacing: 20) {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(Color.green.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                        .overlay(Image(systemName: "banknote.fill").foregroundColor(.green))
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Próximo Pago")
+                            .font(.headline.bold())
+                            .foregroundColor(.black)
+                        Text("Estimado para el 24 de Oct.")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("$4,850.00")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.black)
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Saldo confirmado para transferencia")
+                            .font(.caption.bold())
+                            .foregroundColor(.green)
+                    }
+                }
+                
+                Button(action: {}) {
+                    Text("Ver detalles")
+                        .font(.headline.bold())
+                        .foregroundColor(brandPink)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(brandPink.opacity(0.1))
+                        .cornerRadius(16)
+                }
+            }
+            .padding(20)
+            .background(Color.white)
+            .cornerRadius(24)
+            .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+            .padding(.horizontal, 20)
+        }
+    }
+    
+    private var tipsSection: some View {
+        HStack(spacing: 16) {
+            Circle()
+                .fill(brandPink)
+                .frame(width: 48, height: 48)
+                .overlay(Image(systemName: "lightbulb.fill").foregroundColor(.white).font(.title3))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Consejos para hoy")
+                    .font(.headline.bold())
+                    .foregroundColor(brandPink)
+                Text("Optimiza tus tiempos de preparación: reducir el tiempo de despacho en 2 minutos podría aumentar tus pedidos un 15% este fin de semana.")
+                    .font(.caption)
+                    .foregroundColor(.black)
+                    .lineLimit(4)
+            }
+        }
+        .padding(20)
+        .background(brandPink.opacity(0.1))
+        .cornerRadius(24)
+        .padding(.horizontal, 20)
+    }
+
     // MARK: - Logic & Data (Preserved)
     // These are kept to ensure no logic is lost, even if not currently used in the visual redesign
     private enum OrderState: String, CaseIterable { case pendiente = "Pendiente", enCocina = "En cocina", listo = "Listo", enEntrega = "En entrega", despachado = "Despachado" }
