@@ -214,17 +214,17 @@ struct MainTabView: View {
             VStack(spacing: 1) {
                 Image(systemName: icon)
                     .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
                     .symbolVariant(isSelected ? .fill : .none)
                     .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
-            .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+            .background(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.1) : Color.clear)
             .cornerRadius(6)
         }
     }
@@ -241,17 +241,17 @@ struct MainTabView: View {
             VStack(spacing: 1) {
                 Image(systemName: icon)
                     .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
                     .symbolVariant(isSelected ? .fill : .none)
                     .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
-            .background(isSelected ? Color.white.opacity(0.15) : Color.clear)
+            .background(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.1) : Color.clear)
             .cornerRadius(6)
         }
     }
@@ -275,7 +275,7 @@ struct MainTabView: View {
             .offset(y: -6)
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.gray)
         }
         .padding(.vertical, 2)
     }

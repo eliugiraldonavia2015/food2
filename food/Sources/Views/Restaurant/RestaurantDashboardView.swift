@@ -218,6 +218,18 @@ struct RestaurantDashboardView: View {
                         .padding(.horizontal, 20)
                     }
                     
+                    // Popular Dishes
+                    popularDishesSection
+                    
+                    // Ratings Summary
+                    ratingsSection
+                    
+                    // Payouts
+                    payoutsSection
+                    
+                    // Tips
+                    tipsSection
+                    
                     Spacer(minLength: bottomInset)
                 }
             }
