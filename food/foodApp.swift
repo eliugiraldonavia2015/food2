@@ -29,6 +29,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         return true
     }
 
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return .portrait
+    }
+
     // iOS 10+ con background fetch: reenviar a FirebaseAuth
     func application(
         _ application: UIApplication,
