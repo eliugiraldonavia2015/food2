@@ -527,13 +527,28 @@ struct FeedView: View {
                 }
                 .frame(width: size.width, height: size.height)
 
-                // 🚀 PRELOADER HACK: Carga prioritaria de la imagen de portada
-                // Esto asegura que la imagen esté "caliente" en memoria para la transición al perfil
-                WebImage(url: URL(string: item.backgroundUrl))
-                    .resizable()
-                    .frame(width: 1, height: 1)
-                    .opacity(0.001)
-                    .allowsHitTesting(false)
+                // 🚀 ESTRATEGIA DE PRECARGA "HOT IMAGE" (Escalabilidad O(1))
+                //
+                // QUÉ: Renderizamos la imagen de portada del perfil (backgroundUrl) en un frame invisible (1x1px)
+                //      dentro del FeedItemView actual.
+                //
+                // POR QUÉ:
+                // 1. Velocidad Instantánea: Al estar renderizada en la jerarquía de vistas, SDWebImage la mantiene
+                //    decodificada en la memoria RAM (no solo en disco). Cuando el usuario navega al perfil,
+                //    la imagen aparece en el frame 0 sin parpadeos ni tiempos de carga.
+                // 2. Escalabilidad: Usamos `if isActive` para asegurar que SOLO el video que el usuario está viendo
+                //    consume recursos de memoria para esta precarga. Esto evita que una lista infinita de videos
+                //    sature la RAM, manteniendo el consumo de memoria constante O(1) independientemente del tamaño del feed.
+                // 3. Prioridad: `.priority(.high)` asegura que esta imagen crítica para la navegación se descargue
+                //    con preferencia sobre otros assets secundarios.
+                if isActive {
+                    WebImage(url: URL(string: item.backgroundUrl))
+                        .resizable()
+                        .frame(width: 1, height: 1)
+                        .opacity(0.001)
+                        .allowsHitTesting(false)
+                        .priority(.high)
+                }
 
                 if !isCommentsOverlayActive {
                     LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
