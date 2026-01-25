@@ -177,10 +177,16 @@ struct RestaurantProfileView: View {
         let height = minY > 0 ? headerHeight + minY : headerHeight
         
         return ZStack(alignment: .topLeading) {
+            // 0. Background Layer (White Curtain) - 🛑 FIX: Evitar fondo gris
+            Color.white
+                .frame(height: height)
+                .offset(y: minY > 0 ? -minY : 0)
+            
             // 1. Placeholder Layer
             ShimmerView()
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
+                .offset(y: minY > 0 ? -minY : 0) // 🛑 FIX: Mover el shimmer también
             
             // 2. Image Layer (Prioridad: Caché manual -> WebImage)
             if let cached = currentData.cachedImage {
@@ -219,13 +225,13 @@ struct RestaurantProfileView: View {
         
         var body: some View {
             ZStack {
-                Color.gray.opacity(0.2) // Color base
+                Color.white // 🛑 FIX: Fondo base blanco en lugar de gris
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.gray.opacity(0.2),
-                        Color.white.opacity(0.3),
-                        Color.gray.opacity(0.2)
+                        Color.white,
+                        Color.gray.opacity(0.15), // Sutil gris muy claro
+                        Color.white
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint

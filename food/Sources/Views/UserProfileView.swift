@@ -157,6 +157,7 @@ struct UserProfileView: View {
                 ShimmerView()
                     .frame(height: height)
                     .frame(maxWidth: .infinity)
+                    .offset(y: minY > 0 ? -minY : 0) // 🛑 FIX: Mover el shimmer también
                 
                 // 2. Image Layer
                 if let img = loadedCoverImage {
@@ -200,13 +201,13 @@ struct UserProfileView: View {
         
         var body: some View {
             ZStack {
-                Color.gray.opacity(0.2) // Color base más oscuro para contraste
+                Color.white // 🛑 FIX: Fondo base blanco
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.gray.opacity(0.2),
-                        Color.white.opacity(0.3), // Brillo más notable
-                        Color.gray.opacity(0.2)
+                        Color.white,
+                        Color.gray.opacity(0.15),
+                        Color.white
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
