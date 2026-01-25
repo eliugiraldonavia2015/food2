@@ -527,6 +527,14 @@ struct FeedView: View {
                 }
                 .frame(width: size.width, height: size.height)
 
+                // 🚀 PRELOADER HACK: Carga prioritaria de la imagen de portada
+                // Esto asegura que la imagen esté "caliente" en memoria para la transición al perfil
+                WebImage(url: URL(string: item.backgroundUrl))
+                    .resizable()
+                    .frame(width: 1, height: 1)
+                    .opacity(0.001)
+                    .allowsHitTesting(false)
+
                 if !isCommentsOverlayActive {
                     LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
                         .allowsHitTesting(false)
