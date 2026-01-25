@@ -494,53 +494,9 @@ struct FeedView: View {
             _likesCount = State(initialValue: item.likes)
         }
         
-        var body: some View {
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    mediaView
-                        .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
-                        .clipped()
-                        .onTapGesture(count: 2) { handleDoubleTap() }
-                        .onTapGesture {
-                            guard item.videoUrl != nil else { return }
-                            // 1. Toggle local state immediately for UI feedback
-                            let willPause = !isPaused
-                            withAnimation(.easeInOut(duration: 0.08)) { isPaused = willPause }
-                            
-                            // 2. Direct player control (bypass coordinator for pause)
-                            if let p = player {
-                                if willPause {
-                                    p.pause()
-                                } else {
-                                    // Resume only if we are the active video
-                                    if activeVideoId == item.id {
-                                        p.play()
-                                    } else {
-                                        // If we weren't active, become active
-                                        coordinator.setActive(item.id)
-                                        // Coordinator change will trigger updatePlayback -> play
-                                    }
-                                }
-                            }
-                        }
-                    Spacer(minLength: 0)
-                }
-                .frame(width: size.width, height: size.height)
-
-                // 🚀 ESTRATEGIA DE PRECARGA "HOT IMAGE" (Escalabilidad O(1))
-                //
-                // QUÉ: Renderizamos la imagen de portada del perfil (backgroundUrl) en un frame invisible (1x1px)
-                //      dentro del FeedItemView actual.
-                //
-                // POR QUÉ:
-                // 1. Velocidad Instantánea: Al estar renderizada en la jerarquía de vistas, SDWebImage la mantiene
-                //    decodificada en la memoria RAM (no solo en disco). Cuando el usuario navega al perfil,
-                //    la imagen aparece en el frame 0 sin parpadeos ni tiempos de carga.
-                // 2. Escalabilidad: Usamos `if isActive` para asegurar que SOLO el video que el usuario está viendo
-                //    consume recursos de memoria para esta precarga. Esto evita que una lista infinita de videos
-                //    sature la RAM, manteniendo el consumo de memoria constante O(1) independientemente del tamaño del feed.
-                // 3. Prioridad: `.priority(.high)` asegura que esta imagen crítica para la navegación se descargue
-                //    con preferencia sobre otros assets secundarios.
+        // MARK: - Subviews Breakdown (Compiler Optimization)
+        private var preloaderImage: some View {
+            Group {
                 if isActive {
                     WebImage(url: URL(string: item.backgroundUrl))
                         .resizable()
@@ -549,12 +505,20 @@ struct FeedView: View {
                         .allowsHitTesting(false)
                         .priority(.high)
                 }
+            }
+        }
 
+        private var gradientOverlay: some View {
+            Group {
                 if !isCommentsOverlayActive {
                     LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
                         .allowsHitTesting(false)
                 }
+            }
+        }
 
+        private var likeHeartOverlay: some View {
+            Group {
                 if showLikeHeart && !isCommentsOverlayActive {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.white)
@@ -566,9 +530,11 @@ struct FeedView: View {
                         .frame(width: size.width, height: size.height, alignment: .center)
                         .allowsHitTesting(false)
                 }
+            }
+        }
 
-                // 🛑 CAPA DE GESTOS (FIX: DETRÁS DE LOS CONTROLES)
-                // Desactivar gestos (pausa/like) si es la Intro Card
+        private var gestureOverlay: some View {
+            Group {
                 if item.id.uuidString != "00000000-0000-0000-0000-000000000000" {
                     Color.black.opacity(0.001)
                         .contentShape(Rectangle())
@@ -576,15 +542,52 @@ struct FeedView: View {
                         .onTapGesture { handleSingleTap() }
                         .allowsHitTesting(!isCommentsOverlayActive)
                 }
+            }
+        }
 
-                // 🎨 RENDERIZADO CONDICIONAL: Intro Card vs Video Normal
+        private var contentOverlay: some View {
+            Group {
                 if item.id.uuidString == "00000000-0000-0000-0000-000000000000" {
-                    introCardOverlay // Diseño exclusivo de bienvenida
+                    introCardOverlay
                 } else {
                     if !isCommentsOverlayActive { leftColumn }
                     if !isCommentsOverlayActive { rightColumn }
                 }
             }
+        }
+
+        var body: some View {
+            ZStack(alignment: .top) {
+                // 1. Video Player
+                mediaView
+                    .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
+                    .clipped()
+                    .onTapGesture(count: 2) { handleDoubleTap() }
+                    .onTapGesture {
+                        guard item.videoUrl != nil else { return }
+                        let willPause = !isPaused
+                        withAnimation(.easeInOut(duration: 0.08)) { isPaused = willPause }
+                        
+                        if let p = player {
+                            if willPause {
+                                p.pause()
+                            } else {
+                                if activeVideoId == item.id {
+                                    p.play()
+                                } else {
+                                    coordinator.setActive(item.id)
+                                }
+                            }
+                        }
+                    }
+                Spacer(minLength: 0)
+            }
+            .frame(width: size.width, height: size.height)
+            .overlay(preloaderImage)
+            .overlay(gradientOverlay)
+            .overlay(likeHeartOverlay)
+            .overlay(gestureOverlay)
+            .overlay(contentOverlay)
             .frame(width: size.width, height: size.height)
             .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.25), value: isCommentsOverlayActive)
@@ -824,9 +827,58 @@ struct FeedView: View {
             }
         }
         
+        // MARK: - Left Column Subviews
         private var leftColumn: some View {
+            VStack {
+                Spacer()
+                ZStack {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 10) {
+                            userInfoRow
+                            videoTitleRow
+                            videoDescriptionRow
+                            musicRow
+                            orderButtonRow
+                        }
+                        Spacer()
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, bottomInset - 24)
+            }
+            .onAppear { updateFollowingUI() }
+            .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
+                if newValue { updateFollowingUI() }
+            }
+        }
+
+        private var userInfoRow: some View {
+            HStack(alignment: .center, spacing: 12) {
+                userAvatarView
+                userNameAndFollowView
+            }
+        }
+
+        private var userAvatarView: some View {
             let hasRing = item.label == .foodieReview || item.hasStories
             let ringColor: Color = item.label == .foodieReview ? .yellow : .green
+            
+            return ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.3))
+                    .overlay(Image(systemName: "person.fill").foregroundColor(.white))
+                WebImage(url: URL(string: item.avatarUrl))
+                    .resizable()
+                    .scaledToFill()
+            }
+            .frame(width: 53, height: 53)
+            .clipShape(Circle())
+            .overlay(
+                Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
+            )
+        }
+
+        private var userNameAndFollowView: some View {
             let labelText: String? = {
                 switch item.label {
                 case .sponsored: return "SPONSORED"
@@ -835,152 +887,130 @@ struct FeedView: View {
                 }
             }()
             let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
-            let isExpanded = expandedDescriptions.contains(item.id)
-            
-            return VStack {
-                Spacer()
-                ZStack {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(alignment: .center, spacing: 12) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.gray.opacity(0.3))
-                                        .overlay(Image(systemName: "person.fill").foregroundColor(.white))
-                                    WebImage(url: URL(string: item.avatarUrl))
-                                        .resizable()
-                                        .scaledToFill()
-                                }
-                                .frame(width: 53, height: 53)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle().stroke(hasRing ? ringColor : .clear, lineWidth: hasRing ? 2 : 0)
-                                )
-                                
-                                VStack(alignment: .leading, spacing: 1) {
-                                    HStack(spacing: 8) {
-                                        Button(action: onShowProfile) {
-                                            Text(item.username)
-                                                .foregroundColor(.white)
-                                                .font(.system(size: 20, weight: .bold))
-                                        }
-                                        if showFollowButton {
-                                            Button(action: {
-                                                withAnimation(.easeInOut(duration: 0.2)) { isFollowing = true }
-                                                if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
-                                                    DatabaseService.shared.followUser(followerUid: followerUid, followedUid: followedUid) { _ in
-                                                        DispatchQueue.main.async {
-                                                            AuthService.shared.recordLocalFollow(followedUid: followedUid)
-                                                        }
-                                                    }
-                                                }
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                                    withAnimation(.easeInOut(duration: 0.2)) { showFollowButton = false }
-                                                }
-                                            }) {
-                                                Capsule()
-                                                    .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
-                                                    .frame(width: 90, height: 32)
-                                                    .overlay(
-                                                        Text(isFollowing ? "Siguiendo" : "Seguir")
-                                                            .foregroundColor(.white)
-                                                            .font(.footnote.bold())
-                                                            .transition(.opacity.combined(with: .scale))
-                                                    )
-                                            }
-                                        }
-                                    }
-                                    if let labelText = labelText {
-                                        Text(labelText)
-                                            .foregroundColor(labelColor)
-                                            .font(.footnote)
-                                            .fontWeight(.heavy)
-                                    }
-                                }
-                            }
-                            
-                            Text(item.title)
-                                .foregroundColor(.white)
-                                .font(.system(size: 24, weight: .bold))
-                            
-                            Text(item.description)
-                                .foregroundColor(.white.opacity(0.9))
-                                .font(.system(size: 14))
-                                .lineLimit(isExpanded ? nil : 2)
-                                .truncationMode(.tail)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: size.width * 0.5, alignment: .leading)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
-                                }
-                            
-                            HStack(spacing: 8) {
-                                Image(systemName: "music.note")
-                                    .foregroundColor(.white)
-                                Text(item.soundTitle)
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 14))
-                                    .lineLimit(1)
-                            }
-                            
-                            HStack(spacing: 10) {
-                                Button(action: {
-                                    withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderPressed = false }
-                                        onShowMenu()
-                                    }
-                                }) {
-                                    Capsule()
-                                        .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
-                                        .frame(width: 216, height: 48)
-                                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
-                                        .scaleEffect(orderPressed ? 0.95 : 1.0)
-                                        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: orderPressed)
-                                }
-                            }
-                        }
-                        Spacer()
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, bottomInset - 24)
-            }
-            .onAppear {
-                updateFollowingUI()
-            }
-            .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
-                if newValue { updateFollowingUI() }
-            }
 
-            func updateFollowingUI() {
-                guard let followerUid = AuthService.shared.user?.uid else {
-                    showFollowButton = true
-                    return
-                }
-                if let authorUid = item.authorId {
-                    resolvedAuthorUid = authorUid
-                } else if resolvedAuthorUid == nil {
-                    DatabaseService.shared.getUidForUsername(item.username) { uid in
-                        DispatchQueue.main.async { resolvedAuthorUid = uid }
+            return VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 8) {
+                    Button(action: onShowProfile) {
+                        Text(item.username)
+                            .foregroundColor(.white)
+                            .font(.system(size: 20, weight: .bold))
+                    }
+                    if showFollowButton {
+                        followButton
                     }
                 }
-                guard let followedUid = resolvedAuthorUid ?? item.authorId else {
-                    showFollowButton = true
-                    return
+                if let labelText = labelText {
+                    Text(labelText)
+                        .foregroundColor(labelColor)
+                        .font(.footnote)
+                        .fontWeight(.heavy)
                 }
-                if AuthService.shared.isFollowingCached(followedUid) == true {
-                    isFollowing = true
-                    showFollowButton = false
-                    return
-                }
-                DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: followedUid) { isF in
-                    DispatchQueue.main.async {
-                        isFollowing = isF
-                        showFollowButton = !isF
-                        AuthService.shared.setFollowingCached(followedUid, value: isF)
+            }
+        }
+
+        private var followButton: some View {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) { isFollowing = true }
+                if let followerUid = AuthService.shared.user?.uid, let followedUid = item.authorId {
+                    DatabaseService.shared.followUser(followerUid: followerUid, followedUid: followedUid) { _ in
+                        DispatchQueue.main.async {
+                            AuthService.shared.recordLocalFollow(followedUid: followedUid)
+                        }
                     }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation(.easeInOut(duration: 0.2)) { showFollowButton = false }
+                }
+            }) {
+                Capsule()
+                    .fill(isFollowing ? Color.white.opacity(0.25) : Color.white.opacity(0.15))
+                    .frame(width: 90, height: 32)
+                    .overlay(
+                        Text(isFollowing ? "Siguiendo" : "Seguir")
+                            .foregroundColor(.white)
+                            .font(.footnote.bold())
+                            .transition(.opacity.combined(with: .scale))
+                    )
+            }
+        }
+
+        private var videoTitleRow: some View {
+            Text(item.title)
+                .foregroundColor(.white)
+                .font(.system(size: 24, weight: .bold))
+        }
+
+        private var videoDescriptionRow: some View {
+            let isExpanded = expandedDescriptions.contains(item.id)
+            return Text(item.description)
+                .foregroundColor(.white.opacity(0.9))
+                .font(.system(size: 14))
+                .lineLimit(isExpanded ? nil : 2)
+                .truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: size.width * 0.5, alignment: .leading)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if isExpanded { expandedDescriptions.remove(item.id) } else { expandedDescriptions.insert(item.id) }
+                }
+        }
+
+        private var musicRow: some View {
+            HStack(spacing: 8) {
+                Image(systemName: "music.note")
+                    .foregroundColor(.white)
+                Text(item.soundTitle)
+                    .foregroundColor(.white)
+                    .font(.system(size: 14))
+                    .lineLimit(1)
+            }
+        }
+
+        private var orderButtonRow: some View {
+            HStack(spacing: 10) {
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderPressed = false }
+                        onShowMenu()
+                    }
+                }) {
+                    Capsule()
+                        .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
+                        .frame(width: 216, height: 48)
+                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                        .scaleEffect(orderPressed ? 0.95 : 1.0)
+                        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: orderPressed)
+                }
+            }
+        }
+
+        private func updateFollowingUI() {
+            guard let followerUid = AuthService.shared.user?.uid else {
+                showFollowButton = true
+                return
+            }
+            if let authorUid = item.authorId {
+                resolvedAuthorUid = authorUid
+            } else if resolvedAuthorUid == nil {
+                DatabaseService.shared.getUidForUsername(item.username) { uid in
+                    DispatchQueue.main.async { resolvedAuthorUid = uid }
+                }
+            }
+            guard let followedUid = resolvedAuthorUid ?? item.authorId else {
+                showFollowButton = true
+                return
+            }
+            if AuthService.shared.isFollowingCached(followedUid) == true {
+                isFollowing = true
+                showFollowButton = false
+                return
+            }
+            DatabaseService.shared.checkIfFollowing(followerUid: followerUid, followedUid: followedUid) { isF in
+                DispatchQueue.main.async {
+                    isFollowing = isF
+                    showFollowButton = !isF
+                    AuthService.shared.setFollowingCached(followedUid, value: isF)
                 }
             }
         }
