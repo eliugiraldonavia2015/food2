@@ -69,6 +69,7 @@ struct FeedView: View {
     @State private var showUserProfile = false
     @State private var selectedUserId: String? = nil // Nuevo estado para navegación dinámica
     @State private var selectedProfileImage: UIImage? = nil // 🚀 Imagen precargada para transición instantánea
+    @State private var selectedItemForProfile: FeedItem? = nil // 🛑 Snapshot del item seleccionado para evitar condiciones de carrera
     @State private var showMenu = false
     @State private var showComments = false
     @State private var showShare = false
@@ -107,8 +108,12 @@ struct FeedView: View {
                         isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
                         activeVideoId: coordinator.activeVideoId,
                         viewModel: selectedVM,
+                        selectedItemForProfile: $selectedItemForProfile,
                         onShowProfile: { capturedImage in
+                            // 📸 SNAPSHOT CRÍTICO: Guardamos el item y la imagen EXACTOS del momento del clic
+                            self.selectedItemForProfile = item
                             self.selectedProfileImage = capturedImage
+                            
                             // Lógica de navegación a perfiles
                             if let authorId = item.authorId {
                                 // 🚀 Usuario Real: Navegar al perfil público dinámico
@@ -196,7 +201,8 @@ struct FeedView: View {
             }
         }
         .fullScreenCover(isPresented: $showRestaurantProfile) {
-            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            // Usar snapshot si existe, o fallback al índice actual (pero el snapshot es más seguro)
+            let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
             let photos: [RestaurantProfileView.PhotoItem] = [
                 .init(url: "https://images.unsplash.com/photo-1604908176997-431199f7c209", title: "Salsas mexicanas"),
                 .init(url: "https://images.unsplash.com/photo-1612197528228-7d9d7e9db2e8", title: "Tacos variados"),
@@ -244,7 +250,8 @@ struct FeedView: View {
             // Decidir qué perfil mostrar (Real vs Mock)
             if let uid = selectedUserId {
                 // ✅ Perfil Real Conectado
-                let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                // Usar snapshot si existe, o fallback al índice actual
+                let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
                 UserProfileView(
                     userId: uid,
                     initialCoverUrl: item.backgroundUrl,
@@ -254,7 +261,7 @@ struct FeedView: View {
                 )
             } else {
                 // ⚠️ Legacy Mock Profile (Mantenemos para demos)
-                let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
                 // ... (código legacy mock se mantiene pero inaccesible si hay selectedUserId)
                 // Para simplificar y evitar duplicar lógica de mock compleja aquí,
                 // si es mock, usamos una versión "dummy" del UserProfileView nuevo o el viejo si pudiéramos
@@ -275,7 +282,7 @@ struct FeedView: View {
             }
         }
         .fullScreenCover(isPresented: $showMenu) {
-            let item = currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+            let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
             let rid = item.username.replacingOccurrences(of: " ", with: "").lowercased()
             FullMenuView(
                 restaurantId: rid,
@@ -445,6 +452,7 @@ struct FeedView: View {
         // State
         @State private var loadedImage: UIImage? = nil // 🚀 Imagen capturada del feed
         @State private var isLiked = false
+        @Binding var selectedItemForProfile: FeedItem? // 🔗 Enlace al estado del padre
         @State private var likesCount: Int
         @State private var isFollowing = false
         @State private var showFollowButton = true
@@ -493,7 +501,7 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, selectedItemForProfile: Binding<FeedItem?>, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
@@ -503,6 +511,7 @@ struct FeedView: View {
             self.isScreenActive = isScreenActive
             self.activeVideoId = activeVideoId
             self.viewModel = viewModel
+            self._selectedItemForProfile = selectedItemForProfile
             self.onShowProfile = onShowProfile
             self.onShowMenu = onShowMenu
             self.onShowComments = onShowComments
@@ -984,14 +993,15 @@ struct FeedView: View {
 
         private var orderButtonRow: some View {
             HStack(spacing: 10) {
-                Button(action: {
-                    withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderPressed = false }
-                        onShowMenu()
-                    }
-                }) {
-                    Capsule()
+                        Button(action: {
+                            withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderPressed = false }
+                                self.selectedItemForProfile = item // 📸 Guardar snapshot también para el menú
+                                onShowMenu()
+                            }
+                        }) {
+                            Capsule()
                         .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
                         .frame(width: 216, height: 48)
                         .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
