@@ -128,6 +128,7 @@ struct FullMenuView: View {
     let branchName: String?
     let distanceKm: Double?
     let isEditing: Bool
+    let cachedCoverImage: UIImage? // Imagen precargada
     
     @StateObject private var viewModel: FullMenuViewModel
     @Environment(\.dismiss) private var dismiss
@@ -161,6 +162,7 @@ struct FullMenuView: View {
         branchName: String?,
         distanceKm: Double?,
         isEditing: Bool = false,
+        cachedCoverImage: UIImage? = nil,
         onDismissToRoot: (() -> Void)? = nil
     ) {
         self.restaurantId = restaurantId
@@ -171,6 +173,7 @@ struct FullMenuView: View {
         self.branchName = branchName
         self.distanceKm = distanceKm
         self.isEditing = isEditing
+        self.cachedCoverImage = cachedCoverImage
         self.onDismissToRoot = onDismissToRoot
         self._viewModel = StateObject(wrappedValue: FullMenuViewModel(restaurantId: restaurantId))
     }
@@ -1288,11 +1291,18 @@ struct FullMenuView: View {
     
     private var coverImage: some View {
         Group {
-            if let url = URL(string: coverUrl), !coverUrl.isEmpty {
+            if let cached = cachedCoverImage {
+                // Usar imagen precargada si existe (Instante 0)
+                Image(uiImage: cached)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+            } else if let url = URL(string: coverUrl), !coverUrl.isEmpty {
                 WebImage(url: url)
                     .resizable()
                     .indicator(.activity)
                     .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity)
             } else {
                 LinearGradient(
                     colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.2)],

@@ -45,7 +45,8 @@ struct RestaurantProfileView: View {
         GridItem(.flexible(), spacing: 2)
     ]
     @State private var fetchedVideos: [Video] = []
-    
+    @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
+
     private var photoItems: [PhotoItem] {
         if !fetchedVideos.isEmpty {
             return fetchedVideos.map { video in
@@ -118,7 +119,8 @@ struct RestaurantProfileView: View {
                 avatarUrl: currentData.avatarUrl,
                 location: currentData.location,
                 branchName: currentData.branch,
-                distanceKm: 2.3
+                distanceKm: 2.3,
+                cachedCoverImage: loadedCoverImage
             )
         }
         .sheet(isPresented: $showChat) {
@@ -164,6 +166,10 @@ struct RestaurantProfileView: View {
 
     private func coverImage(minY: CGFloat) -> some View {
         WebImage(url: URL(string: currentData.coverUrl))
+            .onSuccess { image, _, _ in
+                // Capturar imagen cuando se carga para pasarla al menú completo sin delay
+                self.loadedCoverImage = image
+            }
             .resizable()
             .indicator(.activity)
             .aspectRatio(contentMode: .fill)

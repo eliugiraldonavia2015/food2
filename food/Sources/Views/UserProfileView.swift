@@ -12,6 +12,7 @@ struct UserProfileView: View {
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
+    @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
     
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
@@ -111,6 +112,7 @@ struct UserProfileView: View {
                     location: user.location.isEmpty ? "CDMX, México" : user.location,
                     branchName: user.location.isEmpty ? "CDMX, México" : user.location,
                     distanceKm: 2.3,
+                    cachedCoverImage: loadedCoverImage,
                     onDismissToRoot: {
                         showFullMenu = false
                     }
@@ -128,6 +130,10 @@ struct UserProfileView: View {
             let minY = geo.frame(in: .global).minY
             ZStack(alignment: .topLeading) {
                 WebImage(url: URL(string: user.coverUrl))
+                    .onSuccess { image, _, _ in
+                        // Capturar imagen cuando se carga para pasarla al menú completo sin delay
+                        self.loadedCoverImage = image
+                    }
                     .resizable()
                     .indicator(.activity)
                     .aspectRatio(contentMode: .fill)
