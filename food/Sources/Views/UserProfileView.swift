@@ -273,7 +273,7 @@ struct UserProfileView: View {
                                 .foregroundColor(.black)
                                 .font(.system(size: 20))
                             Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
+                                .foregroundColor(.red)
                                 .font(.system(size: 18))
                         }
                         Text("Calificación")
