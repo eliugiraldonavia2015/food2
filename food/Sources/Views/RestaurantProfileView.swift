@@ -171,14 +171,14 @@ struct RestaurantProfileView: View {
                 self.loadedCoverImage = image
             }
             .resizable()
-            .placeholder {
+            .indicator(.activity)
+            .aspectRatio(contentMode: .fill)
+            .background(
                 ZStack {
                     Color.gray.opacity(0.15)
                     ShimmerView()
                 }
-            }
-            .indicator(.activity) // Mantenemos activity por si acaso, pero el placeholder lo cubrirá
-            .aspectRatio(contentMode: .fill)
+            )
             .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
             .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
             .clipped()
