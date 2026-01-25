@@ -350,34 +350,62 @@ struct RestaurantProfileView: View {
     private var menuButtonView: some View {
         Button(action: { showFullMenu = true }) {
             HStack(spacing: 12) {
-                Image(systemName: "fork.knife")
-                    .foregroundColor(.white) // Icono blanco sobre fondo fuchsia
-                    .font(.system(size: 16, weight: .bold))
-                    .frame(width: 36, height: 36)
-                    .background(Color.fuchsia) // Fondo fuchsia sólido
-                    .clipShape(Circle())
+                ZStack {
+                    Circle()
+                        .fill(Color.fuchsia)
+                        .frame(width: 44, height: 44) // Ligeramente más grande para impacto
+                        .shadow(color: Color.fuchsia.opacity(0.4), radius: 6, x: 0, y: 3)
+                    
+                    Image(systemName: "fork.knife")
+                        .foregroundColor(.white)
+                        .font(.system(size: 18, weight: .bold))
+                }
                 
-                Text("Ver Menú Completo")
-                    .foregroundColor(.black)
-                    .font(.system(size: 16, weight: .semibold))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Ver Menú Completo")
+                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .bold))
+                    Text("Explora nuestros platillos")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 13, weight: .medium))
+                }
                 
                 Spacer()
                 
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray.opacity(0.6))
-                    .font(.system(size: 14, weight: .bold))
+                ZStack {
+                    Circle()
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.black.opacity(0.6))
+                        .font(.system(size: 14, weight: .bold))
+                }
             }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .background(Color.white)
-            .cornerRadius(16)
+            .cornerRadius(20) // Bordes más redondeados y modernos
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4) // Sombra suave y difusa tipo iOS
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1) // Borde sutil brillante
             )
-            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .scaleEffect(1.0)
         }
+        .buttonStyle(BouncyButtonStyle()) // Animación personalizada
         .padding(.vertical, 8)
-        .zIndex(1) // Asegurar visibilidad
+        .zIndex(1)
+    }
+
+    // Estilo de botón con animación de rebote (Spring)
+    struct BouncyButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0), value: configuration.isPressed)
+                .opacity(configuration.isPressed ? 0.9 : 1.0)
+        }
     }
 
     private var aboutSection: some View {
