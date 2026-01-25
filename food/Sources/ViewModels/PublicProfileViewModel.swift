@@ -65,10 +65,20 @@ class PublicProfileViewModel: ObservableObject {
         let username = data["username"] as? String ?? "Usuario"
         let name = data["name"] as? String ?? ""
         let bio = data["bio"] as? String ?? "Amante de la comida 🌮"
-        let photoUrl = data["photoURL"] as? String ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
-        let coverUrl = (data["coverURL"] as? String)?.isEmpty == false
-            ? (data["coverURL"] as! String)
-            : "https://images.unsplash.com/photo-1493770348161-369560ae357d"
+        
+        // 🛑 FIX: Priorizar datos existentes (Feed) sobre valores nulos/vacíos para evitar parpadeo a imagen hardcoded
+        let existingPhoto = self.user?.photoUrl
+        let fetchedPhoto = data["photoURL"] as? String
+        let photoUrl = (fetchedPhoto?.isEmpty == false ? fetchedPhoto : nil) 
+            ?? existingPhoto 
+            ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
+
+        // 🛑 FIX: Priorizar datos existentes (Feed) sobre valores nulos/vacíos
+        let existingCover = self.user?.coverUrl
+        let fetchedCover = data["coverURL"] as? String
+        let coverUrl = (fetchedCover?.isEmpty == false ? fetchedCover : nil)
+            ?? existingCover
+            ?? "https://images.unsplash.com/photo-1493770348161-369560ae357d"
         
         DispatchQueue.main.async {
             self.user = UserProfileData(
