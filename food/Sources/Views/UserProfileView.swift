@@ -135,6 +135,12 @@ struct UserProfileView: View {
                         self.loadedCoverImage = image
                     }
                     .resizable()
+                    .placeholder {
+                        ZStack {
+                            Color.gray.opacity(0.15)
+                            ShimmerView()
+                        }
+                    }
                     .indicator(.activity)
                     .aspectRatio(contentMode: .fill)
                     .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
@@ -150,6 +156,29 @@ struct UserProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
+    }
+
+    struct ShimmerView: View {
+        @State private var startPoint = UnitPoint(x: -1.8, y: -1.2)
+        @State private var endPoint = UnitPoint(x: 0, y: -0.2)
+        
+        var body: some View {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.gray.opacity(0.1),
+                    Color.gray.opacity(0.3),
+                    Color.gray.opacity(0.1)
+                ]),
+                startPoint: startPoint,
+                endPoint: endPoint
+            )
+            .onAppear {
+                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    startPoint = UnitPoint(x: 1, y: 0)
+                    endPoint = UnitPoint(x: 2.8, y: 1.0)
+                }
+            }
+        }
     }
     
     private var coverGradient: LinearGradient {

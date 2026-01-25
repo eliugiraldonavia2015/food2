@@ -171,13 +171,44 @@ struct RestaurantProfileView: View {
                 self.loadedCoverImage = image
             }
             .resizable()
-            .indicator(.activity)
+            .placeholder {
+                ZStack {
+                    Color.gray.opacity(0.15)
+                    ShimmerView()
+                }
+            }
+            .indicator(.activity) // Mantenemos activity por si acaso, pero el placeholder lo cubrirá
             .aspectRatio(contentMode: .fill)
             .frame(height: minY > 0 ? headerHeight + minY : headerHeight)
             .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
             .clipped()
             .overlay(coverGradient)
             .offset(y: minY > 0 ? -minY : 0)
+    }
+
+    // MARK: - Components
+    
+    struct ShimmerView: View {
+        @State private var startPoint = UnitPoint(x: -1.8, y: -1.2)
+        @State private var endPoint = UnitPoint(x: 0, y: -0.2)
+        
+        var body: some View {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.gray.opacity(0.1),
+                    Color.gray.opacity(0.3),
+                    Color.gray.opacity(0.1)
+                ]),
+                startPoint: startPoint,
+                endPoint: endPoint
+            )
+            .onAppear {
+                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    startPoint = UnitPoint(x: 1, y: 0)
+                    endPoint = UnitPoint(x: 2.8, y: 1.0)
+                }
+            }
+        }
     }
 
 
