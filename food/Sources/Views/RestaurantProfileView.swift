@@ -283,16 +283,16 @@ struct RestaurantProfileView: View {
                     .font(.system(size: 15))
                 
                 // Rating y Seguidores alineados
-                HStack(spacing: 40) {
+                HStack(spacing: 32) {
                     // Rating (Reemplaza Categoría)
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         HStack(spacing: 4) {
                             Text(String(format: "%.1f", currentData.rating))
                                 .foregroundColor(.black)
-                                .font(.system(size: 22))
+                                .font(.system(size: 20))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
-                                .font(.system(size: 20))
+                                .font(.system(size: 18))
                         }
                         Text("Calificación")
                             .foregroundColor(.gray)
@@ -300,10 +300,10 @@ struct RestaurantProfileView: View {
                     }
 
                     // Seguidores
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         Text(formatCount(currentData.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 22))
+                            .font(.system(size: 20))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 13))

@@ -196,16 +196,16 @@ struct UserProfileView: View {
                     .foregroundColor(.gray)
                     .font(.system(size: 15))
                 
-                HStack(spacing: 40) {
+                HStack(spacing: 32) {
                     // Rating (Reemplaza Categoría)
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         HStack(spacing: 4) {
                             Text("4.8")
                                 .foregroundColor(.black)
-                                .font(.system(size: 22))
+                                .font(.system(size: 20))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
-                                .font(.system(size: 20))
+                                .font(.system(size: 18))
                         }
                         Text("Calificación")
                             .foregroundColor(.gray)
@@ -213,10 +213,10 @@ struct UserProfileView: View {
                     }
                     
                     // Seguidores
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         Text(formatCount(user.followers))
                             .foregroundColor(.black)
-                            .font(.system(size: 22))
+                            .font(.system(size: 20))
                         Text("Seguidores")
                             .foregroundColor(.gray)
                             .font(.system(size: 13))
