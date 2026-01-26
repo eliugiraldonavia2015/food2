@@ -10,6 +10,21 @@ struct EfficiencyMetricsView: View {
     @State private var animateGraph: Bool = false
     @State private var animateList: Bool = false
     
+    // Navigation State
+    enum ActiveSheet: Identifiable {
+        case ticketPromedio
+        case totalOrders
+        case profitMargin
+        case premiumReports
+        case premiumStatus
+        
+        var id: Int {
+            hashValue
+        }
+    }
+    
+    @State private var activeSheet: ActiveSheet?
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -41,6 +56,20 @@ struct EfficiencyMetricsView: View {
             }
             withAnimation(.spring().delay(0.3)) {
                 animateList = true
+            }
+        }
+        .sheet(item: $activeSheet) { item in
+            switch item {
+            case .ticketPromedio:
+                TicketPromedioView()
+            case .totalOrders:
+                TotalOrdersView()
+            case .profitMargin:
+                ProfitMarginView()
+            case .premiumReports:
+                PremiumReportsView()
+            case .premiumStatus:
+                PremiumStatusView()
             }
         }
     }
@@ -173,19 +202,19 @@ struct EfficiencyMetricsView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    Button(action: {}) {
+                    Button(action: { activeSheet = .ticketPromedio }) {
                         quickStatsCard(icon: "doc.text", title: "TICKET PROMEDIO", value: "$345", trend: "+5.2%", trendColor: .green)
                     }
-                    Button(action: {}) {
+                    Button(action: { activeSheet = .totalOrders }) {
                         quickStatsCard(icon: "bag.fill", title: "ÓRDENES TOTALES", value: "892", trend: "+8.1%", trendColor: .green)
                     }
-                    Button(action: {}) {
+                    Button(action: { activeSheet = .profitMargin }) {
                         quickStatsCard(icon: "percent", title: "MARGEN DE UTILIDAD", value: "24%", trend: "-1.5%", trendColor: .orange)
                     }
-                    Button(action: {}) {
+                    Button(action: { activeSheet = .premiumReports }) {
                         quickStatsCard(icon: "chart.bar.fill", title: "REPORTES", value: "12", trend: "+3.0%", trendColor: .green, isPremium: true)
                     }
-                    Button(action: {}) {
+                    Button(action: { activeSheet = .premiumStatus }) {
                         quickStatsCard(icon: "checkmark.circle.fill", title: "ESTADO", value: "ACTIVO", trend: "0%", trendColor: .gray, isPremium: true)
                     }
                 }
