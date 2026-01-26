@@ -196,9 +196,11 @@ struct EfficiencyMetricsView: View {
                     .font(.title3.bold())
                     .foregroundColor(.black)
                 Spacer()
-                Button("VER TODO") { }
-                    .font(.caption.bold())
-                    .foregroundColor(brandPink)
+                Button(action: { activeSheet = .allStats }) {
+                    Text("VER TODO")
+                        .font(.caption.bold())
+                        .foregroundColor(brandPink)
+                }
             }
             .padding(.horizontal, 20)
             
