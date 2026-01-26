@@ -585,9 +585,9 @@ struct EditDishSheet: View {
     var isNew: Bool = false
     var onSave: (EditableDish) -> Void
     
-    @State private var showingImageOptions = false
-    @State private var showingAIPrompt = false
-    @State private var aiPrompt = ""
+    @State private var showingImageSourceOptions = false
+    @State private var showingAIStyleOptions = false
+    @State private var showingAddStyleSheet = false
     @State private var isGeneratingAI = false
     
     var body: some View {
@@ -620,12 +620,24 @@ struct EditDishSheet: View {
                                     )
                             }
                             
-                            Button(action: { showingImageOptions = true }) {
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 44, height: 44)
-                                    .shadow(color: .black.opacity(0.15), radius: 5, x: 0, y: 2)
-                                    .overlay(Image(systemName: "wand.and.stars").foregroundColor(.blue).font(.system(size: 18, weight: .bold)))
+                            HStack(spacing: 12) {
+                                // AI Button
+                                Button(action: { showingAIStyleOptions = true }) {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: .black.opacity(0.15), radius: 5, x: 0, y: 2)
+                                        .overlay(Image(systemName: "wand.and.stars").foregroundColor(.purple).font(.system(size: 18, weight: .bold)))
+                                }
+                                
+                                // Camera/Gallery Button
+                                Button(action: { showingImageSourceOptions = true }) {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: .black.opacity(0.15), radius: 5, x: 0, y: 2)
+                                        .overlay(Image(systemName: "camera.fill").foregroundColor(.black).font(.system(size: 18, weight: .bold)))
+                                }
                             }
                             .padding(12)
                         }
@@ -722,6 +734,7 @@ struct EditDishSheet: View {
                                     .foregroundColor(.yellow)
                                 Text("Destacar como Popular")
                                     .fontWeight(.medium)
+                                    .foregroundColor(.black)
                             }
                         }
                         .padding(12)
@@ -755,35 +768,29 @@ struct EditDishSheet: View {
                     .clipShape(Capsule())
                 }
             }
-            .confirmationDialog("Opciones de Imagen", isPresented: $showingImageOptions) {
-                Button("Mejorar calidad actual (AI)") {
-                    isGeneratingAI = true
-                    // Simulate enhancement delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        isGeneratingAI = false
-                        // In a real app, this would process the existing image
-                        // For demo, we just toggle a slight parameter or keep same to simulate "enhanced"
-                    }
+            .confirmationDialog("Cambiar Imagen", isPresented: $showingImageSourceOptions) {
+                Button("Tomar foto") { 
+                    // Action
                 }
-                Button("Generar nueva con AI (Prompt)") {
-                    showingAIPrompt = true
+                Button("Elegir de la galería") { 
+                    // Action
                 }
                 Button("Cancelar", role: .cancel) { }
             }
-            .alert("Generar con AI", isPresented: $showingAIPrompt) {
-                TextField("Describe tu plato delicioso...", text: $aiPrompt)
-                Button("Generar") {
-                    isGeneratingAI = true
-                    // Simulate generation delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        isGeneratingAI = false
-                        // Mock result with a different delicious food image
-                        dish.imageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1"
-                    }
+            .confirmationDialog("Mejorar con AI", isPresented: $showingAIStyleOptions) {
+                Button("Estilo #1") { 
+                    // Apply Style 1
+                }
+                Button("Estilo #2") { 
+                    // Apply Style 2
+                }
+                Button("Añadir estilo") {
+                    showingAddStyleSheet = true
                 }
                 Button("Cancelar", role: .cancel) { }
-            } message: {
-                Text("Escribe una descripción detallada para crear una imagen única.")
+            }
+            .sheet(isPresented: $showingAddStyleSheet) {
+                AddStyleView(isGeneratingAI: $isGeneratingAI, dish: $dish)
             }
             .overlay {
                 if isGeneratingAI {
@@ -802,6 +809,71 @@ struct EditDishSheet: View {
                         .cornerRadius(20)
                     }
                     .transition(.opacity)
+                }
+            }
+        }
+    }
+}
+
+struct AddStyleView: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var isGeneratingAI: Bool
+    @Binding var dish: EditableDish
+    @State private var styleDescription = ""
+    
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Describe tu nuevo estilo")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                
+                Text("Cuéntanos cómo te gustaría que luzcan tus imágenes. La inteligencia artificial usará esta descripción para crear fotos increíbles.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .lineSpacing(4)
+                
+                TextEditor(text: $styleDescription)
+                    .frame(height: 150)
+                    .padding(12)
+                    .background(Color.gray.opacity(0.05))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                
+                Spacer()
+                
+                Button(action: {
+                    dismiss()
+                    // Simulate AI Generation start
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isGeneratingAI = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            isGeneratingAI = false
+                            dish.imageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1" // Mock update
+                        }
+                    }
+                }) {
+                    Text("Guardar y Aplicar Estilo")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(styleDescription.isEmpty ? Color.gray : Color.black)
+                        .cornerRadius(16)
+                }
+                .disabled(styleDescription.isEmpty)
+            }
+            .padding(24)
+            .navigationTitle("Añadir Estilo")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                        .foregroundColor(.black)
                 }
             }
         }
