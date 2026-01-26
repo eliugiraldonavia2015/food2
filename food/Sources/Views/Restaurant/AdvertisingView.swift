@@ -598,34 +598,8 @@ struct AllCampaignsView: View {
             Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.black)
-                    }
-                    Spacer()
-                    Text("Todas las Campañas")
-                        .font(.headline.bold())
-                    Spacer()
-                    Button(action: {}) {
-                        Image(systemName: "slider.horizontal.3")
-                            .foregroundColor(.black)
-                    }
-                }
-                .padding()
-                .background(Color.white)
-                
-                // Search
-                HStack {
-                    Image(systemName: "magnifyingglass").foregroundColor(.gray)
-                    TextField("Buscar campaña...", text: $searchText)
-                }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(12)
-                .padding()
+                header
+                searchBar
                 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -640,6 +614,39 @@ struct AllCampaignsView: View {
             }
         }
         .navigationBarHidden(true)
+    }
+    
+    // MARK: - Subviews
+    
+    private var header: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            Spacer()
+            Text("Todas las Campañas")
+                .font(.headline.bold())
+            Spacer()
+            Button(action: {}) {
+                Image(systemName: "slider.horizontal.3")
+                    .foregroundColor(.black)
+            }
+        }
+        .padding()
+        .background(Color.white)
+    }
+    
+    private var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass").foregroundColor(.gray)
+            TextField("Buscar campaña...", text: $searchText)
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(12)
+        .padding()
     }
     
     func campaignItem(title: String, status: String, date: String, amount: String, isActive: Bool = true) -> some View {
