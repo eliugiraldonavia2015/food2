@@ -621,8 +621,18 @@ struct EditDishSheet: View {
                             }
                             
                             HStack(spacing: 12) {
-                                // AI Button
-                                Button(action: { showingAIStyleOptions = true }) {
+                                // AI Menu
+                                Menu {
+                                    Button(action: { /* Apply Style 1 */ }) {
+                                        Label("Estilo #1", systemImage: "camera.macro")
+                                    }
+                                    Button(action: { /* Apply Style 2 */ }) {
+                                        Label("Estilo #2", systemImage: "paintbrush.pointed.fill")
+                                    }
+                                    Button(action: { showingAddStyleSheet = true }) {
+                                        Label("Agregar estilo", systemImage: "plus.circle.fill")
+                                    }
+                                } label: {
                                     Circle()
                                         .fill(Color.white)
                                         .frame(width: 44, height: 44)
@@ -630,8 +640,15 @@ struct EditDishSheet: View {
                                         .overlay(Image(systemName: "wand.and.stars").foregroundColor(.purple).font(.system(size: 18, weight: .bold)))
                                 }
                                 
-                                // Camera/Gallery Button
-                                Button(action: { showingImageSourceOptions = true }) {
+                                // Camera/Gallery Menu
+                                Menu {
+                                    Button(action: { /* Take Photo */ }) {
+                                        Label("Tomar foto", systemImage: "camera")
+                                    }
+                                    Button(action: { /* Choose from Gallery */ }) {
+                                        Label("Elegir de la galería", systemImage: "photo.on.rectangle")
+                                    }
+                                } label: {
                                     Circle()
                                         .fill(Color.white)
                                         .frame(width: 44, height: 44)
@@ -641,13 +658,6 @@ struct EditDishSheet: View {
                             }
                             .padding(12)
                         }
-                        
-                        TextField("URL de la imagen", text: $dish.imageUrl, prompt: Text("URL de la imagen").foregroundColor(.gray))
-                            .font(.system(size: 14))
-                            .foregroundColor(.black)
-                            .padding(12)
-                            .background(Color.gray.opacity(0.05))
-                            .cornerRadius(12)
                     }
                     .padding(.horizontal)
                     
@@ -727,19 +737,6 @@ struct EditDishSheet: View {
                                 }
                             }
                         }
-                        
-                        Toggle(isOn: $dish.isPopular) {
-                            HStack {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                Text("Destacar como Popular")
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.black)
-                            }
-                        }
-                        .padding(12)
-                        .background(Color.yellow.opacity(0.1))
-                        .cornerRadius(12)
                     }
                     .padding(.horizontal)
                     
@@ -767,27 +764,6 @@ struct EditDishSheet: View {
                     .background(Color.black)
                     .clipShape(Capsule())
                 }
-            }
-            .confirmationDialog("Cambiar Imagen", isPresented: $showingImageSourceOptions) {
-                Button("Tomar foto") { 
-                    // Action
-                }
-                Button("Elegir de la galería") { 
-                    // Action
-                }
-                Button("Cancelar", role: .cancel) { }
-            }
-            .confirmationDialog("Mejorar con AI", isPresented: $showingAIStyleOptions) {
-                Button("Estilo #1") { 
-                    // Apply Style 1
-                }
-                Button("Estilo #2") { 
-                    // Apply Style 2
-                }
-                Button("Añadir estilo") {
-                    showingAddStyleSheet = true
-                }
-                Button("Cancelar", role: .cancel) { }
             }
             .sheet(isPresented: $showingAddStyleSheet) {
                 AddStyleView(isGeneratingAI: $isGeneratingAI, dish: $dish)
