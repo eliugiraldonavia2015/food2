@@ -63,10 +63,17 @@ struct AllStatsView: View {
                         Spacer(minLength: 50)
                     }
                     .padding(.vertical)
+                    .offset(y: animateViews ? 0 : 20)
+                    .opacity(animateViews ? 1 : 0)
                 }
             }
             .background(bgGray.ignoresSafeArea())
             .navigationBarHidden(true)
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    animateViews = true
+                }
+            }
         }
     }
     

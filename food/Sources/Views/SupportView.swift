@@ -10,10 +10,9 @@ struct SupportView: View {
     @State private var animateViews = false
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Header
-                HStack {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
                     Button(action: { presentationMode.wrappedValue.dismiss() }) {
                         Image(systemName: "chevron.left")
                             .font(.title2.bold())
@@ -119,14 +118,12 @@ struct SupportView: View {
                         Spacer(minLength: 50)
                     }
                     .padding(.vertical)
-                }
-            }
-            .background(bgGray.ignoresSafeArea())
-            .navigationBarHidden(true)
-            .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                    animateViews = true
-                }
+        }
+        .background(bgGray.ignoresSafeArea())
+        .navigationBarHidden(true)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animateViews = true
             }
         }
     }

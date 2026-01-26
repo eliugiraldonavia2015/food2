@@ -6,6 +6,8 @@ struct MonthlyExpensesView: View {
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
     private let bgGray = Color(red: 249/255, green: 249/255, blue: 249/255)
     
+    @State private var animateViews = false
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -70,10 +72,17 @@ struct MonthlyExpensesView: View {
                         Spacer(minLength: 50)
                     }
                     .padding(.vertical)
+                    .offset(y: animateViews ? 0 : 20)
+                    .opacity(animateViews ? 1 : 0)
                 }
             }
             .background(bgGray.ignoresSafeArea())
             .navigationBarHidden(true)
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    animateViews = true
+                }
+            }
         }
     }
     

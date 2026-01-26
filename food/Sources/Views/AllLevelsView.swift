@@ -9,10 +9,9 @@ struct AllLevelsView: View {
     @State private var animateList = false
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Header
-                HStack {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
                     Button(action: { presentationMode.wrappedValue.dismiss() }) {
                         Image(systemName: "chevron.left")
                             .font(.title2.bold())
