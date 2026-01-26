@@ -642,6 +642,7 @@ struct AllCampaignsView: View {
         HStack {
             Image(systemName: "magnifyingglass").foregroundColor(.gray)
             TextField("Buscar campaña...", text: $searchText)
+                .foregroundColor(.black)
         }
         .padding()
         .background(Color.white)
@@ -662,6 +663,7 @@ struct AllCampaignsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline.bold())
+                    .foregroundColor(.black)
                 Text(date)
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -735,6 +737,7 @@ struct CampaignStatisticsView: View {
             Spacer()
             Text("Estadísticas")
                 .font(.headline.bold())
+                .foregroundColor(.black)
             Spacer()
             Image(systemName: "square.and.arrow.up")
         }
@@ -746,6 +749,7 @@ struct CampaignStatisticsView: View {
         VStack(spacing: 8) {
             Text("Promo Tacos 2x1")
                 .font(.title2.bold())
+                .foregroundColor(.black)
             Text("Campaña Activa • ID: #8492")
                 .font(.caption)
                 .foregroundColor(.gray)
@@ -826,6 +830,7 @@ struct CampaignStatisticsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(value)
                     .font(.title3.bold())
+                    .foregroundColor(.black)
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -876,6 +881,7 @@ struct PaymentSettingsView: View {
             Spacer()
             Text("Configurar Pagos")
                 .font(.headline.bold())
+                .foregroundColor(.black)
             Spacer()
             Button("Guardar") { dismiss() }
                 .font(.subheadline.bold())
@@ -965,6 +971,7 @@ struct PaymentSettingsView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(brand) •••• \(last4)")
                     .font(.body.bold())
+                    .foregroundColor(.black)
                 if isDefault {
                     Text("Predeterminada")
                         .font(.caption)
@@ -989,6 +996,7 @@ struct PaymentSettingsView: View {
             Spacer()
             Text(value)
                 .fontWeight(.medium)
+                .foregroundColor(.black)
         }
         .font(.subheadline)
     }
@@ -998,6 +1006,7 @@ struct PaymentSettingsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(date)
                     .font(.body.bold())
+                    .foregroundColor(.black)
                 Text(status)
                     .font(.caption)
                     .foregroundColor(.green)
