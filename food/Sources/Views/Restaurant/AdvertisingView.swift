@@ -628,6 +628,7 @@ struct AllCampaignsView: View {
             Spacer()
             Text("Todas las Campañas")
                 .font(.headline.bold())
+                .foregroundColor(.black)
             Spacer()
             Button(action: {}) {
                 Image(systemName: "slider.horizontal.3")
@@ -641,8 +642,14 @@ struct AllCampaignsView: View {
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass").foregroundColor(.gray)
-            TextField("Buscar campaña...", text: $searchText)
-                .foregroundColor(.black)
+            ZStack(alignment: .leading) {
+                if searchText.isEmpty {
+                    Text("Buscar campaña...")
+                        .foregroundColor(.gray)
+                }
+                TextField("", text: $searchText)
+                    .foregroundColor(.black)
+            }
         }
         .padding()
         .background(Color.white)
