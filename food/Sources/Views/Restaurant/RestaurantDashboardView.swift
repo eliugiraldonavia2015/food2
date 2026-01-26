@@ -32,11 +32,23 @@ struct RestaurantDashboardView: View {
             // Main Content
             Group {
                 if selectedMenu == "Pedidos" {
-                    OrdersManagementView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                    NavigationView {
+                        OrdersManagementView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Reportes" {
-                    EfficiencyMetricsView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                    NavigationView {
+                        EfficiencyMetricsView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Socios" {
-                    PartnersView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                    NavigationView {
+                        PartnersView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else {
                     mainContent
                 }
