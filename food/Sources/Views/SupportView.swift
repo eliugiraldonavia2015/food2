@@ -128,7 +128,6 @@ struct SupportView: View {
             }
         }
     }
-    }
     
     private func contactOption(icon: String, title: String, color: Color) -> some View {
         Button(action: {}) {
