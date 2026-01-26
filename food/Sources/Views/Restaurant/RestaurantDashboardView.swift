@@ -35,6 +35,8 @@ struct RestaurantDashboardView: View {
                     OrdersManagementView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
                 } else if selectedMenu == "Reportes" {
                     EfficiencyMetricsView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                } else if selectedMenu == "Socios" {
+                    PartnersView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
                 } else {
                     mainContent
                 }

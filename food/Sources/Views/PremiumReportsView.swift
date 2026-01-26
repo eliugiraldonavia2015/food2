@@ -95,7 +95,7 @@ struct PremiumReportsView: View {
                         .padding(.horizontal, 20)
                         
                         // Export Button
-                        Button(action: {}) {
+                        NavigationLink(destination: ReportExportView()) {
                             HStack {
                                 Image(systemName: "arrow.down.doc")
                                 Text("Exportar Informe PDF")
