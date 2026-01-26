@@ -11,6 +11,8 @@ struct AllStatsView: View {
         GridItem(.flexible())
     ]
     
+    @State private var animateViews = false
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
