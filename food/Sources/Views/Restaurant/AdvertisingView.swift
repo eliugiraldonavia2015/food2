@@ -778,7 +778,8 @@ struct CampaignStatisticsView: View {
                 .fill(index == 6 ? brandPink : brandPink.opacity(0.3))
                 .frame(height: animate ? graphValues[index] : 0)
         }
-        .frame(maxWidth: .infinity, height: 150)
+        .frame(height: 150)
+        .frame(maxWidth: .infinity)
     }
     
     private var statsGrid: some View {
