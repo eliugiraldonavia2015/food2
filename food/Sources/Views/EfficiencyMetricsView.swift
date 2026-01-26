@@ -20,6 +20,9 @@ struct EfficiencyMetricsView: View {
                     // Average Time Card
                     averageTimeCard
                     
+                    // Quick Stats Section
+                    quickStatsSection
+                    
                     // Top Branches Section
                     topBranchesSection
                     
