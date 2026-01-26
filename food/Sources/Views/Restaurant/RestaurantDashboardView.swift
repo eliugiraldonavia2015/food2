@@ -11,6 +11,7 @@ struct RestaurantDashboardView: View {
     
     // MARK: - State
     @State private var selectedRange: String = "Hoy"
+    @State private var selectedMenu: String = "Tablero" // Added State
     @State private var showMenu = false
     @State private var showUploadVideo = false
     
@@ -29,7 +30,13 @@ struct RestaurantDashboardView: View {
     var body: some View {
         ZStack(alignment: .leading) {
             // Main Content
-            mainContent
+            Group {
+                if selectedMenu == "Pedidos" {
+                    OrdersManagementView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                } else {
+                    mainContent
+                }
+            }
                 .offset(x: showMenu ? 280 : 0)
                 .disabled(showMenu)
                 .scaleEffect(showMenu ? 0.9 : 1)
@@ -38,7 +45,7 @@ struct RestaurantDashboardView: View {
             
             // Side Menu
             if showMenu {
-                SideMenuView(showMenu: $showMenu, brandPink: brandPink)
+                SideMenuView(showMenu: $showMenu, selectedMenu: $selectedMenu, brandPink: brandPink)
                     .transition(.move(edge: .leading))
                     .zIndex(2)
             }
@@ -560,6 +567,7 @@ struct WaveShape: Shape {
 // MARK: - Side Menu View
 struct SideMenuView: View {
     @Binding var showMenu: Bool
+    @Binding var selectedMenu: String
     let brandPink: Color
     
     var body: some View {
@@ -600,7 +608,7 @@ struct SideMenuView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("PRINCIPAL").font(.caption.bold()).foregroundColor(.gray).padding(.horizontal, 24).padding(.bottom, 8)
                         
-                        menuItem(icon: "square.grid.2x2.fill", text: "Tablero", isActive: true)
+                        menuItem(icon: "square.grid.2x2.fill", text: "Tablero")
                         menuItem(icon: "list.bullet.clipboard", text: "Pedidos", badge: "3")
                         menuItem(icon: "book.closed", text: "Menú")
                         
@@ -635,9 +643,11 @@ struct SideMenuView: View {
         }
     }
     
-    private func menuItem(icon: String, text: String, isActive: Bool = false, badge: String? = nil) -> some View {
-        Button(action: {
-            if isActive { withAnimation(.spring()) { showMenu = false } }
+    private func menuItem(icon: String, text: String, badge: String? = nil) -> some View {
+        let isActive = selectedMenu == text
+        return Button(action: {
+            selectedMenu = text
+            withAnimation(.spring()) { showMenu = false }
         }) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
