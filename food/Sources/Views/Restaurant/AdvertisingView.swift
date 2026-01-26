@@ -694,88 +694,14 @@ struct CampaignStatisticsView: View {
             Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.black)
-                    }
-                    Spacer()
-                    Text("Estadísticas")
-                        .font(.headline.bold())
-                    Spacer()
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .padding()
-                .background(Color.white)
+                header
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Title Section
-                        VStack(spacing: 8) {
-                            Text("Promo Tacos 2x1")
-                                .font(.title2.bold())
-                            Text("Campaña Activa • ID: #8492")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.top)
-                        
-                        // Main Graph
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Rendimiento (Últimos 7 días)")
-                                .font(.headline)
-                                .foregroundColor(.gray)
-                            
-                            HStack(alignment: .bottom, spacing: 4) {
-                                ForEach(0..<7) { i in
-                                    VStack {
-                                        Spacer()
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(i == 6 ? brandPink : brandPink.opacity(0.3))
-                                            .frame(height: animate ? CGFloat([40, 60, 35, 80, 55, 90, 120][i]) : 0)
-                                    }
-                                    .frame(maxWidth: .infinity, height: 150)
-                                }
-                            }
-                        }
-                        .padding(20)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                        .shadow(color: .black.opacity(0.05), radius: 10)
-                        
-                        // Grid Stats
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            statBox(title: "Inversión", value: "$1,240", icon: "dollarsign.circle.fill", color: .green)
-                            statBox(title: "Clicks", value: "842", icon: "cursorarrow.click.2", color: .blue)
-                            statBox(title: "CPC", value: "$1.47", icon: "divide.circle", color: .orange)
-                            statBox(title: "Conversión", value: "3.2%", icon: "chart.bar.fill", color: .purple)
-                        }
-                        
-                        // Action Buttons
-                        VStack(spacing: 12) {
-                            Button(action: {}) {
-                                Text("Pausar Campaña")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.red.opacity(0.1))
-                                    .cornerRadius(12)
-                            }
-                            
-                            Button(action: {}) {
-                                Text("Editar Presupuesto")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(brandPink)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(12)
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(brandPink, lineWidth: 1))
-                            }
-                        }
+                        titleSection
+                        graphSection
+                        statsGrid
+                        actionButtons
                     }
                     .padding(20)
                 }
@@ -785,6 +711,94 @@ struct CampaignStatisticsView: View {
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 animate = true
+            }
+        }
+    }
+    
+    // MARK: - Subviews
+    
+    private var header: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            Spacer()
+            Text("Estadísticas")
+                .font(.headline.bold())
+            Spacer()
+            Image(systemName: "square.and.arrow.up")
+        }
+        .padding()
+        .background(Color.white)
+    }
+    
+    private var titleSection: some View {
+        VStack(spacing: 8) {
+            Text("Promo Tacos 2x1")
+                .font(.title2.bold())
+            Text("Campaña Activa • ID: #8492")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding(.top)
+    }
+    
+    private var graphSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Rendimiento (Últimos 7 días)")
+                .font(.headline)
+                .foregroundColor(.gray)
+            
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(0..<7) { i in
+                    VStack {
+                        Spacer()
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(i == 6 ? brandPink : brandPink.opacity(0.3))
+                            .frame(height: animate ? CGFloat([40, 60, 35, 80, 55, 90, 120][i]) : 0)
+                    }
+                    .frame(maxWidth: .infinity, height: 150)
+                }
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.05), radius: 10)
+    }
+    
+    private var statsGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+            statBox(title: "Inversión", value: "$1,240", icon: "dollarsign.circle.fill", color: .green)
+            statBox(title: "Clicks", value: "842", icon: "cursorarrow.click.2", color: .blue)
+            statBox(title: "CPC", value: "$1.47", icon: "divide.circle", color: .orange)
+            statBox(title: "Conversión", value: "3.2%", icon: "chart.bar.fill", color: .purple)
+        }
+    }
+    
+    private var actionButtons: some View {
+        VStack(spacing: 12) {
+            Button(action: {}) {
+                Text("Pausar Campaña")
+                    .fontWeight(.bold)
+                    .foregroundColor(.red)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(12)
+            }
+            
+            Button(action: {}) {
+                Text("Editar Presupuesto")
+                    .fontWeight(.bold)
+                    .foregroundColor(brandPink)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(brandPink, lineWidth: 1))
             }
         }
     }
