@@ -796,61 +796,191 @@ struct AddStyleView: View {
     @Binding var isGeneratingAI: Bool
     @Binding var dish: EditableDish
     @State private var styleDescription = ""
+    @State private var appear = false
+    
+    // Reference Image State
+    @State private var referenceImage: UIImage? = nil
     
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Describe tu nuevo estilo")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
+            ZStack {
+                // Background
+                Color.gray.opacity(0.05).ignoresSafeArea()
                 
-                Text("Cuéntanos cómo te gustaría que luzcan tus imágenes. La inteligencia artificial usará esta descripción para crear fotos increíbles.")
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .lineSpacing(4)
-                
-                TextEditor(text: $styleDescription)
-                    .frame(height: 150)
-                    .padding(12)
-                    .background(Color.gray.opacity(0.05))
-                    .cornerRadius(12)
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header Icon
+                    HStack {
+                        Spacer()
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 56))
+                            .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .padding(.top, 20)
+                            .shadow(color: .purple.opacity(0.3), radius: 10, x: 0, y: 5)
+                            .scaleEffect(appear ? 1 : 0.5)
+                            .opacity(appear ? 1 : 0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appear)
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Define tu Estilo")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.black)
+                        
+                        Text("Describe cómo quieres que se vea la imagen o añade una referencia visual. La IA transformará tu plato siguiendo estas instrucciones.")
+                            .font(.body)
+                            .foregroundColor(.gray)
+                            .lineSpacing(4)
+                    }
+                    .opacity(appear ? 1 : 0)
+                    .offset(y: appear ? 0 : 20)
+                    .animation(.easeOut(duration: 0.5).delay(0.2), value: appear)
+                    
+                    // Input Area
+                    ZStack(alignment: .topLeading) {
+                        if styleDescription.isEmpty {
+                            Text("Ej: Iluminación cinematográfica, estilo minimalista, fondo desenfocado, colores vibrantes...")
+                                .foregroundColor(.gray.opacity(0.7))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 16)
+                                .allowsHitTesting(false)
+                        }
+                        
+                        TextEditor(text: $styleDescription)
+                            .scrollContentBackground(.hidden)
+                            .background(Color.clear)
+                            .foregroundColor(.black)
+                            .padding(8)
+                            .frame(height: 120)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 5)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(styleDescription.isEmpty ? Color.clear : Color.purple.opacity(0.3), lineWidth: 1)
                     )
-                
-                Spacer()
-                
-                Button(action: {
-                    dismiss()
-                    // Simulate AI Generation start
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        isGeneratingAI = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            isGeneratingAI = false
-                            dish.imageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1" // Mock update
+                    .opacity(appear ? 1 : 0)
+                    .offset(y: appear ? 0 : 30)
+                    .animation(.easeOut(duration: 0.5).delay(0.3), value: appear)
+                    
+                    // Reference Image Upload Section
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Imagen de Referencia (Opcional)")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.gray)
+                                .textCase(.uppercase)
+                            
+                            Menu {
+                                Button(action: { 
+                                    // Simulate taking photo
+                                    referenceImage = UIImage(systemName: "photo.fill") 
+                                }) {
+                                    Label("Tomar foto", systemImage: "camera")
+                                }
+                                Button(action: { 
+                                    // Simulate gallery selection
+                                    referenceImage = UIImage(systemName: "photo.fill")
+                                }) {
+                                    Label("Elegir de la galería", systemImage: "photo.on.rectangle")
+                                }
+                                if referenceImage != nil {
+                                    Button(role: .destructive, action: { referenceImage = nil }) {
+                                        Label("Eliminar imagen", systemImage: "trash")
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    if let _ = referenceImage {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                        Text("Imagen seleccionada")
+                                            .foregroundColor(.black)
+                                            .fontWeight(.medium)
+                                    } else {
+                                        Image(systemName: "photo.badge.plus")
+                                            .foregroundColor(.blue)
+                                        Text("Subir imagen de referencia")
+                                            .foregroundColor(.blue)
+                                            .fontWeight(.medium)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                            }
+                        }
+                        
+                        if let _ = referenceImage {
+                            // Small Preview
+                            Image(systemName: "photo") // Placeholder for preview
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.gray)
+                                .padding(4)
+                                .background(Color.white)
+                                .cornerRadius(8)
+                                .shadow(color: .black.opacity(0.1), radius: 3)
                         }
                     }
-                }) {
-                    Text("Guardar y Aplicar Estilo")
-                        .font(.headline)
+                    .opacity(appear ? 1 : 0)
+                    .offset(y: appear ? 0 : 35)
+                    .animation(.easeOut(duration: 0.5).delay(0.35), value: appear)
+
+                    Spacer()
+                    
+                    // Button
+                    Button(action: {
+                        dismiss()
+                        // Simulate AI Generation start
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            isGeneratingAI = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                isGeneratingAI = false
+                                dish.imageUrl = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1" // Mock update
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Text("Guardar Estilo")
+                                .fontWeight(.bold)
+                            Image(systemName: "arrow.right")
+                        }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(styleDescription.isEmpty ? Color.gray : Color.black)
-                        .cornerRadius(16)
+                        .background(
+                            LinearGradient(colors: (styleDescription.isEmpty && referenceImage == nil) ? [.gray] : [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .clipShape(Capsule())
+                        .shadow(color: (styleDescription.isEmpty && referenceImage == nil) ? .clear : .purple.opacity(0.4), radius: 10, x: 0, y: 5)
+                    }
+                    .disabled(styleDescription.isEmpty && referenceImage == nil)
+                    .opacity(appear ? 1 : 0)
+                    .scaleEffect(appear ? 1 : 0.9)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.4), value: appear)
+                    .padding(.bottom, 10)
                 }
-                .disabled(styleDescription.isEmpty)
+                .padding(24)
             }
-            .padding(24)
-            .navigationTitle("Añadir Estilo")
+            .navigationTitle("Nuevo Estilo")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") { dismiss() }
                         .foregroundColor(.black)
                 }
+            }
+            .onAppear {
+                appear = true
             }
         }
     }
