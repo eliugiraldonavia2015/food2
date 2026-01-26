@@ -795,6 +795,7 @@ struct AddStyleView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var isGeneratingAI: Bool
     @Binding var dish: EditableDish
+    @State private var styleTitle = ""
     @State private var styleDescription = ""
     @State private var appear = false
     
@@ -827,7 +828,7 @@ struct AddStyleView: View {
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.black)
                         
-                        Text("Describe cómo quieres que se vea la imagen o añade una referencia visual. La IA transformará tu plato siguiendo estas instrucciones.")
+                        Text("Ponle un nombre a tu estilo y describe cómo quieres que se vea la imagen.")
                             .font(.body)
                             .foregroundColor(.gray)
                             .lineSpacing(4)
@@ -836,10 +837,46 @@ struct AddStyleView: View {
                     .offset(y: appear ? 0 : 20)
                     .animation(.easeOut(duration: 0.5).delay(0.2), value: appear)
                     
-                    // Input Area
+                    // Title Input
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Nombre del Estilo")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.gray)
+                            .textCase(.uppercase)
+                        
+                        HStack {
+                            TextField("Ej: Vintage", text: $styleTitle)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.black)
+                                .onChange(of: styleTitle) { _, newValue in
+                                    if newValue.count > 15 {
+                                        styleTitle = String(newValue.prefix(15))
+                                    }
+                                }
+                            
+                            Spacer()
+                            
+                            Text("\(styleTitle.count)/15")
+                                .font(.caption)
+                                .foregroundColor(styleTitle.count == 15 ? .red : .gray)
+                        }
+                        .padding(12)
+                        .background(Color.gray.opacity(0.05))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                    .opacity(appear ? 1 : 0)
+                    .offset(y: appear ? 0 : 25)
+                    .animation(.easeOut(duration: 0.5).delay(0.25), value: appear)
+                    
+                    // Input Area (Description)
                     ZStack(alignment: .topLeading) {
                         if styleDescription.isEmpty {
-                            Text("Ej: Iluminación cinematográfica, estilo minimalista, fondo desenfocado, colores vibrantes...")
+                            Text("Descripción: Iluminación cinematográfica, estilo minimalista, fondo desenfocado...")
                                 .foregroundColor(.gray)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 16)
@@ -852,7 +889,7 @@ struct AddStyleView: View {
                             .cornerRadius(12)
                             .foregroundColor(.black)
                             .padding(4)
-                            .frame(height: 120)
+                            .frame(height: 100)
                     }
                     .background(Color.white)
                     .cornerRadius(20)
@@ -959,12 +996,12 @@ struct AddStyleView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
-                            LinearGradient(colors: (styleDescription.isEmpty && referenceImage == nil) ? [.gray] : [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                            LinearGradient(colors: (styleTitle.isEmpty || (styleDescription.isEmpty && referenceImage == nil)) ? [.gray] : [.purple, .blue], startPoint: .leading, endPoint: .trailing)
                         )
                         .clipShape(Capsule())
-                        .shadow(color: (styleDescription.isEmpty && referenceImage == nil) ? .clear : .purple.opacity(0.4), radius: 10, x: 0, y: 5)
+                        .shadow(color: (styleTitle.isEmpty || (styleDescription.isEmpty && referenceImage == nil)) ? .clear : .purple.opacity(0.4), radius: 10, x: 0, y: 5)
                     }
-                    .disabled(styleDescription.isEmpty && referenceImage == nil)
+                    .disabled(styleTitle.isEmpty || (styleDescription.isEmpty && referenceImage == nil))
                     .opacity(appear ? 1 : 0)
                     .scaleEffect(appear ? 1 : 0.9)
                     .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.4), value: appear)
