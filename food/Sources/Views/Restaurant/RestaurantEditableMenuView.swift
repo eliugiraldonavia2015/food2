@@ -79,9 +79,6 @@ struct RestaurantEditableMenuView: View {
     // Edit Mode Toggle
     @State private var isEditModeActive: Bool = true
     
-    // Animation state for "jiggle" effect in edit mode
-    @State private var isJiggling = false
-    
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
@@ -164,11 +161,6 @@ struct RestaurantEditableMenuView: View {
             .ignoresSafeArea(edges: .top)
             .overlay(alignment: .top) {
                 topBar
-            }
-        }
-        .onAppear {
-            withAnimation(Animation.easeInOut(duration: 0.15).repeatForever(autoreverses: true)) {
-                isJiggling = true
             }
         }
         .onChange(of: menuContentOffsetY) { _, newValue in
@@ -329,7 +321,7 @@ struct RestaurantEditableMenuView: View {
                 VStack(spacing: 16) {
                     ForEach(dishes.filter { $0.isPopular }) { dish in
                         if isEditModeActive {
-                            EditableDishRow(dish: dish, isJiggling: isJiggling) {
+                            EditableDishRow(dish: dish) {
                                 selectedDishForEdit = dish
                             }
                         } else {
@@ -363,7 +355,7 @@ struct RestaurantEditableMenuView: View {
                         VStack(spacing: 16) {
                             ForEach(items) { dish in
                                 if isEditModeActive {
-                                    EditableDishRow(dish: dish, isJiggling: isJiggling) {
+                                    EditableDishRow(dish: dish) {
                                         selectedDishForEdit = dish
                                     }
                                 } else {
@@ -393,7 +385,7 @@ struct RestaurantEditableMenuView: View {
                 VStack(spacing: 16) {
                     ForEach(dishes) { dish in
                         if isEditModeActive {
-                            EditableDishRow(dish: dish, isJiggling: isJiggling) {
+                            EditableDishRow(dish: dish) {
                                 selectedDishForEdit = dish
                             }
                         } else {
@@ -520,7 +512,6 @@ struct StandardDishRow: View {
 // MARK: - Editable Row Component
 struct EditableDishRow: View {
     let dish: EditableDish
-    let isJiggling: Bool
     let onEdit: () -> Void
     
     var body: some View {
@@ -534,15 +525,13 @@ struct EditableDishRow: View {
                         .frame(width: 110, height: 110)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     
-                    // Edit Icon Overlay
+                    // Edit Icon Overlay (Static, non-bouncing)
                     Circle()
                         .fill(Color.white)
                         .frame(width: 32, height: 32)
                         .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
                         .overlay(Image(systemName: "pencil").foregroundColor(.blue).font(.system(size: 16, weight: .bold)))
                         .offset(x: 10, y: -10)
-                        .scaleEffect(isJiggling ? 1.1 : 1.0)
-                        .animation(Animation.easeInOut(duration: 0.2).repeatForever(autoreverses: true), value: isJiggling)
                 }
                 
                 // Info
@@ -570,13 +559,7 @@ struct EditableDishRow: View {
                         
                         Spacer()
                         
-                        Text("Editar")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Capsule().fill(Color.blue))
-                            .shadow(color: .blue.opacity(0.3), radius: 3, x: 0, y: 2)
+                        // No button here, row is clickable
                     }
                 }
                 .frame(height: 110)
@@ -587,13 +570,8 @@ struct EditableDishRow: View {
             .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.blue.opacity(isJiggling ? 0.5 : 0), lineWidth: 2)
+                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
             )
-            // Jiggle effect
-            .rotationEffect(.degrees(isJiggling ? 1 : -1), anchor: .center)
-            .animation(Animation.easeInOut(duration: 0.14).repeatForever(autoreverses: true), value: isJiggling)
-            .scaleEffect(isJiggling ? 0.98 : 1.0)
-            .animation(Animation.easeInOut(duration: 0.25).repeatForever(autoreverses: true), value: isJiggling)
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -652,8 +630,9 @@ struct EditDishSheet: View {
                             .padding(12)
                         }
                         
-                        TextField("URL de la imagen", text: $dish.imageUrl)
+                        TextField("URL de la imagen", text: $dish.imageUrl, prompt: Text("URL de la imagen").foregroundColor(.gray))
                             .font(.system(size: 14))
+                            .foregroundColor(.black)
                             .padding(12)
                             .background(Color.gray.opacity(0.05))
                             .cornerRadius(12)
@@ -669,8 +648,9 @@ struct EditDishSheet: View {
                                 .foregroundColor(.gray)
                                 .textCase(.uppercase)
                             
-                            TextField("Ej: Hamburguesa Clásica", text: $dish.title)
+                            TextField("Ej: Hamburguesa Clásica", text: $dish.title, prompt: Text("Ej: Hamburguesa Clásica").foregroundColor(.gray))
                                 .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.black)
                                 .padding(.vertical, 8)
                             
                             Divider()
@@ -683,8 +663,9 @@ struct EditDishSheet: View {
                                 .foregroundColor(.gray)
                                 .textCase(.uppercase)
                             
-                            TextField("Describe los ingredientes y el sabor...", text: $dish.subtitle, axis: .vertical)
+                            TextField("Describe los ingredientes y el sabor...", text: $dish.subtitle, prompt: Text("Describe los ingredientes y el sabor...").foregroundColor(.gray), axis: .vertical)
                                 .font(.system(size: 16))
+                                .foregroundColor(.black)
                                 .lineLimit(3...5)
                                 .padding(12)
                                 .background(Color.gray.opacity(0.05))
@@ -699,9 +680,10 @@ struct EditDishSheet: View {
                                     .foregroundColor(.gray)
                                     .textCase(.uppercase)
                                 
-                                TextField("0.00", value: $dish.price, format: .currency(code: "USD"))
+                                TextField("0.00", value: $dish.price, format: .currency(code: "USD"), prompt: Text("0.00").foregroundColor(.gray))
                                     .keyboardType(.decimalPad)
                                     .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.black)
                                     .padding(12)
                                     .background(Color.gray.opacity(0.05))
                                     .cornerRadius(12)
