@@ -10,169 +10,176 @@ struct ProfitMarginView: View {
     @State private var animateList = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2.bold())
-                        .foregroundColor(.black)
-                        .padding(10)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-                }
-                
-                Spacer()
-                
-                Text("Margen de Utilidad")
-                    .font(.title3.bold())
-                    .foregroundColor(.black)
-                
-                Spacer()
-                
-                Color.clear.frame(width: 44, height: 44)
-            }
-            .padding()
-            .background(bgGray)
-            
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 24) {
-                    // Main Value
-                    VStack(spacing: 8) {
-                        Text("MARGEN ACTUAL")
-                            .font(.caption.bold())
-                            .foregroundColor(.gray)
-                            .tracking(2)
-                        
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("24%")
-                                .font(.system(size: 48, weight: .heavy))
-                                .foregroundColor(.black)
-                            
-                            HStack(spacing: 2) {
-                                Image(systemName: "arrow.down.right")
-                                Text("1.5%")
-                            }
-                            .font(.caption.bold())
-                            .foregroundColor(.red)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            .offset(y: -15)
-                        }
-                        
-                        Text("Tu rentabilidad ha disminuido ligeramente respecto al mes anterior.")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2.bold())
+                            .foregroundColor(.black)
+                            .padding(10)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
                     }
-                    .padding(.top, 20)
                     
-                    // Graph Card
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Ingresos vs Egresos")
-                                .font(.headline.bold())
-                            Spacer()
-                            HStack(spacing: 12) {
-                                LegendItem(color: brandPink, text: "INGRESOS")
-                                LegendItem(color: Color.gray.opacity(0.3), text: "EGRESOS")
+                    Spacer()
+                    
+                    Text("Margen de Utilidad")
+                        .font(.title3.bold())
+                        .foregroundColor(.black)
+                    
+                    Spacer()
+                    
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding()
+                .background(bgGray)
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        // Main Value
+                        VStack(spacing: 8) {
+                            Text("MARGEN ACTUAL")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .tracking(2)
+                            
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                Text("24%")
+                                    .font(.system(size: 48, weight: .heavy))
+                                    .foregroundColor(.black)
+                                
+                                HStack(spacing: 2) {
+                                    Image(systemName: "arrow.down.right")
+                                    Text("1.5%")
+                                }
+                                .font(.caption.bold())
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                                .offset(y: -15)
                             }
-                        }
-                        .padding(.horizontal)
-                        
-                        ZStack(alignment: .bottom) {
-                            // Income Graph
-                            IncomeGraphShape()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [brandPink.opacity(0.2), brandPink.opacity(0.0)]),
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                                .frame(height: 150)
                             
-                            IncomeGraphShape()
-                                .trim(from: 0, to: animateGraph ? 1 : 0)
-                                .stroke(brandPink, style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
-                                .frame(height: 150)
-                            
-                            // Expenses Graph (Dashed)
-                            ExpensesGraphShape()
-                                .trim(from: 0, to: animateGraph ? 1 : 0)
-                                .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [5, 5]))
-                                .frame(height: 150)
-                            
-                            // Point on Peak
-                             GeometryReader { proxy in
-                                Circle()
-                                    .stroke(brandPink, lineWidth: 3)
-                                    .background(Circle().fill(Color.white))
-                                    .frame(width: 10, height: 10)
-                                    .position(x: proxy.size.width * 0.7, y: proxy.size.height * 0.1) // Approximate peak
-                                    .opacity(animateGraph ? 1 : 0)
-                            }
-                            .frame(height: 150)
+                            Text("Tu rentabilidad ha disminuido ligeramente respecto al mes anterior.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
                         }
                         .padding(.top, 20)
                         
-                        HStack {
-                            Text("SEM 1")
-                            Spacer()
-                            Text("SEM 2")
-                            Spacer()
-                            Text("SEM 3")
-                            Spacer()
-                            Text("SEM 4")
+                        // Graph Card
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text("Ingresos vs Egresos")
+                                    .font(.headline.bold())
+                                    .foregroundColor(.black)
+                                Spacer()
+                                HStack(spacing: 12) {
+                                    LegendItem(color: brandPink, text: "INGRESOS")
+                                    LegendItem(color: Color.gray.opacity(0.3), text: "EGRESOS")
+                                }
+                            }
+                            .padding(.horizontal)
+                            
+                            ZStack(alignment: .bottom) {
+                                // Income Graph
+                                IncomeGraphShape()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [brandPink.opacity(0.2), brandPink.opacity(0.0)]),
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(height: 150)
+                                
+                                IncomeGraphShape()
+                                    .trim(from: 0, to: animateGraph ? 1 : 0)
+                                    .stroke(brandPink, style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                                    .frame(height: 150)
+                                
+                                // Expenses Graph (Dashed)
+                                ExpensesGraphShape()
+                                    .trim(from: 0, to: animateGraph ? 1 : 0)
+                                    .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round, dash: [5, 5]))
+                                    .frame(height: 150)
+                                
+                                // Point on Peak
+                                 GeometryReader { proxy in
+                                    Circle()
+                                        .stroke(brandPink, lineWidth: 3)
+                                        .background(Circle().fill(Color.white))
+                                        .frame(width: 10, height: 10)
+                                        .position(x: proxy.size.width * 0.7, y: proxy.size.height * 0.1) // Approximate peak
+                                        .opacity(animateGraph ? 1 : 0)
+                                }
+                                .frame(height: 150)
+                            }
+                            .padding(.top, 20)
+                            
+                            HStack {
+                                Text("SEM 1")
+                                Spacer()
+                                Text("SEM 2")
+                                Spacer()
+                                Text("SEM 3")
+                                Spacer()
+                                Text("SEM 4")
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(.gray.opacity(0.5))
+                            .padding(.horizontal)
                         }
-                        .font(.caption.bold())
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.horizontal)
-                    }
-                    .padding(.vertical, 20)
-                    .background(Color.white)
-                    .cornerRadius(24)
-                    .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
-                    .padding(.horizontal, 20)
-                    
-                    // Principales Gastos
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            Text("Principales Gastos")
-                                .font(.title3.bold())
-                            Spacer()
-                            Button("Detalle mensual") { }
-                                .font(.subheadline.bold())
-                                .foregroundColor(brandPink)
-                        }
+                        .padding(.vertical, 20)
+                        .background(Color.white)
+                        .cornerRadius(24)
+                        .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
                         .padding(.horizontal, 20)
                         
-                        VStack(spacing: 12) {
-                            expenseRow(icon: "archivebox.fill", name: "Insumos", subtitle: "42% del total", value: "$4,250.00")
-                            expenseRow(icon: "truck.box.fill", name: "Logística", subtitle: "18% del total", value: "$1,820.00")
-                            expenseRow(icon: "banknote.fill", name: "Comisiones", subtitle: "15% del total", value: "$1,450.00")
+                        // Principales Gastos
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text("Principales Gastos")
+                                    .font(.title3.bold())
+                                    .foregroundColor(.black)
+                                Spacer()
+                                NavigationLink(destination: MonthlyExpensesView()) {
+                                    Text("Detalle mensual")
+                                        .font(.subheadline.bold())
+                                        .foregroundColor(brandPink)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            VStack(spacing: 12) {
+                                expenseRow(icon: "archivebox.fill", name: "Insumos", subtitle: "42% del total", value: "$4,250.00")
+                                expenseRow(icon: "truck.box.fill", name: "Logística", subtitle: "18% del total", value: "$1,820.00")
+                                expenseRow(icon: "banknote.fill", name: "Comisiones", subtitle: "15% del total", value: "$1,450.00")
+                            }
+                            .padding(.horizontal, 20)
+                            .opacity(animateList ? 1 : 0)
+                            .offset(y: animateList ? 0 : 20)
                         }
-                        .padding(.horizontal, 20)
-                        .opacity(animateList ? 1 : 0)
-                        .offset(y: animateList ? 0 : 20)
+                        
+                        Spacer(minLength: 50)
                     }
-                    
-                    Spacer(minLength: 50)
+                    .padding(.vertical)
                 }
-                .padding(.vertical)
             }
-        }
-        .background(bgGray.ignoresSafeArea())
-        .onAppear {
-            withAnimation(.easeOut(duration: 1.5)) {
-                animateGraph = true
-            }
-            withAnimation(.spring().delay(0.3)) {
-                animateList = true
+            .background(bgGray.ignoresSafeArea())
+            .navigationBarHidden(true)
+            .onAppear {
+                withAnimation(.easeOut(duration: 1.5)) {
+                    animateGraph = true
+                }
+                withAnimation(.spring().delay(0.3)) {
+                    animateList = true
+                }
             }
         }
     }

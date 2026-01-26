@@ -146,9 +146,11 @@ struct PremiumReportsView: View {
             HStack {
                 Text(name)
                     .font(.headline.bold())
+                    .foregroundColor(.black)
                 Spacer()
                 Text(value)
                     .font(.headline.bold())
+                    .foregroundColor(.black)
             }
             
             ZStack(alignment: .leading) {

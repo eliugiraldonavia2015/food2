@@ -70,6 +70,8 @@ struct EfficiencyMetricsView: View {
                 PremiumReportsView()
             case .premiumStatus:
                 PremiumStatusView()
+            case .allStats:
+                AllStatsView()
             }
         }
     }
