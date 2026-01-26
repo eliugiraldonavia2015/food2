@@ -805,7 +805,7 @@ struct AddStyleView: View {
         NavigationView {
             ZStack {
                 // Background
-                Color.gray.opacity(0.05).ignoresSafeArea()
+                Color.white.ignoresSafeArea()
                 
                 VStack(alignment: .leading, spacing: 24) {
                     // Header Icon
@@ -840,7 +840,7 @@ struct AddStyleView: View {
                     ZStack(alignment: .topLeading) {
                         if styleDescription.isEmpty {
                             Text("Ej: Iluminación cinematográfica, estilo minimalista, fondo desenfocado, colores vibrantes...")
-                                .foregroundColor(.gray.opacity(0.7))
+                                .foregroundColor(.gray)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 16)
                                 .allowsHitTesting(false)
@@ -848,9 +848,10 @@ struct AddStyleView: View {
                         
                         TextEditor(text: $styleDescription)
                             .scrollContentBackground(.hidden)
-                            .background(Color.clear)
+                            .background(Color.gray.opacity(0.05))
+                            .cornerRadius(12)
                             .foregroundColor(.black)
-                            .padding(8)
+                            .padding(4)
                             .frame(height: 120)
                     }
                     .background(Color.white)
@@ -858,7 +859,7 @@ struct AddStyleView: View {
                     .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 5)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(styleDescription.isEmpty ? Color.clear : Color.purple.opacity(0.3), lineWidth: 1)
+                            .stroke(styleDescription.isEmpty ? Color.gray.opacity(0.2) : Color.purple.opacity(0.3), lineWidth: 1)
                     )
                     .opacity(appear ? 1 : 0)
                     .offset(y: appear ? 0 : 30)
