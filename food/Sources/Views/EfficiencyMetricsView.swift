@@ -173,14 +173,25 @@ struct EfficiencyMetricsView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    quickStatsCard(icon: "doc.text", title: "TICKET PROMEDIO", value: "$345", trend: "+5.2%", trendColor: .green)
-                    quickStatsCard(icon: "bag.fill", title: "ÓRDENES TOTALES", value: "892", trend: "+8.1%", trendColor: .green)
-                    quickStatsCard(icon: "percent", title: "MARGEN DE UTILIDAD", value: "24%", trend: "-1.5%", trendColor: .orange)
-                    quickStatsCard(icon: "chart.bar.fill", title: "REPORTES", value: "12", trend: "+3.0%", trendColor: .green, isPremium: true)
-                    quickStatsCard(icon: "checkmark.circle.fill", title: "ESTADO", value: "ACTIVO", trend: "0%", trendColor: .gray, isPremium: true)
+                    Button(action: {}) {
+                        quickStatsCard(icon: "doc.text", title: "TICKET PROMEDIO", value: "$345", trend: "+5.2%", trendColor: .green)
+                    }
+                    Button(action: {}) {
+                        quickStatsCard(icon: "bag.fill", title: "ÓRDENES TOTALES", value: "892", trend: "+8.1%", trendColor: .green)
+                    }
+                    Button(action: {}) {
+                        quickStatsCard(icon: "percent", title: "MARGEN DE UTILIDAD", value: "24%", trend: "-1.5%", trendColor: .orange)
+                    }
+                    Button(action: {}) {
+                        quickStatsCard(icon: "chart.bar.fill", title: "REPORTES", value: "12", trend: "+3.0%", trendColor: .green, isPremium: true)
+                    }
+                    Button(action: {}) {
+                        quickStatsCard(icon: "checkmark.circle.fill", title: "ESTADO", value: "ACTIVO", trend: "0%", trendColor: .gray, isPremium: true)
+                    }
                 }
                 .padding(.horizontal, 20)
             }
+            .buttonStyle(PlainButtonStyle())
             .opacity(animateList ? 1 : 0)
             .offset(y: animateList ? 0 : 20)
         }
