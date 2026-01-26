@@ -33,31 +33,31 @@ struct RestaurantDashboardView: View {
             Group {
                 if selectedMenu == "Pedidos" {
                     NavigationView {
-                        OrdersManagementView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                        OrdersManagementView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Reportes" {
                     NavigationView {
-                        EfficiencyMetricsView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                        EfficiencyMetricsView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Socios" {
                     NavigationView {
-                        PartnersView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                        PartnersView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Menú" {
                     NavigationView {
-                        RestaurantEditableMenuView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                        RestaurantEditableMenuView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
                 } else if selectedMenu == "Publicidad en la app" {
                     NavigationView {
-                        AdvertisingView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                        AdvertisingView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
@@ -82,12 +82,12 @@ struct RestaurantDashboardView: View {
             if showMenu {
                 Color.black.opacity(0.2)
                     .ignoresSafeArea()
-                    .onTapGesture { withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showMenu = false } }
+                    .onTapGesture { withAnimation(.easeInOut(duration: 0.3)) { showMenu = false } }
                     .zIndex(1)
             }
         }
         .background(bgGray.ignoresSafeArea())
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showMenu)
+        .animation(.easeInOut(duration: 0.3), value: showMenu)
         .onAppear {
             withAnimation(.easeOut(duration: 0.8)) {
                 animateContent = true
@@ -675,7 +675,7 @@ struct SideMenuView: View {
         let isActive = selectedMenu == text
         return Button(action: {
             selectedMenu = text
-            withAnimation(.spring()) { showMenu = false }
+            withAnimation(.easeInOut(duration: 0.3)) { showMenu = false }
         }) {
             HStack(spacing: 12) {
                 Image(systemName: icon)

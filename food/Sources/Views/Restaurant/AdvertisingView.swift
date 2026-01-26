@@ -56,6 +56,52 @@ struct AdvertisingView: View {
                             campaignList
                         }
                         
+                        // AI Suggestions Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("SUGERENCIAS DE IA")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            aiSuggestionsList
+                        }
+                        
+                        // Audience Reach Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("ALCANCE POR AUDIENCIA")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            audienceReachCard
+                        }
+                        
+                        // Upcoming Invoices Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("PRÓXIMAS FACTURAS")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            upcomingInvoiceCard
+                        }
+                        
+                        // Download Report Button
+                        Button(action: {}) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down")
+                                Text("Descargar Reporte Mensual")
+                            }
+                            .font(.headline.bold())
+                            .foregroundColor(brandPink)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.white)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(brandPink.opacity(0.3), lineWidth: 1))
+                        }
+                        .padding(.top, 10)
+                        
                         Spacer(minLength: 100)
                     }
                     .padding(20)
@@ -323,6 +369,167 @@ struct AdvertisingView: View {
         .padding(16)
         .background(Color.white)
         .cornerRadius(20)
+        .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+    }
+    
+    private var aiSuggestionsList: some View {
+        VStack(spacing: 16) {
+            aiSuggestionCard(
+                title: "Aumenta el presupuesto en horas pico",
+                description: "Detectamos un incremento de interacción entre las 19:00 y 21:00. Un ajuste del 15% podría duplicar tus clicks.",
+                actionText: "Aplicar cambio",
+                icon: "chart.line.uptrend.xyaxis",
+                color: Color.pink.opacity(0.1),
+                iconColor: brandPink
+            )
+            
+            aiSuggestionCard(
+                title: "Nueva imagen para 'Promo Tacos'",
+                description: "Las gráficas con fondos claros están rindiendo un 22% mejor este mes. Prueba actualizar tu material creativo.",
+                actionText: "Subir imagen",
+                icon: "photo.fill",
+                color: Color.blue.opacity(0.1),
+                iconColor: .blue
+            )
+        }
+    }
+    
+    private func aiSuggestionCard(title: String, description: String, actionText: String, icon: String, color: Color, iconColor: Color) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            Circle()
+                .fill(color)
+                .frame(width: 40, height: 40)
+                .overlay(Image(systemName: icon).foregroundColor(iconColor).font(.headline))
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .lineSpacing(4)
+                
+                Button(action: {}) {
+                    Text(actionText)
+                        .font(.caption.bold())
+                        .foregroundColor(brandPink)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+    }
+    
+    private var audienceReachCard: some View {
+        HStack(spacing: 24) {
+            // Animated Donut Chart
+            ZStack {
+                Circle()
+                    .stroke(Color.gray.opacity(0.1), lineWidth: 12)
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .trim(from: 0, to: animateCharts ? 0.45 : 0)
+                    .stroke(brandPink, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .trim(from: 0, to: animateCharts ? 0.30 : 0)
+                    .stroke(brandPink.opacity(0.6), style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .rotationEffect(.degrees(-90 + (360 * 0.45) + 10)) // Offset + gap
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .trim(from: 0, to: animateCharts ? 0.25 : 0)
+                    .stroke(brandPink.opacity(0.3), style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .rotationEffect(.degrees(-90 + (360 * 0.75) + 20)) // Offset + gap
+                    .frame(width: 100, height: 100)
+                
+                VStack(spacing: 2) {
+                    Text("10.2k")
+                        .font(.title3.bold())
+                        .foregroundColor(.black)
+                    Text("TOTAL")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.gray)
+                }
+            }
+            
+            // Legend
+            VStack(alignment: .leading, spacing: 12) {
+                audienceLegendItem(color: brandPink, label: "Gen Z", value: "45%")
+                audienceLegendItem(color: brandPink.opacity(0.6), label: "Millennials", value: "30%")
+                audienceLegendItem(color: brandPink.opacity(0.3), label: "Gen X", value: "25%")
+            }
+            Spacer()
+        }
+        .padding(24)
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+    }
+    
+    private func audienceLegendItem(color: Color, label: String, value: String) -> some View {
+        HStack {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(label)
+                .font(.caption.bold())
+                .foregroundColor(.gray)
+            Spacer()
+            Text(value)
+                .font(.caption.bold())
+                .foregroundColor(.black)
+        }
+        .frame(minWidth: 140)
+    }
+    
+    private var upcomingInvoiceCard: some View {
+        VStack(spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CICLO DE FACTURACIÓN")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.gray)
+                    Text("01 Oct - 31 Oct, 2023")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.black)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("MONTO ESTIMADO")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.gray)
+                    Text("$1,780.00")
+                        .font(.title3.bold())
+                        .foregroundColor(brandPink)
+                }
+            }
+            
+            Divider()
+            
+            HStack {
+                Image(systemName: "creditcard.fill")
+                    .foregroundColor(.gray)
+                Text("Visa terminada en 4421")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                Spacer()
+                Button("Configurar Pago") { }
+                    .font(.caption.bold())
+                    .foregroundColor(brandPink)
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(24)
         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
     }
 }
