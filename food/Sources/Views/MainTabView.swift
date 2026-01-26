@@ -104,10 +104,10 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.black)
+        .background(Color.white)
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.15))
+                .fill(Color.black.opacity(0.05))
                 .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
@@ -126,10 +126,10 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.black)
+        .background(Color.white)
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.15))
+                .fill(Color.black.opacity(0.05))
                 .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
@@ -180,12 +180,12 @@ struct MainTabView: View {
             } label: {
                 Image(systemName: "arrow.backward")
                     .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(red: 109/255, green: 94/255, blue: 117/255))
                     .scaleEffect(1.0)
             }
             Text("Regresar")
                 .font(.system(size: 8, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color(red: 109/255, green: 94/255, blue: 117/255))
         }
         .padding(.vertical, 5)
         .frame(maxWidth: .infinity)
@@ -214,13 +214,13 @@ struct MainTabView: View {
             VStack(spacing: 1) {
                 Image(systemName: icon)
                     .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : Color(red: 109/255, green: 94/255, blue: 117/255))
                     .symbolVariant(isSelected ? .fill : .none)
                     .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : Color(red: 109/255, green: 94/255, blue: 117/255))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
@@ -241,13 +241,13 @@ struct MainTabView: View {
             VStack(spacing: 1) {
                 Image(systemName: icon)
                     .font(.system(size: 19, weight: .medium))
-                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : Color(red: 109/255, green: 94/255, blue: 117/255))
                     .symbolVariant(isSelected ? .fill : .none)
                     .scaleEffect(isSelected ? 1.12 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : .gray)
+                    .foregroundColor(isSelected ? Color(red: 244/255, green: 37/255, blue: 123/255) : Color(red: 109/255, green: 94/255, blue: 117/255))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
@@ -275,7 +275,7 @@ struct MainTabView: View {
             .offset(y: -6)
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.gray)
+                .foregroundColor(Color(red: 109/255, green: 94/255, blue: 117/255))
         }
         .padding(.vertical, 2)
     }
