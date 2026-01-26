@@ -695,6 +695,7 @@ struct CampaignStatisticsView: View {
     @State private var animate = false
     
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let graphValues: [CGFloat] = [40, 60, 35, 80, 55, 90, 120]
     
     var body: some View {
         ZStack {
@@ -760,13 +761,7 @@ struct CampaignStatisticsView: View {
             
             HStack(alignment: .bottom, spacing: 4) {
                 ForEach(0..<7) { i in
-                    VStack {
-                        Spacer()
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(i == 6 ? brandPink : brandPink.opacity(0.3))
-                            .frame(height: animate ? CGFloat([40, 60, 35, 80, 55, 90, 120][i]) : 0)
-                    }
-                    .frame(maxWidth: .infinity, height: 150)
+                    barView(index: i)
                 }
             }
         }
@@ -774,6 +769,16 @@ struct CampaignStatisticsView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.05), radius: 10)
+    }
+    
+    private func barView(index: Int) -> some View {
+        VStack {
+            Spacer()
+            RoundedRectangle(cornerRadius: 4)
+                .fill(index == 6 ? brandPink : brandPink.opacity(0.3))
+                .frame(height: animate ? graphValues[index] : 0)
+        }
+        .frame(maxWidth: .infinity, height: 150)
     }
     
     private var statsGrid: some View {
