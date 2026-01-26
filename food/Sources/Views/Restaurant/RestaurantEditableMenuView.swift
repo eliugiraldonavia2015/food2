@@ -47,6 +47,12 @@ class RestaurantEditableMenuViewModel: ObservableObject {
             self.categories = ["Todo"] + cats
         }
     }
+    
+    func addDish(_ newDish: EditableDish) {
+        dishes.append(newDish)
+        let cats = Array(Set(self.dishes.map { $0.category })).sorted()
+        self.categories = ["Todo"] + cats
+    }
 }
 
 struct RestaurantEditableMenuView: View {
@@ -67,6 +73,7 @@ struct RestaurantEditableMenuView: View {
     // Edit Sheet State
     @State private var showEditSheet = false
     @State private var selectedDishForEdit: EditableDish?
+    @State private var showAddDishSheet = false
     
     // Animation state for "jiggle" effect in edit mode
     @State private var isJiggling = false
@@ -102,6 +109,40 @@ struct RestaurantEditableMenuView: View {
                     )
                     
                     menuList
+                    
+                    // Action Buttons Section
+                    VStack(spacing: 12) {
+                        Button(action: { showAddDishSheet = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Agregar Nuevo Plato")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(12)
+                            .shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
+                        }
+                        
+                        Button(action: {
+                            // Action for adding category could be implemented here
+                        }) {
+                            HStack {
+                                Image(systemName: "folder.badge.plus")
+                                Text("Agregar Categoría")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.vertical, 20)
+                    
                     Spacer(minLength: 110)
                 }
                 .padding(.horizontal, 16)
@@ -125,9 +166,19 @@ struct RestaurantEditableMenuView: View {
             }
         }
         .sheet(item: $selectedDishForEdit) { dish in
-            EditDishSheet(dish: dish) { updatedDish in
+            EditDishSheet(dish: dish, categories: viewModel.categories.filter { $0 != "Todo" }) { updatedDish in
                 viewModel.updateDish(updatedDish)
                 selectedDishForEdit = nil
+            }
+        }
+        .sheet(isPresented: $showAddDishSheet) {
+            EditDishSheet(
+                dish: EditableDish(id: UUID().uuidString, category: viewModel.categories.first { $0 != "Todo" } ?? "General", title: "", subtitle: "", price: 0.0, imageUrl: "", isPopular: false),
+                categories: viewModel.categories.filter { $0 != "Todo" },
+                isNew: true
+            ) { newDish in
+                viewModel.addDish(newDish)
+                showAddDishSheet = false
             }
         }
     }
@@ -140,8 +191,10 @@ struct RestaurantEditableMenuView: View {
             VStack(spacing: 12) {
                 identityRow
                     .zIndex(3)
+                infoRow
+                    .zIndex(2)
             }
-            .padding(.top, -80) // Adjusted for cleaner look in dashboard
+            .padding(.top, -140) // Match FullMenuView offset
         }
     }
     
@@ -172,17 +225,15 @@ struct RestaurantEditableMenuView: View {
             WebImage(url: URL(string: avatarUrl))
                 .resizable()
                 .scaledToFill()
-                .frame(width: 60, height: 60)
+                .frame(width: 46, height: 46)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white, lineWidth: 3))
-                .shadow(radius: 5)
+                .overlay(Circle().stroke(Color.white.opacity(0.85), lineWidth: 2))
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(restaurantName)
                     .foregroundColor(.white)
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 30, weight: .bold))
                     .lineLimit(1)
-                    .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
 
                 HStack(spacing: 6) {
                     Image(systemName: "mappin.and.ellipse")
@@ -193,13 +244,57 @@ struct RestaurantEditableMenuView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .lineLimit(1)
                 }
-                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
             }
             .padding(.leading, 6)
 
             Spacer()
         }
         .padding(.leading, 18)
+    }
+    
+    private var infoRow: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.white)
+            .frame(height: 86)
+            .shadow(color: Color.black.opacity(0.10), radius: 14, x: 0, y: 8)
+            .overlay(
+                HStack(spacing: 0) {
+                    metricCard(title: "Tiempo", value: "25-35 min", system: "clock", tint: .fuchsia)
+                        .frame(maxWidth: .infinity)
+                    
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 1, height: 42)
+                    
+                    metricCard(title: "Envío", value: "$2.99", system: "shippingbox.fill", tint: .green)
+                        .frame(maxWidth: .infinity)
+                    
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(width: 1, height: 42)
+                    
+                    metricCard(title: "Rating", value: "4.8", system: "star.fill", tint: .yellow)
+                        .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal, 16)
+            )
+            .padding(.horizontal, 8)
+    }
+
+    private func metricCard(title: String, value: String, system: String, tint: Color) -> some View {
+        VStack(spacing: 7) {
+            HStack(spacing: 6) {
+                Image(systemName: system)
+                    .foregroundColor(tint)
+                    .font(.system(size: 13, weight: .bold))
+                Text(title.uppercased())
+                    .foregroundColor(.gray)
+                    .font(.system(size: 11, weight: .bold))
+            }
+            Text(value)
+                .foregroundColor(.black)
+                .font(.system(size: 16, weight: .bold))
+        }
     }
     
     private var menuList: some View {
@@ -383,7 +478,14 @@ struct EditableDishRow: View {
 struct EditDishSheet: View {
     @Environment(\.dismiss) var dismiss
     @State var dish: EditableDish
+    var categories: [String]
+    var isNew: Bool = false
     var onSave: (EditableDish) -> Void
+    
+    @State private var showingImageOptions = false
+    @State private var showingAIPrompt = false
+    @State private var aiPrompt = ""
+    @State private var isGeneratingAI = false
     
     var body: some View {
         NavigationView {
@@ -393,16 +495,33 @@ struct EditDishSheet: View {
                     TextField("Descripción", text: $dish.subtitle)
                     TextField("Precio", value: $dish.price, format: .currency(code: "USD"))
                         .keyboardType(.decimalPad)
+                    
+                    Picker("Categoría", selection: $dish.category) {
+                        ForEach(categories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
                 }
                 
                 Section(header: Text("Imagen")) {
-                    TextField("URL de imagen", text: $dish.imageUrl)
-                    if let url = URL(string: dish.imageUrl) {
+                    if !dish.imageUrl.isEmpty, let url = URL(string: dish.imageUrl) {
                         WebImage(url: url)
                             .resizable()
-                            .scaledToFit()
+                            .scaledToFill()
                             .frame(height: 200)
-                            .cornerRadius(8)
+                            .cornerRadius(12)
+                            .clipped()
+                            .listRowInsets(EdgeInsets())
+                    }
+                    
+                    TextField("URL de imagen", text: $dish.imageUrl)
+                    
+                    Button(action: { showingImageOptions = true }) {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                            Text("Mejorar / Generar Imagen")
+                        }
+                        .foregroundColor(.blue)
                     }
                 }
                 
@@ -410,7 +529,7 @@ struct EditDishSheet: View {
                     Toggle("Es Popular", isOn: $dish.isPopular)
                 }
             }
-            .navigationTitle("Editar Plato")
+            .navigationTitle(isNew ? "Nuevo Plato" : "Editar Plato")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -420,6 +539,48 @@ struct EditDishSheet: View {
                     Button("Guardar") {
                         onSave(dish)
                         dismiss()
+                    }
+                }
+            }
+            .confirmationDialog("Opciones de Imagen", isPresented: $showingImageOptions) {
+                Button("Mejorar calidad actual (AI)") {
+                    // Simulate AI enhancement
+                }
+                Button("Generar nueva con AI (Prompt)") {
+                    showingAIPrompt = true
+                }
+                Button("Cancelar", role: .cancel) { }
+            }
+            .alert("Generar con AI", isPresented: $showingAIPrompt) {
+                TextField("Describe tu plato delicioso...", text: $aiPrompt)
+                Button("Generar") {
+                    isGeneratingAI = true
+                    // Simulate generation delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        isGeneratingAI = false
+                        // Mock result
+                        dish.imageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"
+                    }
+                }
+                Button("Cancelar", role: .cancel) { }
+            } message: {
+                Text("Escribe una descripción detallada para crear una imagen única.")
+            }
+            .overlay {
+                if isGeneratingAI {
+                    ZStack {
+                        Color.black.opacity(0.4).ignoresSafeArea()
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .tint(.white)
+                            Text("Creando magia...")
+                                .foregroundColor(.white)
+                                .font(.headline)
+                        }
+                        .padding(30)
+                        .background(Material.ultraThinMaterial)
+                        .cornerRadius(20)
                     }
                 }
             }

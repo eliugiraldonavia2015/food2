@@ -631,7 +631,7 @@ struct SideMenuView: View {
                         Text("PRINCIPAL").font(.caption.bold()).foregroundColor(.gray).padding(.horizontal, 24).padding(.bottom, 8)
                         
                         menuItem(icon: "square.grid.2x2.fill", text: "Tablero")
-                        menuItem(icon: "list.bullet.clipboard", text: "Pedidos", badge: "3")
+                        menuItem(icon: "list.bullet.clipboard", text: "Pedidos")
                         menuItem(icon: "book.closed", text: "Menú")
                         
                         Text("OPERACIONES").font(.caption.bold()).foregroundColor(.gray).padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 8)
