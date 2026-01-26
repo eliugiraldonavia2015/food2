@@ -8,6 +8,11 @@ struct AdvertisingView: View {
     @State private var selectedTab = 0 // 0: Activas, 1: Historial
     @State private var showCreateCampaign = false
     
+    // Navigation States
+    @State private var showAllCampaigns = false
+    @State private var showPaymentSettings = false
+    @State private var selectedCampaignForStats: String? = nil
+    
     // Animation States
     @State private var animateContent = false
     @State private var animateCharts = false
@@ -19,6 +24,14 @@ struct AdvertisingView: View {
     var body: some View {
         ZStack {
             bgGray.ignoresSafeArea()
+            
+            // Hidden Navigation Links
+            NavigationLink(destination: AllCampaignsView(), isActive: $showAllCampaigns) { EmptyView() }
+            NavigationLink(destination: PaymentSettingsView(), isActive: $showPaymentSettings) { EmptyView() }
+            NavigationLink(destination: CampaignStatisticsView(campaignId: selectedCampaignForStats ?? ""), isActive: Binding(
+                get: { selectedCampaignForStats != nil },
+                set: { if !$0 { selectedCampaignForStats = nil } }
+            )) { EmptyView() }
             
             VStack(spacing: 0) {
                 // Header
@@ -40,20 +53,26 @@ struct AdvertisingView: View {
                             performanceSection
                         }
                         
-                        // Campaigns List
+                        // Campaigns List (Active vs History)
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("TUS CAMPAÑAS")
+                                Text(selectedTab == 0 ? "TUS CAMPAÑAS" : "HISTORIAL")
                                     .font(.caption.bold())
                                     .foregroundColor(.gray)
                                 Spacer()
-                                Button("Ver todas") { }
+                                Button("Ver todas") { showAllCampaigns = true }
                                     .font(.caption.bold())
                                     .foregroundColor(brandPink)
                             }
                             .padding(.horizontal, 4)
                             
-                            campaignList
+                            if selectedTab == 0 {
+                                campaignList
+                                    .transition(.opacity.combined(with: .move(edge: .leading)))
+                            } else {
+                                historyList
+                                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                            }
                         }
                         
                         // AI Suggestions Section
@@ -288,26 +307,56 @@ struct AdvertisingView: View {
     private var campaignList: some View {
         VStack(spacing: 16) {
             campaignCard(
+                id: "1",
                 title: "Promo Tacos 2x1",
                 budget: "$150.00 / día",
                 total: "$1,240.00",
                 status: "En curso",
-                image: "fork.knife", // Placeholder system image
+                statusColor: brandPink,
+                image: "fork.knife",
                 color: Color.orange
             )
             
             campaignCard(
+                id: "2",
                 title: "Banner Cena Romántica",
                 budget: "$80.00 / día",
                 total: "$560.00",
                 status: "En curso",
-                image: "wineglass.fill", // Placeholder system image
+                statusColor: brandPink,
+                image: "wineglass.fill",
                 color: Color.black
             )
         }
     }
     
-    private func campaignCard(title: String, budget: String, total: String, status: String, image: String, color: Color) -> some View {
+    private var historyList: some View {
+        VStack(spacing: 16) {
+            campaignCard(
+                id: "3",
+                title: "Descuento Verano",
+                budget: "Finalizado",
+                total: "$2,100.00",
+                status: "Finalizada",
+                statusColor: .gray,
+                image: "sun.max.fill",
+                color: .yellow
+            )
+            
+            campaignCard(
+                id: "4",
+                title: "Lanzamiento App",
+                budget: "Finalizado",
+                total: "$5,000.00",
+                status: "Finalizada",
+                statusColor: .gray,
+                image: "iphone",
+                color: .blue
+            )
+        }
+    }
+    
+    private func campaignCard(id: String, title: String, budget: String, total: String, status: String, statusColor: Color, image: String, color: Color) -> some View {
         HStack(alignment: .top, spacing: 16) {
             // Icon
             RoundedRectangle(cornerRadius: 16)
@@ -330,14 +379,14 @@ struct AdvertisingView: View {
                     
                     Text(status)
                         .font(.caption2.bold())
-                        .foregroundColor(brandPink)
+                        .foregroundColor(statusColor)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(brandPink.opacity(0.1))
+                        .background(statusColor.opacity(0.1))
                         .cornerRadius(8)
                 }
                 
-                Text("Presupuesto: \(budget)")
+                Text(status == "En curso" ? "Presupuesto: \(budget)" : "Gastado: \(total)")
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -353,7 +402,7 @@ struct AdvertisingView: View {
                     
                     Spacer()
                     
-                    Button(action: {}) {
+                    Button(action: { selectedCampaignForStats = id }) {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("Ver")
                                 .font(.caption.bold())
@@ -522,14 +571,408 @@ struct AdvertisingView: View {
                     .font(.subheadline)
                     .foregroundColor(.gray)
                 Spacer()
-                Button("Configurar Pago") { }
-                    .font(.caption.bold())
-                    .foregroundColor(brandPink)
+                Button(action: { showPaymentSettings = true }) {
+                    Text("Configurar Pago")
+                        .font(.caption.bold())
+                        .foregroundColor(brandPink)
+                }
             }
         }
         .padding(20)
         .background(Color.white)
         .cornerRadius(24)
         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+    }
+}
+
+// MARK: - New Sub-Views
+
+struct AllCampaignsView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var searchText = ""
+    
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    
+    var body: some View {
+        ZStack {
+            Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    Spacer()
+                    Text("Todas las Campañas")
+                        .font(.headline.bold())
+                    Spacer()
+                    Button(action: {}) {
+                        Image(systemName: "slider.horizontal.3")
+                            .foregroundColor(.black)
+                    }
+                }
+                .padding()
+                .background(Color.white)
+                
+                // Search
+                HStack {
+                    Image(systemName: "magnifyingglass").foregroundColor(.gray)
+                    TextField("Buscar campaña...", text: $searchText)
+                }
+                .padding()
+                .background(Color.white)
+                .cornerRadius(12)
+                .padding()
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        campaignItem(title: "Promo Tacos 2x1", status: "Activa", date: "Inicio: 12 Oct", amount: "$150/día")
+                        campaignItem(title: "Banner Cena Romántica", status: "Activa", date: "Inicio: 10 Oct", amount: "$80/día")
+                        campaignItem(title: "Descuento Verano", status: "Finalizada", date: "Finalizó: 30 Sep", amount: "$2,100 total", isActive: false)
+                        campaignItem(title: "Lanzamiento App", status: "Finalizada", date: "Finalizó: 15 Ago", amount: "$5,000 total", isActive: false)
+                        campaignItem(title: "Promo Día del Niño", status: "Finalizada", date: "Finalizó: 30 Abr", amount: "$1,200 total", isActive: false)
+                    }
+                    .padding()
+                }
+            }
+        }
+        .navigationBarHidden(true)
+    }
+    
+    func campaignItem(title: String, status: String, date: String, amount: String, isActive: Bool = true) -> some View {
+        HStack {
+            Circle()
+                .fill(isActive ? brandPink.opacity(0.1) : Color.gray.opacity(0.1))
+                .frame(width: 48, height: 48)
+                .overlay(
+                    Image(systemName: isActive ? "megaphone.fill" : "archivebox.fill")
+                        .foregroundColor(isActive ? brandPink : .gray)
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline.bold())
+                Text(date)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(amount)
+                    .font(.subheadline.bold())
+                    .foregroundColor(.black)
+                Text(status)
+                    .font(.caption.bold())
+                    .foregroundColor(isActive ? .green : .gray)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background((isActive ? Color.green : Color.gray).opacity(0.1))
+                    .cornerRadius(4)
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
+    }
+}
+
+struct CampaignStatisticsView: View {
+    let campaignId: String
+    @Environment(\.dismiss) var dismiss
+    @State private var animate = false
+    
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    
+    var body: some View {
+        ZStack {
+            Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    Spacer()
+                    Text("Estadísticas")
+                        .font(.headline.bold())
+                    Spacer()
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .padding()
+                .background(Color.white)
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Title Section
+                        VStack(spacing: 8) {
+                            Text("Promo Tacos 2x1")
+                                .font(.title2.bold())
+                            Text("Campaña Activa • ID: #8492")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.top)
+                        
+                        // Main Graph
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Rendimiento (Últimos 7 días)")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            
+                            HStack(alignment: .bottom, spacing: 4) {
+                                ForEach(0..<7) { i in
+                                    VStack {
+                                        Spacer()
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(i == 6 ? brandPink : brandPink.opacity(0.3))
+                                            .frame(height: animate ? CGFloat([40, 60, 35, 80, 55, 90, 120][i]) : 0)
+                                    }
+                                    .frame(maxWidth: .infinity, height: 150)
+                                }
+                            }
+                        }
+                        .padding(20)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                        .shadow(color: .black.opacity(0.05), radius: 10)
+                        
+                        // Grid Stats
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                            statBox(title: "Inversión", value: "$1,240", icon: "dollarsign.circle.fill", color: .green)
+                            statBox(title: "Clicks", value: "842", icon: "cursorarrow.click.2", color: .blue)
+                            statBox(title: "CPC", value: "$1.47", icon: "divide.circle", color: .orange)
+                            statBox(title: "Conversión", value: "3.2%", icon: "chart.bar.fill", color: .purple)
+                        }
+                        
+                        // Action Buttons
+                        VStack(spacing: 12) {
+                            Button(action: {}) {
+                                Text("Pausar Campaña")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.red)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red.opacity(0.1))
+                                    .cornerRadius(12)
+                            }
+                            
+                            Button(action: {}) {
+                                Text("Editar Presupuesto")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(brandPink)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.white)
+                                    .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(brandPink, lineWidth: 1))
+                            }
+                        }
+                    }
+                    .padding(20)
+                }
+            }
+        }
+        .navigationBarHidden(true)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                animate = true
+            }
+        }
+    }
+    
+    func statBox(title: String, value: String, icon: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Circle()
+                .fill(color.opacity(0.1))
+                .frame(width: 36, height: 36)
+                .overlay(Image(systemName: icon).foregroundColor(color))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.title3.bold())
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.03), radius: 5)
+    }
+}
+
+struct PaymentSettingsView: View {
+    @Environment(\.dismiss) var dismiss
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    
+    var body: some View {
+        ZStack {
+            Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    Spacer()
+                    Text("Configurar Pagos")
+                        .font(.headline.bold())
+                    Spacer()
+                    Button("Guardar") { dismiss() }
+                        .font(.subheadline.bold())
+                        .foregroundColor(brandPink)
+                }
+                .padding()
+                .background(Color.white)
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        
+                        // Cards Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("MÉTODOS DE PAGO")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            VStack(spacing: 0) {
+                                cardRow(last4: "4421", brand: "Visa", isDefault: true)
+                                Divider()
+                                cardRow(last4: "8892", brand: "Mastercard", isDefault: false)
+                                Divider()
+                                Button(action: {}) {
+                                    HStack {
+                                        Image(systemName: "plus.circle.fill")
+                                            .foregroundColor(brandPink)
+                                        Text("Agregar nueva tarjeta")
+                                            .foregroundColor(brandPink)
+                                            .fontWeight(.medium)
+                                        Spacer()
+                                    }
+                                    .padding()
+                                }
+                            }
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            .shadow(color: .black.opacity(0.03), radius: 5)
+                        }
+                        
+                        // Billing Info
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("DATOS DE FACTURACIÓN")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            VStack(spacing: 16) {
+                                billingField(label: "Razón Social", value: "Tacos El Rey S.A. de C.V.")
+                                billingField(label: "RFC", value: "TRE190203H42")
+                                billingField(label: "Dirección Fiscal", value: "Av. Reforma 222, CDMX")
+                                billingField(label: "Correo", value: "facturas@tacoselrey.com")
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            .shadow(color: .black.opacity(0.03), radius: 5)
+                        }
+                        
+                        // History
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("HISTORIAL DE PAGOS")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                            
+                            VStack(spacing: 0) {
+                                invoiceRow(date: "01 Oct 2023", amount: "$1,780.00", status: "Pagado")
+                                Divider()
+                                invoiceRow(date: "01 Sep 2023", amount: "$1,650.00", status: "Pagado")
+                                Divider()
+                                invoiceRow(date: "01 Ago 2023", amount: "$1,900.00", status: "Pagado")
+                            }
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            .shadow(color: .black.opacity(0.03), radius: 5)
+                        }
+                        
+                        Spacer(minLength: 40)
+                    }
+                    .padding(20)
+                }
+            }
+        }
+        .navigationBarHidden(true)
+    }
+    
+    func cardRow(last4: String, brand: String, isDefault: Bool) -> some View {
+        HStack {
+            Image(systemName: "creditcard.fill")
+                .font(.title2)
+                .foregroundColor(.black)
+                .frame(width: 40)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(brand) •••• \(last4)")
+                    .font(.body.bold())
+                if isDefault {
+                    Text("Predeterminada")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            
+            Spacer()
+            
+            if isDefault {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(brandPink)
+            }
+        }
+        .padding()
+    }
+    
+    func billingField(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .foregroundColor(.gray)
+            Spacer()
+            Text(value)
+                .fontWeight(.medium)
+        }
+        .font(.subheadline)
+    }
+    
+    func invoiceRow(date: String, amount: String, status: String) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(date)
+                    .font(.body.bold())
+                Text(status)
+                    .font(.caption)
+                    .foregroundColor(.green)
+            }
+            Spacer()
+            Text(amount)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding()
     }
 }
