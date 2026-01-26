@@ -154,6 +154,83 @@ struct EfficiencyMetricsView: View {
         .padding(.horizontal, 20)
     }
     
+    // MARK: - Quick Stats Section
+    private var quickStatsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Quick Stats")
+                    .font(.title3.bold())
+                    .foregroundColor(.black)
+                Spacer()
+                Button("VER TODO") { }
+                    .font(.caption.bold())
+                    .foregroundColor(brandPink)
+            }
+            .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    quickStatsCard(icon: "doc.text", title: "TICKET PROMEDIO", value: "$345", trend: "+5.2%", trendColor: .green)
+                    quickStatsCard(icon: "bag.fill", title: "ÓRDENES TOTALES", value: "892", trend: "+8.1%", trendColor: .green)
+                    quickStatsCard(icon: "percent", title: "MARGEN DE UTILIDAD", value: "24%", trend: "-1.5%", trendColor: .orange)
+                    quickStatsCard(icon: "chart.bar.fill", title: "REPORTES", value: "12", trend: "+3.0%", trendColor: .green, isPremium: true)
+                    quickStatsCard(icon: "checkmark.circle.fill", title: "ESTADO", value: "ACTIVO", trend: "0%", trendColor: .gray, isPremium: true)
+                }
+                .padding(.horizontal, 20)
+            }
+            .opacity(animateList ? 1 : 0)
+            .offset(y: animateList ? 0 : 20)
+        }
+    }
+    
+    private func quickStatsCard(icon: String, title: String, value: String, trend: String, trendColor: Color, isPremium: Bool = false) -> some View {
+        let goldColor = Color(red: 1.0, green: 0.84, blue: 0.0)
+        
+        return ZStack(alignment: .topTrailing) {
+            VStack(spacing: 12) {
+                Circle()
+                    .fill(isPremium ? goldColor.opacity(0.1) : brandPink.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: icon)
+                            .foregroundColor(isPremium ? goldColor : brandPink)
+                            .font(.title3)
+                    )
+                Text(title)
+                    .font(.caption.bold())
+                    .foregroundColor(.gray)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
+                Text(value)
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
+                HStack(spacing: 2) {
+                    Image(systemName: trend.starts(with: "+") ? "arrow.up" : trend.starts(with: "-") ? "arrow.down" : "minus")
+                        .font(.caption2)
+                    Text(trend)
+                        .font(.caption2.bold())
+                }
+                .foregroundColor(trendColor)
+            }
+            .padding(16)
+            .frame(width: 140)
+            .background(Color.white)
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(isPremium ? goldColor : Color.clear, lineWidth: 1)
+            )
+            .shadow(color: isPremium ? goldColor.opacity(0.2) : .black.opacity(0.03), radius: isPremium ? 8 : 5, x: 0, y: isPremium ? 4 : 2)
+            
+            if isPremium {
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(goldColor)
+                    .padding(10)
+            }
+        }
+    }
+
     // MARK: - Top Branches Section
     private var topBranchesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
