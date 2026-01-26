@@ -129,7 +129,6 @@ struct AllLevelsView: View {
                     animateList = true
                 }
             }
-        }
     }
     
     private func fullLevelCard(level: Int, name: String, status: String, statusColor: Color, features: [String], image: String, color: Color) -> some View {

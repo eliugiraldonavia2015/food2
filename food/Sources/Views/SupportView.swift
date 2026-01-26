@@ -119,6 +119,7 @@ struct SupportView: View {
                     }
                     .padding(.vertical)
         }
+        }
         .background(bgGray.ignoresSafeArea())
         .navigationBarHidden(true)
         .onAppear {
@@ -126,6 +127,7 @@ struct SupportView: View {
                 animateViews = true
             }
         }
+    }
     }
     
     private func contactOption(icon: String, title: String, color: Color) -> some View {
