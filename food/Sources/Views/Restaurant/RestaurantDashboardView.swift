@@ -49,6 +49,12 @@ struct RestaurantDashboardView: View {
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
+                } else if selectedMenu == "Menú" {
+                    NavigationView {
+                        RestaurantEditableMenuView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else {
                     mainContent
                 }
