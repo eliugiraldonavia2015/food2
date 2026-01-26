@@ -702,7 +702,18 @@ struct EditDishSheet: View {
                                     .foregroundColor(.gray)
                                     .textCase(.uppercase)
                                 
-                                TextField("0.00", value: $dish.price, format: .currency(code: "USD"), prompt: Text("0.00").foregroundColor(.gray))
+                                TextField("0,00", text: Binding(
+                                    get: {
+                                        String(format: "%.2f", dish.price).replacingOccurrences(of: ".", with: ",")
+                                    },
+                                    set: { newValue in
+                                        // Replace comma with dot for internal storage calculation
+                                        let filtered = newValue.replacingOccurrences(of: ",", with: ".")
+                                        if let value = Double(filtered) {
+                                            dish.price = value
+                                        }
+                                    }
+                                ), prompt: Text("0,00").foregroundColor(.gray))
                                     .keyboardType(.decimalPad)
                                     .font(.system(size: 18, weight: .bold))
                                     .foregroundColor(.black)
