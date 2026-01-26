@@ -232,7 +232,9 @@ struct PremiumStatusView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Circle().fill(Color.gray.opacity(0.3)).frame(width: 32, height: 32)
-                Text(name).font(.headline.bold())
+                Text(name)
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
                 Spacer()
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill").foregroundColor(brandPink).font(.caption)

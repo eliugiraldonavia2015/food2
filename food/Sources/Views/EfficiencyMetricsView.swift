@@ -17,6 +17,7 @@ struct EfficiencyMetricsView: View {
         case profitMargin
         case premiumReports
         case premiumStatus
+        case allStats
         
         var id: Int {
             hashValue
