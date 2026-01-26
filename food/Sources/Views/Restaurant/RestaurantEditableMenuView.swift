@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import Combine
 
 // Model definitions
 struct EditableDish: Identifiable {
