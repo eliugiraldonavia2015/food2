@@ -55,6 +55,12 @@ struct RestaurantDashboardView: View {
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
+                } else if selectedMenu == "Publicidad en la app" {
+                    NavigationView {
+                        AdvertisingView(onMenuTap: { withAnimation(.spring()) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else {
                     mainContent
                 }
