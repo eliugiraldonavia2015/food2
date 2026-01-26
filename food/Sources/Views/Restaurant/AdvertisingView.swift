@@ -835,94 +835,13 @@ struct PaymentSettingsView: View {
             Color(red: 249/255, green: 249/255, blue: 249/255).ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.black)
-                    }
-                    Spacer()
-                    Text("Configurar Pagos")
-                        .font(.headline.bold())
-                    Spacer()
-                    Button("Guardar") { dismiss() }
-                        .font(.subheadline.bold())
-                        .foregroundColor(brandPink)
-                }
-                .padding()
-                .background(Color.white)
+                header
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        
-                        // Cards Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("MÉTODOS DE PAGO")
-                                .font(.caption.bold())
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 4)
-                            
-                            VStack(spacing: 0) {
-                                cardRow(last4: "4421", brand: "Visa", isDefault: true)
-                                Divider()
-                                cardRow(last4: "8892", brand: "Mastercard", isDefault: false)
-                                Divider()
-                                Button(action: {}) {
-                                    HStack {
-                                        Image(systemName: "plus.circle.fill")
-                                            .foregroundColor(brandPink)
-                                        Text("Agregar nueva tarjeta")
-                                            .foregroundColor(brandPink)
-                                            .fontWeight(.medium)
-                                        Spacer()
-                                    }
-                                    .padding()
-                                }
-                            }
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: .black.opacity(0.03), radius: 5)
-                        }
-                        
-                        // Billing Info
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("DATOS DE FACTURACIÓN")
-                                .font(.caption.bold())
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 4)
-                            
-                            VStack(spacing: 16) {
-                                billingField(label: "Razón Social", value: "Tacos El Rey S.A. de C.V.")
-                                billingField(label: "RFC", value: "TRE190203H42")
-                                billingField(label: "Dirección Fiscal", value: "Av. Reforma 222, CDMX")
-                                billingField(label: "Correo", value: "facturas@tacoselrey.com")
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: .black.opacity(0.03), radius: 5)
-                        }
-                        
-                        // History
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("HISTORIAL DE PAGOS")
-                                .font(.caption.bold())
-                                .foregroundColor(.gray)
-                                .padding(.horizontal, 4)
-                            
-                            VStack(spacing: 0) {
-                                invoiceRow(date: "01 Oct 2023", amount: "$1,780.00", status: "Pagado")
-                                Divider()
-                                invoiceRow(date: "01 Sep 2023", amount: "$1,650.00", status: "Pagado")
-                                Divider()
-                                invoiceRow(date: "01 Ago 2023", amount: "$1,900.00", status: "Pagado")
-                            }
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: .black.opacity(0.03), radius: 5)
-                        }
-                        
+                        cardsSection
+                        billingSection
+                        historySection
                         Spacer(minLength: 40)
                     }
                     .padding(20)
@@ -930,6 +849,97 @@ struct PaymentSettingsView: View {
             }
         }
         .navigationBarHidden(true)
+    }
+    
+    // MARK: - Subviews
+    
+    private var header: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
+            }
+            Spacer()
+            Text("Configurar Pagos")
+                .font(.headline.bold())
+            Spacer()
+            Button("Guardar") { dismiss() }
+                .font(.subheadline.bold())
+                .foregroundColor(brandPink)
+        }
+        .padding()
+        .background(Color.white)
+    }
+    
+    private var cardsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("MÉTODOS DE PAGO")
+                .font(.caption.bold())
+                .foregroundColor(.gray)
+                .padding(.horizontal, 4)
+            
+            VStack(spacing: 0) {
+                cardRow(last4: "4421", brand: "Visa", isDefault: true)
+                Divider()
+                cardRow(last4: "8892", brand: "Mastercard", isDefault: false)
+                Divider()
+                Button(action: {}) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(brandPink)
+                        Text("Agregar nueva tarjeta")
+                            .foregroundColor(brandPink)
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+                    .padding()
+                }
+            }
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.03), radius: 5)
+        }
+    }
+    
+    private var billingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("DATOS DE FACTURACIÓN")
+                .font(.caption.bold())
+                .foregroundColor(.gray)
+                .padding(.horizontal, 4)
+            
+            VStack(spacing: 16) {
+                billingField(label: "Razón Social", value: "Tacos El Rey S.A. de C.V.")
+                billingField(label: "RFC", value: "TRE190203H42")
+                billingField(label: "Dirección Fiscal", value: "Av. Reforma 222, CDMX")
+                billingField(label: "Correo", value: "facturas@tacoselrey.com")
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.03), radius: 5)
+        }
+    }
+    
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("HISTORIAL DE PAGOS")
+                .font(.caption.bold())
+                .foregroundColor(.gray)
+                .padding(.horizontal, 4)
+            
+            VStack(spacing: 0) {
+                invoiceRow(date: "01 Oct 2023", amount: "$1,780.00", status: "Pagado")
+                Divider()
+                invoiceRow(date: "01 Sep 2023", amount: "$1,650.00", status: "Pagado")
+                Divider()
+                invoiceRow(date: "01 Ago 2023", amount: "$1,900.00", status: "Pagado")
+            }
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.03), radius: 5)
+        }
     }
     
     func cardRow(last4: String, brand: String, isDefault: Bool) -> some View {
