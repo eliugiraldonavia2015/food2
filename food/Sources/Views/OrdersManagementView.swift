@@ -5,7 +5,33 @@ struct OrdersManagementView: View {
     
     // MARK: - State
     @State private var selectedTab: String = "Todas las sucursales"
+    @State private var animateCharts: Bool = false
     private let tabs = ["Todas las sucursales", "Polanco", "Condesa", "Roma"]
+    
+    private struct BranchData: Identifiable {
+        let id = UUID()
+        let name: String
+        let active: Int
+        let percentage: Double
+        let pending: Int
+        let cooking: Int
+        let delivery: Int
+        let delivered: Int
+    }
+    
+    private let branches: [BranchData] = [
+        BranchData(name: "Polanco", active: 42, percentage: 0.78, pending: 6, cooking: 10, delivery: 12, delivered: 14),
+        BranchData(name: "Condesa", active: 38, percentage: 0.64, pending: 4, cooking: 8, delivery: 15, delivered: 11),
+        BranchData(name: "Roma", active: 32, percentage: 0.85, pending: 3, cooking: 5, delivery: 8, delivered: 16)
+    ]
+    
+    private var filteredBranches: [BranchData] {
+        if selectedTab == "Todas las sucursales" {
+            return branches
+        } else {
+            return branches.filter { $0.name == selectedTab }
+        }
+    }
     
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
     private let bgGray = Color(red: 249/255, green: 249/255, blue: 249/255)
@@ -32,6 +58,11 @@ struct OrdersManagementView: View {
             }
         }
         .background(bgGray.ignoresSafeArea())
+        .onAppear {
+            withAnimation(.easeOut(duration: 1.0)) {
+                animateCharts = true
+            }
+        }
     }
     
     // MARK: - Components
@@ -40,8 +71,8 @@ struct OrdersManagementView: View {
         HStack {
             Button(action: onMenuTap) {
                 Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.black)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.black)
             }
             
             Spacer()
