@@ -3,47 +3,45 @@ import SwiftUI
 struct FireTabBarBackground: View {
     var isDark: Bool
     
-    // Altura extra para cubrir el safe area inferior si es necesario
-    private let extraHeight: CGFloat = 100 
-    
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Fondo base (Blanco)
-            Color.white
-            
-            // Capa de "Fuego/Negro" que sube y baja
-            ZStack(alignment: .top) {
-                // El cuerpo negro que llena la barra
-                Color.black
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                // 1. Fondo Base (Blanco Puro)
+                Color.white
                 
-                // El borde de fuego en la parte superior
-                // Solo visible cuando está subiendo/activo
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        Color.red.opacity(0.8),
-                        Color.orange.opacity(0.9),
-                        Color.black
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 40) // Altura del efecto de fuego
-                .offset(y: -39) // Se asienta justo encima del bloque negro
-                .opacity(isDark ? 0.6 : 0.8) // Un poco de transparencia para el efecto
+                // 2. Capa de "Oscuridad" (Black Liquid)
+                // Usamos drawingGroup() para rasterizar en GPU y evitar lag en animaciones complejas
+                ZStack(alignment: .top) {
+                    // El cuerpo sólido negro
+                    Color.black
+                    
+                    // El "Borde de Fuego" (Heat Edge)
+                    // Un gradiente más sutil y elegante que simula incandescencia
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: Color(red: 1.0, green: 0.2, blue: 0.1).opacity(0.6), location: 0.4), // Rojo Fuego sutil
+                            .init(color: Color(red: 1.0, green: 0.5, blue: 0.0).opacity(0.8), location: 0.7), // Naranja Intenso
+                            .init(color: .black, location: 1.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 50) // Altura del resplandor
+                    .offset(y: -49) // Se asienta justo encima del negro (1pt de overlap para evitar líneas blancas)
+                    .blur(radius: 4) // Desenfoque gaussiano para "suavizar" y parecer gas/luz
+                }
+                .frame(height: geo.size.height + 100) // Altura extra para cubrir safe area
+                .offset(y: isDark ? 0 : geo.size.height + 100) // Animación de desplazamiento
+                .drawingGroup() // <--- CLAVE: Renderizado Metal para 60/120 FPS estables
             }
-            // Cuando isDark es true, el offset es 0 (llena la vista).
-            // Cuando es false, el offset es positivo (baja y desaparece).
-            .offset(y: isDark ? 0 : 200)
-            // Animación "Exquisita"
-            .animation(
-                .spring(response: 0.5, dampingFraction: 0.75, blendDuration: 0),
-                value: isDark
-            )
         }
-        // Nos aseguramos que no se salga de los bordes del tab bar (clipping)
-        // pero permitimos que cubra el fondo
-        .clipped()
         .edgesIgnoringSafeArea(.bottom)
+        // Animación personalizada "Exquisita"
+        // Spring interpolating: Rápido al inicio, frenado suave al final.
+        .animation(
+            .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0),
+            value: isDark
+        )
     }
 }
