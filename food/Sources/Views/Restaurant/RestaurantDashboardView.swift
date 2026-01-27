@@ -166,6 +166,8 @@ struct RestaurantDashboardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
+                    .offset(y: animateContent ? 0 : 20)
+                    .opacity(animateContent ? 1 : 0)
                     
                     // Time Filters
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -188,6 +190,9 @@ struct RestaurantDashboardView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                     }
+                    .offset(y: animateContent ? 0 : 20)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.1), value: animateContent)
                     
                     // KPI Cards
                     HStack(spacing: 16) {
@@ -195,6 +200,9 @@ struct RestaurantDashboardView: View {
                         kpiCardNew(title: "Ingresos", value: "$1,240", badge: "+5%", icon: "banknote.fill")
                     }
                     .padding(.horizontal, 20)
+                    .offset(y: animateContent ? 0 : 20)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.2), value: animateContent)
                     
                     // Graph Section
                     VStack(alignment: .leading, spacing: 16) {
@@ -228,6 +236,7 @@ struct RestaurantDashboardView: View {
                             .frame(height: 100)
                             .overlay(
                                 WaveShape()
+                                    .trim(from: 0, to: animateGraph ? 1 : 0)
                                     .stroke(brandPink, lineWidth: 2)
                             )
                             .overlay(
@@ -248,6 +257,9 @@ struct RestaurantDashboardView: View {
                     .cornerRadius(24)
                     .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
                     .padding(.horizontal, 20)
+                    .offset(y: animateContent ? 0 : 20)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.3), value: animateContent)
                     
                     // Status Section
                     VStack(spacing: 16) {
@@ -270,18 +282,33 @@ struct RestaurantDashboardView: View {
                         }
                         .padding(.horizontal, 20)
                     }
+                    .offset(y: animateContent ? 0 : 20)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
                     
                     // Popular Dishes
                     popularDishesSection
+                        .offset(y: animateContent ? 0 : 20)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.5), value: animateContent)
                     
                     // Ratings Summary
                     ratingsSection
+                        .offset(y: animateContent ? 0 : 20)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
                     
                     // Payouts
                     payoutsSection
+                        .offset(y: animateContent ? 0 : 20)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.7), value: animateContent)
                     
                     // Tips
                     tipsSection
+                        .offset(y: animateContent ? 0 : 20)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.8), value: animateContent)
                     
                     Spacer(minLength: bottomInset)
                 }
@@ -666,7 +693,6 @@ struct SideMenuView: View {
                         menuItem(icon: "megaphone.fill", text: "Publicidad en la app")
                         menuItem(icon: "tag.fill", text: "Promociones")
                         menuItem(icon: "clock.fill", text: "Horarios")
-                        menuItem(icon: "storefront.fill", text: "Estado de tu local")
                     }
                 }
                 
