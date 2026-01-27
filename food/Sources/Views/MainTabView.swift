@@ -108,6 +108,11 @@ struct MainTabView: View {
         }
     }
 
+    private var isUserFeed: Bool {
+        let role = auth.user?.role ?? "client"
+        return selected == .feed && role != "restaurant" && role != "rider"
+    }
+
     private var bottomBar: some View {
         ZStack(alignment: .top) {
             HStack(spacing: -2) {
@@ -121,10 +126,12 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.white)
+        .background(
+            FireTabBarBackground(isDark: isUserFeed)
+        )
         .overlay(
             Rectangle()
-                .fill(Color.black.opacity(0.05))
+                .fill(isUserFeed ? Color.white.opacity(0.1) : Color.black.opacity(0.05))
                 .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
@@ -184,6 +191,7 @@ struct MainTabView: View {
         } else if role == "rider" {
             return AnyView(riderButton)
         } else {
+            // Pasamos el estado del feed para que el botón se adapte (ej. borde blanco en modo oscuro)
             return AnyView(cartButton)
         }
     }
@@ -292,7 +300,8 @@ struct MainTabView: View {
             .offset(y: -6)
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(Color(red: 109/255, green: 94/255, blue: 117/255))
+                // Color dinámico para el texto del botón central
+                .foregroundColor(isUserFeed ? Color.white.opacity(0.8) : Color(red: 109/255, green: 94/255, blue: 117/255))
         }
         .padding(.vertical, 2)
     }
