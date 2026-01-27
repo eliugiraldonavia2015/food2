@@ -2,23 +2,15 @@ import SwiftUI
 import SDWebImageSwiftUI
 import Combine
 
-final class MessagesStore: ObservableObject {
-    @Published var conversations: [Conversation] = []
-    func loadConversations(for role: String) {
-        conversations = role == "restaurant" ? Conversation.restaurantSample : Conversation.sample
-    }
-    func updateLastMessage(id: UUID, text: String) {
-        if let idx = conversations.firstIndex(where: { $0.id == id }) {
-            conversations[idx].subtitle = text
-            conversations[idx].timestamp = "Ahora"
-        }
-    }
-}
-
 struct MessagesListView: View {
+    var onMenuTap: (() -> Void)? = nil
     @ObservedObject private var auth = AuthService.shared
     @StateObject private var store = MessagesStore()
     @State private var searchText: String = ""
+    @Environment(\.dismiss) private var dismiss
+
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let bgGray = Color(red: 249/255, green: 249/255, blue: 249/255)
 
     private var filteredConversations: [Conversation] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -32,6 +24,7 @@ struct MessagesListView: View {
             VStack(spacing: 0) {
                 header
                 searchBar
+                
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(filteredConversations) { convo in
@@ -40,40 +33,62 @@ struct MessagesListView: View {
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+                            
+                            Divider().padding(.leading, 80)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
+                    .padding(16)
                 }
             }
-            .background(Color.black.ignoresSafeArea())
+            .background(bgGray.ignoresSafeArea())
             .navigationDestination(for: Conversation.self) { convo in
                 ChatView(conversation: convo, store: store)
             }
         }
-        .preferredColorScheme(.dark)
-        .toolbar(.hidden, for: .navigationBar)
+        .preferredColorScheme(.light)
         .onAppear {
-            let role = auth.user?.role ?? "client"
-            store.loadConversations(for: role)
-        }
-        .onChange(of: auth.user?.role) { _ in
             let role = auth.user?.role ?? "client"
             store.loadConversations(for: role)
         }
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
-            Text("Mensajes")
-                .foregroundColor(.white)
-                .font(.system(size: 28, weight: .bold))
+        HStack {
+            if let onMenuTap = onMenuTap {
+                Button(action: onMenuTap) {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.black)
+                }
+            } else {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "arrow.left")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.black)
+                }
+            }
+            
             Spacer()
+            
+            Text("Mensajes")
+                .font(.title3.bold())
+                .foregroundColor(.black)
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 20))
+                    .foregroundColor(brandPink)
+            }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.bottom, 10)
+        .background(Color.white)
     }
 
     private var searchBar: some View {
@@ -81,78 +96,68 @@ struct MessagesListView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
             TextField("Buscar conversaciones...", text: $searchText)
-                .foregroundColor(.white)
-                .font(.callout)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
+                .foregroundColor(.black)
         }
         .padding(12)
-        .background(Color.white.opacity(0.08))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.6), radius: 8, x: 0, y: 2)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
         .padding(.horizontal, 16)
-        .padding(.bottom, 4)
+        .padding(.vertical, 12)
     }
 }
 
 struct ConversationRow: View {
     let convo: Conversation
-
+    
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             ZStack(alignment: .bottomTrailing) {
                 Circle()
-                    .fill(Color.white.opacity(0.10))
-                    .frame(width: 52, height: 52)
-                    .overlay(Image(systemName: convo.avatarSystemName).foregroundColor(.white))
-                    .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 56, height: 56)
+                    .overlay(Image(systemName: convo.avatarSystemName).foregroundColor(.gray))
+                
                 if convo.isOnline {
                     Circle()
                         .fill(Color.green)
-                        .frame(width: 11, height: 11)
-                        .overlay(Circle().stroke(Color.black, lineWidth: 2))
-                        .offset(x: 2, y: 2)
+                        .frame(width: 14, height: 14)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
                 }
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(convo.title)
-                    .foregroundColor(.white)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(1)
-                Text(convo.subtitle)
-                    .foregroundColor(.gray)
-                    .font(.callout)
-                    .lineLimit(2)
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 6) {
-                Text(convo.timestamp)
-                    .foregroundColor(.gray)
-                    .font(.caption2)
-                if let unread = convo.unreadCount, unread > 0 {
-                    ZStack {
-                        Circle().fill(Color.green)
+                HStack {
+                    Text(convo.title)
+                        .font(.headline.bold())
+                        .foregroundColor(.black)
+                    Spacer()
+                    Text(convo.timestamp)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                HStack {
+                    Text(convo.subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    if let unread = convo.unreadCount, unread > 0 {
                         Text("\(unread)")
-                            .foregroundColor(.white)
                             .font(.caption.bold())
+                            .foregroundColor(.white)
+                            .padding(6)
+                            .background(Color(red: 244/255, green: 37/255, blue: 123/255))
+                            .clipShape(Circle())
                     }
-                    .frame(width: 24, height: 24)
                 }
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 16)
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button { } label: { Image(systemName: "pin.fill") }.tint(.orange)
-            Button { } label: { Image(systemName: "envelope.open.fill") }.tint(.green)
-            Button(role: .destructive) { } label: { Image(systemName: "trash") }
-        }
+        .padding(16)
+        .background(Color.white)
     }
 }
 
@@ -160,448 +165,264 @@ struct ChatView: View {
     let conversation: Conversation
     @ObservedObject var store: MessagesStore
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var auth = AuthService.shared
     @State private var composerText: String = ""
     @State private var messages: [Message] = []
-    @State private var showOrderSheet: Bool = false
-    @State private var orderTitle: String = "Pizza Margherita"
-    @State private var orderImageUrl: String = "https://images.unsplash.com/photo-1546069901-5ec6a79120b0"
-    @State private var orderPrice: String = "$15.99"
-    @State private var orderSubtitle: String = "Mozzarella fresca, albahaca y tomate"
-    @State private var orderTrackingCode: String = "TRK-84721"
-    @State private var chosenSides: [(String, String)] = [("Papas Fritas", "$2.5"), ("Aros de Cebolla", "$3.0")]
-    @State private var chosenDrinks: [String] = ["Limonada 500ml", "Coca-Cola"]
-    @State private var shippingTo: String = "Av. Michoacán 78, Condesa"
-    @State private var orderElapsed: String = "Hace 12 min"
+    @State private var isTyping = false
+    
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let bgGray = Color(red: 249/255, green: 249/255, blue: 249/255)
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                chatHeader
-                if (auth.user?.role ?? "client") == "restaurant" {
-                    orderAnchor
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 8)
-                }
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(messages) { msg in
-                                MessageBubble(message: msg)
-                                    .id(msg.id)
-                            }
+        VStack(spacing: 0) {
+            chatHeader
+            
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(messages) { msg in
+                            MessageBubble(message: msg, brandPink: brandPink)
+                                .id(msg.id)
+                                .transition(.scale(scale: 0.8).combined(with: .opacity))
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
+                        
+                        if isTyping {
+                            HStack {
+                                TypingIndicator(color: brandPink)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .id("typing")
+                        }
                     }
-                    .onChange(of: messages.count) { _ in
+                    .padding(20)
+                }
+                .background(bgGray)
+                .onChange(of: messages.count) { _ in
+                    withAnimation {
                         if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
                     }
                 }
-                composer
+                .onChange(of: isTyping) { typing in
+                    if typing {
+                        withAnimation {
+                            proxy.scrollTo("typing", anchor: .bottom)
+                        }
+                    }
+                }
             }
-            .blur(radius: showOrderSheet ? 8 : 0)
-            .allowsHitTesting(!showOrderSheet)
-
-            if showOrderSheet {
-                Color.black.opacity(0.6).ignoresSafeArea()
-                    .transition(.opacity)
-                orderBottomSheet
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            
+            composer
         }
-        .background(Color.black.ignoresSafeArea())
-        .preferredColorScheme(.dark)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarHidden(true)
         .onAppear {
             messages = [
-                Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: true, time: "Hace 14 min", status: .delivered),
-                Message(text: "Sí, estará listo en 10 minutos.", isMe: false, time: "Hace 12 min", status: nil),
+                Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: false, time: "Hace 14 min", status: nil),
+                Message(text: "Sí, estará listo en 10 minutos.", isMe: true, time: "Hace 12 min", status: .delivered),
                 Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
             ]
         }
     }
 
     private var chatHeader: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 12) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.white)
-                        .font(.system(size: 22, weight: .semibold))
-                }
-                ZStack(alignment: .bottomTrailing) {
-                    Circle()
-                        .fill(Color.white.opacity(0.10))
-                        .frame(width: 40, height: 40)
-                        .overlay(Image(systemName: conversation.avatarSystemName).foregroundColor(.white))
-                        .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
-                    Circle()
-                        .fill(conversation.isOnline ? Color.green : Color.gray)
-                        .frame(width: 9, height: 9)
-                        .overlay(Circle().stroke(Color.black, lineWidth: 2))
-                        .offset(x: 2, y: 2)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(conversation.title)
-                        .foregroundColor(.white)
-                        .font(.system(size: 18, weight: .bold))
-                    Text(conversation.subtitle)
-                        .foregroundColor(.white.opacity(0.7))
-                        .font(.caption)
-                        .lineLimit(1)
-                }
-                Spacer()
+        HStack(spacing: 16) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 6)
-        }
-        .background(Color.black)
-    }
-
-    private var composer: some View {
-        HStack(spacing: 10) {
-            Button {} label: {
-                Image(systemName: "paperclip")
+            
+            ZStack(alignment: .bottomTrailing) {
+                Circle()
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                    .overlay(Image(systemName: conversation.avatarSystemName).foregroundColor(.gray))
+                
+                if conversation.isOnline {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 10, height: 10)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(conversation.title)
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
+                Text(conversation.isOnline ? "En línea" : "Desconectado")
+                    .font(.caption)
                     .foregroundColor(.gray)
-                    .font(.system(size: 18))
             }
-            TextField("Escribe un mensaje...", text: $composerText, axis: .vertical)
-                .lineLimit(1...5)
-                .foregroundColor(.white)
-                .textInputAutocapitalization(.sentences)
-            Button {
-                let txt = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !txt.isEmpty else { return }
-                messages.append(Message(text: txt, isMe: true, time: "Ahora", status: .sent))
-                store.updateLastMessage(id: conversation.id, text: txt)
-                composerText = ""
-            } label: {
-                Image(systemName: "paperplane.fill")
-                    .foregroundColor(.green)
-                    .font(.system(size: 20))
-            }
-        }
-        .padding(14)
-        .background(Color.white.opacity(0.06))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.1), lineWidth: 1))
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-    }
-
-    private var orderAnchor: some View {
-        Button {
-            withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = true }
-        } label: {
-            HStack(alignment: .center, spacing: 20) {
-                VStack(spacing: 0) {
-                    Spacer()
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        WebImage(url: URL(string: orderImageUrl))
-                            .resizable()
-                            .indicator(.activity)
-                            .scaledToFill()
-                            .frame(width: 50, height: 50)
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
-                    .frame(width: 50, height: 50)
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(LinearGradient(colors: [Color.white.opacity(0.2), Color.green.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
-                    Spacer()
-                }
-                .frame(width: 50, height: 56)
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 6) {
-                        Text("Orden Activa")
-                            .foregroundColor(.white)
-                            .font(.subheadline.bold())
-                        Text("•")
-                            .foregroundColor(.gray)
-                        Text(orderTitle)
-                            .foregroundColor(.white.opacity(0.9))
-                            .font(.footnote)
-                            .lineLimit(1)
-                    }
-                    .padding(.leading, 0)
-                    HStack(spacing: 6) {
-                        Image(systemName: "barcode.viewfinder")
-                            .foregroundColor(.green)
-                        Text("Seguimiento \(orderTrackingCode)")
-                            .foregroundColor(.green)
-                            .font(.caption.bold())
-                    }
-                }
-                Spacer()
-                Image(systemName: "chevron.up")
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            .padding(12)
-            .background(
-                LinearGradient(colors: [Color.white.opacity(0.06), Color.white.opacity(0.10)], startPoint: .topLeading, endPoint: .bottomTrailing)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14).stroke(LinearGradient(colors: [Color.white.opacity(0.14), Color.green.opacity(0.25)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var orderBottomSheet: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(spacing: 0) {
-                    orderTopBlock
-                    orderInfoPanel
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Detalles del plato")
-                            .foregroundColor(.white)
-                            .font(.headline)
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.06))
-                            .frame(height: 100)
-                            .overlay(
-                                Text("Mozzarella fresca, albahaca, salsa de tomate. Masa delgada.")
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .font(.footnote)
-                                    .padding(12), alignment: .topLeading
-                            )
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Acompañamientos")
-                                .foregroundColor(.white)
-                                .font(.subheadline.bold())
-                            ForEach(chosenSides, id: \.0) { side in
-                                HStack {
-                                    Text(side.0).foregroundColor(.white).font(.footnote)
-                                    Spacer()
-                                    Text("+ \(side.1)").foregroundColor(.green).font(.footnote.bold())
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
-                            }
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Bebidas")
-                                .foregroundColor(.white)
-                                .font(.subheadline.bold())
-                            WrapTags(items: chosenDrinks)
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Envío")
-                                .foregroundColor(.white)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 10) {
-                                Image(systemName: "mappin.and.ellipse").foregroundColor(.green)
-                                Text(shippingTo).foregroundColor(.white).font(.footnote)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
-                        }
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Pedido")
-                                .foregroundColor(.white)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 10) {
-                                Image(systemName: "clock").foregroundColor(.green)
-                                Text("Realizado \(orderElapsed)").foregroundColor(.white).font(.footnote)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.06)))
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 56)
-                }
-            }
-            .overlay(alignment: .topTrailing) { sheetCloseButton.padding(10) }
-            .safeAreaInset(edge: .bottom) {
-                sheetActionBar.padding(.horizontal, 16)
-                    .padding(.top, 0)
-                    .padding(.bottom, 12)
-                    .background(Color.black)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: UIScreen.main.bounds.height * 0.7)
-            .background(Color.black)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .shadow(color: Color.black.opacity(0.5), radius: 12, x: 0, y: -4)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-    }
-
-    private var orderTopBlock: some View {
-        ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: 18)
-                .fill(LinearGradient(colors: [Color.green.opacity(0.25), Color.green.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(height: 180)
-            WebImage(url: URL(string: orderImageUrl))
-                .resizable()
-                .indicator(.activity)
-                .scaledToFill()
-                .frame(height: 180)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
-                .clipped()
-        }
-        .zIndex(0)
-        .padding(.horizontal, 12)
-    }
-
-    private var orderInfoPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(orderTitle).foregroundColor(.white).font(.system(size: 22, weight: .bold))
-            Text(orderSubtitle).foregroundColor(.white.opacity(0.9)).font(.system(size: 14))
-            Text(orderPrice).foregroundColor(.green).font(.system(size: 20, weight: .bold))
-            HStack(spacing: 6) {
-                Image(systemName: "barcode.viewfinder").foregroundColor(.green)
-                Text("Código \(orderTrackingCode)").foregroundColor(.green).font(.caption.bold())
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Image(systemName: "phone.fill")
+                    .foregroundColor(brandPink)
+                    .padding(8)
+                    .background(brandPink.opacity(0.1))
+                    .clipShape(Circle())
             }
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color(red: 0.12, green: 0.12, blue: 0.12)))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.12), lineWidth: 1))
-        .offset(y: -18)
-        .compositingGroup()
-        .zIndex(999)
-        .padding(.horizontal, 12)
+        .background(Color.white)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 
-    private var sheetCloseButton: some View {
-        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
-            Circle().fill(Color.black.opacity(0.6)).frame(width: 32, height: 32)
-                .overlay(Image(systemName: "xmark").foregroundColor(.white))
-        }
-    }
-
-    private var sheetActionBar: some View {
-        Button(action: { withAnimation(.easeOut(duration: 0.25)) { showOrderSheet = false } }) {
-            Text("Cerrar")
-                .foregroundColor(.black)
-                .font(.system(size: 16, weight: .bold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(Color.green)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-    }
-}
-
-struct WrapTags: View {
-    let items: [String]
-    private let spacing: CGFloat = 8
-    var body: some View {
-        var totalWidth: CGFloat = 0
-        var rows: [[String]] = [[]]
-        for item in items {
-            let itemWidth = (item.count > 0 ? CGFloat(item.count) * 7.5 : 40) + 24
-            if totalWidth + itemWidth + spacing > UIScreen.main.bounds.width - 32 {
-                rows.append([item])
-                totalWidth = itemWidth + spacing
-            } else {
-                rows[rows.count - 1].append(item)
-                totalWidth += itemWidth + spacing
+    private var composer: some View {
+        HStack(spacing: 12) {
+            Button(action: {}) {
+                Image(systemName: "plus")
+                    .font(.system(size: 20))
+                    .foregroundColor(.gray)
             }
-        }
-        return VStack(alignment: .leading, spacing: spacing) {
-            ForEach(0..<rows.count, id: \.self) { r in
-                HStack(spacing: spacing) {
-                    ForEach(rows[r], id: \.self) { label in
-                        Text(label)
-                            .foregroundColor(.white)
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.06))
-                            .clipShape(Capsule())
+            
+            TextField("Escribe un mensaje...", text: $composerText)
+                .padding(12)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(20)
+                .foregroundColor(.black)
+            
+            Button(action: {
+                let txt = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !txt.isEmpty else { return }
+                
+                // Add user message
+                let newMsg = Message(text: txt, isMe: true, time: "Ahora", status: .sent)
+                withAnimation {
+                    messages.append(newMsg)
+                }
+                store.updateLastMessage(id: conversation.id, text: txt)
+                composerText = ""
+                
+                // Simulate reply sequence
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    // Update status to delivered
+                    if let index = messages.firstIndex(where: { $0.id == newMsg.id }) {
+                        withAnimation {
+                            var updated = messages[index]
+                            // Assuming Message is a struct and we can modify it or replace it
+                            // If it's a let property, we might need to recreate it. 
+                            // Since I don't see the struct, I'll replace it.
+                            messages[index] = Message(text: updated.text, isMe: updated.isMe, time: updated.time, status: .delivered)
+                        }
                     }
                 }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                     withAnimation { isTyping = true }
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                    withAnimation { isTyping = false }
+                    let reply = Message(text: "¡Entendido! Lo revisaré enseguida.", isMe: false, time: "Ahora", status: nil)
+                    withAnimation {
+                        messages.append(reply)
+                    }
+                    
+                    // Mark user message as read
+                    if let index = messages.firstIndex(where: { $0.id == newMsg.id }) {
+                        withAnimation {
+                            let updated = messages[index]
+                            messages[index] = Message(text: updated.text, isMe: updated.isMe, time: updated.time, status: .read)
+                        }
+                    }
+                }
+            }) {
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(brandPink)
             }
         }
+        .padding()
+        .background(Color.white)
     }
 }
 
 struct MessageBubble: View {
     let message: Message
-
+    let brandPink: Color
+    
     var body: some View {
-        HStack(alignment: .bottom) {
+        HStack(alignment: .bottom, spacing: 8) {
             if message.isMe { Spacer() }
+            
             VStack(alignment: message.isMe ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(
-                        Group {
-                            if message.isMe { Color.green } else { Color.white.opacity(0.12) }
-                        }
-                    )
-                    .overlay(
-                        RoundedCorner(radius: 20, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
-                            .stroke(message.isMe ? Color.clear : Color.white.opacity(0.14), lineWidth: 1)
-                    )
+                    .font(.subheadline)
+                    .foregroundColor(message.isMe ? .white : .black)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(message.isMe ? brandPink : Color.white)
                     .clipShape(RoundedCorner(radius: 20, corners: message.isMe ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight]))
-                Text(message.time)
-                    .foregroundColor(.white.opacity(0.6))
-                    .font(.caption)
-                if message.isMe, let status = message.status {
-                    HStack(spacing: 4) {
-                        Image(systemName: status == .seen ? "checkmark.circle.fill" : (status == .delivered ? "checkmark.circle" : "paperplane"))
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                        Text(status.label)
-                            .foregroundColor(.white.opacity(0.6))
-                            .font(.caption2)
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                
+                HStack(spacing: 4) {
+                    Text(message.time)
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                    
+                    if message.isMe {
+                        if let status = message.status {
+                            Image(systemName: statusIcon(for: status))
+                                .font(.caption2)
+                                .foregroundColor(statusColor(for: status))
+                        }
                     }
                 }
+                .padding(.horizontal, 4)
             }
+            
             if !message.isMe { Spacer() }
+        }
+    }
+    
+    private func statusIcon(for status: MessageStatus) -> String {
+        switch status {
+        case .sent: return "checkmark"
+        case .delivered: return "checkmark.circle"
+        case .read: return "checkmark.circle.fill"
+        default: return "checkmark"
+        }
+    }
+    
+    private func statusColor(for status: MessageStatus) -> Color {
+        switch status {
+        case .read: return brandPink
+        default: return .gray
         }
     }
 }
 
-
-struct Conversation: Identifiable, Hashable {
-    let id = UUID()
-    let title: String
-    var subtitle: String
-    var timestamp: String
-    let unreadCount: Int?
-    let avatarSystemName: String
-    let isOnline: Bool
-
-    static let sample: [Conversation] = [
-        Conversation(title: "Tacos El Rey", subtitle: "¡Tu pedido está listo!", timestamp: "Hace 5 min", unreadCount: 2, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Pizza Lovers", subtitle: "Gracias por tu preferencia", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Sushi House", subtitle: "Promo 2x1 hoy", timestamp: "Ayer", unreadCount: 1, avatarSystemName: "leaf.circle", isOnline: false)
-    ]
-
-    static let restaurantSample: [Conversation] = [
-        Conversation(title: "Juan Pérez", subtitle: "¿Sigue disponible la promo?", timestamp: "Hace 3 min", unreadCount: 1, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "María López", subtitle: "Gracias por la atención", timestamp: "Hace 12 min", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Carlos Gómez", subtitle: "Confirmo el pedido #84721", timestamp: "Hace 28 min", unreadCount: 2, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Ana Rodríguez", subtitle: "¿Tiempo estimado de entrega?", timestamp: "Hace 1 hora", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Luis Hernández", subtitle: "Sin cebolla por favor", timestamp: "Ayer", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Sofía Martínez", subtitle: "Excelente servicio 🙌", timestamp: "Ayer", unreadCount: 3, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Miguel Torres", subtitle: "¿Aceptan pago en efectivo?", timestamp: "Ayer", unreadCount: nil, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Paula Sánchez", subtitle: "Necesito factura", timestamp: "Hace 2 días", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true),
-        Conversation(title: "Diego Ramírez", subtitle: "Agreguen salsa extra", timestamp: "Hace 2 días", unreadCount: 1, avatarSystemName: "person.crop.circle", isOnline: false),
-        Conversation(title: "Lucía Fernández", subtitle: "¿Tienen opción sin gluten?", timestamp: "Hace 3 días", unreadCount: nil, avatarSystemName: "person.crop.circle.fill", isOnline: true)
-    ]
+struct TypingIndicator: View {
+    let color: Color
+    @State private var numberOfDots = 0
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .fill(color.opacity(numberOfDots > index ? 1 : 0.3))
+                    .frame(width: 8, height: 8)
+            }
+        }
+        .padding(12)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .onAppear {
+            withAnimation(Animation.easeInOut(duration: 0.6).repeatForever()) {
+                numberOfDots = 3
+            }
+        }
+    }
 }
 
-enum MessageStatus { case sent, delivered, seen }
-
-extension MessageStatus {
-    var label: String { switch self { case .sent: return "Enviado"; case .delivered: return "Entregado"; case .seen: return "Visto" } }
+// Ensure MessageStatus and Message exist or extend functionality
+enum MessageStatus: String, Codable {
+    case sent
+    case delivered
+    case read
 }
 
 struct Message: Identifiable {
@@ -609,12 +430,5 @@ struct Message: Identifiable {
     let text: String
     let isMe: Bool
     let time: String
-    var status: MessageStatus?
-
-    static let sample: [Message] = [
-        Message(text: "Hola, ¿el pedido #123 está listo?", isMe: true, time: "Hace 10 min", status: .delivered),
-        Message(text: "Sí, ya está en mostrador.", isMe: false, time: "Hace 9 min", status: nil),
-        Message(text: "Perfecto, paso en 5.", isMe: true, time: "Hace 8 min", status: .seen)
-    ]
+    let status: MessageStatus?
 }
-

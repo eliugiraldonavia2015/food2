@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AllAlertsView: View {
+    var onMenuTap: (() -> Void)? = nil
     @Environment(\.presentationMode) var presentationMode
     
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
@@ -9,40 +10,9 @@ struct AllAlertsView: View {
     @State private var animateViews = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.title2.bold())
-                            .foregroundColor(.black)
-                            .padding(10)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-                    }
-                    
-                    Spacer()
-                    
-                    Text("Todas las Alertas")
-                        .font(.title3.bold())
-                        .foregroundColor(.black)
-                    
-                    Spacer()
-                    
-                    Button(action: {}) {
-                        Image(systemName: "line.3.horizontal.decrease")
-                            .font(.title3)
-                            .foregroundColor(.black)
-                            .padding(10)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-                    }
-                }
-                .padding()
-                .background(bgGray)
+                header
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
@@ -95,6 +65,42 @@ struct AllAlertsView: View {
                 }
             }
         }
+    }
+    
+    private var header: some View {
+        HStack {
+            if let onMenuTap = onMenuTap {
+                Button(action: onMenuTap) {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.black)
+                }
+            } else {
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Image(systemName: "arrow.left")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.black)
+                }
+            }
+            
+            Spacer()
+            
+            Text("Notificaciones")
+                .font(.title3.bold())
+                .foregroundColor(.black)
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 20))
+                    .foregroundColor(.black)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 10)
+        .padding(.bottom, 10)
+        .background(Color.white)
     }
     
     private func alertItem(icon: String, title: String, message: String, time: String, color: Color) -> some View {

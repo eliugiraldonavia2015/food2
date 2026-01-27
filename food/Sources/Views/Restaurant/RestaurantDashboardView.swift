@@ -55,6 +55,12 @@ struct RestaurantDashboardView: View {
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
+                } else if selectedMenu == "Mi Perfil" {
+                    DashboardProfileView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
+                } else if selectedMenu == "Mensajes" {
+                    MessagesListView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
+                } else if selectedMenu == "Notificaciones" {
+                    AllAlertsView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
                 } else if selectedMenu == "Publicidad en la app" {
                     NavigationView {
                         AdvertisingView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
@@ -695,6 +701,9 @@ struct SideMenuView: View {
                         menuItem(icon: "square.grid.2x2.fill", text: "Tablero")
                         menuItem(icon: "list.bullet.clipboard", text: "Pedidos")
                         menuItem(icon: "book.closed", text: "Menú")
+                        menuItem(icon: "person.crop.circle", text: "Mi Perfil")
+                        menuItem(icon: "bubble.left.and.bubble.right.fill", text: "Mensajes")
+                        menuItem(icon: "bell.fill", text: "Notificaciones")
                         
                         Text("OPERACIONES").font(.caption.bold()).foregroundColor(.gray).padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 8)
                         
