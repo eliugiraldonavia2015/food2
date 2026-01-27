@@ -51,8 +51,10 @@ struct DashboardProfileView: View {
                                     SettingsItem(icon: "doc.plaintext", title: "Términos y Condiciones", subtitle: "Legales y políticas")
                                 ])
                                 
-                                // Logout Button
-                                Button(action: {}) {
+                                // Logout
+                                Button(action: {
+                                    AuthService.shared.signOut()
+                                }) {
                                     HStack {
                                         Image(systemName: "rectangle.portrait.and.arrow.right")
                                         Text("Cerrar Sesión")
