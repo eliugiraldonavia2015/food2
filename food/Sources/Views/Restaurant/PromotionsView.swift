@@ -22,9 +22,20 @@ struct PromotionsView: View {
                     VStack(spacing: 24) {
                         createPromoCard
                         
-                        statsOverview
+                        // New Sections
+                        globalStatsSection
+                        aiSuggestionsSection
+                        templatesSection
                         
-                        filterTabs
+                        // Active Promotions Header
+                        HStack {
+                            Text("Tus Campañas")
+                                .font(.headline.bold())
+                                .foregroundColor(.black)
+                            Spacer()
+                            filterTabs
+                        }
+                        .padding(.top, 10)
                         
                         promotionsList
                         
@@ -108,111 +119,213 @@ struct PromotionsView: View {
         .opacity(animate ? 1 : 0)
     }
     
-    private var statsOverview: some View {
-        HStack(spacing: 12) {
-            statCard(title: "Canjes Hoy", value: "24", icon: "ticket.fill", color: .orange)
-            statCard(title: "Ingresos Promo", value: "$850", icon: "banknote.fill", color: .green)
+    // MARK: - Global Stats Section (New)
+    private var globalStatsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Resumen General")
+                .font(.headline.bold())
+                .foregroundColor(.black)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    detailedStatCard(title: "Ingresos Generados", value: "$12,450", change: "+15%", icon: "banknote.fill", color: .green)
+                    detailedStatCard(title: "Retorno (ROI)", value: "320%", change: "+5%", icon: "chart.line.uptrend.xyaxis", color: .blue)
+                    detailedStatCard(title: "Total Canjes", value: "1,240", change: "+12%", icon: "ticket.fill", color: .orange)
+                }
+                .padding(.horizontal, 2)
+                .padding(.bottom, 10) // Shadow space
+            }
         }
         .offset(y: animate ? 0 : 20)
         .opacity(animate ? 1 : 0)
         .animation(.easeOut(duration: 0.6).delay(0.1), value: animate)
     }
     
-    private func statCard(title: String, value: String, icon: String, color: Color) -> some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(color.opacity(0.1))
-                .frame(width: 40, height: 40)
-                .overlay(Image(systemName: icon).foregroundColor(color))
+    private func detailedStatCard(title: String, value: String, change: String, icon: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 32, height: 32)
+                    .overlay(Image(systemName: icon).foregroundColor(color).font(.caption.bold()))
+                Spacer()
+                Text(change)
+                    .font(.caption.bold())
+                    .foregroundColor(.green)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(4)
+            }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(value)
-                    .font(.title3.bold())
+                    .font(.title2.bold())
                     .foregroundColor(.black)
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.gray)
             }
-            Spacer()
         }
         .padding(16)
+        .frame(width: 160)
         .background(Color.white)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.03), radius: 5)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
     
-    private var filterTabs: some View {
-        HStack(spacing: 0) {
-            tabButton(title: "Activas", index: 0)
-            tabButton(title: "Programadas", index: 1)
-            tabButton(title: "Finalizadas", index: 2)
+    // MARK: - AI Suggestions Section (New)
+    private var aiSuggestionsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .foregroundColor(brandPink)
+                Text("Sugerencias de IA")
+                    .font(.headline.bold())
+                    .foregroundColor(.black)
+            }
+            
+            VStack(spacing: 12) {
+                aiSuggestionCard(
+                    title: "Impulsa el Martes",
+                    description: "Tus ventas bajan un 20% los martes. Lanza un 2x1 en Tacos para recuperar tráfico.",
+                    action: "Crear 2x1"
+                )
+                aiSuggestionCard(
+                    title: "Recupera Clientes",
+                    description: "150 clientes no han pedido en 30 días. Envíales un cupón de $50.",
+                    action: "Enviar Cupón"
+                )
+            }
         }
-        .padding(4)
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.03), radius: 5)
         .offset(y: animate ? 0 : 20)
         .opacity(animate ? 1 : 0)
         .animation(.easeOut(duration: 0.6).delay(0.2), value: animate)
     }
     
-    private func tabButton(title: String, index: Int) -> some View {
-        Button(action: { withAnimation { selectedTab = index } }) {
-            Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(selectedTab == index ? brandPink : .gray)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(selectedTab == index ? brandPink.opacity(0.1) : Color.clear)
-                .cornerRadius(8)
+    private func aiSuggestionCard(title: String, description: String, action: String) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.subheadline.bold())
+                    .foregroundColor(.black)
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Text(action)
+                    .font(.caption.bold())
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(brandPink)
+                    .cornerRadius(8)
+            }
         }
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(brandPink.opacity(0.2), lineWidth: 1)
+        )
     }
     
+    // MARK: - Templates Section (New)
+    private var templatesSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Plantillas Rápidas")
+                .font(.headline.bold())
+                .foregroundColor(.black)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    templateCard(title: "2x1", icon: "person.2.fill", color: .orange)
+                    templateCard(title: "Envío Gratis", icon: "bicycle", color: .blue)
+                    templateCard(title: "Descuento %", icon: "percent", color: .purple)
+                    templateCard(title: "Regalo", icon: "gift.fill", color: .red)
+                    templateCard(title: "Happy Hour", icon: "clock.fill", color: .green)
+                }
+                .padding(.horizontal, 2)
+            }
+        }
+        .offset(y: animate ? 0 : 20)
+        .opacity(animate ? 1 : 0)
+        .animation(.easeOut(duration: 0.6).delay(0.25), value: animate)
+    }
+    
+    private func templateCard(title: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Circle()
+                .fill(color.opacity(0.1))
+                .frame(width: 44, height: 44)
+                .overlay(Image(systemName: icon).foregroundColor(color))
+            Text(title)
+                .font(.caption.bold())
+                .foregroundColor(.black)
+        }
+        .frame(width: 90, height: 90)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.03), radius: 5, x: 0, y: 2)
+    }
+    
+    // MARK: - Active Promotions List (Redesigned)
     private var promotionsList: some View {
         VStack(spacing: 16) {
             if selectedTab == 0 {
-                promoCard(
+                detailedPromoCard(
                     title: "2x1 en Hamburguesas",
-                    type: "Descuento",
                     date: "Vence: 15 Nov",
-                    stats: "142 canjes • $2,100 ventas",
+                    revenue: "$2,100",
+                    roi: "450%",
+                    redemptions: "142",
                     status: "Activa",
                     statusColor: .green,
-                    icon: "tag.fill",
-                    color: .orange
+                    color: .orange,
+                    icon: "tag.fill"
                 )
                 
-                promoCard(
-                    title: "Envío Gratis",
-                    type: "Envío",
+                detailedPromoCard(
+                    title: "Envío Gratis > $200",
                     date: "Vence: 30 Nov",
-                    stats: "89 canjes • $0 ventas directas",
+                    revenue: "$5,400",
+                    roi: "120%",
+                    redemptions: "89",
                     status: "Activa",
                     statusColor: .green,
-                    icon: "bicycle",
-                    color: .blue
+                    color: .blue,
+                    icon: "bicycle"
                 )
             } else if selectedTab == 1 {
-                promoCard(
+                detailedPromoCard(
                     title: "Black Friday -30%",
-                    type: "Descuento Global",
                     date: "Inicia: 24 Nov",
-                    stats: "Programada para 24 horas",
+                    revenue: "$0",
+                    roi: "0%",
+                    redemptions: "0",
                     status: "Programada",
                     statusColor: .orange,
-                    icon: "percent",
-                    color: .purple
+                    color: .purple,
+                    icon: "percent"
                 )
             } else {
-                promoCard(
+                detailedPromoCard(
                     title: "Promo Halloween",
-                    type: "Regalo",
                     date: "Finalizó: 31 Oct",
-                    stats: "320 canjes • $4,500 ventas",
+                    revenue: "$4,500",
+                    roi: "210%",
+                    redemptions: "320",
                     status: "Finalizada",
                     statusColor: .gray,
-                    icon: "gift.fill",
-                    color: brandPink
+                    color: brandPink,
+                    icon: "gift.fill"
                 )
             }
         }
@@ -221,26 +334,22 @@ struct PromotionsView: View {
         .animation(.easeOut(duration: 0.6).delay(0.3), value: animate)
     }
     
-    private func promoCard(title: String, type: String, date: String, stats: String, status: String, statusColor: Color, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
+    private func detailedPromoCard(title: String, date: String, revenue: String, roi: String, redemptions: String, status: String, statusColor: Color, color: Color, icon: String) -> some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(color.opacity(0.1))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 48, height: 48)
                     .overlay(Image(systemName: icon).font(.title3).foregroundColor(color))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline.bold())
                         .foregroundColor(.black)
-                    
-                    Text(type)
+                    Text(date)
                         .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(color.opacity(0.1))
-                        .foregroundColor(color)
-                        .cornerRadius(4)
+                        .foregroundColor(.gray)
                 }
                 
                 Spacer()
@@ -248,36 +357,78 @@ struct PromotionsView: View {
                 Text(status)
                     .font(.caption.bold())
                     .foregroundColor(statusColor)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(statusColor.opacity(0.1))
                     .cornerRadius(8)
             }
+            .padding(16)
             
             Divider()
             
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(date)
-                        .font(.caption.bold())
-                        .foregroundColor(.black)
-                    Text(stats)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                
-                Spacer()
-                
-                Button(action: {}) {
-                    Text("Gestionar")
-                        .font(.subheadline.bold())
-                        .foregroundColor(brandPink)
-                }
+            // Metrics Grid
+            HStack(spacing: 0) {
+                metricCell(label: "Ingresos", value: revenue)
+                Divider().frame(height: 30)
+                metricCell(label: "ROI", value: roi)
+                Divider().frame(height: 30)
+                metricCell(label: "Canjes", value: redemptions)
+            }
+            .padding(.vertical, 12)
+            .background(Color.gray.opacity(0.02))
+            
+            Divider()
+            
+            // Action
+            Button(action: {}) {
+                Text("Ver Detalles Completos")
+                    .font(.subheadline.bold())
+                    .foregroundColor(brandPink)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
             }
         }
-        .padding(20)
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+    }
+    
+    private func metricCell(label: String, value: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.headline.bold())
+                .foregroundColor(.black)
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var filterTabs: some View {
+        HStack(spacing: 0) {
+            tabButton(title: "Activas", index: 0)
+            tabButton(title: "Futuras", index: 1)
+            tabButton(title: "Pasadas", index: 2)
+        }
+        .background(Color.white)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
+    }
+    
+    private func tabButton(title: String, index: Int) -> some View {
+        Button(action: { withAnimation { selectedTab = index } }) {
+            Text(title)
+                .font(.caption.bold())
+                .foregroundColor(selectedTab == index ? .white : .gray)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(selectedTab == index ? brandPink : Color.clear)
+                .cornerRadius(6)
+                .padding(2)
+        }
     }
 }

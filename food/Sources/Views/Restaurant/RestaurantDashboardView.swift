@@ -73,6 +73,12 @@ struct RestaurantDashboardView: View {
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
+                } else if selectedMenu == "Horarios" {
+                    NavigationView {
+                        SchedulesView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else {
                     mainContent
                 }
