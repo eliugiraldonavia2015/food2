@@ -101,6 +101,8 @@ struct EditProfileView: View {
                                 
                                 TextEditor(text: $bio)
                                     .frame(minHeight: 100)
+                                    .scrollContentBackground(.hidden) // iOS 16+ fix for background
+                                    .foregroundColor(.black)
                                     .padding(12)
                                     .background(Color.gray.opacity(0.05))
                                     .cornerRadius(12)
@@ -125,6 +127,7 @@ struct EditProfileView: View {
                 }
             }
         }
+        .preferredColorScheme(.light) // Force light mode to fix placeholders and backgrounds
         .onAppear {
             load()
             withAnimation {
@@ -447,7 +450,8 @@ struct ModernTextField: View {
                 .foregroundColor(.gray)
                 .padding(.leading, 4)
             
-            TextField(placeholder, text: $text)
+            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray))
+                .foregroundColor(.black)
                 .padding()
                 .background(Color.gray.opacity(0.05))
                 .cornerRadius(12)
