@@ -151,7 +151,7 @@ struct OwnProfileView: View {
         }
         .sheet(isPresented: $showShareSheet) {
             if let user = viewModel.user {
-                ActivityViewController(activityItems: ["Echa un vistazo al perfil de \(user.name) en Food App!"])
+                ShareProfileView(user: user)
             }
         }
     }

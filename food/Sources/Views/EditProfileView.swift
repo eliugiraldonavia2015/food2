@@ -19,6 +19,9 @@ struct EditProfileView: View {
     @State private var usernameChecking: Bool = false
     @State private var errorText: String? = nil
     @State private var coverUrlString: String = ""
+    
+    // Animation States
+    @State private var appear = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -28,229 +31,261 @@ struct EditProfileView: View {
         self.onClose = onClose
     }
 
-    private func header() -> some View {
-        HStack {
-            Button(action: { onClose() }) {
-                Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 36, height: 36)
-                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
-            }
-            Spacer()
-            Text("Editar Perfil")
-                .foregroundColor(.white)
-                .font(.title3.bold())
-            Spacer()
-            Button(action: save) {
-                if isSaving {
-                    ProgressView().tint(.green)
-                } else {
-                    Text("Guardar")
-                        .foregroundColor(.black)
-                        .font(.subheadline.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.green)
-                        .clipShape(Capsule())
+    var body: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Custom Header
+                HStack {
+                    Button(action: {
+                        withAnimation { onClose() }
+                    }) {
+                        Text("Cancelar")
+                            .foregroundColor(.black)
+                            .font(.system(size: 17))
+                    }
+                    
+                    Spacer()
+                    
+                    Text("Editar Perfil")
+                        .font(.system(size: 17, weight: .semibold))
+                    
+                    Spacer()
+                    
+                    Button(action: save) {
+                        if isSaving {
+                            ProgressView()
+                        } else {
+                            Text("Guardar")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(canSave ? .fuchsia : .gray.opacity(0.5))
+                        }
+                    }
+                    .disabled(!canSave || isSaving)
                 }
-            }
-            .disabled(!canSave || isSaving)
-            .opacity(!canSave || isSaving ? 0.6 : 1.0)
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-    }
-
-    private var canSave: Bool {
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
-        guard AuthService.shared.isValidUsername(username) else { return false }
-        if let available = usernameAvailable { return available }
-        return true
-    }
-
-    private func avatarPicker() -> some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle().fill(Color.white.opacity(0.06)).frame(width: 96, height: 96)
-                if let img = selectedImage {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 96, height: 96)
-                        .clipShape(Circle())
-                } else if let url = currentUser?.photoURL {
-                    WebImage(url: url)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 96, height: 96)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 96, height: 96)
-                        .foregroundColor(.white.opacity(0.6))
-                }
-            }
-            PhotosPicker(selection: $selectedItem, matching: .images) {
-                Text("Cambiar foto")
-                    .foregroundColor(.white)
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func coverPicker() -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Portada")
-                .foregroundColor(.white.opacity(0.8))
-                .font(.caption)
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.06))
-                    .frame(height: 140)
-                if let img = selectedCoverImage {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else if let url = URL(string: coverUrlString), !coverUrlString.isEmpty {
-                    WebImage(url: url)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else {
-                    VStack(spacing: 6) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .foregroundColor(.white.opacity(0.6))
-                            .font(.system(size: 24))
-                        Text("Sin portada")
-                            .foregroundColor(.white.opacity(0.6))
-                            .font(.caption)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color.white.shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 5))
+                .zIndex(10)
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Section: Images
+                        VStack(spacing: 0) {
+                            coverPicker
+                                .overlay(
+                                    avatarPicker
+                                        .offset(y: 60), // Half of avatar height
+                                    alignment: .bottom
+                                )
+                                .padding(.bottom, 60) // Space for avatar
+                        }
+                        .scaleEffect(appear ? 1 : 0.95)
+                        .opacity(appear ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appear)
+                        
+                        // Section: Fields
+                        VStack(spacing: 20) {
+                            ModernTextField(label: "Nombre", placeholder: "Nombre", text: $name)
+                            
+                            usernameField
+                            
+                            ModernTextField(label: "Ubicación", placeholder: "Ciudad, País", text: $location)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Biografía")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .padding(.leading, 4)
+                                
+                                TextEditor(text: $bio)
+                                    .frame(minHeight: 100)
+                                    .padding(12)
+                                    .background(Color.gray.opacity(0.05))
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                                    )
+                            }
+                        }
+                        .padding(.horizontal)
+                        .offset(y: appear ? 0 : 30)
+                        .opacity(appear ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: appear)
+                        
+                        errorBanner
+                            .padding(.horizontal)
+                            .opacity(errorText != nil ? 1 : 0)
+                            .animation(.default, value: errorText)
+                        
+                        Spacer(minLength: 40)
                     }
                 }
             }
-            PhotosPicker(selection: $selectedCoverItem, matching: .images) {
-                Text("Cambiar portada")
-                    .foregroundColor(.white)
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
+        }
+        .onAppear {
+            load()
+            withAnimation {
+                appear = true
             }
         }
-        .padding()
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func labeledField(label: String, placeholder: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).foregroundColor(.white.opacity(0.8)).font(.caption)
-            TextField(placeholder, text: text)
-                .autocorrectionDisabled(true)
-                .textInputAutocapitalization(.never)
-                .padding()
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func usernameField() -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Usuario").foregroundColor(.white.opacity(0.8)).font(.caption)
-            HStack {
-                TextField("usuario", text: $username)
-                    .autocorrectionDisabled(true)
-                    .textInputAutocapitalization(.never)
-                if usernameChecking {
-                    ProgressView().tint(.green)
-                } else if let available = usernameAvailable {
-                    Image(systemName: available ? "checkmark.circle" : "xmark.circle")
-                        .foregroundColor(available ? .green : .red)
-                }
-            }
-            .padding()
-            .background(Color.white.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            Text("Solo letras, números, puntos y guiones. 3–30 caracteres.")
-                .foregroundColor(.white.opacity(0.6))
-                .font(.caption2)
-        }
-        .onChange(of: username) { _ in
-            checkUsername()
-        }
-    }
-
-    private func bioField() -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Descripción")
-                .foregroundColor(.white.opacity(0.8))
-                .font(.caption)
-            TextEditor(text: $bio)
-                .frame(minHeight: 100)
-                .padding(8)
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func errorBanner() -> some View {
-        Group {
-            if let errorText = errorText {
-                Text(errorText)
-                    .foregroundColor(.red)
-                    .font(.footnote)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.red.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-        }
-    }
-
-    private func content() -> some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                header()
-                avatarPicker()
-                coverPicker()
-                labeledField(label: "Nombre", placeholder: "Tu nombre", text: $name)
-                usernameField()
-                labeledField(label: "Ubicación", placeholder: "Ciudad, País", text: $location)
-                bioField()
-                errorBanner()
-            }
-            .padding()
-        }
-        .background(Color.black.ignoresSafeArea())
-        .onAppear(perform: load)
         .onChange(of: selectedItem) { newItem in
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self), let img = UIImage(data: data) {
-                    selectedImage = img
+                    withAnimation { selectedImage = img }
                 }
             }
         }
         .onChange(of: selectedCoverItem) { newItem in
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self), let img = UIImage(data: data) {
-                    selectedCoverImage = img
+                    withAnimation { selectedCoverImage = img }
                 }
             }
         }
     }
-
-    var body: some View { content() }
-
+    
+    // MARK: - Subviews
+    
+    private var coverPicker: some View {
+        PhotosPicker(selection: $selectedCoverItem, matching: .images) {
+            ZStack {
+                Color.gray.opacity(0.1)
+                
+                if let img = selectedCoverImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                } else if let url = URL(string: coverUrlString), !coverUrlString.isEmpty {
+                    WebImage(url: url)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(systemName: "camera.fill")
+                        .foregroundColor(.gray)
+                        .font(.title)
+                }
+            }
+            .frame(height: 180)
+            .clipped()
+            .overlay(
+                Color.black.opacity(0.1)
+                    .overlay(
+                        Image(systemName: "pencil")
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                            .padding(8),
+                        alignment: .topTrailing
+                    )
+            )
+        }
+    }
+    
+    private var avatarPicker: some View {
+        PhotosPicker(selection: $selectedItem, matching: .images) {
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 120, height: 120)
+                    .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                
+                Group {
+                    if let img = selectedImage {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                    } else if let url = currentUser?.photoURL {
+                        WebImage(url: url)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .foregroundColor(.gray.opacity(0.3))
+                    }
+                }
+                .frame(width: 112, height: 112)
+                .clipShape(Circle())
+                
+                // Edit Badge
+                Circle()
+                    .fill(Color.fuchsia)
+                    .frame(width: 32, height: 32)
+                    .overlay(Image(systemName: "camera.fill").foregroundColor(.white).font(.system(size: 14)))
+                    .offset(x: 40, y: 40)
+            }
+        }
+    }
+    
+    private var usernameField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Usuario")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading, 4)
+            
+            HStack {
+                Text("@")
+                    .foregroundColor(.gray)
+                TextField("usuario", text: $username)
+                    .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.never)
+                
+                if usernameChecking {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else if let available = usernameAvailable, !username.isEmpty {
+                    Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(available ? .green : .red)
+                }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(usernameAvailable == false ? Color.red : Color.gray.opacity(0.1), lineWidth: 1)
+            )
+            
+            if usernameAvailable == false {
+                Text("Este nombre de usuario no está disponible")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.leading, 4)
+            }
+        }
+        .onChange(of: username) { _ in checkUsername() }
+    }
+    
+    private var errorBanner: some View {
+        Group {
+            if let errorText = errorText {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                    Text(errorText)
+                        .font(.caption)
+                }
+                .foregroundColor(.white)
+                .padding()
+                .background(Color.red)
+                .cornerRadius(12)
+            }
+        }
+    }
+    
+    // MARK: - Logic
+    
+    private var canSave: Bool {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard AuthService.shared.isValidUsername(username) else { return false }
+        if let available = usernameAvailable { return available }
+        return true
+    }
+    
     private func load() {
         name = currentUser?.name ?? ""
         username = currentUser?.username ?? ""
@@ -272,10 +307,6 @@ struct EditProfileView: View {
             }
         }
     }
-
-    
-
-    private func pickImage() {}
 
     private func checkUsername() {
         guard AuthService.shared.isValidUsername(username) else {
@@ -316,7 +347,6 @@ struct EditProfileView: View {
         errorText = nil
 
         var newPhotoURL: URL? = currentUser?.photoURL
-        var newCoverURL: URL? = nil
         if let image = selectedImage {
             StorageService.shared.uploadProfileImage(uid: firebaseUser.uid, image: image) { result in
                 DispatchQueue.main.async {
@@ -404,3 +434,27 @@ struct EditProfileView: View {
     }
 }
 
+// Helper Component
+struct ModernTextField: View {
+    let label: String
+    let placeholder: String
+    @Binding var text: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading, 4)
+            
+            TextField(placeholder, text: $text)
+                .padding()
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                )
+        }
+    }
+}
