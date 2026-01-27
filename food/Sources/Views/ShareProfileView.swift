@@ -9,7 +9,7 @@ struct ShareProfileView: View {
     @State private var animateContent = false
     
     // Configuración
-    private let backgroundColor = Color(hex: "F8F8F8") // Gris muy claro
+    private let backgroundColor = Color(hexString: "F8F8F8") // Gris muy claro
     private let cardColor = Color.white
     
     var body: some View {
@@ -236,8 +236,8 @@ struct EmojiPatternBackground: View {
 
 // Extension auxiliar si no existe
 extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+    init(hexString: String) {
+        let hex = hexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
