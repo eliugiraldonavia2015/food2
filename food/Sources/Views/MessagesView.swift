@@ -37,9 +37,8 @@ struct MessagesListView: View {
                             ForEach(Array(filteredConversations.enumerated()), id: \.element.id) { index, convo in
                                 NavigationLink(value: convo) {
                                     ConversationRow(convo: convo)
-                                        .contentShape(Rectangle())
                                 }
-                                .buttonStyle(PlainButtonStyle()) // No grey highlight on tap
+                                .buttonStyle(ScaleButtonStyle()) // Apply custom scale button style
                                 .opacity(animateList ? 1 : 0)
                                 .offset(y: animateList ? 0 : 20)
                                 .animation(.spring(response: 0.4, dampingFraction: 0.8).delay(Double(index) * 0.05), value: animateList)
@@ -131,7 +130,6 @@ struct MessagesListView: View {
 
 struct ConversationRow: View {
     let convo: Conversation
-    @State private var isPressed = false
     
     var body: some View {
         HStack(spacing: 14) {
@@ -189,13 +187,16 @@ struct ConversationRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(isPressed ? Color.gray.opacity(0.05) : Color.white)
         .contentShape(Rectangle()) // Important for tap gesture
-        .pressEvents { pressing in
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = pressing
-            }
-        }
+    }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? Color.gray.opacity(0.05) : Color.white)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
@@ -401,19 +402,36 @@ struct MessageBubble: View {
                     .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
                 
                 HStack(spacing: 4) {
-                    if message.isMe, let status = message.status {
-                        Text(status.rawValue.capitalized)
-                            .font(.system(size: 10))
-                            .foregroundColor(.gray)
-                    }
                     Text(message.time)
                         .font(.system(size: 10))
                         .foregroundColor(.gray)
+
+                    if message.isMe, let status = message.status {
+                        Image(systemName: statusIcon(for: status))
+                            .font(.system(size: 10))
+                            .foregroundColor(statusColor(for: status))
+                            .transition(.opacity)
+                    }
                 }
                 .padding(.horizontal, 4)
             }
             
             if !message.isMe { Spacer() }
+        }
+    }
+
+    private func statusIcon(for status: MessageStatus) -> String {
+        switch status {
+        case .sent: return "checkmark"
+        case .delivered: return "checkmark.circle"
+        case .read: return "checkmark.circle.fill"
+        }
+    }
+    
+    private func statusColor(for status: MessageStatus) -> Color {
+        switch status {
+        case .read: return brandPink
+        default: return .gray
         }
     }
 }
