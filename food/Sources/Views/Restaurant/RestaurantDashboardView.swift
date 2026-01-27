@@ -11,7 +11,7 @@ struct RestaurantDashboardView: View {
     
     // MARK: - State
     @State private var selectedRange: String = "Hoy"
-    @State private var selectedMenu: String = "Tablero" // Added State
+    @State private var selectedMenu: String = "Tablero"
     @State private var showMenu = false
     @State private var showUploadVideo = false
     
@@ -107,12 +107,23 @@ struct RestaurantDashboardView: View {
         .background(bgGray.ignoresSafeArea())
         .animation(.easeInOut(duration: 0.3), value: showMenu)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                animateContent = true
+            startAnimations()
+        }
+        .onChange(of: selectedMenu) { newValue in
+            if newValue == "Tablero" {
+                animateContent = false
+                animateGraph = false
+                startAnimations()
             }
-            withAnimation(.easeOut(duration: 1.2).delay(0.2)) {
-                animateGraph = true
-            }
+        }
+    }
+    
+    private func startAnimations() {
+        withAnimation(.easeOut(duration: 0.8)) {
+            animateContent = true
+        }
+        withAnimation(.easeOut(duration: 1.2).delay(0.2)) {
+            animateGraph = true
         }
     }
     
