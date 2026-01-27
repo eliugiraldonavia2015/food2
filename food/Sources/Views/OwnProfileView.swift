@@ -79,8 +79,8 @@ struct OwnProfileView: View {
                                 .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateContent)
 
                             VStack(alignment: .leading, spacing: 12) {
-                                sectionHeader("Fotos y Videos")
-                                mediaGrid
+                                sectionHeader("Restaurantes y platos concurridos")
+                                UserActivitySection()
                             }
                             .offset(y: animateContent ? 0 : 40)
                             .opacity(animateContent ? 1 : 0)
@@ -364,6 +364,254 @@ struct OwnProfileView: View {
             .padding(16)
             .background(Color.gray.opacity(0.05))
             .cornerRadius(12)
+    }
+
+    // MARK: - User Activity Section
+    struct UserActivitySection: View {
+        @State private var selectedSegment = 0 // 0: Restaurantes, 1: Platos
+        @State private var showRestaurantProfile = false
+        @State private var selectedRestaurant: VisitedRestaurant? = nil
+        
+        // Mock Data for Visited Restaurants
+        let visitedRestaurants = [
+            VisitedRestaurant(
+                name: "Burgers & Co.",
+                image: "https://images.unsplash.com/photo-1550547660-d9450f859349",
+                visits: 12,
+                lastVisit: "Hace 2 días",
+                category: "Hamburguesas"
+            ),
+            VisitedRestaurant(
+                name: "Pizza Paradise",
+                image: "https://images.unsplash.com/photo-1513104890138-7c749659a591",
+                visits: 8,
+                lastVisit: "Hace 1 semana",
+                category: "Italiana"
+            ),
+            VisitedRestaurant(
+                name: "Sushi Master",
+                image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c",
+                visits: 5,
+                lastVisit: "Hace 2 semanas",
+                category: "Japonesa"
+            ),
+            VisitedRestaurant(
+                name: "Tacos El Rey",
+                image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47",
+                visits: 15,
+                lastVisit: "Ayer",
+                category: "Mexicana"
+            )
+        ]
+        
+        // Mock Data for Favorite Dishes
+        let favoriteDishes = [
+            FavoriteDish(
+                name: "Hamburguesa Doble",
+                restaurant: "Burgers & Co.",
+                image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+                orders: 8,
+                price: "$12.50"
+            ),
+            FavoriteDish(
+                name: "Pepperoni Pizza",
+                restaurant: "Pizza Paradise",
+                image: "https://images.unsplash.com/photo-1628840042765-356cda07504e",
+                orders: 5,
+                price: "$18.00"
+            ),
+            FavoriteDish(
+                name: "Dragon Roll",
+                restaurant: "Sushi Master",
+                image: "https://images.unsplash.com/photo-1553621042-f6e147245754",
+                orders: 3,
+                price: "$14.00"
+            ),
+            FavoriteDish(
+                name: "Tacos al Pastor",
+                restaurant: "Tacos El Rey",
+                image: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b",
+                orders: 10,
+                price: "$2.50"
+            )
+        ]
+        
+        var body: some View {
+            VStack(spacing: 20) {
+                // Segmented Control Customizado
+                HStack(spacing: 0) {
+                    segmentButton(title: "Restaurantes", index: 0)
+                    segmentButton(title: "Platos", index: 1)
+                }
+                .background(Color.gray.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 4)
+                
+                // Content
+                if selectedSegment == 0 {
+                    restaurantList
+                        .transition(.move(edge: .leading).combined(with: .opacity))
+                } else {
+                    dishList
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+            }
+            .fullScreenCover(item: $selectedRestaurant) { restaurant in
+                // Simulación de navegación al perfil del restaurante
+                // Aquí deberíamos usar RestaurantProfileView, pero como no tengo acceso directo al modelo completo
+                // usaré FullMenuView como proxy visual o un placeholder que simule la navegación
+                FullMenuView(
+                    restaurantId: restaurant.name.replacingOccurrences(of: " ", with: "").lowercased(),
+                    restaurantName: restaurant.name,
+                    coverUrl: restaurant.image,
+                    avatarUrl: restaurant.image, // Usando la misma para demo
+                    location: "Ubicación Simulada",
+                    branchName: "Sucursal Principal",
+                    distanceKm: 1.2,
+                    onDismissToRoot: { selectedRestaurant = nil }
+                )
+            }
+        }
+        
+        private func segmentButton(title: String, index: Int) -> some View {
+            Button(action: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    selectedSegment = index
+                }
+            }) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(selectedSegment == index ? .black : .gray)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white)
+                            .padding(2)
+                            .opacity(selectedSegment == index ? 1 : 0)
+                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    )
+            }
+        }
+        
+        private var restaurantList: some View {
+            VStack(spacing: 16) {
+                ForEach(visitedRestaurants) { restaurant in
+                    Button(action: { selectedRestaurant = restaurant }) {
+                        HStack(spacing: 16) {
+                            WebImage(url: URL(string: restaurant.image))
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 70, height: 70)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(restaurant.name)
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                
+                                Text(restaurant.category)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                
+                                HStack(spacing: 4) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .font(.caption2)
+                                        .foregroundColor(.orange)
+                                    Text("Última vez: \(restaurant.lastVisit)")
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("\(restaurant.visits)")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.fuchsia)
+                                Text("Visitas")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                    }
+                    .buttonStyle(BouncyButtonStyle())
+                }
+            }
+        }
+        
+        private var dishList: some View {
+            VStack(spacing: 16) {
+                ForEach(favoriteDishes) { dish in
+                    HStack(spacing: 16) {
+                        WebImage(url: URL(string: dish.image))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 70, height: 70)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(dish.name)
+                                .font(.headline)
+                                .foregroundColor(.black)
+                            
+                            Text(dish.restaurant)
+                                .font(.caption)
+                                .foregroundColor(.fuchsia)
+                            
+                            Text(dish.price)
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            HStack(spacing: 2) {
+                                Image(systemName: "flame.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                                Text("\(dish.orders)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.black)
+                            }
+                            Text("Pedidos")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                }
+            }
+        }
+    }
+    
+    struct VisitedRestaurant: Identifiable {
+        let id = UUID()
+        let name: String
+        let image: String
+        let visits: Int
+        let lastVisit: String
+        let category: String
+    }
+    
+    struct FavoriteDish: Identifiable {
+        let id = UUID()
+        let name: String
+        let restaurant: String
+        let image: String
+        let orders: Int
+        let price: String
     }
 
     private var mediaGrid: some View {
