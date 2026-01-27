@@ -2,6 +2,56 @@ import SwiftUI
 import SDWebImageSwiftUI
 import Combine
 
+// MARK: - Shared Models & Store
+public struct Conversation: Identifiable, Hashable {
+    public let id: UUID
+    public let title: String
+    public let subtitle: String
+    public let timestamp: String
+    public let unreadCount: Int?
+    public let avatarSystemName: String
+    public let isOnline: Bool
+    
+    public init(id: UUID = UUID(), title: String, subtitle: String, timestamp: String, unreadCount: Int? = nil, avatarSystemName: String, isOnline: Bool) {
+        self.id = id
+        self.title = title
+        self.subtitle = subtitle
+        self.timestamp = timestamp
+        self.unreadCount = unreadCount
+        self.avatarSystemName = avatarSystemName
+        self.isOnline = isOnline
+    }
+}
+
+public class MessagesStore: ObservableObject {
+    @Published public var conversations: [Conversation] = []
+    
+    public init() {}
+    
+    public func loadConversations(for role: String) {
+        conversations = [
+            Conversation(title: "Juan Pérez", subtitle: "¿El pedido lleva salsa extra?", timestamp: "10:30 AM", unreadCount: 2, avatarSystemName: "person.circle.fill", isOnline: true),
+            Conversation(title: "María García", subtitle: "Gracias, todo excelente.", timestamp: "Ayer", unreadCount: 0, avatarSystemName: "person.circle.fill", isOnline: false),
+            Conversation(title: "Soporte Técnico", subtitle: "Ticket #1234 resuelto", timestamp: "Lun", unreadCount: 1, avatarSystemName: "headphones.circle.fill", isOnline: true)
+        ]
+    }
+    
+    public func updateLastMessage(id: UUID, text: String) {
+        if let index = conversations.firstIndex(where: { $0.id == id }) {
+            let old = conversations[index]
+            conversations[index] = Conversation(
+                id: old.id,
+                title: old.title,
+                subtitle: text,
+                timestamp: "Ahora",
+                unreadCount: old.unreadCount,
+                avatarSystemName: old.avatarSystemName,
+                isOnline: old.isOnline
+            )
+        }
+    }
+}
+
 struct MessagesListView: View {
     var onMenuTap: (() -> Void)? = nil
     @ObservedObject private var auth = AuthService.shared
