@@ -42,7 +42,13 @@ struct MainTabView: View {
                     if (auth.user?.role ?? "client") == "restaurant" {
                         ProfileScreen()
                     } else {
-                        InternalProfileScreen()
+                        UserProfileView(
+                            userId: auth.user?.uid ?? "",
+                            initialCoverUrl: nil, // Se cargará desde Firebase si existe
+                            initialAvatarUrl: auth.user?.photoURL?.absoluteString,
+                            initialName: auth.user?.name ?? auth.user?.username,
+                            showBackButton: false
+                        )
                     }
                 }
             }

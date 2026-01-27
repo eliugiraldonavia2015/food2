@@ -13,6 +13,7 @@ struct UserProfileView: View {
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
+    private let showBackButton: Bool
     
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
@@ -25,7 +26,8 @@ struct UserProfileView: View {
     private let hardcodedDescriptionText =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco."
     
-    init(userId: String, initialCoverUrl: String? = nil, initialAvatarUrl: String? = nil, initialName: String? = nil, cachedImage: UIImage? = nil) {
+    init(userId: String, initialCoverUrl: String? = nil, initialAvatarUrl: String? = nil, initialName: String? = nil, cachedImage: UIImage? = nil, showBackButton: Bool = true) {
+        self.showBackButton = showBackButton
         let initialData: PublicProfileViewModel.UserProfileData? = {
             if let cover = initialCoverUrl, let avatar = initialAvatarUrl, let name = initialName {
                 return .init(
@@ -100,16 +102,18 @@ struct UserProfileView: View {
             pullOffset = max(0, v)
         }
         .overlay(alignment: .topLeading) {
-            Button(action: { dismiss() }) {
-                Circle()
-                    .fill(Material.ultraThinMaterial)
-                    .frame(width: 38, height: 38)
-                    .overlay(Image(systemName: "chevron.left").foregroundColor(.primary))
+            if showBackButton {
+                Button(action: { dismiss() }) {
+                    Circle()
+                        .fill(Material.ultraThinMaterial)
+                        .frame(width: 38, height: 38)
+                        .overlay(Image(systemName: "chevron.left").foregroundColor(.primary))
+                }
+                .padding(12)
+                .offset(y: 12)
+                .opacity(animateContent ? 1 : 0)
+                .animation(.easeIn.delay(0.3), value: animateContent)
             }
-            .padding(12)
-            .offset(y: 12)
-            .opacity(animateContent ? 1 : 0)
-            .animation(.easeIn.delay(0.3), value: animateContent)
         }
         .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
