@@ -38,7 +38,12 @@ struct MainTabView: View {
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
-                case .profile: InternalProfileScreen()
+                case .profile:
+                    if (auth.user?.role ?? "client") == "restaurant" {
+                        ProfileScreen()
+                    } else {
+                        InternalProfileScreen()
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
