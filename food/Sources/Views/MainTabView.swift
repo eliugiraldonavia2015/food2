@@ -42,9 +42,10 @@ struct MainTabView: View {
                     if (auth.user?.role ?? "client") == "restaurant" {
                         ProfileScreen()
                     } else {
-                        UserProfileView(
+                        // Usamos OwnProfileView para el perfil del usuario logueado en el Tab Bar
+                        OwnProfileView(
                             userId: auth.user?.uid ?? "",
-                            initialCoverUrl: nil, // Se cargará desde Firebase si existe
+                            initialCoverUrl: nil,
                             initialAvatarUrl: auth.user?.photoURL?.absoluteString,
                             initialName: auth.user?.name ?? auth.user?.username,
                             showBackButton: false

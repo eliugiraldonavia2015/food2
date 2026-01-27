@@ -717,7 +717,9 @@ struct SideMenuView: View {
                 }
                 
                 // Logout
-                Button(action: { }) {
+                Button(action: {
+                    AuthService.shared.signOut()
+                }) {
                     HStack(spacing: 12) {
                         Image(systemName: "rectangle.portrait.and.arrow.right")
                         Text("Cerrar Sesión")
