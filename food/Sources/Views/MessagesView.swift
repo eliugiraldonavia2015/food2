@@ -175,7 +175,7 @@ struct ConversationRow: View {
                         Text("\(unread)")
                             .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(minWidth: 20, height: 20)
+                            .frame(minWidth: 20, minHeight: 20)
                             .padding(.horizontal, 4)
                             .background(Color(red: 244/255, green: 37/255, blue: 123/255))
                             .clipShape(Capsule())
