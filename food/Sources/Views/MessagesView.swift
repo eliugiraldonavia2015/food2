@@ -2,56 +2,6 @@ import SwiftUI
 import SDWebImageSwiftUI
 import Combine
 
-// MARK: - Shared Models & Store
-public struct Conversation: Identifiable, Hashable {
-    public let id: UUID
-    public let title: String
-    public let subtitle: String
-    public let timestamp: String
-    public let unreadCount: Int?
-    public let avatarSystemName: String
-    public let isOnline: Bool
-    
-    public init(id: UUID = UUID(), title: String, subtitle: String, timestamp: String, unreadCount: Int? = nil, avatarSystemName: String, isOnline: Bool) {
-        self.id = id
-        self.title = title
-        self.subtitle = subtitle
-        self.timestamp = timestamp
-        self.unreadCount = unreadCount
-        self.avatarSystemName = avatarSystemName
-        self.isOnline = isOnline
-    }
-}
-
-public class MessagesStore: ObservableObject {
-    @Published public var conversations: [Conversation] = []
-    
-    public init() {}
-    
-    public func loadConversations(for role: String) {
-        conversations = [
-            Conversation(title: "Juan Pérez", subtitle: "¿El pedido lleva salsa extra?", timestamp: "10:30 AM", unreadCount: 2, avatarSystemName: "person.circle.fill", isOnline: true),
-            Conversation(title: "María García", subtitle: "Gracias, todo excelente.", timestamp: "Ayer", unreadCount: 0, avatarSystemName: "person.circle.fill", isOnline: false),
-            Conversation(title: "Soporte Técnico", subtitle: "Ticket #1234 resuelto", timestamp: "Lun", unreadCount: 1, avatarSystemName: "headphones.circle.fill", isOnline: true)
-        ]
-    }
-    
-    public func updateLastMessage(id: UUID, text: String) {
-        if let index = conversations.firstIndex(where: { $0.id == id }) {
-            let old = conversations[index]
-            conversations[index] = Conversation(
-                id: old.id,
-                title: old.title,
-                subtitle: text,
-                timestamp: "Ahora",
-                unreadCount: old.unreadCount,
-                avatarSystemName: old.avatarSystemName,
-                isOnline: old.isOnline
-            )
-        }
-    }
-}
-
 struct MessagesListView: View {
     var onMenuTap: (() -> Void)? = nil
     @ObservedObject private var auth = AuthService.shared
@@ -351,10 +301,7 @@ struct ChatView: View {
                     if let index = messages.firstIndex(where: { $0.id == newMsg.id }) {
                         withAnimation {
                             var updated = messages[index]
-                            // Assuming Message is a struct and we can modify it or replace it
-                            // If it's a let property, we might need to recreate it. 
-                            // Since I don't see the struct, I'll replace it.
-                            messages[index] = Message(text: updated.text, isMe: updated.isMe, time: updated.time, status: .delivered)
+                            messages[index] = Message(id: updated.id, text: updated.text, isMe: updated.isMe, time: updated.time, status: .delivered)
                         }
                     }
                 }
@@ -374,7 +321,7 @@ struct ChatView: View {
                     if let index = messages.firstIndex(where: { $0.id == newMsg.id }) {
                         withAnimation {
                             let updated = messages[index]
-                            messages[index] = Message(text: updated.text, isMe: updated.isMe, time: updated.time, status: .read)
+                            messages[index] = Message(id: updated.id, text: updated.text, isMe: updated.isMe, time: updated.time, status: .read)
                         }
                     }
                 }
@@ -417,6 +364,7 @@ struct MessageBubble: View {
                             Image(systemName: statusIcon(for: status))
                                 .font(.caption2)
                                 .foregroundColor(statusColor(for: status))
+                                .transition(.opacity)
                         }
                     }
                 }
@@ -476,9 +424,17 @@ enum MessageStatus: String, Codable {
 }
 
 struct Message: Identifiable {
-    let id = UUID()
+    let id: UUID
     let text: String
     let isMe: Bool
     let time: String
     let status: MessageStatus?
+    
+    init(id: UUID = UUID(), text: String, isMe: Bool, time: String, status: MessageStatus?) {
+        self.id = id
+        self.text = text
+        self.isMe = isMe
+        self.time = time
+        self.status = status
+    }
 }
