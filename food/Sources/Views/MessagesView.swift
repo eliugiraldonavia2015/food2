@@ -191,15 +191,6 @@ struct ConversationRow: View {
     }
 }
 
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .background(configuration.isPressed ? Color.gray.opacity(0.05) : Color.white)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-    }
-}
-
 // Reuse ChatView but ensure it follows the theme
 struct ChatView: View {
     let conversation: Conversation
