@@ -9,6 +9,8 @@ struct OwnProfileView: View {
     // Estados visuales inspirados en RestaurantProfileView
     @State private var isFollowing = false
     @State private var showFullMenu = false
+    @State private var showEditProfile = false
+    @State private var showShareSheet = false
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
@@ -142,6 +144,14 @@ struct OwnProfileView: View {
                 )
             } else {
                 Color.black.ignoresSafeArea()
+            }
+        }
+        .fullScreenCover(isPresented: $showEditProfile) {
+            EditProfileView(onClose: { showEditProfile = false })
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let user = viewModel.user {
+                ActivityViewController(activityItems: ["Echa un vistazo al perfil de \(user.name) en Food App!"])
             }
         }
     }
@@ -304,25 +314,22 @@ struct OwnProfileView: View {
                 
                 // Botones
                 HStack(spacing: 12) {
-                    Button(action: { isFollowing.toggle() }) {
+                    Button(action: { showEditProfile = true }) {
                         HStack(spacing: 8) {
-                            Image(systemName: isFollowing ? "person.checkmark" : "person.badge.plus")
-                                .foregroundColor(.white)
-                            Text(isFollowing ? "Siguiendo" : "Seguir")
+                            Text("Editar perfil")
                                 .foregroundColor(.white)
                                 .font(.system(size: 16, weight: .semibold))
                                 .fixedSize()
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(isFollowing ? Color.gray : Color.fuchsia)
+                        .background(Color.fuchsia)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .animation(nil, value: isFollowing)
                     
-                    Button(action: {}) {
+                    Button(action: { showShareSheet = true }) {
                         HStack(spacing: 8) {
-                            Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                            Text("Compartir perfil").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -331,54 +338,6 @@ struct OwnProfileView: View {
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
                 }
-                .padding(.top, 12)
-                
-                Button(action: { showFullMenu = true }) {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.fuchsia)
-                                .frame(width: 44, height: 44) // Ligeramente más grande para impacto
-                                .shadow(color: Color.fuchsia.opacity(0.4), radius: 6, x: 0, y: 3)
-                            
-                            Image(systemName: "fork.knife")
-                                .foregroundColor(.white)
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Ver Menú Completo")
-                                .foregroundColor(.black)
-                                .font(.system(size: 16, weight: .bold))
-                            Text("Explora nuestros platillos")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 13, weight: .medium))
-                        }
-                        
-                        Spacer()
-                        
-                        ZStack {
-                            Circle()
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(width: 32, height: 32)
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.black.opacity(0.6))
-                                .font(.system(size: 14, weight: .bold))
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(Color.white)
-                    .cornerRadius(20) // Bordes más redondeados y modernos
-                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4) // Sombra suave y difusa tipo iOS
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1) // Borde sutil brillante
-                    )
-                    .scaleEffect(1.0)
-                }
-                .buttonStyle(BouncyButtonStyle()) // Animación personalizada
                 .padding(.top, 12)
 
             }
@@ -552,4 +511,16 @@ struct OwnProfileView: View {
             .background(Color.gray.opacity(0.1))
         }
     }
+}
+
+struct ActivityViewController: UIViewControllerRepresentable {
+    var activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+
+    func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: UIViewControllerRepresentableContext<ActivityViewController>) {}
 }
