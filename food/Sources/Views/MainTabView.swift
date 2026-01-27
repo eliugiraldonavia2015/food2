@@ -39,14 +39,23 @@ struct MainTabView: View {
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
                 case .profile:
-                    // Usamos OwnProfileView para ambos roles (cliente y restaurante)
-                    OwnProfileView(
-                        userId: auth.user?.uid ?? "",
-                        initialCoverUrl: nil,
-                        initialAvatarUrl: auth.user?.photoURL?.absoluteString,
-                        initialName: auth.user?.name ?? auth.user?.username,
-                        showBackButton: false
-                    )
+                    if (auth.user?.role ?? "client") == "restaurant" {
+                        OwnProfileRestaurantView(
+                            userId: auth.user?.uid ?? "",
+                            initialCoverUrl: nil,
+                            initialAvatarUrl: auth.user?.photoURL?.absoluteString,
+                            initialName: auth.user?.name ?? auth.user?.username,
+                            showBackButton: false
+                        )
+                    } else {
+                        OwnProfileView(
+                            userId: auth.user?.uid ?? "",
+                            initialCoverUrl: nil,
+                            initialAvatarUrl: auth.user?.photoURL?.absoluteString,
+                            initialName: auth.user?.name ?? auth.user?.username,
+                            showBackButton: false
+                        )
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
