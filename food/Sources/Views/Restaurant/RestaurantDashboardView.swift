@@ -67,6 +67,12 @@ struct RestaurantDashboardView: View {
                             .navigationBarHidden(true)
                     }
                     .navigationViewStyle(StackNavigationViewStyle())
+                } else if selectedMenu == "Promociones" {
+                    NavigationView {
+                        PromotionsView(onMenuTap: { withAnimation(.easeInOut(duration: 0.3)) { showMenu.toggle() } })
+                            .navigationBarHidden(true)
+                    }
+                    .navigationViewStyle(StackNavigationViewStyle())
                 } else {
                     mainContent
                 }
