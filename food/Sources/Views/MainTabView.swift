@@ -224,7 +224,14 @@ struct MainTabView: View {
     private func navButton(icon: String, title: String, tab: Tab) -> some View {
         let isSelected = selected == tab
         return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
+            // Eliminar animación de transición para usuarios normales
+            let role = auth.user?.role ?? "client"
+            if role == "restaurant" {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selected = tab
+                }
+            } else {
+                // Transición instantánea para evitar doble animación
                 selected = tab
             }
         } label: {
