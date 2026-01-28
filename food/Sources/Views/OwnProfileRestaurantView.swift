@@ -115,9 +115,9 @@ struct OwnProfileRestaurantView: View {
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .tint(Color.fuchsia)
-        .preferredColorScheme(.light)
+        // Removed forced preferredColorScheme
         .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
@@ -141,7 +141,7 @@ struct OwnProfileRestaurantView: View {
                     }
                 )
             } else {
-                Color.black.ignoresSafeArea()
+                Color(uiColor: .systemBackground).ignoresSafeArea()
             }
         }
     }
@@ -154,8 +154,8 @@ struct OwnProfileRestaurantView: View {
             let height = minY > 0 ? headerHeight + minY : headerHeight
             
             ZStack(alignment: .topLeading) {
-                // 🛑 FIX: Fondo blanco absoluto para evitar franja gris al hacer pull
-                Color.white.ignoresSafeArea()
+                // 🛑 FIX: Fondo absoluto adaptativo para evitar franja gris al hacer pull
+                Color(uiColor: .systemBackground).ignoresSafeArea()
                 
                 // 1. Placeholder Layer (Always visible underneath)
                 ShimmerView()
@@ -196,7 +196,7 @@ struct OwnProfileRestaurantView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
-        .background(Color.white) // 🛑 FIX: Fondo blanco para el contenedor
+        .background(Color(uiColor: .systemBackground)) // 🛑 FIX: Fondo adaptativo para el contenedor
     }
 
     struct ShimmerView: View {
@@ -205,13 +205,13 @@ struct OwnProfileRestaurantView: View {
         
         var body: some View {
             ZStack {
-                Color.white // 🛑 FIX: Fondo base blanco
+                Color(uiColor: .systemGray6) // 🛑 FIX: Fondo base adaptativo
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.white,
-                        Color.gray.opacity(0.15),
-                        Color.white
+                        Color(uiColor: .systemGray6),
+                        Color(uiColor: .systemGray4).opacity(0.3),
+                        Color(uiColor: .systemGray6)
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
@@ -231,7 +231,7 @@ struct OwnProfileRestaurantView: View {
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
                 .init(color: .clear, location: 0.6),
-                .init(color: Color.white, location: 1.0)
+                .init(color: Color(uiColor: .systemBackground), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -243,7 +243,7 @@ struct OwnProfileRestaurantView: View {
             // Avatar con Placeholder
             ZStack {
                 Circle()
-                    .fill(Color.white)
+                    .fill(Color(uiColor: .systemBackground))
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
@@ -267,11 +267,11 @@ struct OwnProfileRestaurantView: View {
             
             VStack(spacing: 8) {
                 Text(user.name)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 24, weight: .bold))
                 
                 Text("@\(user.username)")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 15))
                 
                 HStack(spacing: 32) {
@@ -279,24 +279,24 @@ struct OwnProfileRestaurantView: View {
                     VStack(spacing: 0) {
                         HStack(spacing: 4) {
                             Text("4.8")
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 20))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.red)
                                 .font(.system(size: 18))
                         }
                         Text("Calificación")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .font(.system(size: 13))
                     }
                     
                     // Seguidores
                     VStack(spacing: 0) {
                         Text(formatCount(user.followers))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .font(.system(size: 20))
                         Text("Seguidores")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .font(.system(size: 13))
                     }
                 }
@@ -322,13 +322,13 @@ struct OwnProfileRestaurantView: View {
                     
                     Button(action: {}) {
                         HStack(spacing: 8) {
-                            Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                            Text("Mensaje").foregroundColor(.primary).font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.white)
+                        .background(Color(uiColor: .systemBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
                     }
                 }
                 .padding(.top, 12)
@@ -348,10 +348,10 @@ struct OwnProfileRestaurantView: View {
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Ver Menú Completo")
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 16, weight: .bold))
                             Text("Explora nuestros platillos")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                                 .font(.system(size: 13, weight: .medium))
                         }
                         
@@ -359,23 +359,20 @@ struct OwnProfileRestaurantView: View {
                         
                         ZStack {
                             Circle()
-                                .fill(Color.gray.opacity(0.1))
+                                .fill(Color(uiColor: .systemGray5))
                                 .frame(width: 32, height: 32)
                             
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.black.opacity(0.6))
+                                .foregroundColor(.primary.opacity(0.6))
                                 .font(.system(size: 14, weight: .bold))
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(Color.white)
+                    .background(Color(uiColor: .secondarySystemBackground))
                     .cornerRadius(20) // Bordes más redondeados y modernos
-                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4) // Sombra suave y difusa tipo iOS
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1) // Borde sutil brillante
-                    )
+                    .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4) // Sombra suave
+                    // Removed bright overlay that only looks good on white
                     .scaleEffect(1.0)
                 }
                 .buttonStyle(BouncyButtonStyle()) // Animación personalizada
@@ -399,11 +396,11 @@ struct OwnProfileRestaurantView: View {
     
     private var descriptionCard: some View {
         Text(hardcodedDescriptionText)
-            .foregroundColor(.gray)
+            .foregroundColor(.secondary)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.gray.opacity(0.05))
+            .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(12)
     }
 
@@ -423,7 +420,7 @@ struct OwnProfileRestaurantView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.black).font(.headline)
+            Text(title).foregroundColor(.primary).font(.headline)
             Spacer()
         }
     }

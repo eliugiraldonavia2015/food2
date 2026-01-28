@@ -48,11 +48,11 @@ struct CartScreenView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemBackground).ignoresSafeArea()
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
-                    .background(Color.white)
+                    .background(Color(uiColor: .systemBackground))
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 14) {
                         restaurantHeader
@@ -91,7 +91,7 @@ struct CartScreenView: View {
             HStack {
                 Button(action: { dismiss() }) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .bold))
                         .frame(width: 40, height: 40)
                 }
@@ -99,7 +99,7 @@ struct CartScreenView: View {
             }
 
             Text("Mi Carrito")
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 18, weight: .bold))
         }
         .padding(.top, 8)
@@ -118,7 +118,7 @@ struct CartScreenView: View {
                 )
 
             Text(restaurantName)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 16, weight: .bold))
 
             Spacer()
@@ -133,7 +133,7 @@ struct CartScreenView: View {
             }
         }
         .padding(.vertical, 8)
-        .background(Color.gray.opacity(0.06))
+        .background(Color.secondary.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -148,19 +148,19 @@ struct CartScreenView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 14, weight: .bold))
                     .lineLimit(1)
 
                 Text(item.subtitle.isEmpty ? " " : item.subtitle)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 11))
                     .lineLimit(1)
 
                 HStack(spacing: 10) {
                     stepperControl(itemId: item.id)
                     Text(priceText(lineTotal))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .bold))
                     Spacer()
                 }
@@ -179,7 +179,7 @@ struct CartScreenView: View {
             }
         }
         .padding(12)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .padding(.horizontal, 10)
     }
@@ -187,7 +187,7 @@ struct CartScreenView: View {
     private var suggestedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("¿Se te antoja algo más?")
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 18, weight: .bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -212,20 +212,20 @@ struct CartScreenView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             Text(item.title)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 13, weight: .bold))
                 .lineLimit(1)
 
             HStack {
                 Text(priceText(item.price))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 13, weight: .bold))
                 Spacer()
             }
         }
         .padding(10)
         .frame(width: 170, alignment: .leading)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
         .overlay(alignment: .bottomTrailing) {
@@ -242,7 +242,7 @@ struct CartScreenView: View {
         .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 10)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
     }
     
     private var totalsPanel: some View {
@@ -250,7 +250,7 @@ struct CartScreenView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .frame(height: summaryFixedHeight)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 6)
     }
@@ -259,16 +259,16 @@ struct CartScreenView: View {
         VStack(spacing: 6) {
             HStack {
                 Text("Subtotal")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Text(priceText(subtotal))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 13, weight: .bold))
             }
             HStack {
                 Text("Costo de envío")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Text("¡GRATIS!")
@@ -276,14 +276,14 @@ struct CartScreenView: View {
                     .font(.system(size: 13, weight: .bold))
             }
             Divider()
-                .overlay(Color.gray.opacity(0.15))
+                .overlay(Color.secondary.opacity(0.15))
             HStack(alignment: .firstTextBaseline) {
                 Text("Total")
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 16, weight: .bold))
                 Spacer()
                 Text(priceText(total))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 16, weight: .bold))
             }
         }
@@ -317,7 +317,7 @@ struct CartScreenView: View {
             }
 
             Text("\(qty)")
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 14, weight: .bold))
                 .frame(minWidth: 14)
 
@@ -332,7 +332,7 @@ struct CartScreenView: View {
         }
         .padding(.horizontal, 8)
         .frame(height: 40)
-        .background(Color.gray.opacity(0.10))
+        .background(Color.secondary.opacity(0.10))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -359,12 +359,12 @@ struct CartScreenView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
 
                     Text("\(quantity)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .bold))
                         .frame(minWidth: 14)
 
@@ -373,13 +373,13 @@ struct CartScreenView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(Color(uiColor: .systemBackground))
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
             }

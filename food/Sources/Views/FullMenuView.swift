@@ -338,7 +338,7 @@ struct FullMenuView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemBackground).ignoresSafeArea()
             TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
                 VStack(spacing: 14) {
                     heroSection
@@ -469,7 +469,7 @@ struct FullMenuView: View {
 
     private var infoRow: some View {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Color.white)
+            .fill(Color(uiColor: .systemBackground))
             .frame(height: 86)
             .shadow(color: Color.black.opacity(0.10), radius: 14, x: 0, y: 8)
             .overlay(
@@ -478,14 +478,14 @@ struct FullMenuView: View {
                         .frame(maxWidth: .infinity)
                     
                     Rectangle()
-                        .fill(Color.gray.opacity(0.15))
+                        .fill(Color.secondary.opacity(0.15))
                         .frame(width: 1, height: 42)
                     
                     metricCard(title: "Envío", value: "$2.99", system: "shippingbox.fill", tint: .green)
                         .frame(maxWidth: .infinity)
                     
                     Rectangle()
-                        .fill(Color.gray.opacity(0.15))
+                        .fill(Color.secondary.opacity(0.15))
                         .frame(width: 1, height: 42)
                     
                     metricCard(title: "Rating", value: "4.8", system: "star.fill", tint: .yellow)
@@ -503,11 +503,11 @@ struct FullMenuView: View {
                     .foregroundColor(tint)
                     .font(.system(size: 13, weight: .bold))
                 Text(title.uppercased())
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 11, weight: .bold))
             }
             Text(value)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 16, weight: .bold))
         }
     }
@@ -565,7 +565,7 @@ struct FullMenuView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
-            .foregroundColor(.black)
+            .foregroundColor(.primary)
             .font(.system(size: 22, weight: .bold))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 10)
@@ -587,7 +587,7 @@ struct FullMenuView: View {
         .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 10)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
     }
     
     private var topBar: some View {
@@ -633,15 +633,15 @@ struct FullMenuView: View {
         HStack(spacing: 10) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 16, weight: .bold))
                 .frame(width: 34, height: 34)
-                .background(Color.gray.opacity(0.12))
+                .background(Color.secondary.opacity(0.12))
                 .clipShape(Circle())
             }
 
             Text(restaurantName)
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 16, weight: .bold))
                 .lineLimit(1)
 
@@ -649,19 +649,19 @@ struct FullMenuView: View {
 
             Button(action: {}) {
                 Image(systemName: "square.and.arrow.up")
-                    .foregroundColor(.black.opacity(0.75))
+                    .foregroundColor(.primary.opacity(0.75))
                     .font(.system(size: 16, weight: .semibold))
                     .frame(width: 34, height: 34)
-                    .background(Color.gray.opacity(0.12))
+                    .background(Color.secondary.opacity(0.12))
                     .clipShape(Circle())
             }
 
             Button(action: { showCartScreen = true }) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
-                        .fill(Color.gray.opacity(0.12))
+                        .fill(Color.secondary.opacity(0.12))
                         .frame(width: 34, height: 34)
-                        .overlay(Image(systemName: "cart.fill").foregroundColor(.black.opacity(0.75)).font(.system(size: 14, weight: .bold)))
+                        .overlay(Image(systemName: "cart.fill").foregroundColor(.primary.opacity(0.75)).font(.system(size: 14, weight: .bold)))
                     if cartCount > 0 {
                         Circle()
                             .fill(Color.green)
@@ -676,8 +676,8 @@ struct FullMenuView: View {
         .padding(.top, 10)
         .padding(.bottom, 10)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .overlay(Rectangle().fill(Color.gray.opacity(0.12)).frame(height: 1), alignment: .bottom)
+        .background(Color(uiColor: .systemBackground))
+        .overlay(Rectangle().fill(Color.secondary.opacity(0.12)).frame(height: 1), alignment: .bottom)
     }
     
     private var branchSheetOverlay: some View {
@@ -692,12 +692,12 @@ struct FullMenuView: View {
                 
                 VStack(spacing: 14) {
                     Capsule()
-                        .fill(Color.gray.opacity(0.35))
+                        .fill(Color.secondary.opacity(0.35))
                         .frame(width: 44, height: 5)
                         .padding(.top, 8)
                     
                     Text("Selecciona una sucursal")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 20, weight: .bold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 18)
@@ -732,7 +732,7 @@ struct FullMenuView: View {
                         .frame(height: geo.safeAreaInsets.bottom)
                 }
                 .frame(maxWidth: .infinity)
-                .background(Color.white)
+                .background(Color(uiColor: .systemBackground))
                 .clipShape(FullMenuRoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
                 .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
                 .offset(y: showBranchSheet ? 0 : (geo.size.height + geo.safeAreaInsets.bottom + 40))
@@ -795,7 +795,7 @@ struct FullMenuView: View {
 
             VStack(spacing: 0) {
                 Capsule()
-                    .fill(Color.gray.opacity(0.35))
+                    .fill(Color.secondary.opacity(0.35))
                     .frame(width: 44, height: 5)
                     .padding(.top, 8)
                     .padding(.bottom, 10)
@@ -828,7 +828,7 @@ struct FullMenuView: View {
 
                             HStack(alignment: .top, spacing: 12) {
                                 Text(dish.title)
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                                     .font(.system(size: 24, weight: .bold))
                                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -837,35 +837,35 @@ struct FullMenuView: View {
                                         withAnimation(.easeOut(duration: 0.25)) { showDishShare = true }
                                     }) {
                                         Image(systemName: "square.and.arrow.up")
-                                            .foregroundColor(.black.opacity(0.75))
+                                            .foregroundColor(.primary.opacity(0.75))
                                             .font(.system(size: 16, weight: .semibold))
                                             .frame(width: 34, height: 34)
-                                            .background(Color.gray.opacity(0.10))
+                                            .background(Color.secondary.opacity(0.10))
                                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     }
 
                                     Button(action: {}) {
                                         Image(systemName: "bookmark")
-                                            .foregroundColor(.black.opacity(0.75))
+                                            .foregroundColor(.primary.opacity(0.75))
                                             .font(.system(size: 16, weight: .semibold))
                                             .frame(width: 34, height: 34)
-                                            .background(Color.gray.opacity(0.10))
+                                            .background(Color.secondary.opacity(0.10))
                                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                     }
                                 }
                             }
 
                             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet nisl a risus porta pellentesque. Integer vitae sem in justo luctus tincidunt. Sed pharetra, justo at aliquet euismod, mauris enim facilisis erat, a accumsan arcu urna nec sapien.")
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                                 .font(.system(size: 15))
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             Text(priceText(dish.price))
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 22, weight: .bold))
 
                             Divider()
-                                .overlay(Color.gray.opacity(0.15))
+                                .overlay(Color.secondary.opacity(0.15))
 
                             optionSection(
                                 title: "Acompañamiento recomendado",
@@ -932,7 +932,7 @@ struct FullMenuView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: geo.size.height * 0.75)
-            .background(Color.white)
+            .background(Color(uiColor: .systemBackground))
             .clipShape(FullMenuRoundedCorners(radius: 28, corners: [.topLeft, .topRight]))
             .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 6)
         }
@@ -1081,12 +1081,12 @@ struct FullMenuView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
 
                     Text("\(quantity)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .bold))
                         .frame(minWidth: 14)
 
@@ -1095,13 +1095,13 @@ struct FullMenuView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(Color(uiColor: .systemBackground))
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
             }
@@ -1120,7 +1120,7 @@ struct FullMenuView: View {
             }
 
             Text("\(dishQuantity)")
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
                 .font(.system(size: 16, weight: .bold))
                 .frame(minWidth: 22)
 
@@ -1128,14 +1128,14 @@ struct FullMenuView: View {
                 dishQuantity = min(99, dishQuantity + 1)
             }) {
                 Text("+")
-                    .foregroundColor(.green)
-                    .font(.system(size: 18, weight: .bold))
-                    .frame(width: 36, height: 36)
+                .foregroundColor(.green)
+                .font(.system(size: 18, weight: .bold))
+                .frame(width: 36, height: 36)
             }
         }
         .padding(.horizontal, 10)
         .frame(height: 54)
-        .background(Color.gray.opacity(0.10))
+        .background(Color.secondary.opacity(0.10))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
@@ -1143,11 +1143,11 @@ struct FullMenuView: View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(dish.title)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 16, weight: .bold))
                     .lineLimit(1)
                 Text(priceText(dish.price))
-                    .foregroundColor(.black.opacity(0.75))
+                    .foregroundColor(.primary.opacity(0.75))
                     .font(.system(size: 14, weight: .semibold))
             }
 
@@ -1155,11 +1155,11 @@ struct FullMenuView: View {
 
             Button(action: { closeDishSheet() }) {
                 Circle()
-                    .fill(Color.gray.opacity(0.18))
+                    .fill(Color.secondary.opacity(0.18))
                     .frame(width: 34, height: 34)
                     .overlay(
                         Image(systemName: "xmark")
-                            .foregroundColor(.black.opacity(0.75))
+                            .foregroundColor(.primary.opacity(0.75))
                             .font(.system(size: 13, weight: .bold))
                     )
             }
@@ -1167,8 +1167,8 @@ struct FullMenuView: View {
         .padding(.horizontal, 18)
         .frame(height: 56)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
-        .overlay(Rectangle().fill(Color.gray.opacity(0.12)).frame(height: 1), alignment: .bottom)
+        .background(Color(uiColor: .systemBackground))
+        .overlay(Rectangle().fill(Color.secondary.opacity(0.12)).frame(height: 1), alignment: .bottom)
     }
 
     private func optionSection(
@@ -1180,10 +1180,10 @@ struct FullMenuView: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 17, weight: .bold))
                 Text(subtitle)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 13))
             }
 
@@ -1201,12 +1201,12 @@ struct FullMenuView: View {
         return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(option.title)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 16, weight: .semibold))
                     .lineLimit(1)
 
                 Text(plusPriceText(option.price))
-                    .foregroundColor(.black.opacity(0.8))
+                    .foregroundColor(.primary.opacity(0.8))
                     .font(.system(size: 14, weight: .bold))
             }
 
@@ -1239,12 +1239,12 @@ struct FullMenuView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 30, height: 30)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
 
                     Text("\(qty)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 15, weight: .bold))
                         .frame(minWidth: 16)
 
@@ -1255,24 +1255,24 @@ struct FullMenuView: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 30, height: 30)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(Color(uiColor: .systemBackground))
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
             }
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 14)
-        .background(isSelected ? Color.white : Color.gray.opacity(0.07))
+        .background(isSelected ? Color(uiColor: .systemBackground) : Color.secondary.opacity(0.07))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(isSelected ? Color.green : Color.gray.opacity(0.10), lineWidth: isSelected ? 2 : 1)
+                .stroke(isSelected ? Color.green : Color.secondary.opacity(0.10), lineWidth: isSelected ? 2 : 1)
         )
     }
     
@@ -1391,30 +1391,30 @@ struct FullMenuBranchCard: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SUCURSAL SELECCIONADA")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 11, weight: .bold))
                     Text(branchName)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 15, weight: .bold))
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
                     Text("DISTANCIA")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 11, weight: .bold))
                     HStack(spacing: 6) {
                         Text(String(format: "%.1f km", distanceKm ?? 2.3))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .font(.system(size: 15, weight: .bold))
                         Image(systemName: "chevron.down")
-                            .foregroundColor(.gray.opacity(0.8))
+                            .foregroundColor(.secondary.opacity(0.8))
                             .font(.system(size: 13, weight: .bold))
                     }
                 }
             }
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
-            .background(Color.white)
+            .background(Color(uiColor: .systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
         }
@@ -1431,11 +1431,11 @@ struct FullMenuCategoryTabs: View {
                 ForEach(categories, id: \.self) { t in
                     Button(action: { withAnimation(.easeInOut(duration: 0.18)) { activeTab = t } }) {
                         Text(t)
-                            .foregroundColor(activeTab == t ? .white : .black.opacity(0.7))
+                            .foregroundColor(activeTab == t ? .white : .primary.opacity(0.7))
                             .font(.system(size: 13, weight: .bold))
                             .padding(.vertical, 10)
                             .padding(.horizontal, 16)
-                            .background(activeTab == t ? Color.fuchsia : Color.gray.opacity(0.12))
+                            .background(activeTab == t ? Color.fuchsia : Color.secondary.opacity(0.12))
                             .clipShape(Capsule())
                     }
                 }
@@ -1462,7 +1462,7 @@ struct FullMenuDishRow: View {
                         .aspectRatio(contentMode: .fill)
                 } else {
                     LinearGradient(
-                        colors: [Color.gray.opacity(0.45), Color.gray.opacity(0.18)],
+                        colors: [Color.secondary.opacity(0.45), Color.secondary.opacity(0.18)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -1474,24 +1474,24 @@ struct FullMenuDishRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(dish.title)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .bold))
                         .lineLimit(1)
                     Spacer()
                     Text(String(format: "$%.2f", dish.price))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 15, weight: .bold))
                 }
                 
                 Text(dish.subtitle)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 13))
                     .lineLimit(2)
             }
             .padding(.bottom, 18)
         }
         .padding(14)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 6)
         .overlay(alignment: .bottomTrailing) {
@@ -1522,12 +1522,12 @@ struct FullMenuDishRow: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
 
                     Text("\(quantity)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .bold))
                         .frame(minWidth: 14)
 
@@ -1536,13 +1536,13 @@ struct FullMenuDishRow: View {
                             .foregroundColor(.green)
                             .font(.system(size: 12, weight: .bold))
                             .frame(width: 28, height: 28)
-                            .background(Color.gray.opacity(0.10))
+                            .background(Color.secondary.opacity(0.10))
                             .clipShape(Circle())
                     }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(Color(uiColor: .systemBackground))
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
             }

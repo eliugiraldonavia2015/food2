@@ -141,9 +141,9 @@ struct OwnProfileView: View {
                 .animation(.easeIn.delay(0.3), value: showScreen)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .tint(Color.fuchsia)
-        .preferredColorScheme(.light)
+        // Removed forced preferredColorScheme to allow adaptive Light/Dark mode
         .ignoresSafeArea(edges: .top)
         .onAppear {
             showScreen = true // Animación inmediata del contenedor
@@ -183,7 +183,7 @@ struct OwnProfileView: View {
                     }
                 )
             } else {
-                Color.black.ignoresSafeArea()
+                Color(uiColor: .systemBackground).ignoresSafeArea()
             }
         }
         .fullScreenCover(isPresented: $showEditProfile) {
@@ -204,8 +204,8 @@ struct OwnProfileView: View {
             let height = minY > 0 ? headerHeight + minY : headerHeight
             
             ZStack(alignment: .topLeading) {
-                // 🛑 FIX: Fondo blanco absoluto para evitar franja gris al hacer pull
-                Color.white.ignoresSafeArea()
+                // 🛑 FIX: Fondo absoluto adaptativo para evitar franja gris al hacer pull
+                Color(uiColor: .systemBackground).ignoresSafeArea()
                 
                 // 1. Placeholder Layer (Always visible underneath)
                 ShimmerView()
@@ -247,7 +247,7 @@ struct OwnProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
-        .background(Color.white) // 🛑 FIX: Fondo blanco para el contenedor
+        .background(Color(uiColor: .systemBackground)) // 🛑 FIX: Fondo adaptativo para el contenedor
     }
 
     struct ShimmerView: View {
@@ -256,13 +256,13 @@ struct OwnProfileView: View {
         
         var body: some View {
             ZStack {
-                Color.white // 🛑 FIX: Fondo base blanco
+                Color(uiColor: .systemGray6) // 🛑 FIX: Fondo base adaptativo (gris claro en light, oscuro en dark)
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.white,
-                        Color.gray.opacity(0.15),
-                        Color.white
+                        Color(uiColor: .systemGray6),
+                        Color(uiColor: .systemGray4).opacity(0.3),
+                        Color(uiColor: .systemGray6)
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
@@ -282,7 +282,7 @@ struct OwnProfileView: View {
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
                 .init(color: .clear, location: 0.6),
-                .init(color: Color.white, location: 1.0)
+                .init(color: Color(uiColor: .systemBackground), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -294,7 +294,7 @@ struct OwnProfileView: View {
             // Avatar con Placeholder
             ZStack {
                 Circle()
-                    .fill(Color.white)
+                    .fill(Color(uiColor: .systemBackground))
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
@@ -320,11 +320,11 @@ struct OwnProfileView: View {
             
             VStack(spacing: 8) {
                 Text(user.name)
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 24, weight: .bold))
                 
                 Text("@\(user.username)")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .font(.system(size: 15))
                 
                 HStack(spacing: 32) {
@@ -332,24 +332,24 @@ struct OwnProfileView: View {
                     VStack(spacing: 0) {
                         HStack(spacing: 4) {
                             Text("4.8")
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                                 .font(.system(size: 20))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.red)
                                 .font(.system(size: 18))
                         }
                         Text("Calificación")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .font(.system(size: 13))
                     }
                     
                     // Seguidores
                     VStack(spacing: 0) {
                         Text(formatCount(user.followers))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .font(.system(size: 20))
                         Text("Seguidores")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                             .font(.system(size: 13))
                     }
                 }
@@ -372,13 +372,13 @@ struct OwnProfileView: View {
                     
                     Button(action: { showShareSheet = true }) {
                         HStack(spacing: 8) {
-                            Text("Compartir perfil").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
+                            Text("Compartir perfil").foregroundColor(.primary).font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color.white)
+                        .background(Color(uiColor: .systemBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
                     }
                 }
                 .padding(.top, 12)
@@ -401,11 +401,11 @@ struct OwnProfileView: View {
     
     private var descriptionCard: some View {
         Text(hardcodedDescriptionText)
-            .foregroundColor(.gray)
+            .foregroundColor(.secondary)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.gray.opacity(0.05))
+            .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(12)
     }
 
@@ -486,7 +486,7 @@ struct OwnProfileView: View {
                     segmentButton(title: "Restaurantes", index: 0)
                     segmentButton(title: "Platos", index: 1)
                 }
-                .background(Color.gray.opacity(0.1))
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 4)
                 
@@ -524,12 +524,12 @@ struct OwnProfileView: View {
             }) {
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(selectedSegment == index ? .black : .gray)
+                    .foregroundColor(selectedSegment == index ? .primary : .secondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.white)
+                            .fill(Color(uiColor: .systemBackground))
                             .padding(2)
                             .opacity(selectedSegment == index ? 1 : 0)
                             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
@@ -552,11 +552,11 @@ struct OwnProfileView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(restaurant.name)
                                     .font(.headline)
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                                 
                                 Text(restaurant.category)
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                                 
                                 HStack(spacing: 4) {
                                     Image(systemName: "clock.arrow.circlepath")
@@ -564,7 +564,7 @@ struct OwnProfileView: View {
                                         .foregroundColor(.orange)
                                     Text("Última vez: \(restaurant.lastVisit)")
                                         .font(.caption2)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondary)
                                 }
                             }
                             
@@ -576,11 +576,11 @@ struct OwnProfileView: View {
                                     .foregroundColor(.fuchsia)
                                 Text("Visitas")
                                     .font(.caption2)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
                         }
                         .padding(12)
-                        .background(Color.white)
+                        .background(Color(uiColor: .secondarySystemBackground))
                         .cornerRadius(16)
                         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                     }
@@ -603,7 +603,7 @@ struct OwnProfileView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(dish.name)
                                 .font(.headline)
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                             
                             Text(dish.restaurant)
                                 .font(.caption)
@@ -611,7 +611,7 @@ struct OwnProfileView: View {
                             
                             Text(dish.price)
                                 .font(.caption.bold())
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                         
                         Spacer()
@@ -623,15 +623,15 @@ struct OwnProfileView: View {
                                     .foregroundColor(.orange)
                                 Text("\(dish.orders)")
                                     .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                             }
                             Text("Pedidos")
                                 .font(.caption2)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.secondary)
                         }
                     }
                     .padding(12)
-                    .background(Color.white)
+                    .background(Color(uiColor: .secondarySystemBackground))
                     .cornerRadius(16)
                     .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                 }
@@ -673,7 +673,7 @@ struct OwnProfileView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.black).font(.headline)
+            Text(title).foregroundColor(.primary).font(.headline)
             Spacer()
         }
     }
@@ -686,7 +686,7 @@ struct OwnProfileView: View {
                 .frame(height: headerHeight)
                 .overlay(
                     LinearGradient(
-                        gradient: Gradient(colors: [.clear, .white.opacity(0.5), .clear]),
+                        gradient: Gradient(colors: [.clear, Color(uiColor: .systemBackground).opacity(0.5), .clear]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )

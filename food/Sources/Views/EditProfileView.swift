@@ -33,7 +33,7 @@ struct EditProfileView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemBackground).ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Custom Header
@@ -42,7 +42,7 @@ struct EditProfileView: View {
                         withAnimation { onClose() }
                     }) {
                         Text("Cancelar")
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .font(.system(size: 17))
                     }
                     
@@ -50,6 +50,7 @@ struct EditProfileView: View {
                     
                     Text("Editar Perfil")
                         .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
@@ -59,14 +60,14 @@ struct EditProfileView: View {
                         } else {
                             Text("Guardar")
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundColor(canSave ? .fuchsia : .gray.opacity(0.5))
+                                .foregroundColor(canSave ? .fuchsia : .secondary.opacity(0.5))
                         }
                     }
                     .disabled(!canSave || isSaving)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 12)
-                .background(Color.white.shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 5))
+                .background(Color(uiColor: .systemBackground).shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 5))
                 .zIndex(10)
                 
                 ScrollView {
@@ -96,19 +97,19 @@ struct EditProfileView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Biografía")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                                     .padding(.leading, 4)
                                 
                                 TextEditor(text: $bio)
                                     .frame(minHeight: 100)
                                     .scrollContentBackground(.hidden) // iOS 16+ fix for background
-                                    .foregroundColor(.black)
+                                    .foregroundColor(.primary)
                                     .padding(12)
-                                    .background(Color.gray.opacity(0.05))
+                                    .background(Color(uiColor: .secondarySystemBackground))
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                                            .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
                                     )
                             }
                         }
@@ -127,7 +128,8 @@ struct EditProfileView: View {
                 }
             }
         }
-        .preferredColorScheme(.light) // Force light mode to fix placeholders and backgrounds
+        // Removed forced preferredColorScheme
+
         .onAppear {
             load()
             withAnimation {
@@ -155,7 +157,7 @@ struct EditProfileView: View {
     private var coverPicker: some View {
         PhotosPicker(selection: $selectedCoverItem, matching: .images) {
             ZStack {
-                Color.gray.opacity(0.1)
+                Color(uiColor: .secondarySystemBackground)
                 
                 if let img = selectedCoverImage {
                     Image(uiImage: img)
@@ -167,7 +169,7 @@ struct EditProfileView: View {
                         .scaledToFill()
                 } else {
                     Image(systemName: "camera.fill")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.title)
                 }
             }
@@ -192,7 +194,7 @@ struct EditProfileView: View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
             ZStack {
                 Circle()
-                    .fill(Color.white)
+                    .fill(Color(uiColor: .systemBackground))
                     .frame(width: 120, height: 120)
                     .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                 
@@ -208,7 +210,7 @@ struct EditProfileView: View {
                     } else {
                         Image(systemName: "person.circle.fill")
                             .resizable()
-                            .foregroundColor(.gray.opacity(0.3))
+                            .foregroundColor(.secondary.opacity(0.3))
                     }
                 }
                 .frame(width: 112, height: 112)
@@ -228,15 +230,16 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Usuario")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .padding(.leading, 4)
             
             HStack {
                 Text("@")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 TextField("usuario", text: $username)
                     .autocorrectionDisabled(true)
                     .textInputAutocapitalization(.never)
+                    .foregroundColor(.primary)
                 
                 if usernameChecking {
                     ProgressView()
@@ -247,11 +250,11 @@ struct EditProfileView: View {
                 }
             }
             .padding()
-            .background(Color.gray.opacity(0.05))
+            .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(usernameAvailable == false ? Color.red : Color.gray.opacity(0.1), lineWidth: 1)
+                    .stroke(usernameAvailable == false ? Color.red : Color.secondary.opacity(0.1), lineWidth: 1)
             )
             
             if usernameAvailable == false {
@@ -447,17 +450,17 @@ struct ModernTextField: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .padding(.leading, 4)
             
-            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray))
-                .foregroundColor(.black)
+            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.secondary))
+                .foregroundColor(.primary)
                 .padding()
-                .background(Color.gray.opacity(0.05))
+                .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
                 )
         }
     }
