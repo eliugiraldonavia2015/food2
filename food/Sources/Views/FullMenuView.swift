@@ -952,12 +952,12 @@ struct FullMenuView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("FoodTook - \(branch.name)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text(branch.address)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 13))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
