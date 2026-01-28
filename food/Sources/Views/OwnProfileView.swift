@@ -214,19 +214,31 @@ struct OwnProfileView: View {
                     .offset(y: minY > 0 ? -minY : 0) // 🛑 FIX: Mover el shimmer también
                 
                 // 2. Image Layer
-                WebImage(url: URL(string: user.coverUrl))
-                    .onSuccess { image, _, _ in
-                        self.loadedCoverImage = image
-                    }
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.3))
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: height)
-                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                    .clipped()
-                    .overlay(coverGradient)
-                    .offset(y: minY > 0 ? -minY : 0)
+                if let url = URL(string: user.coverUrl), !user.coverUrl.isEmpty {
+                    WebImage(url: url)
+                        .onSuccess { image, _, _ in
+                            self.loadedCoverImage = image
+                        }
+                        .resizable()
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.3))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: height)
+                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                        .clipped()
+                        .overlay(coverGradient)
+                        .offset(y: minY > 0 ? -minY : 0)
+                } else {
+                    // Fallback directo a hardcoded optimizado si la URL falla
+                    WebImage(url: URL(string: "https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=800&q=80"))
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: height)
+                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                        .clipped()
+                        .overlay(coverGradient)
+                        .offset(y: minY > 0 ? -minY : 0)
+                }
                 
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
@@ -286,13 +298,22 @@ struct OwnProfileView: View {
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
-                WebImage(url: URL(string: user.photoUrl))
-                    .resizable()
-                    .indicator(.activity)
-                    .transition(.fade(duration: 0.2))
-                    .scaledToFill()
-                    .frame(width: 102, height: 102)
-                    .clipShape(Circle())
+                if let url = URL(string: user.photoUrl), !user.photoUrl.isEmpty {
+                    WebImage(url: url)
+                        .resizable()
+                        .indicator(.activity)
+                        .transition(.fade(duration: 0.2))
+                        .scaledToFill()
+                        .frame(width: 102, height: 102)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 102, height: 102)
+                        .foregroundColor(.gray.opacity(0.5))
+                        .clipShape(Circle())
+                }
             }
             .offset(y: -75) // Subido de -55 a -75
             .padding(.bottom, -60) // Ajustado de -40 a -60 para compensar
