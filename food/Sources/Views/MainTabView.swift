@@ -64,8 +64,13 @@ struct MainTabView: View {
             
 
             if showShop {
-                FoodDiscoveryView(onClose: { showShop = false })
-                    .zIndex(2)
+                FoodDiscoveryView(onClose: { 
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        showShop = false 
+                    }
+                })
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(2)
             }
 
             // TAB BAR

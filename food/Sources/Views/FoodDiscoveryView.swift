@@ -4,9 +4,15 @@ import SDWebImageSwiftUI
 struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
     @State private var searchText = ""
-    @State private var showFilters = false // Estado para mostrar filtros
+    @State private var showFilters = false
     var onClose: () -> Void
     @State private var orderTapScale: CGFloat = 1.0
+    
+    // Animation States
+    @State private var animateHeader = false
+    @State private var animateSearch = false
+    @State private var animateCategories = false
+    @State private var animateContent = false
     
     // Datos simulados
     let categories = ["Burgers", "Pizza", "Saludable", "Carnes", "Drinks", "Sushi"]
@@ -14,17 +20,17 @@ struct FoodDiscoveryView: View {
     struct CategoryItem: Identifiable {
         let id = UUID()
         let name: String
-        let icon: String // SF Symbol o emoji
+        let icon: String
         let color: Color
     }
     
     let categoryItems = [
-        CategoryItem(name: "Burgers", icon: "🍔", color: .white),
-        CategoryItem(name: "Pizza", icon: "🍕", color: .white),
-        CategoryItem(name: "Saludable", icon: "🥗", color: .white),
-        CategoryItem(name: "Carnes", icon: "🥩", color: .white),
-        CategoryItem(name: "Drinks", icon: "🥤", color: .white),
-        CategoryItem(name: "Sushi", icon: "🍣", color: .white)
+        CategoryItem(name: "Burgers", icon: "🍔", color: .orange.opacity(0.1)),
+        CategoryItem(name: "Pizza", icon: "🍕", color: .red.opacity(0.1)),
+        CategoryItem(name: "Saludable", icon: "🥗", color: .green.opacity(0.1)),
+        CategoryItem(name: "Carnes", icon: "🥩", color: .brown.opacity(0.1)),
+        CategoryItem(name: "Drinks", icon: "🥤", color: .blue.opacity(0.1)),
+        CategoryItem(name: "Sushi", icon: "🍣", color: .purple.opacity(0.1))
     ]
     
     struct PopularItem: Identifiable {
@@ -50,41 +56,80 @@ struct FoodDiscoveryView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(UIColor.systemGray6).ignoresSafeArea() // Light Background
             
             VStack(spacing: 0) {
                 // Fixed Header Section
                 VStack(spacing: 12) {
                     headerView
+                        .offset(y: animateHeader ? 0 : -50)
+                        .opacity(animateHeader ? 1 : 0)
+                    
                     searchBar
+                        .scaleEffect(animateSearch ? 1 : 0.9)
+                        .opacity(animateSearch ? 1 : 0)
+                    
                     categoriesFilter
+                        .offset(x: animateCategories ? 0 : 50)
+                        .opacity(animateCategories ? 1 : 0)
                 }
-                .padding(.top, 55) // Ajuste manual para subirlo más
+                .padding(.top, 55)
                 .padding(.bottom, 10)
-                .background(Color.black)
+                .background(
+                    Color.white
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 5)
+                )
+                .zIndex(10)
                 
                 // Scrollable Content
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 24) {
                         promoCarousel
+                            .offset(y: animateContent ? 0 : 30)
+                            .opacity(animateContent ? 1 : 0)
+                        
                         categoryIconsRow
-                        ForEach(style1SectionsData) { section in
+                            .offset(y: animateContent ? 0 : 40)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.1), value: animateContent)
+                        
+                        ForEach(Array(style1SectionsData.enumerated()), id: \.element.id) { index, section in
                             sectionStyle1(title: section.title, items: section.items)
+                                .offset(y: animateContent ? 0 : 50)
+                                .opacity(animateContent ? 1 : 0)
+                                .animation(.easeOut(duration: 0.6).delay(0.15 + Double(index) * 0.1), value: animateContent)
                         }
+                        
                         dealsSection(title: "Descuentazos")
+                            .offset(y: animateContent ? 0 : 50)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
+                        
                         dealsSection(title: "Más ofertas")
+                            .offset(y: animateContent ? 0 : 50)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.5), value: animateContent)
+                        
                         popularSection
+                            .offset(y: animateContent ? 0 : 50)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
+                        
                         feedSectionStyle4
+                            .offset(y: animateContent ? 0 : 50)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.7), value: animateContent)
+                            
                         Spacer().frame(height: 100)
                     }
                     .padding(.top, 10)
                 }
             }
-            .blur(radius: showFilters ? 5 : 0) // Blur effect when filters are shown
+            .blur(radius: showFilters ? 5 : 0)
             
             // Dimming Background
             if showFilters {
-                Color.black.opacity(0.6)
+                Color.black.opacity(0.3)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation { showFilters = false }
@@ -96,7 +141,7 @@ struct FoodDiscoveryView: View {
             if showFilters {
                 FilterSheet(onClose: { withAnimation { showFilters = false } })
                     .transition(.move(edge: .bottom))
-                    .zIndex(2)
+                    .zIndex(20)
             }
         }
         .ignoresSafeArea(edges: .top)
@@ -107,7 +152,24 @@ struct FoodDiscoveryView: View {
                 }
             }
         )
-        .animation(.easeInOut, value: showFilters)
+        .onAppear {
+            startAnimations()
+        }
+    }
+    
+    private func startAnimations() {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            animateHeader = true
+        }
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1)) {
+            animateSearch = true
+        }
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+            animateCategories = true
+        }
+        withAnimation(.spring(response: 0.8, dampingFraction: 0.8).delay(0.3)) {
+            animateContent = true
+        }
     }
     
     // MARK: - Subviews
@@ -119,24 +181,24 @@ struct FoodDiscoveryView: View {
                     .foregroundColor(.green)
                     .font(.system(size: 18))
                 Text("Tu ubicación")
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .font(.system(size: 16, weight: .medium))
             }
             
             Spacer()
             
             Text("Foodtook")
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .font(.system(size: 22, weight: .heavy))
             
             Spacer()
             
             ZStack {
                 Circle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(Color(UIColor.systemGray5))
                     .frame(width: 40, height: 40)
                 
-                Image(systemName: "person.crop.circle.fill") // Avatar placeholder
+                Image(systemName: "person.crop.circle.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 40, height: 40)
@@ -146,7 +208,6 @@ struct FoodDiscoveryView: View {
                     )
             }
             .onTapGesture {
-                // Close or profile action
                 onClose()
             }
         }
@@ -159,13 +220,14 @@ struct FoodDiscoveryView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.gray)
                 TextField("Buscar restaurantes...", text: $searchText)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Image(systemName: "mic")
                     .foregroundColor(.gray)
             }
             .padding()
-            .background(Color(UIColor.systemGray6).opacity(0.15))
+            .background(Color(UIColor.systemGray6))
             .cornerRadius(25)
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
             
             Button(action: {
                 withAnimation { showFilters = true }
@@ -174,8 +236,9 @@ struct FoodDiscoveryView: View {
                     .font(.system(size: 20))
                     .foregroundColor(.white)
                     .padding(12)
-                    .background(Color(UIColor.systemGray6).opacity(0.15))
+                    .background(Color.black)
                     .clipShape(Circle())
+                    .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
             }
         }
         .padding(.horizontal)
@@ -190,54 +253,24 @@ struct FoodDiscoveryView: View {
                             .font(.system(size: 15, weight: .semibold))
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
-                            .background(selectedCategory == category ? Color.green : Color.white.opacity(0.08))
-                            .foregroundColor(.white)
+                            .background(
+                                selectedCategory == category ?
+                                Color.green :
+                                Color.white
+                            )
+                            .foregroundColor(selectedCategory == category ? .white : .primary)
                             .cornerRadius(20)
+                            .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color(UIColor.systemGray5), lineWidth: selectedCategory == category ? 0 : 1)
+                            )
                     }
                 }
             }
             .padding(.horizontal)
+            .padding(.vertical, 4)
         }
-    }
-    
-    private var heroBanner: some View {
-        ZStack(alignment: .leading) {
-            safeImage(url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836", height: 180, contentMode: .fill)
-                .overlay(
-                    LinearGradient(colors: [.black.opacity(0.7), .clear], startPoint: .leading, endPoint: .trailing)
-                )
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Get 50% Off")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Text("en tu primera orden sobre $25")
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.9))
-                
-                Button(action: {
-                    withAnimation(.easeOut(duration: 0.12)) { orderTapScale = 0.95 }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { orderTapScale = 1.0 }
-                    }
-                }) {
-                    Text("Ordenar ahora")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color(red: 244/255, green: 37/255, blue: 123/255))
-                        .cornerRadius(8)
-                        .scaleEffect(orderTapScale)
-                }
-                .padding(.top, 8)
-            }
-            .padding(.horizontal, 24)
-        }
-        .frame(height: 180)
-        .cornerRadius(24)
-        .padding(.horizontal)
     }
     
     private var categoryIconsRow: some View {
@@ -246,25 +279,23 @@ struct FoodDiscoveryView: View {
                 ForEach(categoryItems) { item in
                     VStack(spacing: 8) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.14))
+                            Circle()
+                                .fill(Color.white)
                                 .frame(width: 64, height: 64)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.white.opacity(0.22), lineWidth: 1)
-                                )
+                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                            
                             Text(item.icon)
                                 .font(.system(size: 30))
-                                .foregroundColor(.white)
                         }
                         
                         Text(item.name)
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.primary)
                     }
                 }
             }
             .padding(.horizontal)
+            .padding(.vertical, 4)
         }
     }
 
@@ -331,7 +362,7 @@ struct FoodDiscoveryView: View {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .padding(.horizontal)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -340,6 +371,7 @@ struct FoodDiscoveryView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 10) // Shadow space
             }
         }
     }
@@ -350,11 +382,11 @@ struct FoodDiscoveryView: View {
                 safeImage(url: item.imageUrl, width: 240, height: 120, contentMode: .fill)
                 if let promo = item.promo {
                     Text(promo)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.yellow)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green)
                         .cornerRadius(6)
                         .padding(8)
                 }
@@ -363,42 +395,32 @@ struct FoodDiscoveryView: View {
                 Text(item.title)
                     .font(.system(size: 16, weight: .bold))
                     .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .foregroundColor(.white)
-                HStack(spacing: 8) {
+                    .foregroundColor(.primary)
+                HStack(spacing: 4) {
                     Text(item.time)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
                     Text("•")
-                        .foregroundColor(.gray)
                     Text(item.fee)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
                     Text("•")
-                        .foregroundColor(.gray)
                     Text(item.distance)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
                 }
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+                
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(.orange)
                     Text(String(format: "%.1f", item.rating))
-                        .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.primary)
                 }
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.12))
+            .padding(12)
         }
         .frame(width: 240)
+        .background(Color.white)
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.22), lineWidth: 1)
-        )
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
 
     struct DealItem: Identifiable {
@@ -429,7 +451,7 @@ struct FoodDiscoveryView: View {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .padding(.horizontal)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -438,6 +460,7 @@ struct FoodDiscoveryView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 10)
             }
         }
     }
@@ -450,10 +473,10 @@ struct FoodDiscoveryView: View {
                     .cornerRadius(16, corners: [.topLeft, .topRight])
                 Text(deal.discountText)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.yellow)
+                    .background(Color.red)
                     .cornerRadius(4)
                     .padding(8)
             }
@@ -461,41 +484,38 @@ struct FoodDiscoveryView: View {
                 HStack(spacing: 8) {
                     Text(deal.price)
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Text(deal.oldPrice)
-                        .font(.system(size: 18))
+                        .font(.system(size: 14))
                         .foregroundColor(.gray)
                         .strikethrough()
                 }
                 Text(deal.subtitle)
                     .font(.system(size: 13))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                
                 HStack(spacing: 6) {
                     Text(deal.merchant)
                         .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Text("•")
                         .foregroundColor(.gray)
                     Image(systemName: "clock")
                         .foregroundColor(.gray)
-                        .font(.system(size: 12))
+                        .font(.system(size: 10))
                     Text(deal.time)
                         .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: 180)
-        .background(Color.white.opacity(0.12))
+        .background(Color.white)
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.22), lineWidth: 1)
-        )
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
 
     struct FeedItem: Identifiable {
@@ -528,28 +548,28 @@ struct FoodDiscoveryView: View {
                         Text(item.title)
                             .font(.system(size: 20, weight: .bold))
                             .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                         if let promo = item.promo {
                             Text(promo)
                                 .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(.black)
+                                .foregroundColor(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .background(Color.yellow)
+                                .background(Color.green)
                                 .cornerRadius(6)
                         }
                         Text(item.meta)
                             .font(.system(size: 12))
-                            .foregroundColor(.white)
+                            .foregroundColor(.secondary)
                         Text(item.rating)
                             .font(.system(size: 12))
-                            .foregroundColor(.white)
+                            .foregroundColor(.orange)
                     }
                     .padding(.horizontal)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 12)
             }
             Spacer().frame(height: 20)
         }
@@ -562,8 +582,9 @@ struct FoodDiscoveryView: View {
             promoSlide(imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
         }
         .frame(height: 220)
-        .tabViewStyle(PageTabViewStyle())
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
         .padding(.horizontal)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 
     private func promoSlide(imageUrl: String) -> some View {
@@ -595,7 +616,7 @@ struct FoodDiscoveryView: View {
             Text("Popular cerca de ti")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .padding(.horizontal)
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -605,6 +626,7 @@ struct FoodDiscoveryView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 10)
             }
         }
     }
@@ -634,11 +656,11 @@ struct FoodDiscoveryView: View {
                             .foregroundColor(.orange)
                         Text(String(format: "%.1f", item.rating))
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.black.opacity(0.6))
+                    .background(Color.white.opacity(0.9))
                     .cornerRadius(4)
                 }
                 .padding(10)
@@ -649,12 +671,11 @@ struct FoodDiscoveryView: View {
                 Text(item.name)
                     .font(.system(size: 16, weight: .bold))
                     .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 
                 Text(item.restaurant)
                     .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 
                 HStack {
                     Text("$\(String(format: "%.2f", item.price))")
@@ -665,19 +686,16 @@ struct FoodDiscoveryView: View {
                     
                     Text(item.time)
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white.opacity(0.12))
         }
         .frame(width: 200)
+        .background(Color.white)
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.22), lineWidth: 1)
-        )
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -685,10 +703,10 @@ struct FoodDiscoveryView: View {
 struct FilterSheet: View {
     var onClose: () -> Void
     
-    // Estado de expansión (Solo uno a la vez)
+    // Estado de expansión
     @State private var expandedSection: String? = nil
     
-    // Estados de Sliders (Índices)
+    // Estados de Sliders
     @State private var priceIndex: Double = 0
     @State private var timeIndex: Double = 0
     @State private var distanceIndex: Double = 0
@@ -698,7 +716,7 @@ struct FilterSheet: View {
     @State private var selectedFoodTypes: Set<String> = []
     @State private var selectedOffers: Set<String> = []
     
-    // Arrays de valores para los sliders (Mapeo no lineal)
+    // Arrays de valores
     private let priceValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
     private let timeValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 75, 90, 105, 120]
     private let distanceValues: [Int] = [1, 5, 10, 15, 20, 25, 30, 35, 40]
@@ -717,12 +735,12 @@ struct FilterSheet: View {
                         Text("Filtros")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                         
                         Spacer()
                         
                         Button(action: clearFilters) {
-                            Text("Limpiar Filtros")
+                            Text("Limpiar")
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
@@ -733,6 +751,7 @@ struct FilterSheet: View {
                     }
                     .padding()
                     .padding(.top, 10)
+                    .background(Color.white)
                     
                     // Content List
                     ScrollView {
@@ -773,19 +792,15 @@ struct FilterSheet: View {
                                             HStack(spacing: 4) {
                                                 Text("\(star)")
                                                     .font(.system(size: 14, weight: .bold))
-                                                    .foregroundColor(.white)
+                                                    .foregroundColor(selectedRatings.contains(star) ? .white : .primary)
                                                 Image(systemName: "star.fill")
                                                     .font(.system(size: 10))
-                                                    .foregroundColor(selectedRatings.contains(star) ? .white : .yellow)
+                                                    .foregroundColor(selectedRatings.contains(star) ? .white : .orange)
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(selectedRatings.contains(star) ? Color.orange : Color.white.opacity(0.06))
+                                            .background(selectedRatings.contains(star) ? Color.orange : Color(UIColor.systemGray6))
                                             .cornerRadius(8)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                            )
                                         }
                                     }
                                 }
@@ -799,15 +814,11 @@ struct FilterSheet: View {
                                         Button(action: { toggleFoodType(type) }) {
                                             Text(type)
                                                 .font(.system(size: 14, weight: .medium))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color.white.opacity(0.06))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(UIColor.systemGray6))
                                                 .cornerRadius(8)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                                )
                                         }
                                     }
                                 }
@@ -828,22 +839,18 @@ struct FilterSheet: View {
                                 .padding(.top, 8)
                             }
                             
-                            // Ofertas y descuentos
+                            // Ofertas
                             filterSection(title: "Ofertas y descuentos", id: "Ofertas") {
                                 FlowLayout(spacing: 10) {
                                     ForEach(offerTypes, id: \.self) { offer in
                                         Button(action: { toggleOffer(offer) }) {
                                             Text(offer)
                                                 .font(.system(size: 14, weight: .medium))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(selectedOffers.contains(offer) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedOffers.contains(offer) ? Color.orange : Color.white.opacity(0.06))
+                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(UIColor.systemGray6))
                                                 .cornerRadius(8)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 8)
-                                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                                )
                                         }
                                     }
                                 }
@@ -851,24 +858,27 @@ struct FilterSheet: View {
                             }
                         }
                         .padding()
-                        .padding(.bottom, 80) // Space for apply button
+                        .padding(.bottom, 80)
                     }
                     
                     // Apply Button
                     Button(action: onClose) {
-                        Text("Aplicar")
+                        Text("Aplicar Filtros")
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.green)
                             .cornerRadius(12)
+                            .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding()
+                    .background(Color.white)
                 }
-                .frame(height: geometry.size.height * 0.65)
-                .background(Color(red: 0.1, green: 0.1, blue: 0.1)) // Dark background
+                .frame(height: geometry.size.height * 0.75)
+                .background(Color.white)
                 .cornerRadius(24, corners: [.topLeft, .topRight])
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
             }
         }
         .ignoresSafeArea()
@@ -888,14 +898,14 @@ struct FilterSheet: View {
                 HStack {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(.white)
+                        .foregroundColor(.secondary)
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color.white.opacity(0.06))
+                .background(Color(UIColor.systemGray6).opacity(0.5))
             }
             
             if expandedSection == id {
@@ -905,8 +915,9 @@ struct FilterSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(Color.white.opacity(0.03))
+        .background(Color.white)
         .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
     // MARK: - Helpers
@@ -1002,27 +1013,4 @@ struct FlowLayout: Layout {
         
         return (CGSize(width: maxWidth, height: currentY + lineHeight), points)
     }
-}
-
-
-
-// Global safe image loader with graceful fallback
-func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: SwiftUI.ContentMode = .fill) -> some View {
-    let finalURL = URL(string: url + (url.contains("unsplash.com") ? "?auto=format&fit=crop&w=800&q=80" : ""))
-    return WebImage(url: finalURL) { image in
-        image
-            .resizable()
-            .aspectRatio(contentMode: contentMode)
-    } placeholder: {
-        ZStack {
-            LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: "photo")
-                .font(.system(size: 20))
-                .foregroundColor(.white.opacity(0.8))
-        }
-    }
-    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
-    .frame(width: width, height: height)
-    .background(Color.white.opacity(0.06))
-    .clipped()
 }
