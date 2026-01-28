@@ -105,12 +105,12 @@ struct UserProfileView: View {
             if showBackButton {
                 Button(action: { dismiss() }) {
                     Circle()
-                        .fill(Material.ultraThinMaterial)
+                        .fill(Color.black.opacity(0.35))
                         .frame(width: 38, height: 38)
-                        .overlay(Image(systemName: "chevron.left").foregroundColor(.primary))
+                        .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                 }
-                .padding(12)
-                .offset(y: 12)
+                .padding(.leading, 16)
+                .padding(.top, 10)
                 .opacity(animateContent ? 1 : 0)
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
