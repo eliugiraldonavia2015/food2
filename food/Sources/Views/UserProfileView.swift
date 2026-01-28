@@ -115,8 +115,9 @@ struct UserProfileView: View {
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
-        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
+        .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
@@ -154,7 +155,7 @@ struct UserProfileView: View {
             
             ZStack(alignment: .topLeading) {
                 // 🛑 FIX: Fondo blanco absoluto para evitar franja gris al hacer pull
-                Color(uiColor: .systemBackground).ignoresSafeArea()
+                Color.white.ignoresSafeArea()
                 
                 // 1. Placeholder Layer (Always visible underneath)
                 ShimmerView()
@@ -195,7 +196,7 @@ struct UserProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
-        .background(Color(uiColor: .systemBackground)) // 🛑 FIX: Fondo blanco para el contenedor
+        .background(Color.white) // 🛑 FIX: Fondo blanco para el contenedor
     }
 
     struct ShimmerView: View {
@@ -204,13 +205,13 @@ struct UserProfileView: View {
         
         var body: some View {
             ZStack {
-                Color(uiColor: .systemBackground) // 🛑 FIX: Fondo base blanco
+                Color.white // 🛑 FIX: Fondo base blanco
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color(uiColor: .systemBackground),
+                        Color.white,
                         Color.gray.opacity(0.15),
-                        Color(uiColor: .systemBackground)
+                        Color.white
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
@@ -230,7 +231,7 @@ struct UserProfileView: View {
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
                 .init(color: .clear, location: 0.6),
-                .init(color: Color(uiColor: .systemBackground), location: 1.0)
+                .init(color: Color.white, location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -242,7 +243,7 @@ struct UserProfileView: View {
             // Avatar con Placeholder
             ZStack {
                 Circle()
-                    .fill(Color(uiColor: .systemBackground))
+                    .fill(Color.white)
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
@@ -266,11 +267,11 @@ struct UserProfileView: View {
             
             VStack(spacing: 8) {
                 Text(user.name)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.black)
                     .font(.system(size: 24, weight: .bold))
                 
                 Text("@\(user.username)")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray)
                     .font(.system(size: 15))
                 
                 HStack(spacing: 32) {
@@ -278,24 +279,24 @@ struct UserProfileView: View {
                     VStack(spacing: 0) {
                         HStack(spacing: 4) {
                             Text("4.8")
-                                .foregroundColor(.primary)
+                                .foregroundColor(.black)
                                 .font(.system(size: 20))
                             Image(systemName: "star.fill")
                                 .foregroundColor(.red)
                                 .font(.system(size: 18))
                         }
                         Text("Calificación")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.gray)
                             .font(.system(size: 13))
                     }
                     
                     // Seguidores
                     VStack(spacing: 0) {
                         Text(formatCount(user.followers))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.black)
                             .font(.system(size: 20))
                         Text("Seguidores")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.gray)
                             .font(.system(size: 13))
                     }
                 }
@@ -321,13 +322,13 @@ struct UserProfileView: View {
                     
                     Button(action: {}) {
                         HStack(spacing: 8) {
-                            Text("Mensaje").foregroundColor(.primary).font(.system(size: 16, weight: .semibold))
+                            Text("Mensaje").foregroundColor(.black).font(.system(size: 16, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color(uiColor: .systemBackground))
+                        .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.gray.opacity(0.2), lineWidth: 1))
                     }
                 }
                 .padding(.top, 12)
@@ -347,10 +348,10 @@ struct UserProfileView: View {
                         
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Ver Menú Completo")
-                                .foregroundColor(.primary)
+                                .foregroundColor(.black)
                                 .font(.system(size: 16, weight: .bold))
                             Text("Explora nuestros platillos")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.gray)
                                 .font(.system(size: 13, weight: .medium))
                         }
                         
@@ -358,22 +359,22 @@ struct UserProfileView: View {
                         
                         ZStack {
                             Circle()
-                                .fill(Color.secondary.opacity(0.1))
+                                .fill(Color.gray.opacity(0.1))
                                 .frame(width: 32, height: 32)
                             
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.primary.opacity(0.6))
+                                .foregroundColor(.black.opacity(0.6))
                                 .font(.system(size: 14, weight: .bold))
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(Color(uiColor: .systemBackground))
+                    .background(Color.white)
                     .cornerRadius(20) // Bordes más redondeados y modernos
                     .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4) // Sombra suave y difusa tipo iOS
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(LinearGradient(colors: [Color(uiColor: .systemBackground).opacity(0.6), Color(uiColor: .systemBackground).opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1) // Borde sutil brillante
+                            .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1) // Borde sutil brillante
                     )
                     .scaleEffect(1.0)
                 }
@@ -385,7 +386,6 @@ struct UserProfileView: View {
         }
         .padding(.top, 0)
     }
-
     
     // Estilo de botón con animación de rebote (Spring)
     struct BouncyButtonStyle: ButtonStyle {
@@ -423,7 +423,7 @@ struct UserProfileView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.primary).font(.headline)
+            Text(title).foregroundColor(.black).font(.headline)
             Spacer()
         }
     }

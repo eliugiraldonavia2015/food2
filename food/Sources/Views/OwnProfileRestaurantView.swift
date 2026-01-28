@@ -146,6 +146,23 @@ struct OwnProfileRestaurantView: View {
         }
     }
     
+    private var logoutButton: some View {
+        Button(action: {
+            AuthService.shared.signOut()
+        }) {
+            HStack {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Text("Cerrar Sesión")
+            }
+            .foregroundColor(.red)
+            .font(.system(size: 16, weight: .bold))
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+    
     // MARK: - Componentes Visuales
     
     private func header(user: PublicProfileViewModel.UserProfileData) -> some View {

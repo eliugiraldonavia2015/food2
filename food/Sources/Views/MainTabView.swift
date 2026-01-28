@@ -11,7 +11,7 @@ struct MainTabView: View {
     @State private var showShopLoading = false
     @State private var showShop = false
     @State private var inDiscoveryMode = false
-    private let tabBarHeight: CGFloat = 58
+    private let tabBarHeight: CGFloat = 52
     @State private var showCommentsOverlay = false
     @State private var commentsCount: Int = 0
     @State private var currentFeedImageUrl: String = ""
@@ -124,7 +124,7 @@ struct MainTabView: View {
             }
             .padding(.horizontal, 6)
             .padding(.top, 6)
-            .padding(.bottom, 4)
+            .padding(.bottom, 0)
         }
         .background(Color(uiColor: .systemBackground))
         .overlay(
@@ -146,7 +146,7 @@ struct MainTabView: View {
             }
             .padding(.horizontal, 6)
             .padding(.top, 6)
-            .padding(.bottom, 4)
+            .padding(.bottom, 0)
         }
         .background(Color(uiColor: .systemBackground))
         .overlay(
