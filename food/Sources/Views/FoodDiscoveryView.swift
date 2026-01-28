@@ -419,7 +419,7 @@ struct FoodDiscoveryView: View {
             safeImage(url: imageUrl, width: nil, height: nil, contentMode: .fill)
                 .frame(maxWidth: .infinity)
                 .overlay(
-                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .transparent]), startPoint: .leading, endPoint: .trailing)
+                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .clear]), startPoint: .leading, endPoint: .trailing)
                 )
             
             VStack(alignment: .leading, spacing: 4) {
