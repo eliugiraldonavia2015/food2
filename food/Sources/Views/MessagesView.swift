@@ -84,8 +84,10 @@ struct MessagesListView: View {
             let role = auth.user?.role ?? "client"
             store.loadConversations(for: role)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                animateList = true
+            if !animateList {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    animateList = true
+                }
             }
         }
     }
@@ -325,14 +327,15 @@ struct ChatView: View {
                 composer
             }
             .navigationBarHidden(true)
-            .toolbar(.hidden, for: .tabBar) // Ensure tab bar is hidden to avoid layout issues
             .onAppear {
                 // Mock messages
-                messages = [
-                    Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: false, time: "Hace 14 min", status: nil),
-                    Message(text: "Sí, estará listo en 10 minutos.", isMe: true, time: "Hace 12 min", status: .delivered),
-                    Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
-                ]
+                if messages.isEmpty {
+                    messages = [
+                        Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: false, time: "Hace 14 min", status: nil),
+                        Message(text: "Sí, estará listo en 10 minutos.", isMe: true, time: "Hace 12 min", status: .delivered),
+                        Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
+                    ]
+                }
             }
         }
 
