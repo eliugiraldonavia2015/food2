@@ -529,7 +529,7 @@ struct MessageBubble: View {
     
     private func statusColor(for status: MessageStatus) -> Color {
         switch status {
-        case .read: return brandPink
+        case .read: return primaryColor
         default: return .gray
         }
     }
