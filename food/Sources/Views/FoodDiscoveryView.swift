@@ -15,31 +15,28 @@ struct FoodDiscoveryView: View {
     @State private var animateContent = false
     
     // MARK: - Design Constants
-    private let primaryColor = Color.green
+    private let primaryColor = Color.green // Replaces Pink from image
     private let accentColor = Color.orange
-    private let backgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray/White
-    private let cardColor = Color.white
-    private let primaryTextColor = Color.black.opacity(0.85)
+    private let backgroundColor = Color.white // Clean white background
+    private let secondaryBackgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray for Search/Cards
+    private let primaryTextColor = Color.black.opacity(0.9)
     private let secondaryTextColor = Color.gray
     
     // MARK: - Data Models
     struct CategoryItem: Identifiable {
         let id = UUID()
         let name: String
-        let icon: String
-        let color: Color
+        let image: String // Changed from icon to image for visual appeal
     }
     
     let categoryItems = [
-        CategoryItem(name: "Burgers", icon: "🍔", color: .orange.opacity(0.1)),
-        CategoryItem(name: "Pizza", icon: "🍕", color: .red.opacity(0.1)),
-        CategoryItem(name: "Saludable", icon: "🥗", color: .green.opacity(0.1)),
-        CategoryItem(name: "Carnes", icon: "🥩", color: .brown.opacity(0.1)),
-        CategoryItem(name: "Drinks", icon: "🥤", color: .blue.opacity(0.1)),
-        CategoryItem(name: "Sushi", icon: "🍣", color: .purple.opacity(0.1))
+        CategoryItem(name: "Sushis", image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c"),
+        CategoryItem(name: "Cortes", image: "https://images.unsplash.com/photo-1600891964092-4316c288032e"),
+        CategoryItem(name: "Postres", image: "https://images.unsplash.com/photo-1563729768-6af784d6df1a"),
+        CategoryItem(name: "Bebidas", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd"),
+        CategoryItem(name: "Vegana", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
+        CategoryItem(name: "Burgers", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd")
     ]
-    
-    let categories = ["Burgers", "Pizza", "Saludable", "Carnes", "Drinks", "Sushi"]
     
     struct PopularItem: Identifiable {
         let id = UUID()
@@ -53,181 +50,102 @@ struct FoodDiscoveryView: View {
     }
     
     let popularItems = [
-        PopularItem(name: "Plato Especial 1", restaurant: "Restaurante 1", price: 22.38, time: "38 min", rating: 4.9, discount: 32, imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
-        PopularItem(name: "Plato Especial 2", restaurant: "Restaurante 2", price: 20.10, time: "35 min", rating: 4.6, discount: 20, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
-        PopularItem(name: "Plato Especial 3", restaurant: "Restaurante 3", price: 26.57, time: "38 min", rating: 4.7, discount: 28, imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
-        PopularItem(name: "Plato Especial 4", restaurant: "Restaurante 4", price: 18.25, time: "42 min", rating: 4.5, discount: 15, imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7"),
-        PopularItem(name: "Plato Especial 5", restaurant: "Restaurante 5", price: 27.55, time: "33 min", rating: 4.8, discount: 37, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe"),
-        PopularItem(name: "Plato Especial 6", restaurant: "Restaurante 6", price: 16.70, time: "31 min", rating: 4.4, discount: 12, imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba"),
-        PopularItem(name: "Plato Especial 7", restaurant: "Restaurante 7", price: 24.90, time: "47 min", rating: 4.6, discount: 25, imageUrl: "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9")
+        PopularItem(name: "Zen Garden Bowl", restaurant: "Green Life", price: 145.00, time: "20-30 min", rating: 4.8, discount: nil, imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
+        PopularItem(name: "Truffle Pizza", restaurant: "Mozza", price: 220.00, time: "30-45 min", rating: 4.7, discount: 15, imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591"),
+        PopularItem(name: "Salmon Rice Bowl", restaurant: "Tokyo Eats", price: 210.00, time: "25-40 min", rating: 4.9, discount: nil, imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
     ]
     
     struct RestaurantItem: Identifiable {
         let id = UUID()
         let title: String
+        let subtitle: String
         let time: String
-        let fee: String
-        let distance: String
+        let delivery: String
         let rating: Double
         let imageUrl: String
-        let promo: String?
+        let priceLevel: String
+        let tags: [String]
     }
 
-    struct SectionData: Identifiable {
-        let id = UUID()
-        let title: String
-        let items: [RestaurantItem]
-    }
-
-    private var style1SectionsData: [SectionData] {
+    private var featuredRestaurants: [RestaurantItem] {
         [
-            SectionData(title: "Pollo delicioso", items: [
-                RestaurantItem(title: "KFC", time: "48 min", fee: "$0.90", distance: "2.9 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Burger King", time: "48 min", fee: "$1.50", distance: "5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Pío Pío", time: "36 min", fee: "$1.10", distance: "3.5 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1604908177221-b6154a5340ff", promo: "$2 de envío"),
-                RestaurantItem(title: "Chicken Bros", time: "40 min", fee: "$0.80", distance: "2.2 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1553163147-622ab57be1c7", promo: nil),
-                RestaurantItem(title: "Crispy House", time: "49 min", fee: "$1.00", distance: "4.0 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1606756793446-1e2c9ef7bd8d", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Wings & Co", time: "52 min", fee: "$1.20", distance: "5.6 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1562967916-eb82221dfb36", promo: nil),
-                RestaurantItem(title: "Pollo Express", time: "35 min", fee: "$0.70", distance: "2.1 km", rating: 4.2, imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225", promo: nil)
-            ]),
-            SectionData(title: "Antojo de hamburguesa", items: [
-                RestaurantItem(title: "El Corral", time: "62 min", fee: "$1.50", distance: "5 km", rating: 4.8, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Roger's Smash", time: "45 min", fee: "$0.80", distance: "3.1 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Smash House", time: "43 min", fee: "$0.90", distance: "2.8 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: nil),
-                RestaurantItem(title: "Burger Factory", time: "50 min", fee: "$1.10", distance: "4.5 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1550317138-10000687a72b", promo: nil),
-                RestaurantItem(title: "Double Smash", time: "48 min", fee: "$1.30", distance: "4.9 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: "$2 de envío"),
-                RestaurantItem(title: "Cheese Lovers", time: "41 min", fee: "$0.70", distance: "3.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1550547660-1b6b1fcef2b8", promo: nil),
-                RestaurantItem(title: "The Burger Co.", time: "47 min", fee: "$1.00", distance: "3.7 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", promo: nil)
-            ]),
-            SectionData(title: "Pizza top", items: [
-                RestaurantItem(title: "Pizzeria Roma", time: "40 min", fee: "$0.70", distance: "3.4 km", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$3 de envío"),
-                RestaurantItem(title: "Napoli", time: "44 min", fee: "$0.90", distance: "4.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
-                RestaurantItem(title: "Pizza Lab", time: "38 min", fee: "$0.80", distance: "2.5 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
-                RestaurantItem(title: "Mozza", time: "55 min", fee: "$1.20", distance: "6.1 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: "$2 de envío"),
-                RestaurantItem(title: "Al Taglio", time: "47 min", fee: "$1.10", distance: "4.3 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
-                RestaurantItem(title: "Rustica", time: "52 min", fee: "$1.00", distance: "5.0 km", rating: 4.2, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil),
-                RestaurantItem(title: "Di Parma", time: "36 min", fee: "$0.70", distance: "2.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", promo: nil)
-            ]),
-            SectionData(title: "Sushi favorito", items: [
-                RestaurantItem(title: "Kobe Sushi & Rolls", time: "53 min", fee: "$1.10", distance: "4.6 km", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$4 gratis en créditos"),
-                RestaurantItem(title: "Sushi House", time: "49 min", fee: "$1.00", distance: "4.0 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
-                RestaurantItem(title: "Tokyo Bites", time: "45 min", fee: "$0.90", distance: "3.2 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
-                RestaurantItem(title: "Sashimi Co.", time: "57 min", fee: "$1.20", distance: "5.7 km", rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: "$2 de envío"),
-                RestaurantItem(title: "Nigiri Lab", time: "50 min", fee: "$1.10", distance: "4.3 km", rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
-                RestaurantItem(title: "Uramaki Spot", time: "43 min", fee: "$0.80", distance: "3.0 km", rating: 4.5, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil),
-                RestaurantItem(title: "Zen Sushi", time: "41 min", fee: "$0.70", distance: "2.6 km", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754", promo: nil)
-            ])
+            RestaurantItem(title: "Sakura Artisanal Sushi", subtitle: "Japonés • Premium", time: "20-30 min", delivery: "Envío gratis", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c", priceLevel: "$$$", tags: ["Premium"]),
+            RestaurantItem(title: "The Grill Master", subtitle: "Hamburguesas • Grill", time: "15-25 min", delivery: "Pick-up disponible", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", priceLevel: "$$", tags: []),
+            RestaurantItem(title: "La Dolce Vita", subtitle: "Italiana • Pasta", time: "30-45 min", delivery: "Envío $25", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", priceLevel: "$$", tags: [])
         ]
     }
     
-    struct DealItem: Identifiable {
+    struct TrendingItem: Identifiable {
         let id = UUID()
+        let name: String
         let price: String
-        let discountText: String
-        let oldPrice: String
-        let subtitle: String
-        let merchant: String
-        let time: String
         let imageUrl: String
+        let badge: String?
     }
 
-    private var dealsData: [DealItem] {
+    private var trendingItems: [TrendingItem] {
         [
-            DealItem(price: "$6,55", discountText: "-61%", oldPrice: "$17,00", subtitle: "15 Bocados Especiales..", merchant: "Kobe Sushi & Rolls", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
-            DealItem(price: "$5,00", discountText: "-53%", oldPrice: "$10,80", subtitle: "Todo por $5", merchant: "Burger King", time: "48 min", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349"),
-            DealItem(price: "$5,20", discountText: "-41%", oldPrice: "$8,80", subtitle: "BBQ Pack", merchant: "Carl's Jr.", time: "37 min", imageUrl: "https://images.unsplash.com/photo-1606755962773-d32477b6a225"),
-            DealItem(price: "$7,40", discountText: "-35%", oldPrice: "$11,40", subtitle: "Combo Nuggets", merchant: "KFC", time: "44 min", imageUrl: "https://images.unsplash.com/photo-1606756793446-1e2c9ef7bd8d"),
-            DealItem(price: "$4,90", discountText: "-45%", oldPrice: "$8,90", subtitle: "Wrap + Papas", merchant: "Shawarma Fast", time: "39 min", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"),
-            DealItem(price: "$3,80", discountText: "-50%", oldPrice: "$7,60", subtitle: "Sundae 2x1", merchant: "Burger King", time: "48 min", imageUrl: "https://images.unsplash.com/photo-1550317138-10000687a72b"),
-            DealItem(price: "$6,10", discountText: "-40%", oldPrice: "$10,20", subtitle: "Sushi Box", merchant: "Kobe", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754")
-        ]
-    }
-    
-    struct FeedItem: Identifiable {
-        let id = UUID()
-        let title: String
-        let imageUrl: String
-        let meta: String
-        let rating: String
-        let promo: String?
-    }
-
-    private var feedItems: [FeedItem] {
-        [
-            FeedItem(title: "Fast Shawarma", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", meta: "53 min  •  $1.10  •  4.6 km", rating: "★ 4.9 (35)", promo: "$4 gratis en créditos"),
-            FeedItem(title: "Kobe Sushi & Rolls", imageUrl: "https://images.unsplash.com/photo-1527455272121-3e1e7a42e9d1", meta: "53 min  •  $1.10  •  4.6 km", rating: "★ 4.8", promo: nil),
-            FeedItem(title: "Pizzeria Roma", imageUrl: "https://images.unsplash.com/photo-1548365328-9c4b0fd08475", meta: "40 min  •  $0.70  •  3.4 km", rating: "★ 4.7", promo: "$3 de envío"),
-            FeedItem(title: "Smash House", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", meta: "45 min  •  $0.80  •  3.1 km", rating: "★ 4.6", promo: "$4 gratis en créditos"),
-            FeedItem(title: "Tacos Express", imageUrl: "https://images.unsplash.com/photo-1601924582971-b0d4b3a2c0ba", meta: "35 min  •  $0.60  •  2.0 km", rating: "★ 4.5", promo: nil),
-            FeedItem(title: "Thai Garden", imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", meta: "50 min  •  $1.20  •  5.4 km", rating: "★ 4.8", promo: "$2 de envío")
+            TrendingItem(name: "Baked Feta Pasta", price: "$185.00", imageUrl: "https://images.unsplash.com/photo-1626844131082-256783844137", badge: "TIKTOK VIRAL"),
+            TrendingItem(name: "Salmon Rice Bowl", price: "$210.00", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", badge: nil),
+            TrendingItem(name: "Birria Tacos", price: "$120.00", imageUrl: "https://images.unsplash.com/photo-1504544750208-dc0358e63f7f", badge: "POPULAR")
         ]
     }
     
     // MARK: - Body
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             backgroundColor.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Fixed Modern Header
-                VStack(spacing: 0) {
-                    topBar
-                        .padding(.bottom, 10)
-                        .offset(y: animateHeader ? 0 : -30)
-                        .opacity(animateHeader ? 1 : 0)
-                    
-                    searchArea
-                        .padding(.bottom, 12)
-                        .scaleEffect(animateSearch ? 1 : 0.95)
-                        .opacity(animateSearch ? 1 : 0)
-                    
-                    categoriesScroll
-                        .padding(.bottom, 16)
-                        .offset(x: animateCategories ? 0 : 30)
-                        .opacity(animateCategories ? 1 : 0)
-                }
-                .padding(.top, 60) // Safe Area Top
-                .background(Color.white)
-                .clipShape(RoundedCorner(radius: 24, corners: [.bottomLeft, .bottomRight]))
-                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 5)
-                .zIndex(20)
-                
                 // Scrollable Content
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 28) {
+                    VStack(spacing: 0) {
                         
-                        promoCarousel
-                            .padding(.top, 20)
-                            .offset(y: animateContent ? 0 : 30)
-                            .opacity(animateContent ? 1 : 0)
-                        
-                        ForEach(Array(style1SectionsData.enumerated()), id: \.element.id) { index, section in
-                            sectionStyle1(title: section.title, items: section.items)
-                                .offset(y: animateContent ? 0 : 40)
-                                .opacity(animateContent ? 1 : 0)
-                                .animation(.easeOut(duration: 0.6).delay(0.2 + Double(index) * 0.1), value: animateContent)
+                        // Header & Search
+                        VStack(spacing: 16) {
+                            headerView
+                            searchBar
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10) // Safe Area Top adjustment if needed
+                        .padding(.bottom, 20)
                         
-                        dealsSection(title: "Descuentazos")
-                            .offset(y: animateContent ? 0 : 40)
+                        // Hero Promo
+                        heroPromo
+                            .scaleEffect(animateContent ? 1 : 0.9)
                             .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.5), value: animateContent)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1), value: animateContent)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 32)
                         
-                        popularSection
-                            .offset(y: animateContent ? 0 : 40)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
+                        // Categories
+                        categoriesSection
+                            .padding(.bottom, 32)
                         
-                        feedSectionStyle4
-                            .offset(y: animateContent ? 0 : 40)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.7), value: animateContent)
+                        // Recommended (Horizontal Large Cards)
+                        recommendedSection
+                            .padding(.bottom, 32)
+                        
+                        // Featured Restaurants (Full Width Cards)
+                        featuredRestaurantsSection
+                            .padding(.bottom, 32)
                             
-                        Spacer().frame(height: 100)
+                        // Trending Dishes
+                        trendingSection
+                            .padding(.bottom, 120) // Space for floating bar
                     }
+                    .padding(.top, 50) // Space for Status Bar
                 }
             }
             .blur(radius: showFilters ? 6 : 0)
+            
+            // Floating Active Order Bar
+            activeOrderBar
+                .padding(.horizontal, 16)
+                .padding(.bottom, 30)
+                .offset(y: animateContent ? 0 : 100)
+                .opacity(animateContent ? 1 : 0)
+                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.8), value: animateContent)
             
             // Dimming Background
             if showFilters {
@@ -248,13 +166,6 @@ struct FoodDiscoveryView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
-        .gesture(
-            DragGesture().onEnded { value in
-                if value.translation.height > 60 && !showFilters {
-                    onClose()
-                }
-            }
-        )
         .onAppear {
             startAnimations()
         }
@@ -278,78 +189,90 @@ struct FoodDiscoveryView: View {
     
     // MARK: - New UI Components
     
-    private var topBar: some View {
-        HStack {
-            // Branding
-            Text("Foodtook")
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
-                .foregroundColor(primaryColor)
-            
-            Spacer()
-            
-            // Location Pill
-            HStack(spacing: 4) {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundColor(primaryColor)
-                    .font(.system(size: 14))
-                Text("Tu ubicación")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(primaryTextColor)
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(secondaryTextColor)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
-            .clipShape(Capsule())
-            
-            Spacer()
-            
-            // Profile
-            Button(action: onClose) {
+    private var headerView: some View {
+        HStack(alignment: .center) {
+            // Location
+            HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle().stroke(Color.white, lineWidth: 2)
-                        )
-                        .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+                        .fill(primaryColor.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(primaryColor)
+                        .font(.system(size: 18))
                 }
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-    
-    private var searchArea: some View {
-        HStack(spacing: 12) {
-            // Search Field
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(secondaryTextColor)
-                    .font(.system(size: 18))
                 
-                TextField("¿Qué se te antoja hoy?", text: $searchText)
-                    .font(.system(size: 16))
-                    .foregroundColor(primaryTextColor)
-                
-                if !searchText.isEmpty {
-                    Button(action: { searchText = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(secondaryTextColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("ENVIAR A:")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(secondaryTextColor)
+                        .tracking(0.5)
+                    
+                    HStack(spacing: 4) {
+                        Text("Polanco, CDMX")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(primaryTextColor)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(primaryTextColor)
                     }
                 }
             }
-            .padding(14)
-            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
-            .cornerRadius(18)
+            
+            Spacer()
+            
+            // Right Icons
+            HStack(spacing: 12) {
+                Button(action: {}) {
+                    Image(systemName: "gift")
+                        .font(.system(size: 20))
+                        .foregroundColor(primaryTextColor)
+                        .frame(width: 40, height: 40)
+                        .background(secondaryBackgroundColor)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(ScaleButtonStyle())
+                
+                Button(action: onClose) {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell")
+                            .font(.system(size: 20))
+                            .foregroundColor(primaryTextColor)
+                            .frame(width: 40, height: 40)
+                            .background(secondaryBackgroundColor)
+                            .clipShape(Circle())
+                        
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle().stroke(Color.white, lineWidth: 1.5)
+                            )
+                            .offset(x: 2, y: 2)
+                    }
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
+        }
+        .opacity(animateHeader ? 1 : 0)
+        .offset(y: animateHeader ? 0 : -20)
+        .animation(.spring(response: 0.6, dampingFraction: 0.7), value: animateHeader)
+    }
+    
+    private var searchBar: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(secondaryTextColor)
+                    .font(.system(size: 20))
+                
+                TextField("Buscar platillos o restaurantes", text: $searchText)
+                    .font(.system(size: 16))
+                    .foregroundColor(primaryTextColor)
+            }
+            .padding(16)
+            .background(secondaryBackgroundColor)
+            .cornerRadius(16)
             
             // Filter Button
             Button(action: {
@@ -358,85 +281,49 @@ struct FoodDiscoveryView: View {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
-                    .frame(width: 50, height: 50)
-                    .background(primaryTextColor)
-                    .cornerRadius(18)
-                    .shadow(color: primaryTextColor.opacity(0.3), radius: 4, x: 0, y: 2)
+                    .frame(width: 54, height: 54)
+                    .background(primaryColor)
+                    .cornerRadius(16)
+                    .shadow(color: primaryColor.opacity(0.3), radius: 4, x: 0, y: 2)
             }
+            .buttonStyle(ScaleButtonStyle())
         }
-        .padding(.horizontal, 20)
+        .opacity(animateSearch ? 1 : 0)
+        .offset(y: animateSearch ? 0 : 20)
+        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateSearch)
     }
     
-    private var categoriesScroll: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(categories, id: \.self) { category in
-                    Button(action: { withAnimation { selectedCategory = category } }) {
-                        HStack(spacing: 6) {
-                            if let icon = categoryItems.first(where: { $0.name == category })?.icon {
-                                Text(icon)
-                                    .font(.system(size: 14))
-                            }
-                            Text(category)
-                                .font(.system(size: 14, weight: .bold))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(
-                            selectedCategory == category ? primaryColor : Color.white
-                        )
-                        .foregroundColor(selectedCategory == category ? .white : primaryTextColor)
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: selectedCategory == category ? 0 : 1.5)
-                        )
-                        .shadow(color: selectedCategory == category ? primaryColor.opacity(0.3) : Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 4)
-        }
-    }
-    
-    // MARK: - Sections
-    
-    private var promoCarousel: some View {
-        TabView {
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591", title: "Burgers", discount: "40%")
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", title: "Combos", discount: "30%")
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", title: "Salads", discount: "25%")
-        }
-        .frame(height: 200)
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-        .padding(.horizontal, 20)
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-    }
-
-    private func promoSlide(imageUrl: String, title: String, discount: String) -> some View {
-        ZStack(alignment: .leading) {
-            safeImage(url: imageUrl, width: nil, height: nil, contentMode: .fill)
+    private var heroPromo: some View {
+        ZStack(alignment: .bottomLeading) {
+            safeImage(url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", width: nil, height: 220, contentMode: .fill)
                 .frame(maxWidth: .infinity)
                 .overlay(
-                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .clear]), startPoint: .leading, endPoint: .trailing)
+                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .leading, endPoint: .trailing)
                 )
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                Text("\(discount) OFF")
-                    .font(.system(size: 36, weight: .heavy))
+            VStack(alignment: .leading, spacing: 8) {
+                Text("EXCLUSIVO DE HOY")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(primaryColor)
+                    .tracking(1)
+                
+                Text("Sabor ")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white) +
+                Text("Premium")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(primaryColor) +
+                Text("\nen tu puerta.")
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
                 
                 Button(action: {}) {
-                    Text("Ver ofertas")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.white)
+                    Text("Pedir Ahora")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(primaryColor)
                         .cornerRadius(20)
                 }
                 .padding(.top, 8)
@@ -444,273 +331,288 @@ struct FoodDiscoveryView: View {
             .padding(24)
         }
         .cornerRadius(24)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .overlay(
+            // Pagination Dots
+            HStack(spacing: 6) {
+                Capsule().fill(primaryColor).frame(width: 20, height: 6)
+                Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+                Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+            }
+            .padding(.bottom, 12)
+            , alignment: .bottom
+        )
     }
     
-    private func sectionStyle1(title: String, items: [RestaurantItem]) -> some View {
+    private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(title)
+                Text("Explorar por Categoría")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(primaryTextColor)
                 Spacer()
-                Button(action: {}) {
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(primaryColor)
-                        .padding(8)
-                        .background(primaryColor.opacity(0.1))
-                        .clipShape(Circle())
+                Button("Ver todo") {
+                    // Action
                 }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(primaryColor)
             }
             .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(items) { item in
-                        restaurantCardStyle1(item)
+                    ForEach(Array(categoryItems.enumerated()), id: \.element.id) { index, item in
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                selectedCategory = item.name
+                            }
+                        }) {
+                            VStack(spacing: 8) {
+                                safeImage(url: item.image, width: 70, height: 70, contentMode: .fill)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
+                                    )
+                                    .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
+                                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                
+                                Text(item.name)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(selectedCategory == item.name ? primaryColor : primaryTextColor)
+                            }
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .scaleEffect(animateCategories ? 1 : 0.5)
+                        .opacity(animateCategories ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.05 + 0.3), value: animateCategories)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
             }
         }
     }
     
-    private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topTrailing) {
-                safeImage(url: item.imageUrl, width: 220, height: 140, contentMode: .fill)
-                
-                if let promo = item.promo {
-                    Text(promo)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(primaryColor)
-                        .cornerRadius(8)
-                        .padding(10)
-                }
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.orange)
-                    Text(String(format: "%.1f", item.rating))
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(primaryTextColor)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.white)
-                .cornerRadius(8)
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .bottomLeading)
-            }
-            
-            VStack(alignment: .leading, spacing: 6) {
-                Text(item.title)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(primaryTextColor)
-                    .lineLimit(1)
-                
-                HStack(spacing: 8) {
-                    Label(item.time, systemImage: "clock")
-                    Label(item.distance, systemImage: "mappin")
-                }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(secondaryTextColor)
-            }
-            .padding(12)
-        }
-        .frame(width: 220)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
-    }
-    
-    private func dealsSection(title: String) -> some View {
+    private var recommendedSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(title)
+            Text("Recomendados para ti")
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(primaryTextColor)
                 .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(dealsData) { deal in
-                        dealCard(deal)
+                    ForEach(Array(popularItems.enumerated()), id: \.element.id) { index, item in
+                        Button(action: {
+                            // Navigation to item details
+                        }) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                safeImage(url: item.imageUrl, width: 160, height: 160, contentMode: .fill)
+                                    .cornerRadius(20)
+                                
+                                Text(item.name)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(primaryTextColor)
+                                    .lineLimit(1)
+                                
+                                Text(String(format: "$%.2f", item.price))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(primaryColor)
+                            }
+                            .frame(width: 160)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .scaleEffect(animateContent ? 1 : 0.5)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.2 + Double(index) * 0.1), value: animateContent)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
             }
         }
     }
     
-    private func dealCard(_ deal: DealItem) -> some View {
-        HStack(spacing: 0) {
-            safeImage(url: deal.imageUrl, width: 100, height: 100, contentMode: .fill)
-                .cornerRadius(16)
-                .padding(8)
+    private var featuredRestaurantsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Restaurantes Destacados")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(primaryTextColor)
+                Spacer()
+                Button("Ver todo") {
+                    // Action
+                }
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(primaryColor)
+            }
+            .padding(.horizontal, 20)
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text(deal.discountText)
+            VStack(spacing: 24) {
+                ForEach(Array(featuredRestaurants.enumerated()), id: \.element.id) { index, restaurant in
+                    Button(action: {
+                        // Navigate to restaurant details
+                    }) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Image Top
+                            safeImage(url: restaurant.imageUrl, width: nil, height: 180, contentMode: .fill)
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                            
+                            // Info Bottom
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(restaurant.title)
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(primaryTextColor)
+                                    Spacer()
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "star.fill")
+                                            .foregroundColor(.orange)
+                                            .font(.system(size: 12))
+                                        Text(String(format: "%.1f", restaurant.rating))
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(primaryTextColor)
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(secondaryBackgroundColor)
+                                    .cornerRadius(8)
+                                }
+                                
+                                Text("\(restaurant.subtitle) • \(restaurant.priceLevel)")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(secondaryTextColor)
+                                
+                                HStack(spacing: 16) {
+                                    Label(restaurant.time, systemImage: "clock")
+                                    Label(restaurant.delivery, systemImage: "bicycle")
+                                }
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(secondaryTextColor)
+                            }
+                            .padding(16)
+                            .background(Color.white)
+                        }
+                        .cornerRadius(24)
+                        .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .scaleEffect(animateContent ? 1 : 0.95)
+                    .opacity(animateContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.4 + Double(index) * 0.1), value: animateContent)
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+    
+    private var trendingSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Text("Platillos en Tendencia")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(primaryTextColor)
+                
+                Text("TIKTOK VIRAL")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Color.red)
-                    .cornerRadius(4)
-                
-                Text(deal.merchant)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(primaryTextColor)
-                    .lineLimit(1)
-                
-                HStack(spacing: 4) {
-                    Text(deal.price)
-                        .font(.system(size: 14, weight: .heavy))
-                        .foregroundColor(primaryColor)
-                    Text(deal.oldPrice)
-                        .font(.system(size: 12))
-                        .foregroundColor(secondaryTextColor)
-                        .strikethrough()
-                }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(primaryColor)
+                    .cornerRadius(8)
             }
-            .padding(.vertical, 12)
-            .padding(.trailing, 12)
-            
-            Spacer()
-        }
-        .frame(width: 260)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 3)
-    }
-    
-    private var popularSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Popular cerca de ti")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(primaryTextColor)
-                .padding(.horizontal, 20)
+            .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(popularItems) { item in
-                        popularCard(item: item)
+                    ForEach(Array(trendingItems.enumerated()), id: \.element.id) { index, item in
+                        Button(action: {
+                            // Play video or show details
+                        }) {
+                            ZStack(alignment: .bottomLeading) {
+                                safeImage(url: item.imageUrl, width: 220, height: 280, contentMode: .fill)
+                                    .overlay(
+                                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .clear]), startPoint: .bottom, endPoint: .center)
+                                    )
+                                    .cornerRadius(20)
+                                
+                                // Play Button Center
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.name)
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.white)
+                                    Text(item.price)
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(primaryColor)
+                                }
+                                .padding(16)
+                            }
+                            .frame(width: 220, height: 280)
+                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .scaleEffect(animateContent ? 1 : 0.8)
+                        .opacity(animateContent ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5 + Double(index) * 0.1), value: animateContent)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 20)
             }
         }
     }
     
-    private func popularCard(item: PopularItem) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topTrailing) {
-                safeImage(url: item.imageUrl, width: 180, height: 180, contentMode: .fill)
-                
-                if let discount = item.discount {
-                    Text("\(discount)%")
-                        .font(.system(size: 12, weight: .heavy))
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.orange)
-                        .clipShape(Circle())
-                        .padding(10)
-                }
+    private var activeOrderBar: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.2))
+                    .frame(width: 44, height: 44)
+                Image(systemName: "scooter")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
             }
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text(item.name)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(primaryTextColor)
-                    .lineLimit(2)
-                
-                Text(item.restaurant)
-                    .font(.system(size: 12))
-                    .foregroundColor(secondaryTextColor)
-                
-                HStack {
-                    Text("$\(String(format: "%.2f", item.price))")
-                        .font(.system(size: 16, weight: .heavy))
-                        .foregroundColor(primaryColor)
-                    Spacer()
-                    HStack(spacing: 2) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.orange)
-                            .font(.system(size: 10))
-                        Text(String(format: "%.1f", item.rating))
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(primaryTextColor)
-                    }
-                }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Tu pedido está en camino")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                Text("LLEGA EN 15 MIN")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white.opacity(0.9))
             }
-            .padding(12)
+            
+            Spacer()
+            
+            Button(action: {}) {
+                Text("Rastrear")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(primaryColor)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.white)
+                    .cornerRadius(20)
+            }
         }
-        .frame(width: 180)
-        .background(Color.white)
+        .padding(16)
+        .background(primaryColor)
         .cornerRadius(24)
-        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+        .shadow(color: primaryColor.opacity(0.4), radius: 10, x: 0, y: 5)
     }
-    
-    private var feedSectionStyle4: some View {
-        VStack(spacing: 20) {
-            ForEach(feedItems) { item in
-                VStack(alignment: .leading, spacing: 0) {
-                    safeImage(url: item.imageUrl, width: nil, height: 180, contentMode: .fill)
-                        .frame(maxWidth: .infinity)
-                        .overlay(
-                            ZStack(alignment: .topLeading) {
-                                if let promo = item.promo {
-                                    Text(promo)
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(primaryColor)
-                                        .cornerRadius(8)
-                                        .padding(12)
-                                }
-                            },
-                            alignment: .topLeading
-                        )
-                    
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(item.title)
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(primaryTextColor)
-                            
-                            Text(item.meta)
-                                .font(.system(size: 13))
-                                .foregroundColor(secondaryTextColor)
-                        }
-                        
-                        Spacer()
-                        
-                        Text(item.rating)
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(primaryTextColor)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
-                            .cornerRadius(8)
-                    }
-                    .padding(16)
-                }
-                .background(Color.white)
-                .cornerRadius(24)
-                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 5)
-                .padding(.horizontal, 20)
-            }
+
+    // MARK: - Helpers
+
+    struct ScaleButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.95 : 1)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
         }
     }
-    
-    // MARK: - Helpers
 
     private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: ContentMode = .fill) -> some View {
         WebImage(url: URL(string: url))
@@ -720,7 +622,7 @@ struct FoodDiscoveryView: View {
             .aspectRatio(contentMode: contentMode)
             .frame(width: width, height: height)
             .clipped()
-            .background(Color(red: 0.92, green: 0.92, blue: 0.94))
+            .background(secondaryBackgroundColor)
     }
 }
 
@@ -770,7 +672,7 @@ struct FilterSheet: View {
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Color.orange)
+                                .background(Color.green)
                                 .cornerRadius(8)
                         }
                     }
