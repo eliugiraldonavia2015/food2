@@ -291,7 +291,7 @@ struct FoodDiscoveryView: View {
                         
                         Text(item.name)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.black)
                     }
                 }
             }
@@ -363,7 +363,7 @@ struct FoodDiscoveryView: View {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundColor(.black)
                 .padding(.horizontal)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -396,7 +396,7 @@ struct FoodDiscoveryView: View {
                 Text(item.title)
                     .font(.system(size: 16, weight: .bold))
                     .lineLimit(2)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.black)
                 HStack(spacing: 4) {
                     Text(item.time)
                     Text("•")
@@ -413,7 +413,7 @@ struct FoodDiscoveryView: View {
                         .foregroundColor(.orange)
                     Text(String(format: "%.1f", item.rating))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.black)
                 }
             }
             .padding(12)
@@ -617,7 +617,7 @@ struct FoodDiscoveryView: View {
             Text("Popular cerca de ti")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundColor(.black)
                 .padding(.horizontal)
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -657,7 +657,7 @@ struct FoodDiscoveryView: View {
                             .foregroundColor(.orange)
                         Text(String(format: "%.1f", item.rating))
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.primary)
+                            .foregroundColor(.black)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -672,7 +672,7 @@ struct FoodDiscoveryView: View {
                 Text(item.name)
                     .font(.system(size: 16, weight: .bold))
                     .lineLimit(2)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.black)
                 
                 Text(item.restaurant)
                     .font(.system(size: 12))
