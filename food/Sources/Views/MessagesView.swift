@@ -8,6 +8,7 @@ struct MessagesListView: View {
     @StateObject private var store = MessagesStore()
     @State private var searchText: String = ""
     @State private var animateList = false
+    @State private var showScreen = false
     @Environment(\.dismiss) private var dismiss
 
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
@@ -59,6 +60,9 @@ struct MessagesListView: View {
                     }
                 }
             }
+            .opacity(showScreen ? 1 : 0)
+            .offset(y: showScreen ? 0 : 15)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showScreen)
             .navigationDestination(for: Conversation.self) { convo in
                 ChatView(conversation: convo, store: store)
             }
@@ -66,9 +70,14 @@ struct MessagesListView: View {
         .environment(\.colorScheme, .light)
         .preferredColorScheme(.light)
         .onAppear {
+            showScreen = true
             let role = auth.user?.role ?? "client"
             store.loadConversations(for: role)
-            animateList = true
+            
+            // Stagger list animation slightly for a premium feel
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                animateList = true
+            }
         }
     }
 
