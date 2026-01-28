@@ -109,11 +109,11 @@ struct OwnProfileView: View {
                 }
             }
             
-            // Skeleton Overlay que desaparece suavemente cuando carga la data REAL completa
-            if viewModel.user == nil && initialUserData != nil {
+            // Skeleton Overlay eliminado para permitir Optimistic UI real
+            if viewModel.user == nil && initialUserData == nil {
                 skeletonLoadingView
                     .transition(.opacity)
-                    .zIndex(2) // Asegurar que esté encima
+                    .zIndex(2)
             }
         }
         .opacity(showScreen ? 1 : 0)
@@ -214,34 +214,19 @@ struct OwnProfileView: View {
                     .offset(y: minY > 0 ? -minY : 0) // 🛑 FIX: Mover el shimmer también
                 
                 // 2. Image Layer
-                if let img = loadedCoverImage {
-                    Image(uiImage: img)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: height)
-                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                        .clipped()
-                        .overlay(coverGradient)
-                        .offset(y: minY > 0 ? -minY : 0)
-                } else {
-                    // Lógica de URL robusta: user.coverUrl > Hardcoded (Optimizado con precarga simulada)
-                    let hardcodedCover = "https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=800&q=80" // Optimizado: WebP/JPG 800px
-                    let urlString = !user.coverUrl.isEmpty ? user.coverUrl : hardcodedCover
-                    
-                    WebImage(url: URL(string: urlString))
-                        .onSuccess { image, _, _ in
-                            self.loadedCoverImage = image
-                        }
-                        .resizable()
-                        .indicator(.activity)
-                        .transition(.fade(duration: 0.3)) // Fade más rápido
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: height)
-                        .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
-                        .clipped()
-                        .overlay(coverGradient)
-                        .offset(y: minY > 0 ? -minY : 0)
-                }
+                WebImage(url: URL(string: user.coverUrl))
+                    .onSuccess { image, _, _ in
+                        self.loadedCoverImage = image
+                    }
+                    .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.3))
+                    .aspectRatio(contentMode: .fill)
+                    .frame(height: height)
+                    .blur(radius: minY > 0 ? min(12, minY / 18) : 0, opaque: true)
+                    .clipped()
+                    .overlay(coverGradient)
+                    .offset(y: minY > 0 ? -minY : 0)
                 
                 Color.clear
                     .preference(key: HeaderOffsetPreferenceKey.self, value: minY)
@@ -301,26 +286,13 @@ struct OwnProfileView: View {
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
-                // Lógica de URL robusta para Avatar (Prioridad: Cloud > Initial)
-                // Usamos la lógica original de WebImage con autenticación implícita si es necesaria
-                let urlString = user.photoUrl.isEmpty ? (initialUserData?.photoUrl ?? "") : user.photoUrl
-                
-                if let url = URL(string: urlString), !urlString.isEmpty {
-                    WebImage(url: url)
-                        .resizable()
-                        .indicator(.activity) // Indicador mientras carga
-                        .transition(.fade(duration: 0.2))
-                        .scaledToFill()
-                        .frame(width: 102, height: 102)
-                        .clipShape(Circle())
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 102, height: 102)
-                        .foregroundColor(.gray.opacity(0.5))
-                        .clipShape(Circle())
-                }
+                WebImage(url: URL(string: user.photoUrl))
+                    .resizable()
+                    .indicator(.activity)
+                    .transition(.fade(duration: 0.2))
+                    .scaledToFill()
+                    .frame(width: 102, height: 102)
+                    .clipShape(Circle())
             }
             .offset(y: -75) // Subido de -55 a -75
             .padding(.bottom, -60) // Ajustado de -40 a -60 para compensar
