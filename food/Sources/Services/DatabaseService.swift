@@ -206,7 +206,8 @@ public final class DatabaseService {
         coverURL: URL? = nil,
         username: String? = nil,
         bio: String? = nil,
-        location: String? = nil
+        location: String? = nil,
+        completion: ((Error?) -> Void)? = nil
     ) {
         var updateData: [String: Any] = [:]
         
@@ -218,7 +219,10 @@ public final class DatabaseService {
         if let location = location { updateData["location"] = location }
         
         updateData["lastUpdated"] = Timestamp(date: Date())
-        guard !updateData.isEmpty else { return }
+        guard !updateData.isEmpty else {
+            completion?(nil)
+            return
+        }
         
         db.collection(usersCollection).document(uid).updateData(updateData) { error in
             if let error = error {
@@ -226,6 +230,7 @@ public final class DatabaseService {
             } else {
                 print("[Database] ✅ User updated successfully")
             }
+            completion?(error)
         }
     }
     

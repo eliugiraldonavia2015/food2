@@ -133,7 +133,7 @@ public final class OnboardingViewModel: ObservableObject {
         do {
             var uploadedPhotoURL: URL?
             
-            // 1️⃣ Subir foto si existe
+            // 1️⃣ Subir foto si existe, O usar la de Google si ya existe
             if let image = profileImage {
                 uploadedPhotoURL = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
                     storage.uploadProfileImage(uid: user.uid, image: image) { result in
@@ -148,6 +148,21 @@ public final class OnboardingViewModel: ObservableObject {
                 
                 if let url = uploadedPhotoURL {
                     auth.updateProfilePhoto(with: url)
+                }
+            } else if let googlePhotoURL = user.photoURL {
+                // ✅ Si no subió foto nueva pero tiene una de Google (o anterior), asegurar que esté en Firestore
+                uploadedPhotoURL = googlePhotoURL
+                // No necesitamos llamar a auth.updateProfilePhoto porque ya está en el Auth User,
+                // pero sí debemos asegurarnos de que se guarde en el documento de usuario en el paso final (implícitamente)
+                // O mejor aún, forzamos la actualización en Firestore aquí mismo para estar seguros:
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    DatabaseService.shared.updateUserDocument(uid: user.uid, photoURL: googlePhotoURL) { error in
+                        if let error = error {
+                            continuation.resume(throwing: error)
+                        } else {
+                            continuation.resume(returning: ())
+                        }
+                    }
                 }
             }
             

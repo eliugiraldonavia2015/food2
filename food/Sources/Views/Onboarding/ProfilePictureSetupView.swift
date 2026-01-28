@@ -2,6 +2,8 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import FirebaseAuth
+import SDWebImageSwiftUI
 
 struct ProfilePictureSetupView: View {
     @ObservedObject var viewModel: OnboardingViewModel
@@ -9,6 +11,11 @@ struct ProfilePictureSetupView: View {
     @State private var showCameraPicker = false
     @State private var selectedItem: PhotosPickerItem?
     private let fuchsiaColor = Color(red: 244/255, green: 37/255, blue: 123/255)
+    
+    // URL de Google (si existe)
+    private var googlePhotoURL: URL? {
+        Auth.auth().currentUser?.photoURL
+    }
     
     var body: some View {
         VStack(spacing: 24) {
@@ -27,6 +34,13 @@ struct ProfilePictureSetupView: View {
 
                     if let image = viewModel.profileImage {
                         Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 150, height: 150)
+                            .clipShape(Circle())
+                    } else if let googleURL = googlePhotoURL {
+                        // ✅ Mostrar foto de Google si no ha seleccionado una nueva
+                        WebImage(url: googleURL)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 150, height: 150)
