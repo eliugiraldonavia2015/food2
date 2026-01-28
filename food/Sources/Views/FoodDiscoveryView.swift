@@ -986,16 +986,9 @@ struct FilterSheet: View {
 
 }
 
-// MARK: - RoundedCorner Shape
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
+// MARK: - RoundedCorner Shape (Moved to a shared utility or if duplicated, remove this)
+// Removed duplicate definition
 
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
-    }
-}
 
 // Helper for FlowLayout (Simple horizontal wrapping)
 struct FlowLayout: Layout {
