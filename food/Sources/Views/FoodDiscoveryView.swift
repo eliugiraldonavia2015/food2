@@ -697,6 +697,18 @@ struct FoodDiscoveryView: View {
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
     }
+    // MARK: - Helpers
+
+    private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: ContentMode = .fill) -> some View {
+        WebImage(url: URL(string: url))
+            .resizable()
+            .indicator(.activity)
+            .transition(.fade(duration: 0.5))
+            .aspectRatio(contentMode: contentMode)
+            .frame(width: width, height: height)
+            .clipped()
+            .background(Color(UIColor.systemGray5))
+    }
 }
 
 // MARK: - FilterSheet
@@ -972,6 +984,17 @@ struct FilterSheet: View {
         return val == 1 ? "1 km(-)" : "\(val) km"
     }
 
+}
+
+// MARK: - RoundedCorner Shape
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
 }
 
 // Helper for FlowLayout (Simple horizontal wrapping)
