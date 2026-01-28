@@ -224,7 +224,11 @@ struct OwnProfileView: View {
                         .overlay(coverGradient)
                         .offset(y: minY > 0 ? -minY : 0)
                 } else {
-                    WebImage(url: URL(string: user.coverUrl))
+                    // Lógica de URL robusta: user.coverUrl > Hardcoded (Usuario indicó que la portada es hardcoded por ahora)
+                    let hardcodedCover = "https://images.unsplash.com/photo-1493770348161-369560ae357d" // Misma que en ViewModel
+                    let urlString = !user.coverUrl.isEmpty ? user.coverUrl : hardcodedCover
+                    
+                    WebImage(url: URL(string: urlString))
                         .onSuccess { image, _, _ in
                             self.loadedCoverImage = image
                         }
@@ -297,7 +301,10 @@ struct OwnProfileView: View {
                     .frame(width: 110, height: 110)
                     .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                 
-                if let url = URL(string: user.photoUrl), !user.photoUrl.isEmpty {
+                // Lógica de URL robusta: user.photoUrl > initialData.photoUrl
+                let urlString = user.photoUrl.isEmpty ? (initialUserData?.photoUrl ?? "") : user.photoUrl
+                
+                if let url = URL(string: urlString), !urlString.isEmpty {
                     WebImage(url: url)
                         .resizable()
                         .scaledToFill()
