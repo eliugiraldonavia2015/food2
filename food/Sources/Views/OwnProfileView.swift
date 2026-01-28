@@ -14,6 +14,7 @@ struct OwnProfileView: View {
     @State private var pullOffset: CGFloat = 0
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
+    @State private var showScreen = false // Control maestro de animación
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
     private let showBackButton: Bool
     
@@ -90,11 +91,15 @@ struct OwnProfileView: View {
                         .padding(.bottom, 40)
                         .padding(.top, 16)
                     } else {
-                        loadingView
+                        // Skeleton Loading Instantáneo
+                        skeletonLoadingView
                     }
                 }
             }
         }
+        .opacity(showScreen ? 1 : 0)
+        .offset(y: showScreen ? 0 : 15)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showScreen)
         .coordinateSpace(name: "profileScroll")
         .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
             pullOffset = max(0, y)
@@ -107,14 +112,14 @@ struct OwnProfileView: View {
             if showBackButton {
                 Button(action: { dismiss() }) {
                     Circle()
-                        .fill(Material.ultraThinMaterial)
+                        .fill(Color.black.opacity(0.35))
                         .frame(width: 38, height: 38)
-                        .overlay(Image(systemName: "chevron.left").foregroundColor(.primary))
+                        .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                 }
-                .padding(12)
-                .offset(y: 12)
-                .opacity(animateContent ? 1 : 0)
-                .animation(.easeIn.delay(0.3), value: animateContent)
+                .padding(.leading, 16)
+                .padding(.top, 10)
+                .opacity(showScreen ? 1 : 0)
+                .animation(.easeIn.delay(0.3), value: showScreen)
             }
         }
         .background(Color.white.ignoresSafeArea())
@@ -122,8 +127,18 @@ struct OwnProfileView: View {
         .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {
-            viewModel.loadData()
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            showScreen = true // Animación inmediata del contenedor
+            
+            // Carga diferida de datos pesados para no bloquear la animación UI
+            if viewModel.user == nil {
+                // Precarga simulada rápida si no hay datos
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    viewModel.loadData()
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        animateContent = true
+                    }
+                }
+            } else {
                 animateContent = true
             }
         }
@@ -635,15 +650,55 @@ struct OwnProfileView: View {
         }
     }
     
-    private var loadingView: some View {
-        VStack {
-            Spacer()
-            ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .gray))
-                .scaleEffect(1.5)
-            Spacer()
+    private var skeletonLoadingView: some View {
+        VStack(spacing: 0) {
+            // Header Skeleton
+            Rectangle()
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: headerHeight)
+                .overlay(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.clear, .white.opacity(0.5), .clear]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            VStack(spacing: 24) {
+                // Info Skeleton
+                VStack(spacing: 16) {
+                    Circle()
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 102, height: 102)
+                        .offset(y: -50)
+                        .padding(.bottom, -50)
+                    
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 150, height: 24)
+                    
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 100, height: 16)
+                    
+                    HStack(spacing: 32) {
+                        RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.1)).frame(width: 60, height: 40)
+                        RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.1)).frame(width: 60, height: 40)
+                    }
+                }
+                .padding(.top, -20)
+                
+                // Buttons Skeleton
+                HStack {
+                    RoundedRectangle(cornerRadius: 14).fill(Color.gray.opacity(0.1)).frame(height: 50)
+                    RoundedRectangle(cornerRadius: 14).fill(Color.gray.opacity(0.1)).frame(height: 50)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
         }
-        .frame(height: UIScreen.main.bounds.height * 0.5)
+        .edgesIgnoringSafeArea(.top)
     }
     
     private func formatCount(_ count: Int) -> String {
