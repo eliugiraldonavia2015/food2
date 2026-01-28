@@ -18,6 +18,9 @@ struct OwnProfileView: View {
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
     private let showBackButton: Bool
     
+    // Optimistic UI Data (Fallback inicial)
+    private let initialUserData: PublicProfileViewModel.UserProfileData?
+    
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
     private let photoColumns: [GridItem] = [
@@ -31,26 +34,34 @@ struct OwnProfileView: View {
     
     init(userId: String, initialCoverUrl: String? = nil, initialAvatarUrl: String? = nil, initialName: String? = nil, cachedImage: UIImage? = nil, showBackButton: Bool = true) {
         self.showBackButton = showBackButton
-        let initialData: PublicProfileViewModel.UserProfileData? = {
-            if let cover = initialCoverUrl, let avatar = initialAvatarUrl, let name = initialName {
+        
+        // Construimos el initialData una vez y lo guardamos
+        let data: PublicProfileViewModel.UserProfileData? = {
+            if let name = initialName {
                 return .init(
                     id: userId,
                     username: name.replacingOccurrences(of: " ", with: "").lowercased(),
                     name: name,
                     bio: "...",
-                    photoUrl: avatar,
-                    coverUrl: cover,
+                    photoUrl: initialAvatarUrl ?? "",
+                    coverUrl: initialCoverUrl ?? "",
                     followers: 0,
                     location: ""
                 )
             }
             return nil
         }()
+        self.initialUserData = data
         
-        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId, initialData: initialData))
+        _viewModel = StateObject(wrappedValue: PublicProfileViewModel(userId: userId, initialData: data))
         if let img = cachedImage {
             _loadedCoverImage = State(initialValue: img)
         }
+    }
+    
+    // Computada segura que usa viewModel.user o fallback a initialUserData
+    private var safeUser: PublicProfileViewModel.UserProfileData? {
+        viewModel.user ?? initialUserData
     }
     
     var body: some View {
@@ -66,7 +77,8 @@ struct OwnProfileView: View {
                         )
                         .padding(.bottom, -16)
                     
-                    if let user = viewModel.user {
+                    // USAR SIEMPRE LA VISTA REAL SI HAY DATOS MINIMOS
+                    if let user = safeUser {
                         header(user: user)
                         
                         VStack(spacing: 24) {
@@ -91,10 +103,17 @@ struct OwnProfileView: View {
                         .padding(.bottom, 40)
                         .padding(.top, 16)
                     } else {
-                        // Skeleton Loading Instantáneo
+                        // Skeleton solo si no hay NI SIQUIERA datos iniciales (raro)
                         skeletonLoadingView
                     }
                 }
+            }
+            
+            // Skeleton Overlay que desaparece suavemente cuando carga la data REAL completa
+            if viewModel.user == nil && initialUserData != nil {
+                skeletonLoadingView
+                    .transition(.opacity)
+                    .zIndex(2) // Asegurar que esté encima
             }
         }
         .opacity(showScreen ? 1 : 0)
@@ -133,7 +152,13 @@ struct OwnProfileView: View {
             if viewModel.user == nil {
                 // Precarga simulada rápida si no hay datos
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                         // Aquí se actualizará el estado interno del viewModel
+                         // La animación cross-dissolve la maneja el ZStack
+                    }
                     viewModel.loadData()
+                    
+                    // Animar contenido interno
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         animateContent = true
                     }
