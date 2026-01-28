@@ -66,19 +66,28 @@ class PublicProfileViewModel: ObservableObject {
         let name = data["name"] as? String ?? ""
         let bio = data["bio"] as? String ?? "Amante de la comida 🌮"
         
-        // 🛑 FIX: Priorizar datos existentes (Feed) sobre valores nulos/vacíos para evitar parpadeo a imagen hardcoded
+        // 🛑 FIX CRÍTICO: Recuperar URL de Auth como fuente de verdad si Database falla
+        let authPhoto = AuthService.shared.user?.photoURL?.absoluteString
+        
         let existingPhoto = self.user?.photoUrl
         let fetchedPhoto = data["photoURL"] as? String
-        let photoUrl = (fetchedPhoto?.isEmpty == false ? fetchedPhoto : nil) 
+        
+        // Jerarquía de verdad: 
+        // 1. Base de datos (si existe y no es vacía)
+        // 2. Auth Service (Google/Apple login data fresca)
+        // 3. Cache existente en memoria
+        // 4. Placeholder
+        let photoUrl = (fetchedPhoto?.isEmpty == false ? fetchedPhoto : nil)
+            ?? (authPhoto?.isEmpty == false ? authPhoto : nil)
             ?? existingPhoto 
-            ?? "https://images.unsplash.com/photo-1544005313-94ddf0286df2"
-
+            ?? "" // Dejar vacío para que la Vista maneje el placeholder final
+            
         // 🛑 FIX: Priorizar datos existentes (Feed) sobre valores nulos/vacíos
         let existingCover = self.user?.coverUrl
         let fetchedCover = data["coverURL"] as? String
         let coverUrl = (fetchedCover?.isEmpty == false ? fetchedCover : nil)
             ?? existingCover
-            ?? "https://images.unsplash.com/photo-1493770348161-369560ae357d"
+            ?? "" // Dejar vacío para que la Vista maneje el hardcode
         
         DispatchQueue.main.async {
             self.user = UserProfileData(
