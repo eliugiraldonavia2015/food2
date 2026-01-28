@@ -11,8 +11,9 @@ struct MessagesListView: View {
     @State private var showScreen = false
     @Environment(\.dismiss) private var dismiss
 
-    // Modern Green Theme
+    // Modern Theme Colors
     private let primaryColor = Color.green 
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
     private let backgroundColor = Color.white
     
     private var filteredConversations: [Conversation] {
@@ -106,9 +107,9 @@ struct MessagesListView: View {
             }) {
                 Image(systemName: "square.and.pencil")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(primaryColor)
+                    .foregroundColor(brandPink)
                     .frame(width: 40, height: 40)
-                    .background(primaryColor.opacity(0.1))
+                    .background(brandPink.opacity(0.1))
                     .clipShape(Circle())
             }
         }
@@ -171,7 +172,7 @@ struct MessagesListView: View {
                                 )
                                 .overlay(
                                     Circle()
-                                        .stroke(primaryColor, lineWidth: 2)
+                                        .stroke(brandPink, lineWidth: 2)
                                         .padding(-4)
                                         .opacity(user.unreadCount ?? 0 > 0 ? 1 : 0)
                                 )
@@ -193,6 +194,8 @@ struct MessagesListView: View {
                 }
             }
             .padding(.trailing, 20)
+            .padding(.top, 10) // Fix cutoff
+            .padding(.bottom, 10)
         }
     }
 }
@@ -200,138 +203,141 @@ struct MessagesListView: View {
 // MARK: - Conversation Row
 
 struct ConversationRow: View {
-    let convo: Conversation
-    let primaryColor: Color
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            // Avatar
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(Color(uiColor: .systemGray6))
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        Image(systemName: convo.avatarSystemName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .padding(14)
-                            .foregroundColor(.gray)
-                    )
-                
-                if convo.isOnline {
+        let convo: Conversation
+        let primaryColor: Color
+        private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+        
+        var body: some View {
+            HStack(spacing: 16) {
+                // Avatar
+                ZStack(alignment: .bottomTrailing) {
                     Circle()
-                        .fill(Color.green)
-                        .frame(width: 14, height: 14)
-                        .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
+                        .fill(Color(uiColor: .systemGray6))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: convo.avatarSystemName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .padding(14)
+                                .foregroundColor(.gray)
+                        )
+                    
+                    if convo.isOnline {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 14, height: 14)
+                            .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
+                    }
                 }
-            }
 
-            // Content
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(convo.title)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.black)
-                    Spacer()
-                    Text(convo.timestamp)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(convo.unreadCount ?? 0 > 0 ? primaryColor : .gray)
-                }
-                
-                HStack(alignment: .center) {
-                    Text(convo.subtitle)
-                        .font(.system(size: 15, weight: convo.unreadCount ?? 0 > 0 ? .medium : .regular))
-                        .foregroundColor(convo.unreadCount ?? 0 > 0 ? .black : .gray)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                // Content
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text(convo.title)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.black)
+                        Spacer()
+                        Text(convo.timestamp)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(convo.unreadCount ?? 0 > 0 ? brandPink : .gray)
+                    }
                     
-                    Spacer()
-                    
-                    if let unread = convo.unreadCount, unread > 0 {
-                        Text("\(unread)")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(minWidth: 22, minHeight: 22)
-                            .padding(.horizontal, 6)
-                            .background(primaryColor)
-                            .clipShape(Capsule())
+                    HStack(alignment: .center) {
+                        Text(convo.subtitle)
+                            .font(.system(size: 15, weight: convo.unreadCount ?? 0 > 0 ? .medium : .regular))
+                            .foregroundColor(convo.unreadCount ?? 0 > 0 ? .black : .gray)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                        
+                        Spacer()
+                        
+                        if let unread = convo.unreadCount, unread > 0 {
+                            Text("\(unread)")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(minWidth: 22, minHeight: 22)
+                                .padding(.horizontal, 6)
+                                .background(brandPink)
+                                .clipShape(Capsule())
+                        }
                     }
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .contentShape(Rectangle())
     }
-}
 
 // MARK: - Chat View (Redesigned)
 
 struct ChatView: View {
-    let conversation: Conversation
-    @ObservedObject var store: MessagesStore
-    @Environment(\.dismiss) private var dismiss
-    @State private var composerText: String = ""
-    @State private var messages: [Message] = []
-    @State private var isTyping = false
+        let conversation: Conversation
+        @ObservedObject var store: MessagesStore
+        @Environment(\.dismiss) private var dismiss
+        @State private var composerText: String = ""
+        @State private var messages: [Message] = []
+        @State private var isTyping = false
+        
+        private let primaryColor = Color.green
+        private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
     
-    private let primaryColor = Color.green
-
-    var body: some View {
-        VStack(spacing: 0) {
-            chatHeader
-            
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        Spacer().frame(height: 16)
-                        ForEach(messages) { msg in
-                            MessageBubble(message: msg, primaryColor: primaryColor)
-                                .id(msg.id)
-                                .transition(.scale(scale: 0.9, anchor: msg.isMe ? .bottomTrailing : .bottomLeading).combined(with: .opacity))
-                        }
-                        
-                        if isTyping {
-                            HStack {
-                                TypingIndicator(color: primaryColor)
-                                Spacer()
+        var body: some View {
+            VStack(spacing: 0) {
+                chatHeader
+                
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            Spacer().frame(height: 16)
+                            ForEach(messages) { msg in
+                                MessageBubble(message: msg, primaryColor: brandPink)
+                                    .id(msg.id)
+                                    .transition(.scale(scale: 0.9, anchor: msg.isMe ? .bottomTrailing : .bottomLeading).combined(with: .opacity))
                             }
-                            .padding(.horizontal, 20)
-                            .id("typing")
-                            .transition(.opacity)
+                            
+                            if isTyping {
+                                HStack {
+                                    TypingIndicator(color: brandPink)
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                .id("typing")
+                                .transition(.opacity)
+                            }
+                            Spacer().frame(height: 20)
                         }
-                        Spacer().frame(height: 20)
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.horizontal, 16)
-                }
-                .background(Color.white)
-                .onChange(of: messages.count) { _ in
-                    withAnimation {
-                        if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
-                    }
-                }
-                .onChange(of: isTyping) { typing in
-                    if typing {
+                    .background(Color.white)
+                    .onChange(of: messages.count) { _ in
                         withAnimation {
-                            proxy.scrollTo("typing", anchor: .bottom)
+                            if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
+                    }
+                    .onChange(of: isTyping) { typing in
+                        if typing {
+                            withAnimation {
+                                proxy.scrollTo("typing", anchor: .bottom)
+                            }
                         }
                     }
                 }
+                
+                composer
             }
-            
-            composer
+            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .tabBar) // Ensure tab bar is hidden to avoid layout issues
+            .environment(\.colorScheme, .light)
+            .onAppear {
+                // Mock messages
+                messages = [
+                    Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: false, time: "Hace 14 min", status: nil),
+                    Message(text: "Sí, estará listo en 10 minutos.", isMe: true, time: "Hace 12 min", status: .delivered),
+                    Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
+                ]
+            }
         }
-        .navigationBarHidden(true)
-        .environment(\.colorScheme, .light)
-        .onAppear {
-            // Mock messages
-            messages = [
-                Message(text: "Hola, ¿mi pedido #84721 sigue en preparación?", isMe: false, time: "Hace 14 min", status: nil),
-                Message(text: "Sí, estará listo en 10 minutos.", isMe: true, time: "Hace 12 min", status: .delivered),
-                Message(text: conversation.subtitle, isMe: false, time: "Hace 3 min", status: nil)
-            ]
-        }
-    }
 
     private var chatHeader: some View {
         HStack(spacing: 16) {
@@ -413,7 +419,7 @@ struct ChatView: View {
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
-                        .foregroundColor(primaryColor)
+                        .foregroundColor(brandPink)
                 }
                 .transition(.scale)
             } else {
@@ -523,7 +529,7 @@ struct MessageBubble: View {
     
     private func statusColor(for status: MessageStatus) -> Color {
         switch status {
-        case .read: return primaryColor
+        case .read: return brandPink
         default: return .gray
         }
     }
