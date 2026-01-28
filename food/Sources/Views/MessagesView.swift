@@ -14,7 +14,7 @@ struct MessagesListView: View {
     // Modern Theme Colors
     private let primaryColor = Color.green 
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
-    private let backgroundColor = Color.white
+    private let backgroundColor = Color(uiColor: .systemBackground)
     
     private var filteredConversations: [Conversation] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -79,8 +79,6 @@ struct MessagesListView: View {
                 ChatView(conversation: convo, store: store)
             }
         }
-        .environment(\.colorScheme, .light)
-        .preferredColorScheme(.light)
         .onAppear {
             showScreen = true
             let role = auth.user?.role ?? "client"
@@ -98,7 +96,7 @@ struct MessagesListView: View {
         HStack {
             Text("Mensajes")
                 .font(.system(size: 34, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
             
             Spacer()
             
@@ -127,7 +125,7 @@ struct MessagesListView: View {
             
             TextField("Buscar...", text: $searchText)
                 .font(.system(size: 16))
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
@@ -148,7 +146,7 @@ struct MessagesListView: View {
                             .frame(width: 64, height: 64)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                     Text("Tu historia")
                         .font(.system(size: 12, weight: .medium))
@@ -181,13 +179,13 @@ struct MessagesListView: View {
                                 Circle()
                                     .fill(Color.green)
                                     .frame(width: 16, height: 16)
-                                    .overlay(Circle().stroke(Color.white, lineWidth: 3))
+                                    .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 3))
                             }
                         }
                         
                         Text(user.title.components(separatedBy: " ").first ?? user.title)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .lineLimit(1)
                             .frame(width: 70)
                     }
@@ -226,7 +224,7 @@ struct ConversationRow: View {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 14, height: 14)
-                            .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
+                            .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2.5))
                     }
                 }
 
@@ -235,7 +233,7 @@ struct ConversationRow: View {
                     HStack {
                         Text(convo.title)
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                         Spacer()
                         Text(convo.timestamp)
                             .font(.system(size: 14, weight: .regular))
@@ -245,7 +243,7 @@ struct ConversationRow: View {
                     HStack(alignment: .center) {
                         Text(convo.subtitle)
                             .font(.system(size: 15, weight: convo.unreadCount ?? 0 > 0 ? .medium : .regular))
-                            .foregroundColor(convo.unreadCount ?? 0 > 0 ? .black : .gray)
+                            .foregroundColor(convo.unreadCount ?? 0 > 0 ? .primary : .gray)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                         
@@ -309,7 +307,7 @@ struct ChatView: View {
                         }
                         .padding(.horizontal, 16)
                     }
-                    .background(Color.white)
+                    .background(Color(uiColor: .systemBackground))
                     .onChange(of: messages.count) { _ in
                         withAnimation {
                             if let last = messages.last { proxy.scrollTo(last.id, anchor: .bottom) }
@@ -328,7 +326,6 @@ struct ChatView: View {
             }
             .navigationBarHidden(true)
             .toolbar(.hidden, for: .tabBar) // Ensure tab bar is hidden to avoid layout issues
-            .environment(\.colorScheme, .light)
             .onAppear {
                 // Mock messages
                 messages = [
@@ -344,7 +341,7 @@ struct ChatView: View {
             Button(action: { dismiss() }) {
                 Image(systemName: "arrow.left")
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
             
             HStack(spacing: 12) {
@@ -358,14 +355,14 @@ struct ChatView: View {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                            .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
                     }
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(conversation.title)
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                     Text(conversation.isOnline ? "En línea" : "Desconectado")
                         .font(.system(size: 12))
                         .foregroundColor(conversation.isOnline ? primaryColor : .gray)
@@ -377,18 +374,18 @@ struct ChatView: View {
             Button(action: {}) {
                 Image(systemName: "phone")
                     .font(.system(size: 20))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
             
             Button(action: {}) {
                 Image(systemName: "video")
                     .font(.system(size: 20))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .overlay(Divider().opacity(0.5), alignment: .bottom)
     }
 
@@ -418,8 +415,8 @@ struct ChatView: View {
             if !composerText.isEmpty {
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(brandPink)
+                    .font(.system(size: 32))
+                    .foregroundColor(brandPink)
                 }
                 .transition(.scale)
             } else {
@@ -433,7 +430,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .overlay(Divider().opacity(0.5), alignment: .top)
     }
     
@@ -496,7 +493,7 @@ struct MessageBubble: View {
             VStack(alignment: message.isMe ? .trailing : .leading, spacing: 2) {
                 Text(message.text)
                     .font(.system(size: 16))
-                    .foregroundColor(message.isMe ? .white : .black)
+                    .foregroundColor(message.isMe ? .white : .primary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(message.isMe ? primaryColor : Color(uiColor: .systemGray6))

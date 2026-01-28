@@ -100,9 +100,6 @@ struct NotificationsScreen: View {
                 }
             }
         }
-        // 3. Force Light Mode Environment
-        .environment(\.colorScheme, .light)
-        .preferredColorScheme(.light)
         .onAppear {
             animateList = true
         }
@@ -112,7 +109,7 @@ struct NotificationsScreen: View {
         HStack {
             Text("Notificaciones")
                 .font(.system(size: 28, weight: .bold)) // Apple style large title
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
             Spacer()
             
             Button(action: markAllAsRead) {
@@ -120,7 +117,7 @@ struct NotificationsScreen: View {
                     .font(.system(size: 22))
                     .foregroundColor(Color(red: 244/255, green: 37/255, blue: 123/255)) // Brand Pink
                     .padding(8)
-                    .background(Color.white)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(Circle())
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             }
@@ -135,7 +132,7 @@ struct NotificationsScreen: View {
         HStack {
             Text(title)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(.black.opacity(0.8))
+                .foregroundColor(.primary.opacity(0.8))
             Spacer()
         }
         .padding(.horizontal, 20)
@@ -164,7 +161,7 @@ struct NotificationsScreen: View {
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                     Text("Mis Favoritos")
                         .font(.system(size: 11, weight: .medium))
@@ -210,7 +207,7 @@ struct NotificationsScreen: View {
                         
                         Text(update.name)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .lineLimit(1)
                             .frame(width: 70)
                     }
@@ -239,11 +236,11 @@ struct NotificationRow: View {
                             .scaledToFill()
                             .frame(width: 52, height: 52)
                             .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                            .overlay(Circle().stroke(Color(uiColor: .secondarySystemGroupedBackground), lineWidth: 2))
                             .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
                     } else {
                         Circle()
-                            .fill(Color.white)
+                            .fill(Color(uiColor: .secondarySystemGroupedBackground))
                             .frame(width: 52, height: 52)
                             .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
                             .overlay(
@@ -262,18 +259,18 @@ struct NotificationRow: View {
                     HStack(spacing: 4) {
                         Text(item.user)
                             .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                         
                         Spacer()
                         
                         Text(item.time)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                     
                     Text(item.message)
                         .font(.system(size: 14))
-                        .foregroundColor(item.unread ? .black : .gray)
+                        .foregroundColor(item.unread ? .primary : .secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                 }
@@ -290,7 +287,7 @@ struct NotificationRow: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color.white)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
             .cornerRadius(16)
             .padding(.horizontal, 16)
             .padding(.vertical, 5)
@@ -312,7 +309,7 @@ struct NotificationTypeBadge: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color.white)
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
                 .frame(width: 24, height: 24)
                 .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
             

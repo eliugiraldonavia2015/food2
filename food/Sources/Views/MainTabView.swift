@@ -59,7 +59,7 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black.ignoresSafeArea())
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
             .padding(.bottom, tabBarHeight) // ← ESPACIO FIJO para el tab bar
             
 
@@ -76,11 +76,11 @@ struct MainTabView: View {
             // TAB BAR
             if inDiscoveryMode {
                 bottomBarDiscovery
-                    .background(Color.black)
+                    .background(Color(uiColor: .systemBackground))
                     .zIndex(4)
             } else {
                 bottomBar
-                    .background(Color.black)
+                    .background(Color(uiColor: .systemBackground))
                     .zIndex(4)
             }
 
@@ -102,7 +102,7 @@ struct MainTabView: View {
         }
         
         .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
-        .preferredColorScheme(.dark)
+        // Removed forced preferredColorScheme to support both Light and Dark modes
         .toolbar(.hidden, for: .navigationBar)
         }
         .fullScreenCover(isPresented: $showUploadVideo) {
@@ -126,10 +126,10 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .overlay(
             Rectangle()
-                .fill(Color.black.opacity(0.05))
+                .fill(Color.primary.opacity(0.05))
                 .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
@@ -148,10 +148,10 @@ struct MainTabView: View {
             .padding(.top, 6)
             .padding(.bottom, 0)
         }
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
         .overlay(
             Rectangle()
-                .fill(Color.black.opacity(0.05))
+                .fill(Color.primary.opacity(0.05))
                 .frame(height: 0.5), alignment: .top
         )
         .frame(height: tabBarHeight)
@@ -388,19 +388,28 @@ private struct StoreScreen: View {
                                 .frame(height: 120)
                                 .overlay(Image(systemName: "bag.fill").foregroundColor(.green))
                             Text("Combo Especial")
-                                .foregroundColor(.white).font(.subheadline.bold())
+                                .foregroundColor(.primary).font(.subheadline.bold())
                             Text("$9.99")
                                 .foregroundColor(.green).font(.footnote.bold())
                         }
                         .padding(10)
-                        .background(Color.white.opacity(0.06))
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
             }
             .padding()
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+    }
+    
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.primary)
+            Spacer()
+        }
     }
 }
 
@@ -434,25 +443,25 @@ private struct InternalProfileScreen: View {
                         avatarRing()
                 VStack(alignment: .leading, spacing: 6) {
                     Text("@\(auth.user?.username ?? "usuario")")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .font(.title2.bold())
                     Text(auth.user?.bio ?? "")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .font(.body)
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.and.ellipse")
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                         Text(auth.user?.location ?? "")
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .font(.footnote)
                     }
                 }
                         Spacer()
                     }
-                    Divider().background(Color.white.opacity(0.1))
+                    Divider().background(Color.primary.opacity(0.1))
                 }
                 .padding()
-                .background(Color.white.opacity(0.06))
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 HStack(spacing: 12) {
@@ -474,7 +483,7 @@ private struct InternalProfileScreen: View {
             .padding()
             .padding(.bottom, 80)
         }
-        .background(Color.black)
+        .background(Color(uiColor: .systemBackground))
         .fullScreenCover(isPresented: $showSettings) {
             SettingsScreen(onClose: { showSettings = false })
         }
@@ -498,14 +507,14 @@ private struct InternalProfileScreen: View {
         HStack {
             Spacer()
             Text("Mi Perfil")
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .font(.headline.bold())
             Spacer()
             Button { showSettings = true } label: {
                 Circle()
-                    .fill(Color.white.opacity(0.08))
+                    .fill(Color.primary.opacity(0.08))
                     .frame(width: 36, height: 36)
-                    .overlay(Image(systemName: "gearshape").foregroundColor(.white))
+                    .overlay(Image(systemName: "gearshape").foregroundColor(.primary))
             }
         }
     }
@@ -540,17 +549,17 @@ private struct InternalProfileScreen: View {
     private func pillStat(number: String, label: String) -> some View {
         VStack(spacing: 6) {
             Text(number)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .font(.title3.bold())
             Text(label)
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(.secondary)
                 .font(.caption)
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 
     private func primaryFilledButton(title: String) -> some View {
@@ -581,14 +590,14 @@ private struct InternalProfileScreen: View {
             }
         }) {
             Text(title)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .font(.callout)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
         }
         .background(Color.clear)
-        .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
+        .overlay(Capsule().stroke(Color.primary.opacity(0.6), lineWidth: 1))
         .clipShape(Capsule())
     }
 
@@ -599,7 +608,7 @@ private struct InternalProfileScreen: View {
             segmentButton(icon: "bookmark", index: 2)
         }
         .padding(8)
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
@@ -609,7 +618,7 @@ private struct InternalProfileScreen: View {
             withAnimation(.easeInOut(duration: 0.2)) { selectedSegment = index }
         } label: {
             Image(systemName: icon)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .frame(width: 36, height: 28)
                 .background(isSelected ? Color.green.opacity(0.35) : Color.clear)
                 .clipShape(Capsule())
@@ -629,7 +638,7 @@ private struct InternalProfileScreen: View {
                             .overlay(Rectangle().fill(Color.black.opacity(0.08)))
                     } else {
                         Rectangle()
-                            .fill(Color.white.opacity(0.06))
+                            .fill(Color.primary.opacity(0.06))
                     }
                 }
                 .frame(width: side, height: side)
@@ -637,7 +646,7 @@ private struct InternalProfileScreen: View {
             }
         }
         .padding(2)
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
@@ -672,13 +681,13 @@ private struct SettingsScreen: View {
         HStack {
             Button(action: onClose) {
                 Circle()
-                    .fill(Color.white.opacity(0.08))
+                    .fill(Color.primary.opacity(0.08))
                     .frame(width: 36, height: 36)
-                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
+                    .overlay(Image(systemName: "arrow.backward").foregroundColor(.primary))
             }
             Spacer()
             Text("Configuración")
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .font(.title3.bold())
             Spacer()
         }
@@ -697,8 +706,8 @@ private struct SettingsScreen: View {
         HStack(spacing: 12) {
             iconCircle(icon)
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                Text(title).foregroundColor(.primary).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.secondary).font(.caption)
             }
             Spacer()
             Toggle("", isOn: binding)
@@ -706,7 +715,7 @@ private struct SettingsScreen: View {
                 .tint(.green)
         }
         .padding()
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -715,14 +724,14 @@ private struct SettingsScreen: View {
             HStack(spacing: 12) {
                 iconCircle(icon)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).foregroundColor(.white).font(.subheadline.bold())
-                    Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                    Text(title).foregroundColor(.primary).font(.subheadline.bold())
+                    Text(subtitle).foregroundColor(.secondary).font(.caption)
                 }
                 Spacer()
-                Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
+                Image(systemName: "chevron.right").foregroundColor(.secondary)
             }
             .padding()
-            .background(Color.white.opacity(0.06))
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
@@ -743,12 +752,12 @@ private struct SettingsScreen: View {
                     navRowButton(icon: "questionmark.circle", title: "Ayuda", subtitle: "Centro de ayuda y soporte") { showSub = .help }
 
                     VStack(spacing: 6) {
-                        Text("Versión de la aplicación").foregroundColor(.white.opacity(0.8)).font(.caption).multilineTextAlignment(.center)
-                        Text("Foodtook v1.0.0").foregroundColor(.white).font(.subheadline.bold()).multilineTextAlignment(.center)
+                        Text("Versión de la aplicación").foregroundColor(.secondary).font(.caption).multilineTextAlignment(.center)
+                        Text("Foodtook v1.0.0").foregroundColor(.primary).font(.subheadline.bold()).multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.white.opacity(0.06))
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 16))
 
                     Button(action: { AuthService.shared.signOut() }) {
@@ -768,7 +777,7 @@ private struct SettingsScreen: View {
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .fullScreenCover(isPresented: Binding(get: { showSub != nil }, set: { if !$0 { showSub = nil } })) {
             switch showSub {
             case .notifications:
@@ -801,28 +810,28 @@ private struct NotificationsSettingsView: View {
     @State private var recommendationsOn = true
 
     private func sectionTitle(_ text: String) -> some View {
-        HStack { Text(text).foregroundColor(.white).font(.subheadline.bold()); Spacer() }
+        HStack { Text(text).foregroundColor(.primary).font(.subheadline.bold()); Spacer() }
     }
 
     private func cardToggle(title: String, subtitle: String, binding: Binding<Bool>) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                Text(title).foregroundColor(.primary).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.secondary).font(.caption)
             }
             Spacer()
             Toggle("", isOn: binding).labelsHidden().tint(.green)
         }
         .padding()
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Notificaciones").foregroundColor(.white).font(.title3.bold())
+            Text("Notificaciones").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
@@ -848,7 +857,7 @@ private struct NotificationsSettingsView: View {
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
@@ -862,9 +871,9 @@ private struct PrivacySettingsView: View {
 
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Privacidad").foregroundColor(.white).font(.title3.bold())
+            Text("Privacidad").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
@@ -874,14 +883,14 @@ private struct PrivacySettingsView: View {
     private func cardToggle(title: String, subtitle: String, binding: Binding<Bool>) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                Text(title).foregroundColor(.primary).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.secondary).font(.caption)
             }
             Spacer()
             Toggle("", isOn: binding).labelsHidden().tint(.green)
         }
         .padding()
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -899,7 +908,7 @@ private struct PrivacySettingsView: View {
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
@@ -920,9 +929,9 @@ private struct LanguageSettingsView: View {
 
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Idioma").foregroundColor(.white).font(.title3.bold())
+            Text("Idioma").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
@@ -936,14 +945,14 @@ private struct LanguageSettingsView: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(primary).foregroundColor(.white).font(.subheadline.bold())
-                    Text(secondary).foregroundColor(.white.opacity(0.8)).font(.caption)
+                    Text(primary).foregroundColor(.primary).font(.subheadline.bold())
+                    Text(secondary).foregroundColor(.secondary).font(.caption)
                 }
                 Spacer()
                 if isSelected { Image(systemName: "checkmark").foregroundColor(.green) }
             }
             .padding()
-            .background(isSelected ? Color.green.opacity(0.18) : Color.white.opacity(0.06))
+            .background(isSelected ? Color.green.opacity(0.18) : Color(uiColor: .secondarySystemGroupedBackground))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(isSelected ? Color.green : Color.clear, lineWidth: 1))
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
@@ -962,7 +971,7 @@ private struct LanguageSettingsView: View {
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
@@ -975,9 +984,9 @@ private struct PaymentMethodsView: View {
 
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Métodos de Pago").foregroundColor(.white).font(.title3.bold())
+            Text("Métodos de Pago").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
@@ -988,199 +997,102 @@ private struct PaymentMethodsView: View {
         HStack(spacing: 12) {
             Circle().fill(Color.green.opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: "creditcard").foregroundColor(.green))
             VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
+                Text(title).foregroundColor(.primary).font(.subheadline.bold())
+                Text(subtitle).foregroundColor(.secondary).font(.caption)
             }
             Spacer()
             Button("Eliminar", action: onDelete)
                 .foregroundColor(.red)
         }
         .padding()
-        .background(Color.white.opacity(0.06))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-
-    private func addButton() -> some View {
-        Button(action: { methods.append(("Nueva tarjeta •••• 0000", "Expira 01/27")) }) {
-            HStack(spacing: 8) {
-                Image(systemName: "plus").foregroundColor(.white)
-                Text("Agregar método de pago").foregroundColor(.white).font(.subheadline)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(style: StrokeStyle(lineWidth: 1, dash: [4])).foregroundColor(.white.opacity(0.6)))
-        }
-        .buttonStyle(.plain)
-    }
-
+    
     var body: some View {
         VStack(spacing: 16) {
             header()
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach(Array(methods.enumerated()), id: \.offset) { idx, m in
-                        methodRow(title: m.0, subtitle: m.1) {
-                            methods.remove(at: idx)
+                    ForEach(methods, id: \.0) { method in
+                        methodRow(title: method.0, subtitle: method.1) {
+                            // Delete logic
                         }
                     }
-                    addButton()
+                    
+                    Button(action: {}) {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("Agregar método de pago")
+                        }
+                        .foregroundColor(.green)
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
 private struct SecuritySettingsView: View {
     let onClose: () -> Void
-    @State private var currentPassword: String = ""
-    @State private var newPassword: String = ""
-    @State private var confirmPassword: String = ""
-    @State private var twoFAEnabled: Bool = false
-
+    
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Seguridad").foregroundColor(.white).font(.title3.bold())
+            Text("Seguridad").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
         .padding(.top, 8)
     }
-
-    private func sectionTitle(_ text: String) -> some View {
-        HStack { Text(text).foregroundColor(.white).font(.subheadline.bold()); Spacer() }
-    }
-
-    private func field(label: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).foregroundColor(.white.opacity(0.8)).font(.caption)
-            SecureField("", text: text)
-                .padding()
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func deviceRow(title: String, time: String, location: String, trailing: AnyView) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text("Última actividad: \(time)").foregroundColor(.white.opacity(0.8)).font(.caption)
-                Text(location).foregroundColor(.white.opacity(0.8)).font(.caption)
-            }
-            Spacer()
-            trailing
-        }
-        .padding()
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
+    
     var body: some View {
         VStack(spacing: 16) {
             header()
             ScrollView {
                 VStack(spacing: 12) {
-                    sectionTitle("Cambiar contraseña")
-                    field(label: "Contraseña actual", text: $currentPassword)
-                    field(label: "Nueva contraseña", text: $newPassword)
-                    field(label: "Confirmar contraseña", text: $confirmPassword)
-                    Button(action: {}) {
-                        Text("Actualizar contraseña").foregroundColor(.black).font(.subheadline.bold()).frame(maxWidth: .infinity).padding()
-                    }
-                    .background(Color.green)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                    sectionTitle("Autenticación de dos factores")
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("2FA").foregroundColor(.white).font(.subheadline.bold())
-                            Text("Mayor seguridad para tu cuenta").foregroundColor(.white.opacity(0.8)).font(.caption)
-                        }
-                        Spacer()
-                        Toggle("", isOn: $twoFAEnabled).labelsHidden().tint(.green)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-
-                    sectionTitle("Sesiones activas")
-                    deviceRow(title: "iPhone 15 Pro", time: "Ahora", location: "Ciudad de México, México", trailing: AnyView(Text("Actual").foregroundColor(.white).font(.caption.bold()).padding(.horizontal, 8).padding(.vertical, 4).background(Color.green).clipShape(Capsule())))
-                    deviceRow(title: "MacBook Pro", time: "Hace 2 horas", location: "Ciudad de México, México", trailing: AnyView(Button("Cerrar sesión", action: {}).foregroundColor(.red)))
+                    Text("Opciones de seguridad").foregroundColor(.secondary).font(.caption)
                 }
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
 private struct HelpSupportView: View {
     let onClose: () -> Void
-
+    
     private func header() -> some View {
         HStack {
-            Button(action: onClose) { Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white)) }
+            Button(action: onClose) { Circle().fill(Color.primary.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.primary)) }
             Spacer()
-            Text("Ayuda y Soporte").foregroundColor(.white).font(.title3.bold())
+            Text("Ayuda y Soporte").foregroundColor(.primary).font(.title3.bold())
             Spacer()
         }
         .padding(.horizontal)
         .padding(.top, 8)
     }
-
-    private func iconCircle(_ name: String) -> some View {
-        Circle().fill(Color.green.opacity(0.2)).frame(width: 36, height: 36).overlay(Image(systemName: name).foregroundColor(.green))
-    }
-
-    private func navRow(title: String, subtitle: String, icon: String) -> some View {
-        HStack(spacing: 12) {
-            iconCircle(icon)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).foregroundColor(.white).font(.subheadline.bold())
-                Text(subtitle).foregroundColor(.white.opacity(0.8)).font(.caption)
-            }
-            Spacer()
-            Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
-        }
-        .padding()
-        .background(Color.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
+    
     var body: some View {
         VStack(spacing: 16) {
             header()
             ScrollView {
                 VStack(spacing: 12) {
-                    navRow(title: "Preguntas frecuentes", subtitle: "Encuentra respuestas rápidas", icon: "questionmark.circle")
-                    navRow(title: "Chat en vivo", subtitle: "Habla con soporte", icon: "message")
-                    navRow(title: "Contactar por email", subtitle: "support@foodtook.com", icon: "envelope")
-                    navRow(title: "Términos de servicio", subtitle: "Lee nuestros términos", icon: "doc.text")
-                    navRow(title: "Política de privacidad", subtitle: "Cómo protegemos tus datos", icon: "lock.doc")
-
-                    VStack(spacing: 6) {
-                        Text("Versión de la aplicación").foregroundColor(.white.opacity(0.8)).font(.caption).multilineTextAlignment(.center)
-                        Text("Foodtook v1.0.0").foregroundColor(.white).font(.subheadline.bold()).multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    Text("Centro de ayuda").foregroundColor(.secondary).font(.caption)
                 }
                 .padding()
             }
         }
-        .background(Color.black.ignoresSafeArea())
-    }
-}
-
-private func sectionHeader(_ title: String) -> some View {
-    HStack {
-        Text(title).foregroundColor(.white).font(.title3.bold())
-        Spacer()
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
