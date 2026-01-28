@@ -14,9 +14,15 @@ struct FoodDiscoveryView: View {
     @State private var animateCategories = false
     @State private var animateContent = false
     
-    // Datos simulados
-    let categories = ["Burgers", "Pizza", "Saludable", "Carnes", "Drinks", "Sushi"]
+    // MARK: - Design Constants
+    private let primaryColor = Color.green
+    private let accentColor = Color.orange
+    private let backgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray/White
+    private let cardColor = Color.white
+    private let primaryTextColor = Color.black.opacity(0.85)
+    private let secondaryTextColor = Color.gray
     
+    // MARK: - Data Models
     struct CategoryItem: Identifiable {
         let id = UUID()
         let name: String
@@ -32,6 +38,8 @@ struct FoodDiscoveryView: View {
         CategoryItem(name: "Drinks", icon: "🥤", color: .blue.opacity(0.1)),
         CategoryItem(name: "Sushi", icon: "🍣", color: .purple.opacity(0.1))
     ]
+    
+    let categories = ["Burgers", "Pizza", "Saludable", "Carnes", "Drinks", "Sushi"]
     
     struct PopularItem: Identifiable {
         let id = UUID()
@@ -54,252 +62,6 @@ struct FoodDiscoveryView: View {
         PopularItem(name: "Plato Especial 7", restaurant: "Restaurante 7", price: 24.90, time: "47 min", rating: 4.6, discount: 25, imageUrl: "https://images.unsplash.com/photo-1478145046317-39f10e56b5e9")
     ]
     
-    var body: some View {
-        ZStack {
-            Color(red: 0.95, green: 0.95, blue: 0.97).ignoresSafeArea() // Light Background
-            
-            VStack(spacing: 0) {
-                // Fixed Header Section
-                VStack(spacing: 12) {
-                    headerView
-                        .offset(y: animateHeader ? 0 : -50)
-                        .opacity(animateHeader ? 1 : 0)
-                    
-                    searchBar
-                        .scaleEffect(animateSearch ? 1 : 0.9)
-                        .opacity(animateSearch ? 1 : 0)
-                    
-                    categoriesFilter
-                        .offset(x: animateCategories ? 0 : 50)
-                        .opacity(animateCategories ? 1 : 0)
-                }
-                .padding(.top, 55)
-                .padding(.bottom, 10)
-                .background(
-                    Color.white
-                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 5)
-                )
-                .zIndex(10)
-                
-                // Scrollable Content
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        promoCarousel
-                            .offset(y: animateContent ? 0 : 30)
-                            .opacity(animateContent ? 1 : 0)
-                        
-                        categoryIconsRow
-                            .offset(y: animateContent ? 0 : 40)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.1), value: animateContent)
-                        
-                        ForEach(Array(style1SectionsData.enumerated()), id: \.element.id) { index, section in
-                            sectionStyle1(title: section.title, items: section.items)
-                                .offset(y: animateContent ? 0 : 50)
-                                .opacity(animateContent ? 1 : 0)
-                                .animation(.easeOut(duration: 0.6).delay(0.15 + Double(index) * 0.1), value: animateContent)
-                        }
-                        
-                        dealsSection(title: "Descuentazos")
-                            .offset(y: animateContent ? 0 : 50)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.4), value: animateContent)
-                        
-                        dealsSection(title: "Más ofertas")
-                            .offset(y: animateContent ? 0 : 50)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.5), value: animateContent)
-                        
-                        popularSection
-                            .offset(y: animateContent ? 0 : 50)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
-                        
-                        feedSectionStyle4
-                            .offset(y: animateContent ? 0 : 50)
-                            .opacity(animateContent ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.7), value: animateContent)
-                            
-                        Spacer().frame(height: 100)
-                    }
-                    .padding(.top, 10)
-                }
-            }
-            .blur(radius: showFilters ? 5 : 0)
-            
-            // Dimming Background
-            if showFilters {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation { showFilters = false }
-                    }
-                    .transition(.opacity)
-            }
-            
-            // Filter Sheet
-            if showFilters {
-                FilterSheet(onClose: { withAnimation { showFilters = false } })
-                    .transition(.move(edge: .bottom))
-                    .zIndex(20)
-            }
-        }
-        .ignoresSafeArea(edges: .top)
-        .gesture(
-            DragGesture().onEnded { value in
-                if value.translation.height > 50 && !showFilters {
-                    onClose()
-                }
-            }
-        )
-        .onAppear {
-            startAnimations()
-        }
-        .preferredColorScheme(.light) // Force Light Mode for this view
-    }
-    
-    private func startAnimations() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            animateHeader = true
-        }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1)) {
-            animateSearch = true
-        }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
-            animateCategories = true
-        }
-        withAnimation(.spring(response: 0.8, dampingFraction: 0.8).delay(0.3)) {
-            animateContent = true
-        }
-    }
-    
-    // MARK: - Subviews
-    
-    private var headerView: some View {
-        HStack {
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundColor(.green)
-                    .font(.system(size: 18))
-                Text("Tu ubicación")
-                    .foregroundColor(.primary)
-                    .font(.system(size: 16, weight: .medium))
-            }
-            
-            Spacer()
-            
-            Text("Foodtook")
-                .foregroundColor(.primary)
-                .font(.system(size: 22, weight: .heavy))
-            
-            Spacer()
-            
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.90, green: 0.90, blue: 0.92))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: "person.crop.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle().stroke(Color.green, lineWidth: 2)
-                    )
-            }
-            .onTapGesture {
-                onClose()
-            }
-        }
-        .padding(.horizontal)
-    }
-    
-    private var searchBar: some View {
-        HStack(spacing: 12) {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.gray)
-                TextField("Buscar restaurantes...", text: $searchText)
-                    .foregroundColor(.primary)
-                Image(systemName: "mic")
-                    .foregroundColor(.gray)
-            }
-            .padding()
-            .background(Color(UIColor.systemGray6))
-            .cornerRadius(25)
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-            
-            Button(action: {
-                withAnimation { showFilters = true }
-            }) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.black)
-                    .clipShape(Circle())
-                    .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
-            }
-        }
-        .padding(.horizontal)
-    }
-    
-    private var categoriesFilter: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(categories, id: \.self) { category in
-                    Button(action: { selectedCategory = category }) {
-                        Text(category)
-                            .font(.system(size: 15, weight: .semibold))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                selectedCategory == category ?
-                                Color.green :
-                                Color.white
-                            )
-                            .foregroundColor(selectedCategory == category ? .white : .primary)
-                            .cornerRadius(20)
-                            .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color(UIColor.systemGray5), lineWidth: selectedCategory == category ? 0 : 1)
-                            )
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 4)
-        }
-    }
-    
-    private var categoryIconsRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                ForEach(categoryItems) { item in
-                    VStack(spacing: 8) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 64, height: 64)
-                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                            
-                            Text(item.icon)
-                                .font(.system(size: 30))
-                        }
-                        
-                        Text(item.name)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.black)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 4)
-        }
-    }
-
     struct RestaurantItem: Identifiable {
         let id = UUID()
         let title: String
@@ -357,73 +119,7 @@ struct FoodDiscoveryView: View {
             ])
         ]
     }
-
-    private func sectionStyle1(title: String, items: [RestaurantItem]) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(title)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
-                .padding(.horizontal)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(items) { item in
-                        restaurantCardStyle1(item)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 10) // Shadow space
-            }
-        }
-    }
-
-    private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                safeImage(url: item.imageUrl, width: 240, height: 120, contentMode: .fill)
-                if let promo = item.promo {
-                    Text(promo)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green)
-                        .cornerRadius(6)
-                        .padding(8)
-                }
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                Text(item.title)
-                    .font(.system(size: 16, weight: .bold))
-                    .lineLimit(2)
-                    .foregroundColor(.black)
-                HStack(spacing: 4) {
-                    Text(item.time)
-                    Text("•")
-                    Text(item.fee)
-                    Text("•")
-                    Text(item.distance)
-                }
-                .font(.system(size: 12))
-                .foregroundColor(.gray)
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(.orange)
-                    Text(String(format: "%.1f", item.rating))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(12)
-        }
-        .frame(width: 240)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
-    }
-
+    
     struct DealItem: Identifiable {
         let id = UUID()
         let price: String
@@ -446,79 +142,7 @@ struct FoodDiscoveryView: View {
             DealItem(price: "$6,10", discountText: "-40%", oldPrice: "$10,20", subtitle: "Sushi Box", merchant: "Kobe", time: "53 min", imageUrl: "https://images.unsplash.com/photo-1553621042-f6e147245754")
         ]
     }
-
-    private func dealsSection(title: String) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(title)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .padding(.horizontal)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(dealsData) { deal in
-                        dealCard(deal)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
-            }
-        }
-    }
-
-    private func dealCard(_ deal: DealItem) -> some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                safeImage(url: deal.imageUrl, height: 120, contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .cornerRadius(16, corners: [.topLeft, .topRight])
-                Text(deal.discountText)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.red)
-                    .cornerRadius(4)
-                    .padding(8)
-            }
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(deal.price)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.primary)
-                    Text(deal.oldPrice)
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                        .strikethrough()
-                }
-                Text(deal.subtitle)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                
-                HStack(spacing: 6) {
-                    Text(deal.merchant)
-                        .font(.system(size: 12))
-                        .foregroundColor(.primary)
-                    Text("•")
-                        .foregroundColor(.gray)
-                    Image(systemName: "clock")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 10))
-                    Text(deal.time)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(width: 180)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
-    }
-
+    
     struct FeedItem: Identifiable {
         let id = UUID()
         let title: String
@@ -538,87 +162,439 @@ struct FoodDiscoveryView: View {
             FeedItem(title: "Thai Garden", imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", meta: "50 min  •  $1.20  •  5.4 km", rating: "★ 4.8", promo: "$2 de envío")
         ]
     }
-
-    private var feedSectionStyle4: some View {
-        VStack(spacing: 16) {
-            ForEach(feedItems) { item in
-                VStack(alignment: .leading, spacing: 8) {
-                    safeImage(url: item.imageUrl, height: 160, contentMode: .fill)
-                        .cornerRadius(16)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(item.title)
-                            .font(.system(size: 20, weight: .bold))
-                            .lineLimit(2)
-                            .foregroundColor(.primary)
-                        if let promo = item.promo {
-                            Text(promo)
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(Color.green)
-                                .cornerRadius(6)
-                        }
-                        Text(item.meta)
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                        Text(item.rating)
-                            .font(.system(size: 12))
-                            .foregroundColor(.orange)
-                    }
-                    .padding(.horizontal)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+    
+    // MARK: - Body
+    var body: some View {
+        ZStack {
+            backgroundColor.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Fixed Modern Header
+                VStack(spacing: 0) {
+                    topBar
+                        .padding(.bottom, 10)
+                        .offset(y: animateHeader ? 0 : -30)
+                        .opacity(animateHeader ? 1 : 0)
+                    
+                    searchArea
+                        .padding(.bottom, 12)
+                        .scaleEffect(animateSearch ? 1 : 0.95)
+                        .opacity(animateSearch ? 1 : 0)
+                    
+                    categoriesScroll
+                        .padding(.bottom, 16)
+                        .offset(x: animateCategories ? 0 : 30)
+                        .opacity(animateCategories ? 1 : 0)
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 12)
+                .padding(.top, 60) // Safe Area Top
+                .background(Color.white)
+                .clipShape(RoundedCorner(radius: 24, corners: [.bottomLeft, .bottomRight]))
+                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 5)
+                .zIndex(20)
+                
+                // Scrollable Content
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 28) {
+                        
+                        promoCarousel
+                            .padding(.top, 20)
+                            .offset(y: animateContent ? 0 : 30)
+                            .opacity(animateContent ? 1 : 0)
+                        
+                        ForEach(Array(style1SectionsData.enumerated()), id: \.element.id) { index, section in
+                            sectionStyle1(title: section.title, items: section.items)
+                                .offset(y: animateContent ? 0 : 40)
+                                .opacity(animateContent ? 1 : 0)
+                                .animation(.easeOut(duration: 0.6).delay(0.2 + Double(index) * 0.1), value: animateContent)
+                        }
+                        
+                        dealsSection(title: "Descuentazos")
+                            .offset(y: animateContent ? 0 : 40)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.5), value: animateContent)
+                        
+                        popularSection
+                            .offset(y: animateContent ? 0 : 40)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.6), value: animateContent)
+                        
+                        feedSectionStyle4
+                            .offset(y: animateContent ? 0 : 40)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.7), value: animateContent)
+                            
+                        Spacer().frame(height: 100)
+                    }
+                }
             }
-            Spacer().frame(height: 20)
+            .blur(radius: showFilters ? 6 : 0)
+            
+            // Dimming Background
+            if showFilters {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation { showFilters = false }
+                    }
+                    .transition(.opacity)
+                    .zIndex(30)
+            }
+            
+            // Filter Sheet
+            if showFilters {
+                FilterSheet(onClose: { withAnimation { showFilters = false } })
+                    .transition(.move(edge: .bottom))
+                    .zIndex(40)
+            }
+        }
+        .ignoresSafeArea(edges: .top)
+        .gesture(
+            DragGesture().onEnded { value in
+                if value.translation.height > 60 && !showFilters {
+                    onClose()
+                }
+            }
+        )
+        .onAppear {
+            startAnimations()
+        }
+        .preferredColorScheme(.light)
+    }
+    
+    private func startAnimations() {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            animateHeader = true
+        }
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1)) {
+            animateSearch = true
+        }
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+            animateCategories = true
+        }
+        withAnimation(.spring(response: 0.8, dampingFraction: 0.8).delay(0.3)) {
+            animateContent = true
         }
     }
-
+    
+    // MARK: - New UI Components
+    
+    private var topBar: some View {
+        HStack {
+            // Branding
+            Text("Foodtook")
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .foregroundColor(primaryColor)
+            
+            Spacer()
+            
+            // Location Pill
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .foregroundColor(primaryColor)
+                    .font(.system(size: 14))
+                Text("Tu ubicación")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(primaryTextColor)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(secondaryTextColor)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
+            .clipShape(Capsule())
+            
+            Spacer()
+            
+            // Profile
+            Button(action: onClose) {
+                ZStack {
+                    Circle()
+                        .fill(Color(red: 0.95, green: 0.95, blue: 0.97))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "person.crop.circle.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle().stroke(Color.white, lineWidth: 2)
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var searchArea: some View {
+        HStack(spacing: 12) {
+            // Search Field
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(secondaryTextColor)
+                    .font(.system(size: 18))
+                
+                TextField("¿Qué se te antoja hoy?", text: $searchText)
+                    .font(.system(size: 16))
+                    .foregroundColor(primaryTextColor)
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(secondaryTextColor)
+                    }
+                }
+            }
+            .padding(14)
+            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
+            .cornerRadius(18)
+            
+            // Filter Button
+            Button(action: {
+                withAnimation { showFilters = true }
+            }) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+                    .frame(width: 50, height: 50)
+                    .background(primaryTextColor)
+                    .cornerRadius(18)
+                    .shadow(color: primaryTextColor.opacity(0.3), radius: 4, x: 0, y: 2)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var categoriesScroll: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(categories, id: \.self) { category in
+                    Button(action: { withAnimation { selectedCategory = category } }) {
+                        HStack(spacing: 6) {
+                            if let icon = categoryItems.first(where: { $0.name == category })?.icon {
+                                Text(icon)
+                                    .font(.system(size: 14))
+                            }
+                            Text(category)
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            selectedCategory == category ? primaryColor : Color.white
+                        )
+                        .foregroundColor(selectedCategory == category ? .white : primaryTextColor)
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: selectedCategory == category ? 0 : 1.5)
+                        )
+                        .shadow(color: selectedCategory == category ? primaryColor.opacity(0.3) : Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 4)
+        }
+    }
+    
+    // MARK: - Sections
+    
     private var promoCarousel: some View {
         TabView {
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591")
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349")
-            promoSlide(imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591", title: "Burgers", discount: "40%")
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349", title: "Combos", discount: "30%")
+            promoSlide(imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", title: "Salads", discount: "25%")
         }
-        .frame(height: 220)
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-        .padding(.horizontal)
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .frame(height: 200)
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
+        .padding(.horizontal, 20)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 
-    private func promoSlide(imageUrl: String) -> some View {
-        ZStack(alignment: .trailing) {
-            HStack(spacing: 0) {
-                safeImage(url: imageUrl, width: 180, height: 220, contentMode: .fill)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Burgers con")
-                        .font(.system(size: 18))
-                        .foregroundColor(.brown)
-                    Text("40% OFF")
-                        .font(.system(size: 34, weight: .heavy))
-                        .foregroundColor(.brown)
-                    Text("30% FULL")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.brown)
-                    Spacer()
-                }
+    private func promoSlide(imageUrl: String, title: String, discount: String) -> some View {
+        ZStack(alignment: .leading) {
+            safeImage(url: imageUrl, width: nil, height: nil, contentMode: .fill)
                 .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(red: 0.96, green: 0.93, blue: 0.88))
+                .overlay(
+                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .transparent]), startPoint: .leading, endPoint: .trailing)
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                Text("\(discount) OFF")
+                    .font(.system(size: 36, weight: .heavy))
+                    .foregroundColor(.white)
+                
+                Button(action: {}) {
+                    Text("Ver ofertas")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                }
+                .padding(.top, 8)
             }
+            .padding(24)
         }
         .cornerRadius(24)
+    }
+    
+    private func sectionStyle1(title: String, items: [RestaurantItem]) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(primaryTextColor)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(primaryColor)
+                        .padding(8)
+                        .background(primaryColor.opacity(0.1))
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(items) { item in
+                        restaurantCardStyle1(item)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+    
+    private func restaurantCardStyle1(_ item: RestaurantItem) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .topTrailing) {
+                safeImage(url: item.imageUrl, width: 220, height: 140, contentMode: .fill)
+                
+                if let promo = item.promo {
+                    Text(promo)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(primaryColor)
+                        .cornerRadius(8)
+                        .padding(10)
+                }
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.orange)
+                    Text(String(format: "%.1f", item.rating))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(primaryTextColor)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white)
+                .cornerRadius(8)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .bottomLeading)
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(primaryTextColor)
+                    .lineLimit(1)
+                
+                HStack(spacing: 8) {
+                    Label(item.time, systemImage: "clock")
+                    Label(item.distance, systemImage: "mappin")
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(secondaryTextColor)
+            }
+            .padding(12)
+        }
+        .frame(width: 220)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+    }
+    
+    private func dealsSection(title: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(primaryTextColor)
+                .padding(.horizontal, 20)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(dealsData) { deal in
+                        dealCard(deal)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+    
+    private func dealCard(_ deal: DealItem) -> some View {
+        HStack(spacing: 0) {
+            safeImage(url: deal.imageUrl, width: 100, height: 100, contentMode: .fill)
+                .cornerRadius(16)
+                .padding(8)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text(deal.discountText)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.red)
+                    .cornerRadius(4)
+                
+                Text(deal.merchant)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(primaryTextColor)
+                    .lineLimit(1)
+                
+                HStack(spacing: 4) {
+                    Text(deal.price)
+                        .font(.system(size: 14, weight: .heavy))
+                        .foregroundColor(primaryColor)
+                    Text(deal.oldPrice)
+                        .font(.system(size: 12))
+                        .foregroundColor(secondaryTextColor)
+                        .strikethrough()
+                }
+            }
+            .padding(.vertical, 12)
+            .padding(.trailing, 12)
+            
+            Spacer()
+        }
+        .frame(width: 260)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 3)
     }
     
     private var popularSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Popular cerca de ti")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.black)
-                .padding(.horizontal)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(primaryTextColor)
+                .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -626,78 +602,114 @@ struct FoodDiscoveryView: View {
                         popularCard(item: item)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
         }
     }
     
     private func popularCard(item: PopularItem) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Image Header
-            ZStack(alignment: .top) {
-                safeImage(url: item.imageUrl, width: 200, height: 120, contentMode: .fill)
+            ZStack(alignment: .topTrailing) {
+                safeImage(url: item.imageUrl, width: 180, height: 180, contentMode: .fill)
                 
-                HStack {
-                    if let discount = item.discount {
-                        Text("\(discount)% off")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.orange)
-                            .cornerRadius(4)
-                    }
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.orange)
-                        Text(String(format: "%.1f", item.rating))
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.black)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(4)
+                if let discount = item.discount {
+                    Text("\(discount)%")
+                        .font(.system(size: 12, weight: .heavy))
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.orange)
+                        .clipShape(Circle())
+                        .padding(10)
                 }
-                .padding(10)
             }
             
-            // Content
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(item.name)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(primaryTextColor)
                     .lineLimit(2)
-                    .foregroundColor(.black)
                 
                 Text(item.restaurant)
                     .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(secondaryTextColor)
                 
                 HStack {
                     Text("$\(String(format: "%.2f", item.price))")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.green)
-                    
+                        .font(.system(size: 16, weight: .heavy))
+                        .foregroundColor(primaryColor)
                     Spacer()
-                    
-                    Text(item.time)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 2) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.orange)
+                            .font(.system(size: 10))
+                        Text(String(format: "%.1f", item.rating))
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(primaryTextColor)
+                    }
                 }
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
         }
-        .frame(width: 200)
+        .frame(width: 180)
         .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .cornerRadius(24)
+        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
     }
+    
+    private var feedSectionStyle4: some View {
+        VStack(spacing: 20) {
+            ForEach(feedItems) { item in
+                VStack(alignment: .leading, spacing: 0) {
+                    safeImage(url: item.imageUrl, width: nil, height: 180, contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .overlay(
+                            ZStack(alignment: .topLeading) {
+                                if let promo = item.promo {
+                                    Text(promo)
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(primaryColor)
+                                        .cornerRadius(8)
+                                        .padding(12)
+                                }
+                            },
+                            alignment: .topLeading
+                        )
+                    
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(item.title)
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(primaryTextColor)
+                            
+                            Text(item.meta)
+                                .font(.system(size: 13))
+                                .foregroundColor(secondaryTextColor)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(item.rating)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(primaryTextColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(red: 0.95, green: 0.95, blue: 0.97))
+                            .cornerRadius(8)
+                    }
+                    .padding(16)
+                }
+                .background(Color.white)
+                .cornerRadius(24)
+                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 5)
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+    
     // MARK: - Helpers
 
     private func safeImage(url: String, width: CGFloat? = nil, height: CGFloat? = nil, contentMode: ContentMode = .fill) -> some View {
@@ -708,7 +720,7 @@ struct FoodDiscoveryView: View {
             .aspectRatio(contentMode: contentMode)
             .frame(width: width, height: height)
             .clipped()
-            .background(Color(red: 0.90, green: 0.90, blue: 0.92))
+            .background(Color(red: 0.92, green: 0.92, blue: 0.94))
     }
 }
 
@@ -830,7 +842,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(UIColor.systemGray6))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -986,10 +998,6 @@ struct FilterSheet: View {
     }
 
 }
-
-// MARK: - RoundedCorner Shape (Moved to a shared utility or if duplicated, remove this)
-// Removed duplicate definition
-
 
 // Helper for FlowLayout (Simple horizontal wrapping)
 struct FlowLayout: Layout {
