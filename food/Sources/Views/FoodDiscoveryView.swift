@@ -155,6 +155,7 @@ struct FoodDiscoveryView: View {
         .onAppear {
             startAnimations()
         }
+        .preferredColorScheme(.light) // Force Light Mode for this view
     }
     
     private func startAnimations() {
