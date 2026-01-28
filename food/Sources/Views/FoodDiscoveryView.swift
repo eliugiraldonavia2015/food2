@@ -56,7 +56,7 @@ struct FoodDiscoveryView: View {
     
     var body: some View {
         ZStack {
-            Color(UIColor.systemGray6).ignoresSafeArea() // Light Background
+            Color(red: 0.95, green: 0.95, blue: 0.97).ignoresSafeArea() // Light Background
             
             VStack(spacing: 0) {
                 // Fixed Header Section
@@ -196,7 +196,7 @@ struct FoodDiscoveryView: View {
             
             ZStack {
                 Circle()
-                    .fill(Color(UIColor.systemGray5))
+                    .fill(Color(red: 0.90, green: 0.90, blue: 0.92))
                     .frame(width: 40, height: 40)
                 
                 Image(systemName: "person.crop.circle.fill")
@@ -708,7 +708,7 @@ struct FoodDiscoveryView: View {
             .aspectRatio(contentMode: contentMode)
             .frame(width: width, height: height)
             .clipped()
-            .background(Color(UIColor.systemGray5))
+            .background(Color(red: 0.90, green: 0.90, blue: 0.92))
     }
 }
 
@@ -812,7 +812,7 @@ struct FilterSheet: View {
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(selectedRatings.contains(star) ? Color.orange : Color(UIColor.systemGray6))
+                                            .background(selectedRatings.contains(star) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                             .cornerRadius(8)
                                         }
                                     }
@@ -862,7 +862,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedOffers.contains(offer) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(UIColor.systemGray6))
+                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -918,7 +918,7 @@ struct FilterSheet: View {
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color(UIColor.systemGray6).opacity(0.5))
+                .background(Color(red: 0.95, green: 0.95, blue: 0.97).opacity(0.5))
             }
             
             if expandedSection == id {
