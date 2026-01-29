@@ -221,22 +221,22 @@ struct MainTabView: View {
 
     private var feedTriggerView: some View {
         GeometryReader { geo in
-            ZStack(alignment: .leading) {
+            ZStack(alignment: .trailing) {
                 // Visual Indicator (Pill)
                 ZStack {
                     Capsule()
                         .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
                         .frame(width: 24, height: 80)
-                        .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.5), radius: 8, x: 2, y: 0)
+                        .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.5), radius: 8, x: -2, y: 0)
                     
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .heavy))
                         .foregroundColor(.white)
-                        .offset(x: 2)
+                        .offset(x: -2)
                         .scaleEffect(showFeedTrigger ? 1.2 : 0.9)
                         .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showFeedTrigger)
                 }
-                .offset(x: -8)
+                .offset(x: 8)
                 .scaleEffect(showFeedTrigger ? 1.05 : 0.95)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
@@ -252,7 +252,7 @@ struct MainTabView: View {
                     }
             }
             .frame(width: 60, height: 300)
-            .position(x: 30, y: geo.size.height * 0.45)
+            .position(x: geo.size.width - 30, y: geo.size.height * 0.45)
         }
     }
 
@@ -747,10 +747,10 @@ struct FeedDrawerOverlay: View {
         GeometryReader { geo in
             let width = geo.size.width
             
-            ZStack(alignment: .leading) {
+            ZStack(alignment: .trailing) {
                 // Dimming Background
-                if isOpen || dragOffset > 0 {
-                    Color.black.opacity(isOpen ? 0.6 : Double(max(0, dragOffset)) / Double(width) * 0.6)
+                if isOpen || dragOffset < 0 {
+                    Color.black.opacity(isOpen ? 0.6 : Double(abs(min(0, dragOffset))) / Double(width) * 0.6)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -761,20 +761,20 @@ struct FeedDrawerOverlay: View {
                 }
 
                 // Feed View
-                if isOpen || dragOffset > 0 {
+                if isOpen || dragOffset < 0 {
                     FeedView(bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
                         .frame(width: width)
                         .background(Color.black) // Ensure solid background to prevent white artifacts
-                        .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
+                        .offset(x: isOpen ? max(0, dragOffset) : width + min(0, dragOffset))
                         .gesture(
                             DragGesture()
                                 .updating($dragOffset) { value, state, _ in
                                     // Logic: 
-                                    // If closed (offset approx -width), allow positive drag (right).
-                                    // If open (offset 0), allow negative drag (left).
-                                     if !isOpen && value.translation.width > 0 {
+                                    // If closed (offset approx width), allow negative drag (left).
+                                    // If open (offset 0), allow positive drag (right).
+                                     if !isOpen && value.translation.width < 0 {
                                         state = value.translation.width
-                                    } else if isOpen && value.translation.width < 0 {
+                                    } else if isOpen && value.translation.width > 0 {
                                         state = value.translation.width
                                     }
                                 }
@@ -782,14 +782,14 @@ struct FeedDrawerOverlay: View {
                                     let threshold = width * 0.3
                                     if isOpen {
                                         // Closing logic
-                                        if value.translation.width < -threshold {
+                                        if value.translation.width > threshold {
                                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                                 isOpen = false
                                             }
                                         }
                                     } else {
                                         // Opening logic
-                                        if value.translation.width > threshold {
+                                        if value.translation.width < -threshold {
                                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                                 isOpen = true
                                             }
@@ -797,7 +797,7 @@ struct FeedDrawerOverlay: View {
                                     }
                                 }
                         )
-                        .transition(.move(edge: .leading))
+                        .transition(.move(edge: .trailing))
                 }
                 
                 // Edge Gesture Reader (Always active when closed)
@@ -808,12 +808,12 @@ struct FeedDrawerOverlay: View {
                         .gesture(
                             DragGesture()
                                 .updating($dragOffset) { value, state, _ in
-                                    if value.translation.width > 0 {
+                                    if value.translation.width < 0 {
                                         state = value.translation.width
                                     }
                                 }
                                 .onEnded { value in
-                                    if value.translation.width > width * 0.3 {
+                                    if value.translation.width < -width * 0.3 {
                                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                             isOpen = true
                                         }
