@@ -699,6 +699,96 @@ struct FeedDrawerOverlay: View {
     }
 }
 
+struct FeedDrawerOverlay: View {
+    @Binding var isOpen: Bool
+    let onShowComments: (Int, String) -> Void
+    let isCommentsOverlayActive: Bool
+    
+    @GestureState private var dragOffset: CGFloat = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            
+            ZStack(alignment: .leading) {
+                // Dimming Background
+                if isOpen || dragOffset > 0 {
+                    Color.black.opacity(isOpen ? 0.6 : Double(max(0, dragOffset)) / Double(width) * 0.6)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                isOpen = false
+                            }
+                        }
+                        .transition(.opacity)
+                }
+
+                // Feed View
+                if isOpen || dragOffset > 0 {
+                    FeedView(bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
+                        .frame(width: width)
+                        .background(Color.black) // Ensure solid background to prevent white artifacts
+                        .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
+                        .gesture(
+                            DragGesture()
+                                .updating($dragOffset) { value, state, _ in
+                                    // Logic: 
+                                    // If closed (offset approx -width), allow positive drag (right).
+                                    // If open (offset 0), allow negative drag (left).
+                                     if !isOpen && value.translation.width > 0 {
+                                        state = value.translation.width
+                                    } else if isOpen && value.translation.width < 0 {
+                                        state = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    let threshold = width * 0.3
+                                    if isOpen {
+                                        // Closing logic
+                                        if value.translation.width < -threshold {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                isOpen = false
+                                            }
+                                        }
+                                    } else {
+                                        // Opening logic
+                                        if value.translation.width > threshold {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                isOpen = true
+                                            }
+                                        }
+                                    }
+                                }
+                        )
+                        .transition(.move(edge: .leading))
+                }
+                
+                // Edge Gesture Reader (Always active when closed)
+                if !isOpen {
+                    Color.clear
+                        .frame(width: 40)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture()
+                                .updating($dragOffset) { value, state, _ in
+                                    if value.translation.width > 0 {
+                                        state = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.translation.width > width * 0.3 {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            isOpen = true
+                                        }
+                                    }
+                                }
+                        )
+                }
+            }
+        }
+    }
+}
+
     private func pillStat(number: String, label: String) -> some View {
         VStack(spacing: 6) {
             Text(number)
