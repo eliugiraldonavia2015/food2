@@ -18,6 +18,9 @@ struct MainTabView: View {
     @State private var showUploadPicker = false
     @State private var showUploadVideo = false
     @State private var showUploadDish = false
+    @State private var showFeed = false // New state for Feed side-navigation
+    @State private var feedDragOffset: CGFloat = 0
+    @State private var showFeedTrigger = false
 
     var body: some View {
         GeometryReader { geo in
@@ -29,11 +32,17 @@ struct MainTabView: View {
                     if (auth.user?.role ?? "client") == "restaurant" {
                         RestaurantDashboardView(bottomInset: tabBarHeight)
                     } else {
-                        FeedView(bottomInset: tabBarHeight, onGlobalShowComments: { count, url in
-                            commentsCount = count
-                            currentFeedImageUrl = url
-                            withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
-                        }, isCommentsOverlayActive: showCommentsOverlay)
+                        // USER ROLE: Show FoodDiscoveryView as "Inicio"
+                        FoodDiscoveryView(onClose: { })
+                            .overlay(
+                                // Feed Trigger (Left Side)
+                                Group {
+                                    if !showFeed {
+                                        feedTriggerView
+                                            .transition(.move(edge: .leading).combined(with: .opacity))
+                                    }
+                                }
+                            )
                     }
                 case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
@@ -64,6 +73,7 @@ struct MainTabView: View {
             
 
             if showShop {
+                // Legacy support or remove if completely replaced
                 FoodDiscoveryView(onClose: { 
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         showShop = false 
@@ -74,14 +84,40 @@ struct MainTabView: View {
             }
 
             // TAB BAR
-            if inDiscoveryMode {
-                bottomBarDiscovery
-                    .background(Color(uiColor: .systemBackground))
-                    .zIndex(4)
-            } else {
-                bottomBar
-                    .background(Color(uiColor: .systemBackground))
-                    .zIndex(4)
+            bottomBar
+                .background(Color(uiColor: .systemBackground))
+                .zIndex(4)
+                .offset(y: showFeed ? tabBarHeight + 50 : 0) // Hide when Feed is shown
+                .animation(.easeOut(duration: 0.3), value: showFeed)
+
+            // FEED VIEW OVERLAY (For User Role)
+            if showFeed {
+                FeedView(bottomInset: 0, onGlobalShowComments: { count, url in
+                    commentsCount = count
+                    currentFeedImageUrl = url
+                    withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
+                }, isCommentsOverlayActive: showCommentsOverlay)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black)
+                .zIndex(10) // Higher than everything
+                .transition(.move(edge: .leading))
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if value.translation.width < 0 { // Dragging left to close
+                                feedDragOffset = value.translation.width
+                            }
+                        }
+                        .onEnded { value in
+                            if value.translation.width < -100 { // Threshold to close
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    showFeed = false
+                                }
+                            }
+                            feedDragOffset = 0
+                        }
+                )
+                .offset(x: feedDragOffset)
             }
 
             // Overlay de comentarios por encima del tab bar
@@ -189,7 +225,54 @@ struct MainTabView: View {
         } else if role == "rider" {
             return AnyView(riderButton)
         } else {
-            return AnyView(cartButton)
+            return AnyView(searchButton)
+        }
+    }
+    
+    private var searchButton: some View {
+        centerAccentButton(icon: "magnifyingglass", title: "Buscar", color: Color(red: 244/255, green: 37/255, blue: 123/255)) {
+            // No logic for now
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var feedTriggerView: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                // Invisible gesture area extended for easier grabbing
+                Color.clear
+                    .frame(width: 60, height: 300)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.width > 20 { // Low threshold for ease
+                                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                        showFeed = true
+                                    }
+                                }
+                            }
+                    )
+                
+                // Visual Indicator (Pill)
+                ZStack {
+                    Capsule()
+                        .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
+                        .frame(width: 16, height: 60)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .heavy))
+                        .foregroundColor(.white)
+                        .offset(x: 1)
+                }
+                .offset(x: -8) // Half hidden
+                .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.4), radius: 6, x: 2, y: 0)
+                .scaleEffect(showFeedTrigger ? 1.05 : 0.95)
+                .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
+                .onAppear { showFeedTrigger = true }
+            }
+            .frame(width: 60, height: 300)
+            .position(x: 30, y: geo.size.height * 0.45) // Slightly above middle
         }
     }
 
