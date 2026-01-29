@@ -20,6 +20,7 @@ struct MainTabView: View {
     @State private var showUploadDish = false
     @State private var showFeed = false
     @State private var feedDragOffset: CGFloat = 0
+    @State private var showFeedTrigger = false // Variable de estado faltante
     // Usamos gestureState para evitar reconstrucciones excesivas durante el drag
     @GestureState private var dragTranslation: CGFloat = 0
 
