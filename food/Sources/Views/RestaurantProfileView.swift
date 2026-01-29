@@ -63,7 +63,7 @@ struct RestaurantProfileView: View {
                 // Header ocupando todo el ancho
                 // 🛑 FIX: Usar ZStack para que el color de fondo cubra el rebote (pull)
                 ZStack(alignment: .top) {
-                    Color.white.ignoresSafeArea() // Fondo blanco para cubrir el gris del rebote
+                    Color(uiColor: .systemBackground).ignoresSafeArea() // Fondo adaptativo para cubrir el gris del rebote
                     header
                 }
                 
@@ -109,7 +109,7 @@ struct RestaurantProfileView: View {
             .opacity(animateContent ? 1 : 0)
             .animation(.easeIn.delay(0.4), value: animateContent)
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .onAppear {
             loadVideos()
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -147,8 +147,8 @@ struct RestaurantProfileView: View {
         GeometryReader { geo in
             let minY = geo.frame(in: .global).minY
             ZStack(alignment: .topLeading) {
-                // 🛑 FIX: Fondo blanco absoluto detrás de la imagen para evitar franjas grises al estirar
-                Color.white.ignoresSafeArea()
+                // 🛑 FIX: Fondo absoluto adaptativo detrás de la imagen para evitar franjas grises al estirar
+                Color(uiColor: .systemBackground).ignoresSafeArea()
                 
                 coverImage(minY: minY)
                 Color.clear
@@ -158,7 +158,7 @@ struct RestaurantProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
-        .background(Color.white) // 🛑 FIX: Fondo blanco adicional para el contenedor
+        .background(Color(uiColor: .systemBackground)) // 🛑 FIX: Fondo adaptativo adicional para el contenedor
     }
 
     private var coverGradient: LinearGradient {
@@ -166,7 +166,7 @@ struct RestaurantProfileView: View {
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
                 .init(color: .clear, location: 0.6),
-                .init(color: Color.white, location: 1.0)
+                .init(color: Color(uiColor: .systemBackground), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -177,8 +177,8 @@ struct RestaurantProfileView: View {
         let height = minY > 0 ? headerHeight + minY : headerHeight
         
         return ZStack(alignment: .topLeading) {
-            // 0. Background Layer (White Curtain) - 🛑 FIX: Evitar fondo gris
-            Color.white
+            // 0. Background Layer (White/Black Curtain) - 🛑 FIX: Evitar fondo gris
+            Color(uiColor: .systemBackground)
                 .frame(height: height)
                 .offset(y: minY > 0 ? -minY : 0)
             
@@ -225,13 +225,13 @@ struct RestaurantProfileView: View {
         
         var body: some View {
             ZStack {
-                Color.white // 🛑 FIX: Fondo base blanco en lugar de gris
+                Color(uiColor: .systemBackground) // 🛑 FIX: Fondo base adaptativo en lugar de gris/blanco
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.white,
+                        Color(uiColor: .systemBackground),
                         Color.gray.opacity(0.15), // Sutil gris muy claro
-                        Color.white
+                        Color(uiColor: .systemBackground)
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
@@ -290,7 +290,7 @@ struct RestaurantProfileView: View {
                 VStack(spacing: 10) {
                     RefreshSpinner()
                     Text("Actualizando…")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .semibold))
                         .opacity(0.95)
                 }
@@ -300,7 +300,7 @@ struct RestaurantProfileView: View {
                     RefreshSpinner()
                         .frame(width: 56, height: 56)
                     Text("Soltar para actualizar")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
                         .opacity(0.98)
                 }
@@ -312,7 +312,7 @@ struct RestaurantProfileView: View {
         .frame(height: max(0, min(pullOffset, UIScreen.main.bounds.height * 0.25)))
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(colors: [Color.white.opacity(0.95), Color.white.opacity(0.8)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(uiColor: .systemBackground).opacity(0.95), Color(uiColor: .systemBackground).opacity(0.8)], startPoint: .top, endPoint: .bottom)
         )
     }
 
@@ -527,7 +527,7 @@ struct RestaurantProfileView: View {
 
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.black).font(.headline)
+            Text(title).foregroundColor(.primary).font(.headline)
             Spacer()
         }
     }

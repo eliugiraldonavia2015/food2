@@ -952,12 +952,12 @@ struct FullMenuView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("FoodTook - \(branch.name)")
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text(branch.address)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .font(.system(size: 13))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -989,11 +989,11 @@ struct FullMenuView: View {
                 }
             }
             .padding(16)
-            .background(Color.gray.opacity(0.06))
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(isSelected ? Color.fuchsia : Color.gray.opacity(0.08), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? Color.fuchsia : Color.secondary.opacity(0.1), lineWidth: isSelected ? 2 : 1)
             )
         }
     }

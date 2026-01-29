@@ -115,9 +115,9 @@ struct UserProfileView: View {
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .tint(Color.fuchsia)
-        .preferredColorScheme(.light)
+        // Removed forced preferredColorScheme to allow adaptive Light/Dark mode
         .ignoresSafeArea(edges: .top)
         .onAppear {
             viewModel.loadData()
@@ -141,7 +141,7 @@ struct UserProfileView: View {
                     }
                 )
             } else {
-                Color.black.ignoresSafeArea()
+                Color(uiColor: .systemBackground).ignoresSafeArea()
             }
         }
     }
@@ -154,8 +154,8 @@ struct UserProfileView: View {
             let height = minY > 0 ? headerHeight + minY : headerHeight
             
             ZStack(alignment: .topLeading) {
-                // 🛑 FIX: Fondo blanco absoluto para evitar franja gris al hacer pull
-                Color.white.ignoresSafeArea()
+                // 🛑 FIX: Fondo absoluto adaptativo para evitar franja gris al hacer pull
+                Color(uiColor: .systemBackground).ignoresSafeArea()
                 
                 // 1. Placeholder Layer (Always visible underneath)
                 ShimmerView()
@@ -196,7 +196,7 @@ struct UserProfileView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(height: headerHeight)
-        .background(Color.white) // 🛑 FIX: Fondo blanco para el contenedor
+        .background(Color(uiColor: .systemBackground)) // 🛑 FIX: Fondo adaptativo para el contenedor
     }
 
     struct ShimmerView: View {
@@ -205,13 +205,13 @@ struct UserProfileView: View {
         
         var body: some View {
             ZStack {
-                Color.white // 🛑 FIX: Fondo base blanco
+                Color(uiColor: .systemBackground) // 🛑 FIX: Fondo base adaptativo
                 
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color.white,
+                        Color(uiColor: .systemBackground),
                         Color.gray.opacity(0.15),
-                        Color.white
+                        Color(uiColor: .systemBackground)
                     ]),
                     startPoint: startPoint,
                     endPoint: endPoint
@@ -231,7 +231,7 @@ struct UserProfileView: View {
             gradient: Gradient(stops: [
                 .init(color: .clear, location: 0.0),
                 .init(color: .clear, location: 0.6),
-                .init(color: Color.white, location: 1.0)
+                .init(color: Color(uiColor: .systemBackground), location: 1.0)
             ]),
             startPoint: .top,
             endPoint: .bottom
@@ -399,11 +399,11 @@ struct UserProfileView: View {
     
     private var descriptionCard: some View {
         Text(hardcodedDescriptionText)
-            .foregroundColor(.gray)
+            .foregroundColor(.secondary)
             .font(.subheadline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.gray.opacity(0.05))
+            .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(12)
     }
 
@@ -423,7 +423,7 @@ struct UserProfileView: View {
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
-            Text(title).foregroundColor(.black).font(.headline)
+            Text(title).foregroundColor(.primary).font(.headline)
             Spacer()
         }
     }
