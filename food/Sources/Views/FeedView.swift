@@ -9,9 +9,7 @@ struct FeedView: View {
     let isCommentsOverlayActive: Bool
     // MARK: - Propiedades Computadas para el Feed (SOLO REAL)
     private var forYouItems: [FeedItem] {
-        // 🚀 UX HACK: Insertar Intro Card al inicio para dar tiempo al motor de video a calentar
-        // Esto soluciona el problema de que el "primer video" a veces no arranca en frío.
-        return [introCardItem] + forYouVM.videos
+        return forYouVM.videos
     }
     
     private var introCardItem: FeedItem {
@@ -35,7 +33,7 @@ struct FeedView: View {
     private var followingItems: [FeedItem] {
         // 🔄 TEMPORAL: Usar mismo contenido que 'Para Ti' hasta implementar lógica de seguidos
         // Para revertir, cambiar a: return followingVM.videos
-        return [introCardItem] + forYouVM.videos 
+        return forYouVM.videos 
     }
 
     private var currentItems: [FeedItem] { activeTab == .foryou ? forYouItems : followingItems }
@@ -168,13 +166,6 @@ struct FeedView: View {
             // O simplemente forzar al usuario al primer video (índice 1) si viene de ver videos.
             
             var newIdx = activeTab == .foryou ? forYouVM.currentIndex : followingVM.currentIndex
-            
-            // Si el índice guardado es 0 (Intro), intentamos saltar al 1 (Primer Video)
-            // para no aburrir al usuario con la intro repetida.
-            if newIdx == 0 && currentItems.count > 1 {
-                newIdx = 1
-                if activeTab == .foryou { forYouVM.currentIndex = 1 } else { followingVM.currentIndex = 1 }
-            }
             
             selectedVM.currentIndex = min(newIdx, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })
