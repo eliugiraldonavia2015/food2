@@ -19,10 +19,8 @@ struct MainTabView: View {
     @State private var showUploadVideo = false
     @State private var showUploadDish = false
     @State private var showFeed = false
-    @State private var feedDragOffset: CGFloat = 0
-    @State private var showFeedTrigger = false // Variable de estado faltante
-    // Usamos gestureState para evitar reconstrucciones excesivas durante el drag
-    @GestureState private var dragTranslation: CGFloat = 0
+    @State private var showFeedTrigger = false
+    @GestureState private var dragOffset: CGFloat = 0 // 1:1 Tracking State
 
     var body: some View {
         GeometryReader { geo in
@@ -36,12 +34,37 @@ struct MainTabView: View {
                     } else {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
                         FoodDiscoveryView(onClose: { })
+                            // 1:1 DRAG GESTURE AREA (Full Left Edge)
                             .overlay(
-                                // Feed Trigger (Left Side) - Optimizado: Solo visible si no se muestra el feed
+                                Color.clear
+                                    .frame(width: 40) // Edge swipe area
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        DragGesture()
+                                            .updating($dragOffset) { value, state, _ in
+                                                if value.translation.width > 0 { // Only allow right drag to open
+                                                    state = value.translation.width
+                                                }
+                                            }
+                                            .onEnded { value in
+                                                let threshold = geo.size.width * 0.3
+                                                if value.translation.width > threshold || value.predictedEndTranslation.width > threshold {
+                                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
+                                                        showFeed = true
+                                                    }
+                                                }
+                                            }
+                                    )
+                                , alignment: .leading
+                            )
+                            .overlay(
+                                // Visual Feed Trigger (Just an indicator now, not the gesture handler)
                                 Group {
                                     if !showFeed {
                                         feedTriggerView
                                             .transition(.opacity)
+                                            .offset(x: dragOffset > 0 ? dragOffset * 0.1 : 0) // Parallax effect on trigger
+                                            .opacity(dragOffset > 0 ? (1.0 - Double(dragOffset / 100)) : 1.0) // Fade out on drag
                                     }
                                 }
                             )
@@ -90,11 +113,11 @@ struct MainTabView: View {
                 .background(Color(uiColor: .systemBackground))
                 .zIndex(4)
                 .offset(y: showFeed ? tabBarHeight + 50 : 0)
-                // Animación más rápida para reducir sensación de lag
                 .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: showFeed)
 
             // FEED VIEW OVERLAY (For User Role)
-            if showFeed || dragTranslation > 0 { // Renderizar también durante el gesto
+            // Render conditionally but keep offset logic active for 1:1 tracking
+            if showFeed || dragOffset > 0 { 
                 FeedView(bottomInset: 0, onGlobalShowComments: { count, url in
                     commentsCount = count
                     currentFeedImageUrl = url
@@ -103,29 +126,36 @@ struct MainTabView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black)
                 .zIndex(10)
-                // Usar offset en lugar de transition para mejor rendimiento en drag
-                .offset(x: showFeed ? dragTranslation : -geo.size.width + dragTranslation)
+                // 1:1 Tracking Logic
+                // If closed (!showFeed): Starts at -width. Moves right (+dragOffset).
+                // If open (showFeed): Starts at 0. Moves left (+dragOffset, which is negative).
+                .offset(x: showFeed ? min(dragOffset, 0) : -geo.size.width + max(dragOffset, 0))
                 .gesture(
                     DragGesture()
-                        .updating($dragTranslation) { value, state, _ in
-                            // Solo permitir drag hacia la izquierda para cerrar
-                             if showFeed && value.translation.width < 0 {
+                        .updating($dragOffset) { value, state, _ in
+                            // Logic: 
+                            // If closed, allow positive drag (right).
+                            // If open, allow negative drag (left).
+                             if !showFeed && value.translation.width > 0 {
                                 state = value.translation.width
-                            } else if !showFeed && value.translation.width > 0 {
+                            } else if showFeed && value.translation.width < 0 {
                                 state = value.translation.width
                             }
                         }
                         .onEnded { value in
-                            let threshold = geo.size.width * 0.25
+                            let threshold = geo.size.width * 0.3
                             if showFeed {
+                                // Closing logic
                                 if value.translation.width < -threshold || value.predictedEndTranslation.width < -threshold {
                                     withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
                                         showFeed = false
                                     }
-                                } else {
-                                     // Restaurar si no superó el umbral
-                                    withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8)) {
-                                        // No action needed, offset will reset
+                                }
+                            } else {
+                                // Opening logic
+                                if value.translation.width > threshold || value.predictedEndTranslation.width > threshold {
+                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
+                                        showFeed = true
                                     }
                                 }
                             }
@@ -252,50 +282,33 @@ struct MainTabView: View {
     private var feedTriggerView: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                // Invisible gesture area extended for easier grabbing
-                Color.clear
-                    .frame(width: 60, height: 300)
-                    .contentShape(Rectangle())
-                    // Usar simultáneamente un gesto de toque simple y drag
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                            .onEnded { value in
-                                if value.translation.width > 20 { // Low threshold for ease
-                                    withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
-                                        showFeed = true
-                                    }
-                                }
-                            }
-                    )
-                    .onTapGesture {
-                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
-                            showFeed = true
-                        }
-                    }
-                
-                // Visual Indicator (Pill)
+                // Visual Indicator (Pill) only - Gesture is handled by parent overlay
                 ZStack {
                     Capsule()
                         .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
-                        .frame(width: 24, height: 80) // Más grande y visible
+                        .frame(width: 24, height: 80)
                         .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.5), radius: 8, x: 2, y: 0)
                     
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .heavy)) // Ícono más grande
+                        .font(.system(size: 14, weight: .heavy))
                         .foregroundColor(.white)
                         .offset(x: 2)
-                        // Animación de "respiración" para el ícono
                         .scaleEffect(showFeedTrigger ? 1.2 : 0.9)
                         .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showFeedTrigger)
                 }
-                .offset(x: -8) // Half hidden
-                // Animación de "latido" para todo el pill
+                .offset(x: -8)
                 .scaleEffect(showFeedTrigger ? 1.05 : 0.95)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
+                // Allow tapping the pill to open as a fallback
+                .onTapGesture {
+                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
+                        showFeed = true
+                    }
+                }
             }
             .frame(width: 60, height: 300)
-            .position(x: 30, y: geo.size.height * 0.45) // Slightly above middle
+            .position(x: 30, y: geo.size.height * 0.45)
         }
     }
 
