@@ -338,7 +338,7 @@ struct FullMenuView: View {
 
     var body: some View {
         ZStack {
-            Color(uiColor: .systemBackground).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
             TrackableScrollView(contentOffsetY: $menuContentOffsetY, scrollToTopToken: 0, showsIndicators: false) {
                 VStack(spacing: 14) {
                     heroSection
@@ -369,6 +369,7 @@ struct FullMenuView: View {
         .safeAreaInset(edge: .bottom) {
             checkoutBar
         }
+        .preferredColorScheme(.light)
         .tint(.fuchsia)
         .onChange(of: menuContentOffsetY) { _, newValue in
             let shouldShow = newValue > 168
@@ -952,12 +953,12 @@ struct FullMenuView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("FoodTook - \(branch.name)")
-                        .foregroundColor(.primary)
+                        .foregroundColor(.black)
                         .font(.system(size: 16, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     Text(branch.address)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.gray)
                         .font(.system(size: 13))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -989,11 +990,11 @@ struct FullMenuView: View {
                 }
             }
             .padding(16)
-            .background(Color(uiColor: .secondarySystemBackground))
+            .background(Color.gray.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(isSelected ? Color.fuchsia : Color.secondary.opacity(0.1), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? Color.fuchsia : Color.gray.opacity(0.08), lineWidth: isSelected ? 2 : 1)
             )
         }
     }

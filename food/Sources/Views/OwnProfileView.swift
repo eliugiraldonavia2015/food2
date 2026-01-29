@@ -98,12 +98,6 @@ struct OwnProfileView: View {
                             .offset(y: animateContent ? 0 : 40)
                             .opacity(animateContent ? 1 : 0)
                             .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: animateContent)
-                            
-                            logoutButton
-                                .padding(.top, 20)
-                                .offset(y: animateContent ? 0 : 50)
-                                .opacity(animateContent ? 1 : 0)
-                                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: animateContent)
                         }
                         .padding(.horizontal, 16)
                         .padding(.bottom, 40)
@@ -147,9 +141,9 @@ struct OwnProfileView: View {
                 .animation(.easeIn.delay(0.3), value: showScreen)
             }
         }
-        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
-        // Removed forced preferredColorScheme to allow adaptive Light/Dark mode
+        .preferredColorScheme(.light)
         .ignoresSafeArea(edges: .top)
         .onAppear {
             showScreen = true // Animación inmediata del contenedor
@@ -199,23 +193,6 @@ struct OwnProfileView: View {
             if let user = viewModel.user {
                 ShareProfileView(user: user)
             }
-        }
-    }
-    
-    private var logoutButton: some View {
-        Button(action: {
-            AuthService.shared.signOut()
-        }) {
-            HStack {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                Text("Cerrar Sesión")
-            }
-            .foregroundColor(.red)
-            .font(.system(size: 16, weight: .bold))
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.red.opacity(0.1))
-            .cornerRadius(12)
         }
     }
     
