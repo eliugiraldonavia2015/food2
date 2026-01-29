@@ -78,6 +78,12 @@ final class FeedViewModel: ObservableObject {
                                 self.videos = playableItems
                                 self.seenVideoIds = Set(playableItems.compactMap { $0.videoId })
                                 print("✅ [FeedViewModel] Reset completo. Videos válidos: \(self.videos.count)")
+                                
+                                // 🚀 PRECARGA PROACTIVA DEL PRIMER VIDEO (Para evitar pantalla negra)
+                                if let firstVideoUrl = self.videos.first?.videoUrl {
+                                    print("⚡ [FeedViewModel] Precargando primer video: \(firstVideoUrl)")
+                                    VideoPrefetchService.shared.prefetch(url: firstVideoUrl)
+                                }
                             } else if !playableItems.isEmpty {
                                 let uniqueItems = playableItems.filter { item in
                                     guard self.shouldDeduplicate else { return true }

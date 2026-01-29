@@ -33,7 +33,7 @@ final class VideoPrefetchService: ObservableObject {
             
             // Crear el item (esto inicia el buffer de red automáticamente)
             let item = AVPlayerItem(asset: asset)
-            item.preferredForwardBufferDuration = 4.0 // 🚀 Mágia: Intentar bufferizar solo ~4 segundos
+            item.preferredForwardBufferDuration = 2.0 // Optimizado para inicio rápido (2s)
             
             await MainActor.run {
                 // Guardar en caché

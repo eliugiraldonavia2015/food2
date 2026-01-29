@@ -41,7 +41,7 @@ struct FeedView: View {
     @State private var activeTab: ActiveTab = .foryou
     private enum ActiveTab { case following, foryou }
 
-    @StateObject private var forYouVM = FeedViewModel(storageKey: "feed.forYou.index")
+    @ObservedObject var forYouVM: FeedViewModel
     @StateObject private var followingVM = FeedViewModel(storageKey: "feed.following.index")
     @StateObject private var coordinator = VideoPlayerCoordinator.shared
     private var selectedVM: FeedViewModel { activeTab == .foryou ? forYouVM : followingVM }
@@ -74,7 +74,8 @@ struct FeedView: View {
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
 
-    init(bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false) {
+    init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false) {
+        self.forYouVM = viewModel
         self.bottomInset = bottomInset
         self.onGlobalShowComments = onGlobalShowComments
         self.isCommentsOverlayActive = isCommentsOverlayActive
@@ -1240,40 +1241,17 @@ struct FeedView: View {
 
         private var mediaView: some View {
             ZStack {
-                // 1. Imagen de fondo (Thumbnail)
-                // Se mantiene visible hasta que el video esté listo (isVideoReady)
-                if let poster = item.posterUrl, let pu = URL(string: poster) {
-                    AsyncImage(url: pu) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable()
-                                 .aspectRatio(contentMode: .fill)
-                                 .allowsHitTesting(false)
-                        case .empty: Color.black
-                        case .failure(_): Color.black
-                        @unknown default: Color.black
-                        }
-                    }
-                    .opacity(isVideoReady ? 0 : 1)
-                    .animation(.easeOut(duration: 0.3), value: isVideoReady)
-                } else {
-                    WebImage(url: URL(string: item.backgroundUrl))
-                        .onSuccess { image, _, _ in self.loadedImage = image }
-                        .resizable()
-                        .indicator(.activity)
-                        .aspectRatio(contentMode: .fill)
-                        .allowsHitTesting(false)
-                        .opacity(isVideoReady ? 0 : 1)
-                        .animation(.easeOut(duration: 0.3), value: isVideoReady)
-                }
-
+                // 1. Imagen de fondo (Thumbnail) - ELIMINADA
+                // El usuario solicitó explícitamente NO mostrar ninguna imagen estática,
+                // confiando 100% en la precarga del video.
+                // Si el video no está listo, se verá negro (o el color de fondo).
+                
                 // 2. Video Player (Solo si existe URL y player)
                 if let _ = item.videoUrl, let p = player {
                     VideoPlayer(player: p)
                         .disabled(true)
                         .allowsHitTesting(false)
-                        .opacity(isVideoReady ? 1 : 0)
-                        .animation(.easeIn(duration: 0.3), value: isVideoReady)
+                        // Sin opacidad condicional ni animación: "Raw" playback
                 }
 
                 // 3. Play Icon

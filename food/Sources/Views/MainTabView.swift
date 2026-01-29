@@ -21,6 +21,11 @@ struct MainTabView: View {
     @State private var showFeed = false
     @State private var showFeedTrigger = false
 
+    // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
+    // INMEDIATAMENTE al entrar a la pantalla principal, no solo al abrir el drawer.
+    // Esto permite que el primer video se descargue en segundo plano.
+    @StateObject private var sharedFeedVM = FeedViewModel(storageKey: "feed.forYou.index")
+
     var body: some View {
         GeometryReader { geo in
         ZStack(alignment: .bottom) {
@@ -92,6 +97,7 @@ struct MainTabView: View {
             // FEED DRAWER OVERLAY (Isolated State)
             FeedDrawerOverlay(
                 isOpen: $showFeed,
+                feedViewModel: sharedFeedVM, // Pasar ViewModel compartido
                 onShowComments: { count, url in
                     commentsCount = count
                     currentFeedImageUrl = url
@@ -738,6 +744,7 @@ private struct InternalProfileScreen: View {
 
 struct FeedDrawerOverlay: View {
     @Binding var isOpen: Bool
+    @ObservedObject var feedViewModel: FeedViewModel // Recibir ViewModel externo
     let onShowComments: (Int, String) -> Void
     let isCommentsOverlayActive: Bool
     
@@ -763,7 +770,7 @@ struct FeedDrawerOverlay: View {
 
                 // Feed View
                 if isOpen || dragOffset > 0 {
-                    FeedView(bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
+                    FeedView(viewModel: feedViewModel, bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
                         .frame(width: width)
                         .background(Color.black) // Ensure solid background to prevent white artifacts
                         .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
