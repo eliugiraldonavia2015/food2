@@ -34,31 +34,8 @@ struct MainTabView: View {
                     } else {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
                         FoodDiscoveryView(onClose: { })
-                            // 1:1 DRAG GESTURE AREA (Full Left Edge)
                             .overlay(
-                                Color.clear
-                                    .frame(width: 40) // Edge swipe area
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture()
-                                            .updating($dragOffset) { value, state, _ in
-                                                if value.translation.width > 0 { // Only allow right drag to open
-                                                    state = value.translation.width
-                                                }
-                                            }
-                                            .onEnded { value in
-                                                let threshold = geo.size.width * 0.3
-                                                if value.translation.width > threshold || value.predictedEndTranslation.width > threshold {
-                                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
-                                                        showFeed = true
-                                                    }
-                                                }
-                                            }
-                                    )
-                                , alignment: .leading
-                            )
-                            .overlay(
-                                // Visual Feed Trigger (Just an indicator now, not the gesture handler)
+                                // Visual Feed Trigger & Gesture Handler
                                 Group {
                                     if !showFeed {
                                         feedTriggerView
@@ -282,7 +259,7 @@ struct MainTabView: View {
     private var feedTriggerView: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                // Visual Indicator (Pill) only - Gesture is handled by parent overlay
+                // Visual Indicator (Pill)
                 ZStack {
                     Capsule()
                         .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
@@ -300,12 +277,36 @@ struct MainTabView: View {
                 .scaleEffect(showFeedTrigger ? 1.05 : 0.95)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
-                // Allow tapping the pill to open as a fallback
-                .onTapGesture {
-                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
-                        showFeed = true
+                
+                // Specific Hit Area (Transparent Block)
+                // Covers from edge (0) to slightly past icon (approx 50 width)
+                // Height: slightly taller than icon (80 + padding -> ~140)
+                Color.black.opacity(0.001) // Almost transparent but hittable
+                    .frame(width: 60, height: 140)
+                    .position(x: 30, y: 150) // Centered in the 60x300 container
+                    .gesture(
+                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                            .updating($dragOffset) { value, state, _ in
+                                if value.translation.width > 0 {
+                                    state = value.translation.width
+                                }
+                            }
+                            .onEnded { value in
+                                let threshold = geo.size.width * 0.25
+                                let velocity = value.predictedEndTranslation.width
+                                // Improved trigger logic: Distance threshold OR velocity flick
+                                if value.translation.width > threshold || velocity > threshold {
+                                    withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
+                                        showFeed = true
+                                    }
+                                }
+                            }
+                    )
+                    .onTapGesture {
+                        withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
+                            showFeed = true
+                        }
                     }
-                }
             }
             .frame(width: 60, height: 300)
             .position(x: 30, y: geo.size.height * 0.45)
