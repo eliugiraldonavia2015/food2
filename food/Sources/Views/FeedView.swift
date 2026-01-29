@@ -651,6 +651,16 @@ struct FeedView: View {
                                 
                                 let item = AVPlayerItem(asset: asset)
                                 setupPlayer(with: item)
+                                
+                                // FORCE PLAYBACK TRIGGER
+                                // Si este es el video activo, forzamos la actualización
+                                if isActive && isScreenActive {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        if isActive && isScreenActive {
+                                            coordinator.setActive(self.item.id)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -749,6 +759,10 @@ struct FeedView: View {
             // Esto es crucial para el primer video o cuando la carga termina y el usuario sigue ahí.
             if isActive && isScreenActive {
                 coordinator.setActive(self.item.id)
+                // Fallback: Asegurar que se reproduzca si el coordinator ya lo tiene activo
+                if coordinator.activeVideoId == self.item.id {
+                    p.play()
+                }
             }
         }
 
