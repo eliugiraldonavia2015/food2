@@ -742,6 +742,7 @@ struct FeedDrawerOverlay: View {
     let isCommentsOverlayActive: Bool
     
     @GestureState private var dragOffset: CGFloat = 0
+    @State private var animateTrigger = false
     
     var body: some View {
         GeometryReader { geo in
@@ -813,9 +814,48 @@ struct FeedDrawerOverlay: View {
                                     }
                                 }
                         )
+
+                    // Visual Close Indicator (Right Side)
+                    closeTriggerView(width: width, height: geo.size.height)
                 }
             }
         }
+    }
+
+    private func closeTriggerView(width: CGFloat, height: CGFloat) -> some View {
+        ZStack(alignment: .trailing) {
+            // Visual Indicator (Pill)
+            ZStack {
+                Capsule()
+                    .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
+                    .frame(width: 24, height: 80)
+                    .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.5), radius: 8, x: -2, y: 0)
+                
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(.white)
+                    .offset(x: -2)
+                    .scaleEffect(animateTrigger ? 1.2 : 0.9)
+                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: animateTrigger)
+            }
+            .offset(x: 8)
+            .scaleEffect(animateTrigger ? 1.05 : 0.95)
+            .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: animateTrigger)
+            .onAppear { animateTrigger = true }
+            
+            // Tap-only trigger
+            Color.black.opacity(0.001)
+                .frame(width: 60, height: 140)
+                .position(x: 30, y: 150) // Center in the 60 width
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        isOpen = false
+                    }
+                }
+        }
+        .frame(width: 60, height: 300)
+        .position(x: width - 30, y: height * 0.45)
+        .transition(.opacity)
     }
 }
 
