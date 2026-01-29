@@ -853,9 +853,26 @@ struct FeedDrawerOverlay: View {
                             isOpen = false
                         }
                     }
+                    .gesture(
+                        DragGesture()
+                            .updating($dragOffset) { value, state, _ in
+                                if value.translation.width < 0 {
+                                    state = value.translation.width
+                                }
+                            }
+                            .onEnded { value in
+                                let threshold = geo.size.width * 0.3
+                                if value.translation.width < -threshold {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        isOpen = false
+                                    }
+                                }
+                            }
+                    )
             }
             .frame(width: 60, height: 300)
             .position(x: geo.size.width - 30, y: geo.size.height * 0.45)
+            .zIndex(100)
             .transition(.opacity)
         }
     }
