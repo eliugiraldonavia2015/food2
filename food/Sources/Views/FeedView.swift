@@ -7,6 +7,8 @@ struct FeedView: View {
     let bottomInset: CGFloat
     let onGlobalShowComments: ((Int, String) -> Void)?
     let isCommentsOverlayActive: Bool
+    let isVisible: Bool // Controla si la vista es visible (aunque sea parcialmente)
+    let isFullyOpen: Bool // ✅ Controla si la vista está 100% desplegada
     // MARK: - Propiedades Computadas para el Feed (SOLO REAL)
     private var forYouItems: [FeedItem] {
         return forYouVM.videos
@@ -74,11 +76,13 @@ struct FeedView: View {
     @State private var showMusic = false
     @State private var expandedDescriptions: Set<UUID> = []
 
-    init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false) {
+    init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false, isVisible: Bool = true, isFullyOpen: Bool = true) {
         self.forYouVM = viewModel
         self.bottomInset = bottomInset
         self.onGlobalShowComments = onGlobalShowComments
         self.isCommentsOverlayActive = isCommentsOverlayActive
+        self.isVisible = isVisible
+        self.isFullyOpen = isFullyOpen
     }
 
     var body: some View {
@@ -103,8 +107,9 @@ struct FeedView: View {
                         bottomInset: bottomInset,
                         expandedDescriptions: $expandedDescriptions,
                         isCommentsOverlayActive: isCommentsOverlayActive,
+                        isFullyOpen: isFullyOpen, // ✅ Pasar estado
                         isActive: idx == selectedVM.currentIndex,
-                        isScreenActive: !(showRestaurantProfile || showUserProfile || showMenu),
+                        isScreenActive: isVisible && !(showRestaurantProfile || showUserProfile || showMenu), // ✅ isVisible controla la reproducción
                         activeVideoId: coordinator.activeVideoId,
                         viewModel: selectedVM,
                         selectedItemForProfile: $selectedItemForProfile,
@@ -428,6 +433,7 @@ struct FeedView: View {
         let bottomInset: CGFloat
         @Binding var expandedDescriptions: Set<UUID>
         let isCommentsOverlayActive: Bool
+        let isFullyOpen: Bool // ✅ Nuevo
         let isActive: Bool
         let isScreenActive: Bool
         
@@ -493,12 +499,13 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, selectedItemForProfile: Binding<FeedItem?>, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isFullyOpen: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, selectedItemForProfile: Binding<FeedItem?>, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
             self._expandedDescriptions = expandedDescriptions
             self.isCommentsOverlayActive = isCommentsOverlayActive
+            self.isFullyOpen = isFullyOpen
             self.isActive = isActive
             self.isScreenActive = isScreenActive
             self.activeVideoId = activeVideoId
@@ -727,6 +734,16 @@ struct FeedView: View {
             .onChange(of: isScreenActive) { _, _ in updatePlayback() }
             .onChange(of: isPaused) { _, _ in updatePlayback() }
             .onChange(of: isMuted) { _, _ in updatePlayback() }
+            // ✅ FORCE PLAY TRIGGER: Cuando llegamos al 100% de apertura (isFullyOpen pasa a true)
+            // Esto asegura que si por alguna razón no estaba reproduciendo, arranque ahora.
+            // Solo aplica si somos el item activo.
+            .onChange(of: isFullyOpen) { oldValue, newValue in
+                if newValue && isActive {
+                    // Forzar activación del coordinador y play
+                    coordinator.setActive(item.id)
+                    player?.play()
+                }
+            }
         }
 
         private func setupPlayer(with item: AVPlayerItem) {

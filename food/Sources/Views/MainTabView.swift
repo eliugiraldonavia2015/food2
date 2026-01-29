@@ -769,13 +769,22 @@ struct FeedDrawerOverlay: View {
                 }
 
                 // Feed View
-                if isOpen || dragOffset > 0 {
-                    FeedView(viewModel: feedViewModel, bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
-                        .frame(width: width)
-                        .background(Color.black) // Ensure solid background to prevent white artifacts
-                        .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
-                        .transition(.move(edge: .leading))
-                }
+                // 🛑 SIEMPRE MONTADO: FeedView siempre está en la jerarquía, pero offsetado fuera de pantalla
+                // cuando está cerrado. Esto permite que el AVPlayer del primer video se inicialice
+                // y renderice el primer frame (estado .readyToPlay) ANTES de que el usuario arrastre.
+                // El parámetro `isVisible` controla que el audio no suene hasta que se abra.
+                FeedView(
+                    viewModel: feedViewModel,
+                    bottomInset: 0,
+                    onGlobalShowComments: onShowComments,
+                    isCommentsOverlayActive: isCommentsOverlayActive,
+                    isVisible: isOpen || dragOffset > 0, // ✅ Solo reproduce si se ve (incluso parcialmente)
+                    isFullyOpen: isOpen // ✅ Señal de que llegó al 100%
+                )
+                .frame(width: width)
+                .background(Color.black)
+                .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
+                // .transition(.move(edge: .leading)) // ❌ ELIMINADO: No usamos transición porque siempre está ahí
                 
                 // Edge Gesture Reader (Always active when closed)
                 if !isOpen {
