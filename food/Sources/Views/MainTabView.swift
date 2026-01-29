@@ -741,7 +741,7 @@ struct FeedDrawerOverlay: View {
     let onShowComments: (Int, String) -> Void
     let isCommentsOverlayActive: Bool
     
-    @GestureState private var dragOffset: CGFloat = 0
+    @State private var dragOffset: CGFloat = 0
     @State private var animateTrigger = false
     
     var body: some View {
@@ -777,15 +777,21 @@ struct FeedDrawerOverlay: View {
                         .contentShape(Rectangle())
                         .gesture(
                             DragGesture()
-                                .updating($dragOffset) { value, state, _ in
+                                .onChanged { value in
                                     if value.translation.width > 0 {
-                                        state = value.translation.width
+                                        dragOffset = value.translation.width
                                     }
                                 }
                                 .onEnded { value in
-                                    if value.translation.width > width * 0.3 {
+                                    let threshold = width * 0.15
+                                    if value.translation.width > threshold {
                                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                             isOpen = true
+                                            dragOffset = 0
+                                        }
+                                    } else {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            dragOffset = 0
                                         }
                                     }
                                 }
@@ -800,16 +806,21 @@ struct FeedDrawerOverlay: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .gesture(
                             DragGesture()
-                                .updating($dragOffset) { value, state, _ in
+                                .onChanged { value in
                                     if value.translation.width < 0 {
-                                        state = value.translation.width
+                                        dragOffset = value.translation.width
                                     }
                                 }
                                 .onEnded { value in
-                                    let threshold = width * 0.3
+                                    let threshold = width * 0.15
                                     if value.translation.width < -threshold {
                                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                             isOpen = false
+                                            dragOffset = 0
+                                        }
+                                    } else {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            dragOffset = 0
                                         }
                                     }
                                 }
@@ -855,16 +866,21 @@ struct FeedDrawerOverlay: View {
                     }
                     .gesture(
                         DragGesture()
-                            .updating($dragOffset) { value, state, _ in
+                            .onChanged { value in
                                 if value.translation.width < 0 {
-                                    state = value.translation.width
+                                    dragOffset = value.translation.width
                                 }
                             }
                             .onEnded { value in
-                                let threshold = geo.size.width * 0.3
+                                let threshold = geo.size.width * 0.15
                                 if value.translation.width < -threshold {
                                     withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                                         isOpen = false
+                                        dragOffset = 0
+                                    }
+                                } else {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        dragOffset = 0
                                     }
                                 }
                             }
