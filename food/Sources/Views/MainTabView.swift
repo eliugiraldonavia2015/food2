@@ -18,9 +18,10 @@ struct MainTabView: View {
     @State private var showUploadPicker = false
     @State private var showUploadVideo = false
     @State private var showUploadDish = false
-    @State private var showFeed = false // New state for Feed side-navigation
+    @State private var showFeed = false
     @State private var feedDragOffset: CGFloat = 0
-    @State private var showFeedTrigger = false
+    // Usamos gestureState para evitar reconstrucciones excesivas durante el drag
+    @GestureState private var dragTranslation: CGFloat = 0
 
     var body: some View {
         GeometryReader { geo in
@@ -35,11 +36,11 @@ struct MainTabView: View {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
                         FoodDiscoveryView(onClose: { })
                             .overlay(
-                                // Feed Trigger (Left Side)
+                                // Feed Trigger (Left Side) - Optimizado: Solo visible si no se muestra el feed
                                 Group {
                                     if !showFeed {
                                         feedTriggerView
-                                            .transition(.move(edge: .leading).combined(with: .opacity))
+                                            .transition(.opacity)
                                     }
                                 }
                             )
@@ -73,7 +74,7 @@ struct MainTabView: View {
             
 
             if showShop {
-                // Legacy support or remove if completely replaced
+                // Legacy support
                 FoodDiscoveryView(onClose: { 
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         showShop = false 
@@ -87,11 +88,12 @@ struct MainTabView: View {
             bottomBar
                 .background(Color(uiColor: .systemBackground))
                 .zIndex(4)
-                .offset(y: showFeed ? tabBarHeight + 50 : 0) // Hide when Feed is shown
-                .animation(.easeOut(duration: 0.3), value: showFeed)
+                .offset(y: showFeed ? tabBarHeight + 50 : 0)
+                // Animación más rápida para reducir sensación de lag
+                .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: showFeed)
 
             // FEED VIEW OVERLAY (For User Role)
-            if showFeed {
+            if showFeed || dragTranslation > 0 { // Renderizar también durante el gesto
                 FeedView(bottomInset: 0, onGlobalShowComments: { count, url in
                     commentsCount = count
                     currentFeedImageUrl = url
@@ -99,25 +101,35 @@ struct MainTabView: View {
                 }, isCommentsOverlayActive: showCommentsOverlay)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black)
-                .zIndex(10) // Higher than everything
-                .transition(.move(edge: .leading))
+                .zIndex(10)
+                // Usar offset en lugar de transition para mejor rendimiento en drag
+                .offset(x: showFeed ? dragTranslation : -geo.size.width + dragTranslation)
                 .gesture(
                     DragGesture()
-                        .onChanged { value in
-                            if value.translation.width < 0 { // Dragging left to close
-                                feedDragOffset = value.translation.width
+                        .updating($dragTranslation) { value, state, _ in
+                            // Solo permitir drag hacia la izquierda para cerrar
+                             if showFeed && value.translation.width < 0 {
+                                state = value.translation.width
+                            } else if !showFeed && value.translation.width > 0 {
+                                state = value.translation.width
                             }
                         }
                         .onEnded { value in
-                            if value.translation.width < -100 { // Threshold to close
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    showFeed = false
+                            let threshold = geo.size.width * 0.25
+                            if showFeed {
+                                if value.translation.width < -threshold || value.predictedEndTranslation.width < -threshold {
+                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
+                                        showFeed = false
+                                    }
+                                } else {
+                                     // Restaurar si no superó el umbral
+                                    withAnimation(.interactiveSpring(response: 0.3, dampingFraction: 0.8)) {
+                                        // No action needed, offset will reset
+                                    }
                                 }
                             }
-                            feedDragOffset = 0
                         }
                 )
-                .offset(x: feedDragOffset)
             }
 
             // Overlay de comentarios por encima del tab bar
@@ -243,30 +255,40 @@ struct MainTabView: View {
                 Color.clear
                     .frame(width: 60, height: 300)
                     .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture()
+                    // Usar simultáneamente un gesto de toque simple y drag
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 10, coordinateSpace: .local)
                             .onEnded { value in
                                 if value.translation.width > 20 { // Low threshold for ease
-                                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                    withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
                                         showFeed = true
                                     }
                                 }
                             }
                     )
+                    .onTapGesture {
+                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.8)) {
+                            showFeed = true
+                        }
+                    }
                 
                 // Visual Indicator (Pill)
                 ZStack {
                     Capsule()
                         .fill(Color(red: 244/255, green: 37/255, blue: 123/255))
-                        .frame(width: 16, height: 60)
+                        .frame(width: 24, height: 80) // Más grande y visible
+                        .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.5), radius: 8, x: 2, y: 0)
                     
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .heavy))
+                        .font(.system(size: 14, weight: .heavy)) // Ícono más grande
                         .foregroundColor(.white)
-                        .offset(x: 1)
+                        .offset(x: 2)
+                        // Animación de "respiración" para el ícono
+                        .scaleEffect(showFeedTrigger ? 1.2 : 0.9)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: showFeedTrigger)
                 }
                 .offset(x: -8) // Half hidden
-                .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.4), radius: 6, x: 2, y: 0)
+                // Animación de "latido" para todo el pill
                 .scaleEffect(showFeedTrigger ? 1.05 : 0.95)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
