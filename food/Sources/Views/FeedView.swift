@@ -1239,57 +1239,51 @@ struct FeedView: View {
         }
 
         private var mediaView: some View {
-            Group {
-                if let u = item.videoUrl, player != nil {
-                    ZStack {
-                        // 1. Imagen de fondo SIEMPRE visible hasta que el video esté listo
-                        if let poster = item.posterUrl, let pu = URL(string: poster) {
-                            AsyncImage(url: pu) { phase in
-                                switch phase {
-                                case .success(let image): 
-                                    image.resizable()
-                                         .aspectRatio(contentMode: .fill)
-                                         .allowsHitTesting(false) // 🛑 Desactivar interacción para evitar VisionKit/Lag
-                                case .empty: Color.black
-                                case .failure(_): Color.black
-                                @unknown default: Color.black
-                                }
-                            }
-                            .opacity(isVideoReady ? 0 : 1) // Desvanecer suavemente cuando esté listo
-                            .animation(.easeOut(duration: 0.3), value: isVideoReady)
-                        } else {
-                            WebImage(url: URL(string: item.backgroundUrl))
-                                .onSuccess { image, _, _ in self.loadedImage = image }
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .allowsHitTesting(false) // 🛑 Desactivar interacción
-                                .opacity(isVideoReady ? 0 : 1)
-                                .animation(.easeOut(duration: 0.3), value: isVideoReady)
-                        }
-                        
-                        // 2. Video Player
-                        VideoPlayer(player: player)
-                            .disabled(true)
-                            .allowsHitTesting(false) // 🛑 Asegurar que los toques pasen al contenedor para el Pausa
-                            .opacity(isVideoReady ? 1 : 0) // Aparecer suavemente
-                            .animation(.easeIn(duration: 0.3), value: isVideoReady)
-                        
-                        if isPaused {
-                            Image(systemName: "play.fill")
-                                .foregroundColor(.white)
-                                .font(.system(size: 80, weight: .bold))
-                                .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 3)
-                                .transition(.opacity)
-                                .opacity(1.0)
+            ZStack {
+                // 1. Imagen de fondo (Thumbnail)
+                // Se mantiene visible hasta que el video esté listo (isVideoReady)
+                if let poster = item.posterUrl, let pu = URL(string: poster) {
+                    AsyncImage(url: pu) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable()
+                                 .aspectRatio(contentMode: .fill)
+                                 .allowsHitTesting(false)
+                        case .empty: Color.black
+                        case .failure(_): Color.black
+                        @unknown default: Color.black
                         }
                     }
+                    .opacity(isVideoReady ? 0 : 1)
+                    .animation(.easeOut(duration: 0.3), value: isVideoReady)
                 } else {
                     WebImage(url: URL(string: item.backgroundUrl))
                         .onSuccess { image, _, _ in self.loadedImage = image }
                         .resizable()
                         .indicator(.activity)
-                        .transition(.fade(duration: 0.5))
                         .aspectRatio(contentMode: .fill)
+                        .allowsHitTesting(false)
+                        .opacity(isVideoReady ? 0 : 1)
+                        .animation(.easeOut(duration: 0.3), value: isVideoReady)
+                }
+
+                // 2. Video Player (Solo si existe URL y player)
+                if let _ = item.videoUrl, let p = player {
+                    VideoPlayer(player: p)
+                        .disabled(true)
+                        .allowsHitTesting(false)
+                        .opacity(isVideoReady ? 1 : 0)
+                        .animation(.easeIn(duration: 0.3), value: isVideoReady)
+                }
+
+                // 3. Play Icon
+                if isPaused {
+                    Image(systemName: "play.fill")
+                        .foregroundColor(.white)
+                        .font(.system(size: 80, weight: .bold))
+                        .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 3)
+                        .transition(.opacity)
+                        .opacity(1.0)
                 }
             }
         }
