@@ -20,7 +20,6 @@ struct MainTabView: View {
     @State private var showUploadDish = false
     @State private var showFeed = false
     @State private var showFeedTrigger = false
-    @GestureState private var dragOffset: CGFloat = 0 // 1:1 Tracking State
 
     var body: some View {
         GeometryReader { geo in
@@ -35,13 +34,11 @@ struct MainTabView: View {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
                         FoodDiscoveryView(onClose: { })
                             .overlay(
-                                // Visual Feed Trigger & Gesture Handler
+                                // Visual Feed Trigger (State isolated to view)
                                 Group {
                                     if !showFeed {
                                         feedTriggerView
                                             .transition(.opacity)
-                                            .offset(x: dragOffset > 0 ? dragOffset * 0.1 : 0) // Parallax effect on trigger
-                                            .opacity(dragOffset > 0 ? (1.0 - Double(dragOffset / 100)) : 1.0) // Fade out on drag
                                     }
                                 }
                             )
@@ -90,55 +87,21 @@ struct MainTabView: View {
                 .background(Color(uiColor: .systemBackground))
                 .zIndex(4)
                 .offset(y: showFeed ? tabBarHeight + 50 : 0)
-                .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: showFeed)
+                .animation(.easeOut(duration: 0.3), value: showFeed)
 
-            // FEED VIEW OVERLAY (For User Role)
-            // Render conditionally but keep offset logic active for 1:1 tracking
-            if showFeed || dragOffset > 0 { 
-                FeedView(bottomInset: 0, onGlobalShowComments: { count, url in
+            // FEED DRAWER OVERLAY (Isolated State)
+            FeedDrawerOverlay(
+                isOpen: $showFeed,
+                onShowComments: { count, url in
                     commentsCount = count
                     currentFeedImageUrl = url
                     withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
-                }, isCommentsOverlayActive: showCommentsOverlay)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.black)
-                .zIndex(10)
-                // 1:1 Tracking Logic
-                // If closed (!showFeed): Starts at -width. Moves right (+dragOffset).
-                // If open (showFeed): Starts at 0. Moves left (+dragOffset, which is negative).
-                .offset(x: showFeed ? min(dragOffset, 0) : -geo.size.width + max(dragOffset, 0))
-                .gesture(
-                    DragGesture()
-                        .updating($dragOffset) { value, state, _ in
-                            // Logic: 
-                            // If closed, allow positive drag (right).
-                            // If open, allow negative drag (left).
-                             if !showFeed && value.translation.width > 0 {
-                                state = value.translation.width
-                            } else if showFeed && value.translation.width < 0 {
-                                state = value.translation.width
-                            }
-                        }
-                        .onEnded { value in
-                            let threshold = geo.size.width * 0.3
-                            if showFeed {
-                                // Closing logic
-                                if value.translation.width < -threshold || value.predictedEndTranslation.width < -threshold {
-                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
-                                        showFeed = false
-                                    }
-                                }
-                            } else {
-                                // Opening logic
-                                if value.translation.width > threshold || value.predictedEndTranslation.width > threshold {
-                                    withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.8)) {
-                                        showFeed = true
-                                    }
-                                }
-                            }
-                        }
-                )
-            }
+                },
+                isCommentsOverlayActive: showCommentsOverlay
+            )
+            .zIndex(10)
+
+            // Overlay de comentarios por encima del tab bar
 
             // Overlay de comentarios por encima del tab bar
             if selected == .feed, showCommentsOverlay {
@@ -278,32 +241,12 @@ struct MainTabView: View {
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
                 
-                // Specific Hit Area (Transparent Block)
-                // Covers from edge (0) to slightly past icon (approx 50 width)
-                // Height: slightly taller than icon (80 + padding -> ~140)
-                Color.black.opacity(0.001) // Almost transparent but hittable
+                // Tap-only trigger (Drag is now handled by overlay)
+                Color.black.opacity(0.001)
                     .frame(width: 60, height: 140)
-                    .position(x: 30, y: 150) // Centered in the 60x300 container
-                    .gesture(
-                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                            .updating($dragOffset) { value, state, _ in
-                                if value.translation.width > 0 {
-                                    state = value.translation.width
-                                }
-                            }
-                            .onEnded { value in
-                                let threshold = geo.size.width * 0.25
-                                let velocity = value.predictedEndTranslation.width
-                                // Improved trigger logic: Distance threshold OR velocity flick
-                                if value.translation.width > threshold || velocity > threshold {
-                                    withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
-                                        showFeed = true
-                                    }
-                                }
-                            }
-                    )
+                    .position(x: 30, y: 150)
                     .onTapGesture {
-                        withAnimation(.interpolatingSpring(stiffness: 300, damping: 30)) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             showFeed = true
                         }
                     }
@@ -665,6 +608,96 @@ private struct InternalProfileScreen: View {
                 )
         }
     }
+
+struct FeedDrawerOverlay: View {
+    @Binding var isOpen: Bool
+    let onShowComments: (Int, String) -> Void
+    let isCommentsOverlayActive: Bool
+    
+    @GestureState private var dragOffset: CGFloat = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            
+            ZStack(alignment: .leading) {
+                // Dimming Background
+                if isOpen || dragOffset > 0 {
+                    Color.black.opacity(isOpen ? 0.6 : Double(max(0, dragOffset)) / Double(width) * 0.6)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                isOpen = false
+                            }
+                        }
+                        .transition(.opacity)
+                }
+
+                // Feed View
+                if isOpen || dragOffset > 0 {
+                    FeedView(bottomInset: 0, onGlobalShowComments: onShowComments, isCommentsOverlayActive: isCommentsOverlayActive)
+                        .frame(width: width)
+                        .background(Color.black) // Ensure solid background to prevent white artifacts
+                        .offset(x: isOpen ? min(0, dragOffset) : -width + max(0, dragOffset))
+                        .gesture(
+                            DragGesture()
+                                .updating($dragOffset) { value, state, _ in
+                                    // Logic: 
+                                    // If closed (offset approx -width), allow positive drag (right).
+                                    // If open (offset 0), allow negative drag (left).
+                                     if !isOpen && value.translation.width > 0 {
+                                        state = value.translation.width
+                                    } else if isOpen && value.translation.width < 0 {
+                                        state = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    let threshold = width * 0.3
+                                    if isOpen {
+                                        // Closing logic
+                                        if value.translation.width < -threshold {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                isOpen = false
+                                            }
+                                        }
+                                    } else {
+                                        // Opening logic
+                                        if value.translation.width > threshold {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                isOpen = true
+                                            }
+                                        }
+                                    }
+                                }
+                        )
+                        .transition(.move(edge: .leading))
+                }
+                
+                // Edge Gesture Reader (Always active when closed)
+                if !isOpen {
+                    Color.clear
+                        .frame(width: 40)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture()
+                                .updating($dragOffset) { value, state, _ in
+                                    if value.translation.width > 0 {
+                                        state = value.translation.width
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.translation.width > width * 0.3 {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            isOpen = true
+                                        }
+                                    }
+                                }
+                        )
+                }
+            }
+        }
+    }
+}
 
     private func pillStat(number: String, label: String) -> some View {
         VStack(spacing: 6) {
