@@ -986,20 +986,20 @@ struct FeedView: View {
             }()
             let labelColor: Color = (item.id.hashValue % 2 == 0) ? .yellow : .blue
 
-            return VStack(alignment: .leading, spacing: 2) {
+            return VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
                     Button(action: { onShowProfile(loadedImage) }) {
                         Text(item.username)
                             .foregroundColor(.white)
-                            .font(.system(size: 16, weight: .bold)) // Ajustado tamaño
+                            .font(.system(size: 18, weight: .bold)) // Username más prominente
+                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
-                    // Follow button eliminado de esta posición específica según diseño nuevo
                 }
                 
                 Text(labelText)
                     .foregroundColor(labelColor)
-                    .font(.system(size: 11, weight: .heavy))
-                    .padding(.top, 1)
+                    .font(.system(size: 12, weight: .black)) // Label más pequeño pero pesado (Heavy/Black)
+                    .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
             }
         }
 
@@ -1030,15 +1030,12 @@ struct FeedView: View {
         }
 
         private var videoTitleRow: some View {
-            // Nombre hardcodeado largo y animado estilo TikTok
-            MarqueeText(
-                text: "The Ultimate Volcano Burger with Extra Cheese and Spicy Sauce 🔥🍔",
-                font: .system(size: 18, weight: .bold),
-                leftFade: 10,
-                rightFade: 10,
-                startDelay: 2.0
-            )
-            .frame(width: size.width * 0.7) // Limitar ancho para forzar scroll si es necesario
+            // Título estático normal (corregido: no debe ser marquee)
+            Text("The Ultimate Volcano Burger")
+                .foregroundColor(.white)
+                .font(.system(size: 17, weight: .bold)) // Tamaño ajustado para balance visual
+                .lineLimit(2)
+                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
         }
 
         private var videoDescriptionRow: some View {
@@ -1060,10 +1057,17 @@ struct FeedView: View {
             HStack(spacing: 8) {
                 Image(systemName: "music.note")
                     .foregroundColor(.white)
-                Text(item.soundTitle)
-                    .foregroundColor(.white)
                     .font(.system(size: 14))
-                    .lineLimit(1)
+                
+                // Marquee aplicado al AUDIO como solicitado
+                MarqueeText(
+                    text: "Burger Flip Beat - Chef Beats Original • Vlog Vibes - Chill Lofi • ",
+                    font: .system(size: 15, weight: .medium),
+                    leftFade: 5,
+                    rightFade: 5,
+                    startDelay: 1.0
+                )
+                .frame(width: size.width * 0.55) // Ancho limitado para efecto de scroll
             }
         }
 
