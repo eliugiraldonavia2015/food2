@@ -519,8 +519,61 @@ struct FeedView: View {
             _likesCount = State(initialValue: item.likes)
         }
         
-        // MARK: - Subviews Breakdown (Compiler Optimization)
-        private var preloaderImage: some View {
+        // MARK: - Marquee Text Helper
+    private struct MarqueeText: View {
+        let text: String
+        let font: Font
+        let leftFade: CGFloat
+        let rightFade: CGFloat
+        let startDelay: Double
+        
+        @State private var animate = false
+        
+        init(text: String, font: Font, leftFade: CGFloat, rightFade: CGFloat, startDelay: Double) {
+            self.text = text
+            self.font = font
+            self.leftFade = leftFade
+            self.rightFade = rightFade
+            self.startDelay = startDelay
+        }
+        
+        var body: some View {
+            GeometryReader { contentGeometry in
+                let contentWidth = contentGeometry.size.width
+                
+                Text(text)
+                    .font(font)
+                    .foregroundColor(.white)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .background(GeometryReader { textGeometry in
+                        Color.clear.onAppear {
+                            let textWidth = textGeometry.size.width
+                            let duration = Double(textWidth) * 0.03
+                            
+                            guard textWidth > contentWidth else { return }
+                            
+                            withAnimation(.linear(duration: duration).delay(startDelay).repeatForever(autoreverses: false)) {
+                                animate = true
+                            }
+                        }
+                    })
+                    .offset(x: animate ? -contentGeometry.size.width - 200 : 0) // Simulación simple, idealmente necesitaría duplicación de texto
+            }
+            .frame(height: 30) // Ajustar altura según fuente
+            .mask(
+                HStack(spacing: 0) {
+                    LinearGradient(gradient: Gradient(colors: [.clear, .black]), startPoint: .leading, endPoint: .trailing)
+                        .frame(width: leftFade)
+                    Rectangle().fill(Color.black)
+                    LinearGradient(gradient: Gradient(colors: [.black, .clear]), startPoint: .leading, endPoint: .trailing)
+                        .frame(width: rightFade)
+                }
+            )
+        }
+    }
+    
+    // MARK: - Subviews Breakdown (Compiler Optimization)
+    private var preloaderImage: some View {
             Group {
                 if isActive {
                     WebImage(url: URL(string: item.backgroundUrl), options: [.highPriority])
@@ -927,32 +980,26 @@ struct FeedView: View {
         }
 
         private var userNameAndFollowView: some View {
-            let labelText: String? = {
-                switch item.label {
-                case .sponsored: return "SPONSORED"
-                case .foodieReview: return "FOODIE REVIEW"
-                case .none: return nil
-                }
+            let labelText: String = {
+                // Alternar hardcodeado según id hash
+                return (item.id.hashValue % 2 == 0) ? "FOODIE REVIEW ⭐️" : "SPONSORED"
             }()
-            let labelColor: Color = item.label == .foodieReview ? .yellow : .gray
+            let labelColor: Color = (item.id.hashValue % 2 == 0) ? .yellow : .blue
 
-            return VStack(alignment: .leading, spacing: 1) {
+            return VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Button(action: { onShowProfile(loadedImage) }) {
                         Text(item.username)
                             .foregroundColor(.white)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 16, weight: .bold)) // Ajustado tamaño
                     }
-                    if showFollowButton {
-                        followButton
-                    }
+                    // Follow button eliminado de esta posición específica según diseño nuevo
                 }
-                if let labelText = labelText {
-                    Text(labelText)
-                        .foregroundColor(labelColor)
-                        .font(.footnote)
-                        .fontWeight(.heavy)
-                }
+                
+                Text(labelText)
+                    .foregroundColor(labelColor)
+                    .font(.system(size: 11, weight: .heavy))
+                    .padding(.top, 1)
             }
         }
 
@@ -983,9 +1030,15 @@ struct FeedView: View {
         }
 
         private var videoTitleRow: some View {
-            Text(item.title)
-                .foregroundColor(.white)
-                .font(.system(size: 24, weight: .bold))
+            // Nombre hardcodeado largo y animado estilo TikTok
+            MarqueeText(
+                text: "The Ultimate Volcano Burger with Extra Cheese and Spicy Sauce 🔥🍔",
+                font: .system(size: 18, weight: .bold),
+                leftFade: 10,
+                rightFade: 10,
+                startDelay: 2.0
+            )
+            .frame(width: size.width * 0.7) // Limitar ancho para forzar scroll si es necesario
         }
 
         private var videoDescriptionRow: some View {
@@ -1026,8 +1079,16 @@ struct FeedView: View {
                         }) {
                             Capsule()
                         .fill(Color.brandGreen)
-                        .frame(width: 216, height: 48)
-                        .overlay(Text("Ordenar Ahora").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
+                        .frame(width: 240, height: 48) // Ancho aumentado para texto
+                        .overlay(
+                            HStack(spacing: 6) {
+                                Image(systemName: "cart.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                Text("Order Now • $15.99")
+                                    .font(.system(size: 15, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                        )
                         .scaleEffect(orderPressed ? 0.95 : 1.0)
                         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: orderPressed)
                 }
