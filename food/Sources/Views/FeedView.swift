@@ -1072,7 +1072,9 @@ struct FeedView: View {
         }
 
         private var orderButtonRow: some View {
-            HStack(spacing: 10) {
+            let isFoodie = (item.id.hashValue % 2 == 0)
+            
+            return HStack(spacing: 10) {
                         Button(action: {
                             withAnimation(.easeOut(duration: 0.12)) { orderPressed = true }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
@@ -1082,16 +1084,24 @@ struct FeedView: View {
                             }
                         }) {
                             Capsule()
-                        .fill(Color.brandGreen)
+                        .fill(isFoodie ? Color.black.opacity(0.4) : Color.brandGreen)
                         .frame(width: 240, height: 48) // Ancho aumentado para texto
                         .overlay(
                             HStack(spacing: 6) {
-                                Image(systemName: "cart.fill")
+                                Image(systemName: isFoodie ? "mappin.and.ellipse" : "cart.fill")
                                     .font(.system(size: 16, weight: .bold))
-                                Text("Order Now • $15.99")
+                                Text(isFoodie ? "View Spot • Menu" : "Order Now • $15.99")
                                     .font(.system(size: 15, weight: .bold))
                             }
                             .foregroundColor(.white)
+                        )
+                        // Borde sutil solo para el botón translúcido
+                        .overlay(
+                            Group {
+                                if isFoodie {
+                                    Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                }
+                            }
                         )
                         .scaleEffect(orderPressed ? 0.95 : 1.0)
                         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: orderPressed)
