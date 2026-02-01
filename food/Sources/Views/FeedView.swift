@@ -892,7 +892,7 @@ struct FeedView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, bottomInset - 24)
+                .padding(.bottom, bottomInset + 36) // Elevado +60pt extra (original: -24)
             }
             .onAppear { updateFollowingUI() }
             .onChange(of: AuthService.shared.hasResolvedAuth) { _, newValue in
