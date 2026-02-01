@@ -991,14 +991,14 @@ struct FeedView: View {
                     Button(action: { onShowProfile(loadedImage) }) {
                         Text(item.username)
                             .foregroundColor(.white)
-                            .font(.system(size: 18, weight: .bold)) // Username más prominente
+                            .font(.system(size: 20, weight: .bold)) // ↑ De 18 a 20
                             .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                 }
                 
                 Text(labelText)
                     .foregroundColor(labelColor)
-                    .font(.system(size: 12, weight: .black)) // Label más pequeño pero pesado (Heavy/Black)
+                    .font(.system(size: 13, weight: .black)) // ↑ De 12 a 13
                     .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
             }
         }
@@ -1033,7 +1033,7 @@ struct FeedView: View {
             // Título estático normal (corregido: no debe ser marquee)
             Text("The Ultimate Volcano Burger")
                 .foregroundColor(.white)
-                .font(.system(size: 17, weight: .bold)) // Tamaño ajustado para balance visual
+                .font(.system(size: 19, weight: .bold)) // ↑ De 17 a 19
                 .lineLimit(2)
                 .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
         }
@@ -1042,7 +1042,7 @@ struct FeedView: View {
             let isExpanded = expandedDescriptions.contains(item.id)
             return Text(item.description)
                 .foregroundColor(.white.opacity(0.9))
-                .font(.system(size: 14))
+                .font(.system(size: 15)) // ↑ De 14 a 15
                 .lineLimit(isExpanded ? nil : 2)
                 .truncationMode(.tail)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1062,7 +1062,7 @@ struct FeedView: View {
                 // Marquee aplicado al AUDIO como solicitado
                 MarqueeText(
                     text: "Burger Flip Beat - Chef Beats Original • Vlog Vibes - Chill Lofi • ",
-                    font: .system(size: 15, weight: .medium),
+                    font: .system(size: 16, weight: .medium), // ↑ De 15 a 16
                     leftFade: 5,
                     rightFade: 5,
                     startDelay: 1.0
