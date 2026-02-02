@@ -69,45 +69,86 @@ struct SearchFoodView: View {
             
             // Content
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 24) {
+                    
+                    // Categorías Horizontales (Pills)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(["Cercanos", "Top Rated", "Económico", "Vegano", "Premium"], id: \.self) { cat in
+                                Text(cat)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color(uiColor: .secondarySystemBackground))
+                                    .foregroundColor(.primary)
+                                    .cornerRadius(20)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .padding(.top, 16)
+                    
                     if searchText.isEmpty {
-                        Text("Explorar")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                        // Section Header
+                        HStack {
+                            Text("Explorar")
+                                .font(.title3.bold())
+                                .foregroundColor(.primary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
                     }
                     
-                    LazyVStack(spacing: 16) {
+                    LazyVStack(spacing: 20) {
                         ForEach(filteredItems) { item in
-                            HStack(spacing: 12) {
+                            HStack(spacing: 16) {
+                                // Imagen con sombra
                                 WebImage(url: URL(string: item.imageUrl))
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+                                    .frame(width: 70, height: 70)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(item.name)
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(.system(size: 17, weight: .bold))
                                         .foregroundColor(.primary)
                                     
-                                    Text(item.detail)
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.secondary)
+                                    HStack(spacing: 4) {
+                                        if item.type == "Restaurante" {
+                                            Image(systemName: "fork.knife")
+                                                .font(.caption)
+                                        } else {
+                                            Image(systemName: "flame.fill")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+                                        }
+                                        Text(item.detail)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                                 
                                 Spacer()
                                 
                                 if !item.rating.isEmpty {
-                                    Text(item.rating)
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(.orange)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "star.fill")
+                                            .foregroundColor(.yellow)
+                                            .font(.caption)
+                                        Text(item.rating.replacingOccurrences(of: " ⭐️", with: ""))
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color(uiColor: .secondarySystemBackground))
+                                    .cornerRadius(8)
                                 } else {
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.secondary.opacity(0.5))
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(Color(uiColor: .tertiaryLabel))
                                 }
                             }
                             .padding(.horizontal, 16)
@@ -115,6 +156,8 @@ struct SearchFoodView: View {
                             .onTapGesture {
                                 // Navigate to details
                             }
+                            .scaleEffect(isSearching ? 0.95 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSearching)
                         }
                     }
                 }
