@@ -74,6 +74,7 @@ struct FeedView: View {
     @State private var showComments = false
     @State private var showShare = false
     @State private var showMusic = false
+    @State private var showSearch = false // ✅ Nuevo estado para búsqueda
     @State private var expandedDescriptions: Set<UUID> = []
 
     init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false, isVisible: Bool = true, isFullyOpen: Bool = true) {
@@ -291,15 +292,33 @@ struct FeedView: View {
                 distanceKm: 2.3
             )
         }
+        .fullScreenCover(isPresented: $showSearch) {
+            SearchUsersView()
+        }
     }
 
     private var topTabs: some View {
-        HStack(spacing: 12) {
-            tabButton(icon: "person.2", title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
-                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .following }
+        ZStack {
+            // Tabs Centrales
+            HStack(spacing: 12) {
+                tabButton(icon: "person.2", title: "Siguiendo", isActive: activeTab == .following, indicatorColor: .red) {
+                    withAnimation(.easeInOut(duration: 0.2)) { activeTab = .following }
+                }
+                tabButton(icon: "flame", title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
+                    withAnimation(.easeInOut(duration: 0.2)) { activeTab = .foryou }
+                }
             }
-            tabButton(icon: "flame", title: "Para Ti", isActive: activeTab == .foryou, indicatorColor: .green) {
-                withAnimation(.easeInOut(duration: 0.2)) { activeTab = .foryou }
+            
+            // Botón de Búsqueda (Alineado a la Izquierda)
+            HStack {
+                Button(action: { showSearch = true }) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(10)
+                        .background(Color.black.opacity(0.01)) // Hit area
+                }
+                Spacer()
             }
         }
         .padding(.horizontal, 16)
