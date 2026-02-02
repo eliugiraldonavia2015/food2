@@ -298,9 +298,6 @@ struct FoodDiscoveryView: View {
         .opacity(animateSearch ? 1 : 0)
         .offset(y: animateSearch ? 0 : 20)
         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateSearch)
-        .fullScreenCover(isPresented: $showSearchScreen) {
-            SearchFoodView()
-        }
     }
     
     private var heroPromo: some View {
