@@ -5,6 +5,7 @@ struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
     @State private var searchText = ""
     @State private var showFilters = false
+    @State private var showSearchScreen = false // ✅ Nuevo estado
     var onClose: () -> Void
     @State private var orderTapScale: CGFloat = 1.0
     
@@ -261,18 +262,24 @@ struct FoodDiscoveryView: View {
     
     private var searchBar: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(secondaryTextColor)
-                    .font(.system(size: 20))
-                
-                TextField("Buscar platillos o restaurantes", text: $searchText)
-                    .font(.system(size: 16))
-                    .foregroundColor(primaryTextColor)
+            // Fake Search Bar (Button)
+            Button(action: { showSearchScreen = true }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(secondaryTextColor)
+                        .font(.system(size: 20))
+                    
+                    Text("Buscar platillos o restaurantes")
+                        .font(.system(size: 16))
+                        .foregroundColor(primaryTextColor.opacity(0.6)) // Placeholder look
+                    
+                    Spacer()
+                }
+                .padding(16)
+                .background(secondaryBackgroundColor)
+                .cornerRadius(16)
             }
-            .padding(16)
-            .background(secondaryBackgroundColor)
-            .cornerRadius(16)
+            .buttonStyle(.plain)
             
             // Filter Button
             Button(action: {
@@ -291,6 +298,9 @@ struct FoodDiscoveryView: View {
         .opacity(animateSearch ? 1 : 0)
         .offset(y: animateSearch ? 0 : 20)
         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateSearch)
+        .fullScreenCover(isPresented: $showSearchScreen) {
+            SearchFoodView()
+        }
     }
     
     private var heroPromo: some View {
