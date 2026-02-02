@@ -1084,7 +1084,7 @@ struct FeedView: View {
                             }
                         }) {
                             Capsule()
-                        .fill(isFoodie ? Color.black.opacity(0.4) : Color.brandGreen)
+                        .fill(isFoodie ? Color(white: 0.4) : Color.brandGreen) // Gris sólido (opaco) para Foodie
                         .frame(width: 240, height: 48) // Ancho aumentado para texto
                         .overlay(
                             HStack(spacing: 6) {
