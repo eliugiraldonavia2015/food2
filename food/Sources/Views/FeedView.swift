@@ -309,8 +309,9 @@ struct FeedView: View {
                 }
             }
             
-            // Botón de Búsqueda (Alineado a la Izquierda)
+            // Botón de Búsqueda (Alineado a la Derecha)
             HStack {
+                Spacer()
                 Button(action: { showSearch = true }) {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 20, weight: .semibold))
@@ -318,7 +319,6 @@ struct FeedView: View {
                         .padding(10)
                         .background(Color.black.opacity(0.01)) // Hit area
                 }
-                Spacer()
             }
         }
         .padding(.horizontal, 16)

@@ -3,6 +3,7 @@ import SDWebImageSwiftUI
 
 struct SearchUsersView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var isSearching = false
     
@@ -37,28 +38,33 @@ struct SearchUsersView: View {
             HStack(spacing: 12) {
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     
                     TextField("Buscar usuarios...", text: $searchText)
-                        .foregroundColor(.white)
-                        .accentColor(.white)
+                        .foregroundColor(.primary)
                 }
                 .padding(10)
-                .background(Color.white.opacity(0.12))
+                .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(8)
                 
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Cancelar")
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .font(.system(size: 16))
                 }
             }
             .padding(.horizontal, 16)
             .padding(.top, 10) // Safe area top handled by background
             .padding(.bottom, 12)
-            .background(Color.black.ignoresSafeArea(edges: .top))
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea(edges: .top))
+            .overlay(
+                Rectangle()
+                    .fill(Color(uiColor: .separator))
+                    .frame(height: 0.5),
+                alignment: .bottom
+            )
             
             // Content
             ScrollView {
@@ -66,7 +72,7 @@ struct SearchUsersView: View {
                     if searchText.isEmpty {
                         Text("Sugerencias")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(.secondary)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                     }
@@ -79,13 +85,13 @@ struct SearchUsersView: View {
                                     .scaledToFill()
                                     .frame(width: 44, height: 44)
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
+                                    .overlay(Circle().stroke(Color.primary.opacity(0.1), lineWidth: 1))
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack(spacing: 4) {
                                         Text(user.username)
                                             .font(.system(size: 16, weight: .semibold))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.primary)
                                         
                                         if user.isVerified {
                                             Image(systemName: "checkmark.seal.fill")
@@ -96,14 +102,14 @@ struct SearchUsersView: View {
                                     
                                     Text(user.name)
                                         .font(.system(size: 14))
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondary)
                                 }
                                 
                                 Spacer()
                                 
                                 Text(user.followers)
                                     .font(.system(size: 13))
-                                    .foregroundColor(.white.opacity(0.6))
+                                    .foregroundColor(.secondary)
                             }
                             .padding(.horizontal, 16)
                             .contentShape(Rectangle())
@@ -115,8 +121,8 @@ struct SearchUsersView: View {
                 }
                 .padding(.bottom, 20)
             }
-            .background(Color.black.ignoresSafeArea())
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
