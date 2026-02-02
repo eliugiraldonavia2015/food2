@@ -20,6 +20,7 @@ struct MainTabView: View {
     @State private var showUploadDish = false
     @State private var showFeed = false
     @State private var showFeedTrigger = false
+    @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
 
     // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
     // INMEDIATAMENTE al entrar a la pantalla principal, no solo al abrir el drawer.
@@ -136,6 +137,9 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showUploadDish) {
             UploadDishView(onClose: { showUploadDish = false })
         }
+        .fullScreenCover(isPresented: $showSearchFromTab) {
+            SearchFoodView()
+        }
     }
 
     private var bottomBar: some View {
@@ -220,7 +224,8 @@ struct MainTabView: View {
     
     private var searchButton: some View {
         centerAccentButton(icon: "magnifyingglass", title: "Buscar", color: Color(red: 244/255, green: 37/255, blue: 123/255)) {
-            // No logic for now
+            // ✅ Abrir pantalla de búsqueda global
+            showSearchFromTab = true
         }
         .frame(maxWidth: .infinity)
     }
