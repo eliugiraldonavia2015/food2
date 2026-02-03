@@ -114,7 +114,7 @@ final class UploadManager: ObservableObject {
             let uniqueId = ULID.new().lowercased()
             let fileId = "\(envPrefix)_v_\(uniqueId)"
             
-            let accessKey = ProcessInfo.processInfo.environment["BUNNY_STORAGE_ACCESS_KEY"] ?? ""
+            let accessKey = "b88d331e-2e97-442c-ab81e2a15c30-d313-4fd2" // Hardcoded by user request for immediate fix
             
             guard !accessKey.isEmpty else {
                 DispatchQueue.main.async { self.error = "Falta AccessKey"; self.stopSimulation(); self.isProcessing = false }

@@ -4,101 +4,77 @@ import AVFoundation
 
 struct UploadVideoView: View {
     let onClose: () -> Void
+    
+    // MARK: - State
     @State private var title: String = ""
     @State private var description: String = ""
     @State private var category: String = "Promoción"
     @State private var tags: String = ""
     @State private var showCustomPicker = false
     @State private var selectedVideoURL: URL? = nil
-    @State private var thumbnailURL: URL? = nil // Restauramos esta variable que faltaba
+    @State private var thumbnailURL: URL? = nil
     
-    // Estados mínimos para la vista (ya no maneja proceso)
-    @State private var errorText: String? = nil
-    @ObservedObject private var auth = AuthService.shared
-    @State private var isRestaurant: Bool = false
-    @State private var isPreparing: Bool = false // Solo para saber si se está cargando el archivo del picker
-
-    private let categories = ["Promoción", "Detrás de cámaras", "Reseña", "Evento"]
+    // Upload Manager State
+    @ObservedObject private var uploadManager = UploadManager.shared
+    
+    // UI Logic
+    @State private var isPreparing: Bool = false
+    @State private var showSuccessAnimation = false
+    @FocusState private var focusedField: Field?
+    
+    private let categories = ["Promoción", "Detrás de cámaras", "Reseña", "Evento", "Receta"]
+    
+    enum Field: Hashable {
+        case title, description, tags
+    }
+    
+    // Colors
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let surfaceColor = Color(uiColor: .secondarySystemGroupedBackground)
+    private let backgroundColor = Color(uiColor: .systemGroupedBackground)
 
     var body: some View {
-        VStack(spacing: 16) {
-            header()
-            ScrollView {
-                VStack(spacing: 12) {
-                    // SELECCIÓN DE VIDEO (Custom Picker Trigger)
-                    Button(action: { showCustomPicker = true }) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.06))
-                                .frame(height: 160)
-                            
-                            VStack(spacing: 8) {
-                                if selectedVideoURL != nil {
-                                    // Feedback minimalista: Solo muestra que hay video
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                        .font(.system(size: 32))
-                                    Text("Video seleccionado")
-                                        .foregroundColor(.green)
-                                        .font(.caption.bold())
-                                } else {
-                                    Image(systemName: "video.badge.plus")
-                                        .foregroundColor(.green)
-                                        .font(.system(size: 28, weight: .bold))
-                                    Text("Selecciona un video")
-                                        .foregroundColor(.white)
-                                        .font(.subheadline.bold())
-                                }
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-
-                    textField("Título", text: $title)
-                    textArea("Descripción", text: $description)
-                    pickerField(title: "Categoría", selection: $category, options: categories)
-                    textField("Tags (coma separada)", text: $tags)
-
-                    HStack(spacing: 12) {
-                        primaryFilledButton(title: "Generar Miniatura") {
-                            thumbnailURL = URL(string: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
-                        }
-                        primaryOutlinedButton(title: "Limpiar Miniatura") { thumbnailURL = nil }
-                    }
-
-                    if let thumb = thumbnailURL {
-                        if let url = URL(string: thumb.absoluteString) {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white.opacity(0.06))
-                                .frame(height: 160)
-                                .overlay(
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .success(let image): image.resizable().scaledToFill()
-                                        case .empty: ProgressView().tint(.green)
-                                        case .failure(_): Image(systemName: "photo").foregroundColor(.white)
-                                        @unknown default: Color.gray
-                                        }
-                                    }
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                )
-                        }
-                    }
-
-                    // BOTÓN DE PUBLICAR (Siempre activo si hay datos)
-                    primaryFilledButton(title: "Publicar Video") {
-                        commitUpload()
-                    }
-                    .disabled(selectedVideoURL == nil || title.isEmpty || isPreparing)
-                    .opacity((selectedVideoURL == nil || title.isEmpty || isPreparing) ? 0.6 : 1.0)
+        NavigationView {
+            ZStack {
+                // Background
+                backgroundColor.ignoresSafeArea()
+                
+                if uploadManager.isProcessing {
+                    uploadingOverlay
+                        .transition(.opacity)
+                        .zIndex(10)
+                } else if showSuccessAnimation {
+                    successView
+                        .transition(.scale.combined(with: .opacity))
+                        .zIndex(11)
+                } else {
+                    mainFormContent
+                        .transition(.move(edge: .bottom))
                 }
-                .padding()
             }
-        }
-        .background(Color.black.ignoresSafeArea())
-        .overlay(alignment: .top) {
-            if let e = errorText {
-                errorBanner(e)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancelar", action: onClose)
+                        .foregroundColor(.primary)
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    Text("Nueva Publicación")
+                        .font(.headline)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        hideKeyboard()
+                        uploadManager.commitUpload(title: title, description: description)
+                    } label: {
+                        Text("Publicar")
+                            .fontWeight(.bold)
+                            .foregroundColor(canPublish ? brandPink : .gray.opacity(0.5))
+                    }
+                    .disabled(!canPublish)
+                }
             }
         }
         .sheet(isPresented: $showCustomPicker) {
@@ -113,55 +89,311 @@ struct UploadVideoView: View {
                 }
             )
         }
-        .onAppear {
-            isRestaurant = (auth.user?.role ?? "client") == "restaurant"
+        .onChange(of: uploadManager.isCompleted) { completed in
+            if completed {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                    showSuccessAnimation = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    onClose()
+                    // Reset manager state for next time
+                    uploadManager.isCompleted = false
+                    uploadManager.progress = 0
+                    showSuccessAnimation = false
+                }
+            }
         }
+    }
+    
+    // MARK: - Main Content
+    
+    private var mainFormContent: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 24) {
+                // Video Preview Section
+                videoPreviewSection
+                
+                // Details Section
+                VStack(spacing: 0) {
+                    customTextField(
+                        icon: "text.alignleft",
+                        placeholder: "Escribe un título llamativo...",
+                        text: $title,
+                        field: .title
+                    )
+                    
+                    Divider().padding(.leading, 44)
+                    
+                    customTextField(
+                        icon: "text.quote",
+                        placeholder: "Descripción y detalles...",
+                        text: $description,
+                        field: .description,
+                        isMultiLine: true
+                    )
+                }
+                .background(surfaceColor)
+                .cornerRadius(12)
+                
+                // Category & Tags Section
+                VStack(spacing: 0) {
+                    // Category Selector
+                    HStack {
+                        Image(systemName: "tag.fill")
+                            .foregroundColor(.gray)
+                            .frame(width: 24)
+                        Text("Categoría")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Picker("Categoría", selection: $category) {
+                            ForEach(categories, id: \.self) { cat in
+                                Text(cat).tag(cat)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .tint(brandPink)
+                    }
+                    .padding()
+                    
+                    Divider().padding(.leading, 44)
+                    
+                    customTextField(
+                        icon: "number",
+                        placeholder: "Tags (ej: #comida, #tacos)",
+                        text: $tags,
+                        field: .tags
+                    )
+                }
+                .background(surfaceColor)
+                .cornerRadius(12)
+                
+                // Tips Section
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "lightbulb.fill")
+                        .foregroundColor(.yellow)
+                        .font(.title3)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Pro Tip")
+                            .font(.caption.bold())
+                            .foregroundColor(.secondary)
+                        Text("Los videos verticales de 15-30 segundos tienen 3x más visualizaciones.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.yellow.opacity(0.1))
+                .cornerRadius(12)
+                
+                Spacer(minLength: 40)
+            }
+            .padding(20)
+        }
+    }
+    
+    // MARK: - Components
+    
+    private var videoPreviewSection: some View {
+        Button(action: { showCustomPicker = true }) {
+            ZStack {
+                if let url = selectedVideoURL {
+                    // Selected Video Preview (Thumbnail logic could go here)
+                    if let thumb = thumbnailURL, let validUrl = URL(string: thumb.absoluteString) {
+                         AsyncImage(url: validUrl) { phase in
+                             switch phase {
+                             case .success(let image):
+                                 image
+                                     .resizable()
+                                     .scaledToFill()
+                                     .frame(height: 220)
+                                     .frame(maxWidth: .infinity)
+                                     .clipped()
+                             default:
+                                 Rectangle().fill(Color.black)
+                             }
+                         }
+                    } else {
+                        // Fallback generic preview
+                        Rectangle()
+                            .fill(Color.black)
+                            .frame(height: 220)
+                            .overlay(
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.white)
+                            )
+                    }
+                    
+                    // Change Video Button Overlay
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Text("Cambiar Video")
+                                .font(.caption.bold())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
+                                .padding(12)
+                        }
+                    }
+                    
+                } else {
+                    // Empty State
+                    VStack(spacing: 12) {
+                        Circle()
+                            .fill(brandPink.opacity(0.1))
+                            .frame(width: 60, height: 60)
+                            .overlay(
+                                Image(systemName: "video.badge.plus")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(brandPink)
+                            )
+                        
+                        VStack(spacing: 4) {
+                            Text("Seleccionar Video")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Text("MP4, MOV hasta 60 seg")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(height: 220)
+                    .frame(maxWidth: .infinity)
+                    .background(surfaceColor)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [6]))
+                            .foregroundColor(brandPink.opacity(0.3))
+                    )
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func customTextField(icon: String, placeholder: String, text: Binding<String>, field: Field, isMultiLine: Bool = false) -> some View {
+        HStack(alignment: isMultiLine ? .top : .center, spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(.gray)
+                .frame(width: 24)
+                .padding(.top, isMultiLine ? 4 : 0)
+            
+            if isMultiLine {
+                TextField(placeholder, text: text, axis: .vertical)
+                    .focused($focusedField, equals: field)
+                    .lineLimit(3...6)
+            } else {
+                TextField(placeholder, text: text)
+                    .focused($focusedField, equals: field)
+            }
+        }
+        .padding()
+    }
+    
+    private var uploadingOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.8).ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                // Progress Circle
+                ZStack {
+                    Circle()
+                        .stroke(lineWidth: 6)
+                        .opacity(0.3)
+                        .foregroundColor(.gray)
+                    
+                    Circle()
+                        .trim(from: 0.0, to: CGFloat(uploadManager.progress))
+                        .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                        .foregroundColor(brandPink)
+                        .rotationEffect(Angle(degrees: 270.0))
+                        .animation(.linear(duration: 0.2), value: uploadManager.progress)
+                    
+                    VStack(spacing: 4) {
+                        Text("\(Int(uploadManager.progress * 100))%")
+                            .font(.title2.bold())
+                            .foregroundColor(.white)
+                    }
+                }
+                .frame(width: 100, height: 100)
+                
+                VStack(spacing: 8) {
+                    Text(uploadManager.statusMessage)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("Por favor no cierres la aplicación")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                }
+            }
+            .padding(40)
+            .background(.ultraThinMaterial)
+            .cornerRadius(24)
+            .shadow(radius: 20)
+            .padding(40)
+        }
+    }
+    
+    private var successView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.green)
+                .scaleEffect(showSuccessAnimation ? 1 : 0.5)
+                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showSuccessAnimation)
+            
+            Text("¡Publicado con éxito!")
+                .font(.title2.bold())
+                .foregroundColor(.primary)
+            
+            Text("Tu video ya está disponible para todos.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(40)
+        .background(surfaceColor)
+        .cornerRadius(24)
+        .shadow(radius: 20)
+        .padding(40)
+    }
+    
+    // MARK: - Logic Helpers
+    
+    private var canPublish: Bool {
+        return selectedVideoURL != nil && !title.isEmpty && !uploadManager.isProcessing && !isPreparing
+    }
+    
+    private func hideKeyboard() {
+        focusedField = nil
     }
     
     private func startPreparation(url: URL) {
         isPreparing = true
-        
         Task {
-            print("🎬 [UploadVideoView] Video seleccionado desde Custom Picker: \(url)")
-            
+            print("🎬 [UploadVideoView] Video seleccionado: \(url)")
             await MainActor.run {
                 UploadManager.shared.prepareVideo(inputURL: url)
                 self.isPreparing = false
                 
-                // Generar thumbnail
+                // Generar thumbnail local temporal
                 self.thumbnailURL = nil
-                _ = self.generateLocalThumbnail(url: url)
-            }
-        }
-    }
-    
-    // Helper Struct para Transferable seguro (YA NO SE USA CON CUSTOM PICKER PERO SE MANTIENE SI SE REQUIERE)
-    struct MovieFile: Transferable {
-        let url: URL
-        
-        static var transferRepresentation: some TransferRepresentation {
-            FileRepresentation(contentType: .movie) { movie in
-                SentTransferredFile(movie.url)
-            } importing: { received in
-                // Copiar a directorio temporal propio para persistencia durante la sesión
-                let fileName = received.file.lastPathComponent
-                let copyURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-                
-                if FileManager.default.fileExists(atPath: copyURL.path) {
-                    try? FileManager.default.removeItem(at: copyURL)
+                if let thumb = self.generateLocalThumbnail(url: url) {
+                    // Guardar thumbnail en temporal para mostrarlo
+                    let tempUrl = FileManager.default.temporaryDirectory.appendingPathComponent("temp_thumb.jpg")
+                    try? thumb.jpegData(compressionQuality: 0.7)?.write(to: tempUrl)
+                    self.thumbnailURL = tempUrl
                 }
-                
-                try FileManager.default.copyItem(at: received.file, to: copyURL)
-                return Self(url: copyURL)
             }
         }
-    }
-    
-    private func commitUpload() {
-        guard isRestaurant else { return }
-        // Commit al Manager y cerrar inmediatamente
-        UploadManager.shared.commitUpload(title: title, description: description)
-        onClose()
     }
     
     private func generateLocalThumbnail(url: URL) -> UIImage? {
@@ -169,100 +401,5 @@ struct UploadVideoView: View {
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
         return try? UIImage(cgImage: generator.copyCGImage(at: .zero, actualTime: nil))
-    }
-
-    // MARK: - UI Components
-    private func header() -> some View {
-        HStack {
-            Button(action: onClose) {
-                Circle().fill(Color.white.opacity(0.08)).frame(width: 36, height: 36).overlay(Image(systemName: "arrow.backward").foregroundColor(.white))
-            }
-            Spacer()
-            Text("Subir Video").foregroundColor(.white).font(.headline.bold())
-            Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-    }
-
-    private func textField(_ title: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).foregroundColor(.white).font(.footnote)
-            TextField("", text: text)
-                .foregroundColor(.white)
-                .padding(12)
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func textArea(_ title: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).foregroundColor(.white).font(.footnote)
-            TextEditor(text: text)
-                .foregroundColor(.white)
-                .frame(height: 120)
-                .padding(12)
-                .background(Color.white.opacity(0.06))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-
-    private func pickerField(title: String, selection: Binding<String>, options: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).foregroundColor(.white).font(.footnote)
-            Picker(title, selection: selection) {
-                ForEach(options, id: \.self) { Text($0).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .tint(.green)
-        }
-    }
-
-    private func primaryFilledButton(title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .foregroundColor(.white)
-                .font(.callout)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-        }
-        .background(
-            LinearGradient(colors: [Color.green.opacity(0.95), Color.green.opacity(0.75)], startPoint: .top, endPoint: .bottom)
-        )
-        .clipShape(Capsule())
-        .shadow(color: .green.opacity(0.35), radius: 12, x: 0, y: 6)
-    }
-
-    private func primaryOutlinedButton(title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .foregroundColor(.white)
-                .font(.callout)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-        }
-        .background(Color.clear)
-        .overlay(Capsule().stroke(Color.white.opacity(0.6), lineWidth: 1))
-        .clipShape(Capsule())
-    }
-    
-    private func errorBanner(_ text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.yellow)
-            Text(text).foregroundColor(.white).font(.system(size: 14, weight: .semibold))
-            Spacer()
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }

@@ -17,7 +17,6 @@ struct MainTabView: View {
     @State private var currentFeedImageUrl: String = ""
     @State private var showUploadPicker = false
     @State private var showUploadVideo = false
-    @State private var showUploadDish = false
     @State private var showFeed = false
     @State private var showFeedTrigger = false
     @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
@@ -161,9 +160,6 @@ struct MainTabView: View {
         }
         .fullScreenCover(isPresented: $showUploadVideo) {
             UploadVideoView(onClose: { showUploadVideo = false })
-        }
-        .fullScreenCover(isPresented: $showUploadDish) {
-            UploadDishView(onClose: { showUploadDish = false })
         }
     }
 
@@ -426,24 +422,6 @@ struct MainTabView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Subir Video").foregroundColor(.white).font(.subheadline.bold())
                             Text("Promociona platos y tu marca").foregroundColor(.white.opacity(0.8)).font(.caption)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
-                Button {
-                    withAnimation(.easeOut(duration: 0.2)) { showUploadPicker = false }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { showUploadDish = true }
-                } label: {
-                    HStack(spacing: 12) {
-                        Circle().fill(Color.green.opacity(0.2)).frame(width: 40, height: 40).overlay(Image(systemName: "fork.knife").foregroundColor(.green))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Publicar Plato").foregroundColor(.white).font(.subheadline.bold())
-                            Text("Fotos, precio y disponibilidad").foregroundColor(.white.opacity(0.8)).font(.caption)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
