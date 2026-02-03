@@ -399,8 +399,9 @@ struct MainTabView: View {
         }
         .padding(.vertical, 2)
     }
+}
 
-    // MARK: - Placeholder Screens (sin lógica por ahora)
+// MARK: - Placeholder Screens (sin lógica por ahora)
 
 private struct StoreScreen: View {
     var body: some View {
