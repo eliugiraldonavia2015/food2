@@ -109,7 +109,13 @@ struct MainTabView: View {
                 .animation(.easeOut(duration: 0.3), value: showFeed)
 
             // FEED DRAWER OVERLAY (Isolated State)
-            if selected == .feed && (auth.user?.role ?? "client") != "restaurant" {
+            // ✅ SOLO DISPONIBLE EN INICIO (FoodDiscoveryView)
+            // No en Store (showShop), Búsqueda (showSearchFromTab) ni Upload (showUploadPicker)
+            if selected == .feed && 
+               (auth.user?.role ?? "client") != "restaurant" &&
+               !showShop && 
+               !showSearchFromTab && 
+               !showUploadPicker {
                 FeedDrawerOverlay(
                     isOpen: $showFeed,
                     feedViewModel: sharedFeedVM, // Pasar ViewModel compartido
@@ -274,15 +280,15 @@ struct MainTabView: View {
                 
                 // Tap-only trigger (Smaller Invisible Zone)
                 Color.black.opacity(0.001)
-                    .frame(width: 50, height: 100) // ✅ Tighter hit area
-                    .position(x: 25, y: 50) // ✅ Centered relative to the button
+                    .frame(width: 50, height: 90) // ✅ Tighter hit area vertically
+                    .position(x: 25, y: 45) // ✅ Centered relative to the button
                     .onTapGesture {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             showFeed = true
                         }
                     }
             }
-            .frame(width: 50, height: 100) // ✅ Container also reduced
+            .frame(width: 50, height: 90) // ✅ Container also reduced vertically
             .position(x: 25, y: geo.size.height * 0.45)
         }
     }
@@ -812,10 +818,12 @@ struct FeedDrawerOverlay: View {
                 // .transition(.move(edge: .leading)) // ❌ ELIMINADO: No usamos transición porque siempre está ahí
                 
                 // Edge Gesture Reader (Always active when closed)
+                // ✅ ZONA AJUSTADA: Limitada a la altura del botón flotante
                 if !isOpen {
                     Color.clear
-                        .frame(width: 40)
+                        .frame(width: 50, height: 180) // Cubre el botón (90) con margen vertical
                         .contentShape(Rectangle())
+                        .position(x: 25, y: geo.size.height * 0.45) // Misma posición Y que el botón
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
