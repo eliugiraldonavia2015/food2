@@ -56,7 +56,14 @@ struct SearchFoodView: View {
                 .matchedGeometryEffect(id: "searchBar", in: animation)
                 
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    // 🚀 OPTIMIZACIÓN CRÍTICA:
+                    // 1. Quitar foco del estado SwiftUI
+                    isFocused = false
+                    // 2. Forzar al sistema a cerrar el teclado INMEDIATAMENTE
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    
+                    // 3. Cerrar la vista con una animación suave pero rápida
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         isPresented = false
                     }
                 }) {
