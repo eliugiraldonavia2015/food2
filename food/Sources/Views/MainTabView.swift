@@ -41,7 +41,8 @@ struct MainTabView: View {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
                         FoodDiscoveryView(
                             onClose: { },
-                            onSearch: { withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showSearchFromTab = true } },
+                            // 🚀 ANIMACIÓN OPTIMIZADA: Más rápida (0.2s) para evitar sensación de lag
+                            onSearch: { withAnimation(.easeOut(duration: 0.2)) { showSearchFromTab = true } },
                             animation: searchAnimation
                         )
                             .overlay(

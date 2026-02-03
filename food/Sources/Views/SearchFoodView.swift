@@ -168,7 +168,9 @@ struct SearchFoodView: View {
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            // 🚀 TECLADO INMEDIATO: Eliminado delay artificial de 0.1s
+            // Usamos task asíncrona inmediata para asegurar que la vista ya está montada
+            DispatchQueue.main.async {
                 isFocused = true
             }
         }
