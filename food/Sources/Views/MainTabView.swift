@@ -84,11 +84,19 @@ struct MainTabView: View {
 
             if showShop {
                 // Legacy support
-                FoodDiscoveryView(onClose: { 
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        showShop = false 
-                    }
-                })
+                FoodDiscoveryView(
+                    onClose: { 
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                            showShop = false 
+                        }
+                    },
+                    onSearch: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showSearchFromTab = true
+                        }
+                    },
+                    animation: searchAnimation
+                )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .zIndex(2)
             }
