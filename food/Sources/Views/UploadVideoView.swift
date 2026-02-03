@@ -482,6 +482,8 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     }
     
     func switchCamera() {
+        guard let session = session else { return }
+        
         session.beginConfiguration()
         if let input = videoInput { session.removeInput(input) }
         
@@ -490,8 +492,11 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
         
         if let newCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) {
             do {
-                videoInput = try AVCaptureDeviceInput(device: newCamera)
-                if session.canAddInput(videoInput!) { session.addInput(videoInput!) }
+                let input = try AVCaptureDeviceInput(device: newCamera)
+                if session.canAddInput(input) { 
+                    session.addInput(input)
+                    self.videoInput = input
+                }
             } catch { print("Error switching camera") }
         }
         session.commitConfiguration()
