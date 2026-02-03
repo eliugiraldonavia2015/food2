@@ -133,31 +133,16 @@ struct UploadVideoView: View {
     // MARK: - Right Sidebar
     private var rightSideBar: some View {
         VStack(spacing: 24) {
-            // Logic for Pause/Next buttons
-            if cameraModel.isRecording {
-                // Recording Mode: Show Pause Button
-                sideBarButton(icon: "pause.circle.fill", text: "Pausar") {
-                    withAnimation {
-                        cameraModel.pauseRecording()
-                        isPaused = true
-                    }
-                }
-                .foregroundColor(.red) // Highlight pause
-            } else if isPaused {
-                // Paused Mode: Show nothing (as per user request "al estar pausada desaparezca")
-                // User must tap main button to resume.
-            } else {
-                // Idle Mode: Standard Options
-                sideBarButton(icon: "arrow.triangle.2.circlepath", text: "Girar") {
-                    cameraModel.switchCamera()
-                }
-                sideBarButton(icon: "speedometer", text: "Velocidad")
-                sideBarButton(icon: "wand.and.stars", text: "Filtros")
-                sideBarButton(icon: "face.dashed", text: "Embellecer")
-                sideBarButton(icon: "timer", text: "Tiempo")
-                sideBarButton(icon: "bolt.slash.fill", text: "Flash") {
-                    cameraModel.toggleFlash()
-                }
+            // Standard Options
+            sideBarButton(icon: "arrow.triangle.2.circlepath", text: "Girar") {
+                cameraModel.switchCamera()
+            }
+            sideBarButton(icon: "speedometer", text: "Velocidad")
+            sideBarButton(icon: "wand.and.stars", text: "Filtros")
+            sideBarButton(icon: "face.dashed", text: "Embellecer")
+            sideBarButton(icon: "timer", text: "Tiempo")
+            sideBarButton(icon: "bolt.slash.fill", text: "Flash") {
+                cameraModel.toggleFlash()
             }
         }
     }
@@ -181,30 +166,29 @@ struct UploadVideoView: View {
     // MARK: - Bottom Controls
     private var bottomControls: some View {
         VStack(spacing: 20) {
-            // Mode Selector (Hidden while recording/reviewing)
-            if !cameraModel.isRecording && !isReviewing && !isPaused {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 20) {
-                        ForEach(modes, id: \.self) { mode in
-                            Button(action: {
-                                withAnimation { selectedMode = mode }
-                            }) {
-                                Text(mode.rawValue)
-                                    .font(.system(size: 15, weight: selectedMode == mode ? .bold : .semibold))
-                                    .foregroundColor(selectedMode == mode ? .white : .white.opacity(0.6))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        selectedMode == mode ? Color.black.opacity(0.3) : Color.clear
-                                    )
-                                    .cornerRadius(8)
-                            }
+            // Mode Selector
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 20) {
+                    ForEach(modes, id: \.self) { mode in
+                        Button(action: {
+                            withAnimation { selectedMode = mode }
+                        }) {
+                            Text(mode.rawValue)
+                                .font(.system(size: 15, weight: selectedMode == mode ? .bold : .semibold))
+                                .foregroundColor(selectedMode == mode ? .white : .white.opacity(0.6))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 4)
+                                .background(
+                                    selectedMode == mode ? Color.black.opacity(0.3) : Color.clear
+                                )
+                                .cornerRadius(8)
                         }
                     }
-                    .padding(.horizontal, UIScreen.main.bounds.width / 2 - 50)
                 }
-                .frame(height: 40)
+                .padding(.horizontal, UIScreen.main.bounds.width / 2 - 50)
             }
+            .frame(height: 40)
+            .disabled(cameraModel.isRecording || isReviewing || isPaused)
             
             // Shutter Area
             HStack(spacing: 40) {
@@ -226,27 +210,23 @@ struct UploadVideoView: View {
                 } else {
                     // Recording/Idle Mode
                     
-                    // Left Button (Gallery) - Only visible if not recording/paused
-                    if !cameraModel.isRecording && !isPaused {
-                        Button(action: {}) {
-                            VStack(spacing: 2) {
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.white, lineWidth: 2)
-                                    .frame(width: 32, height: 32)
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(.white)
-                                    )
-                                Text("Cargar")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
+                    // Left Button (Gallery)
+                    Button(action: {}) {
+                        VStack(spacing: 2) {
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.white, lineWidth: 2)
+                                .frame(width: 32, height: 32)
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white)
+                                )
+                            Text("Cargar")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white)
                         }
-                    } else {
-                        // Spacer to keep shutter centered
-                        Color.clear.frame(width: 32, height: 32)
                     }
+                    .opacity(cameraModel.isRecording ? 0 : 1) // Ocultar solo si está grabando activamente
                     
                     // Shutter Button
                     ZStack {
@@ -268,32 +248,46 @@ struct UploadVideoView: View {
                         }
                     }
                     
-                    // Right Button (Effects or Next if stopped)
-                    if !cameraModel.isRecording && !isPaused {
-                         Button(action: {}) {
+                    // Right Button: Effects (Idle) / Pause (Recording) / Next (Paused)
+                    if cameraModel.isRecording {
+                        // PAUSE BUTTON
+                        Button(action: {
+                            withAnimation {
+                                cameraModel.pauseRecording()
+                                isPaused = true
+                            }
+                        }) {
                             VStack(spacing: 2) {
-                                Image(systemName: "face.smiling")
-                                    .font(.system(size: 32))
-                                    .foregroundColor(.white)
-                                Text("Efectos")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.white)
+                                Image(systemName: "pause.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.red)
+                                    .background(Circle().fill(Color.white))
                             }
                         }
                     } else if isPaused {
-                        // When Paused, show "Check" to finish manually?
-                        // User said: "si mientras grabo no toco el boton de pausa sino el boton de detener grabacion debe salirme un boton del lado derecho que diga 'siguiente'"
-                        // But if paused, we also need a way to finish.
+                        // NEXT BUTTON (Checkmark)
                         Button(action: {
                             finishRecordingSession()
                         }) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 40))
-                                .foregroundColor(.red)
-                                .background(Circle().fill(Color.white))
+                            VStack(spacing: 2) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.red)
+                                    .background(Circle().fill(Color.white))
+                            }
                         }
                     } else {
-                        Color.clear.frame(width: 32)
+                        // EFFECTS BUTTON (Idle)
+                        Button(action: {}) {
+                           VStack(spacing: 2) {
+                               Image(systemName: "face.smiling")
+                                   .font(.system(size: 32))
+                                   .foregroundColor(.white)
+                               Text("Efectos")
+                                   .font(.system(size: 10, weight: .medium))
+                                   .foregroundColor(.white)
+                           }
+                       }
                     }
                 }
             }
@@ -385,7 +379,7 @@ struct LoopingPlayerView: UIViewRepresentable {
 
 // MARK: - Camera Model (Real Recording Implementation)
 class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDelegate {
-    @Published var session = AVCaptureSession()
+    @Published var session: AVCaptureSession! // Forced unwrapped lazy loaded later
     @Published var isRecording = false
     @Published var alert = false
     @Published var mergedVideoURL: URL?
@@ -393,10 +387,15 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     // Internal
     private var videoInput: AVCaptureDeviceInput?
     private var audioInput: AVCaptureDeviceInput?
-    private var movieOutput = AVCaptureMovieFileOutput()
+    private var movieOutput: AVCaptureMovieFileOutput?
     
     private var recordedSegments: [URL] = []
     private var isFrontCamera = false
+    
+    override init() {
+        super.init()
+        // No heavy lifting here
+    }
     
     func checkPermissions() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -412,52 +411,65 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     
     func setup() {
         DispatchQueue.global(qos: .userInitiated).async {
-            self.session.beginConfiguration()
+            // Lazy init session and output
+            let session = AVCaptureSession()
+            let movieOutput = AVCaptureMovieFileOutput()
+            
+            session.beginConfiguration()
             
             // Camera Input
             if let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
                 do {
-                    self.videoInput = try AVCaptureDeviceInput(device: camera)
-                    if self.session.canAddInput(self.videoInput!) { self.session.addInput(self.videoInput!) }
+                    let input = try AVCaptureDeviceInput(device: camera)
+                    if session.canAddInput(input) { session.addInput(input) }
+                    self.videoInput = input
                 } catch { print(error) }
             }
             
             // Audio Input
             if let audio = AVCaptureDevice.default(for: .audio) {
                 do {
-                    self.audioInput = try AVCaptureDeviceInput(device: audio)
-                    if self.session.canAddInput(self.audioInput!) { self.session.addInput(self.audioInput!) }
+                    let input = try AVCaptureDeviceInput(device: audio)
+                    if session.canAddInput(input) { session.addInput(input) }
+                    self.audioInput = input
                 } catch { print(error) }
             }
             
             // Output
-            if self.session.canAddOutput(self.movieOutput) { self.session.addOutput(self.movieOutput) }
+            if session.canAddOutput(movieOutput) { session.addOutput(movieOutput) }
+            self.movieOutput = movieOutput
             
-            self.session.commitConfiguration()
-            self.startSession()
+            session.commitConfiguration()
+            session.startRunning()
+            
+            // Update UI on main thread
+            DispatchQueue.main.async {
+                self.session = session
+            }
         }
     }
     
     func startSession() {
-        if !session.isRunning {
-            DispatchQueue.global(qos: .background).async { self.session.startRunning() }
+        if let session = session, !session.isRunning {
+            DispatchQueue.global(qos: .background).async { session.startRunning() }
         }
     }
     
     func stopSession() {
-        if session.isRunning {
-            DispatchQueue.global(qos: .background).async { self.session.stopRunning() }
+        if let session = session, session.isRunning {
+            DispatchQueue.global(qos: .background).async { session.stopRunning() }
         }
     }
     
     func startRecording() {
+        guard let movieOutput = movieOutput else { return }
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mov")
         movieOutput.startRecording(to: tempURL, recordingDelegate: self)
         DispatchQueue.main.async { self.isRecording = true }
     }
     
     func pauseRecording() {
-        movieOutput.stopRecording() // Stops current segment
+        movieOutput?.stopRecording() // Stops current segment
         DispatchQueue.main.async { self.isRecording = false }
     }
     
