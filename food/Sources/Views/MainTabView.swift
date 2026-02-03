@@ -15,7 +15,6 @@ struct MainTabView: View {
     @State private var showCommentsOverlay = false
     @State private var commentsCount: Int = 0
     @State private var currentFeedImageUrl: String = ""
-    @State private var showUploadPicker = false
     @State private var showUploadVideo = false
     @State private var showFeed = false
     @State private var showFeedTrigger = false
@@ -110,12 +109,11 @@ struct MainTabView: View {
 
             // FEED DRAWER OVERLAY (Isolated State)
             // ✅ SOLO DISPONIBLE EN INICIO (FoodDiscoveryView)
-            // No en Store (showShop), Búsqueda (showSearchFromTab) ni Upload (showUploadPicker)
+            // No en Store (showShop), Búsqueda (showSearchFromTab) ni Upload
             if selected == .feed && 
                (auth.user?.role ?? "client") != "restaurant" &&
                !showShop && 
-               !showSearchFromTab && 
-               !showUploadPicker {
+               !showSearchFromTab {
                 FeedDrawerOverlay(
                     isOpen: $showFeed,
                     feedViewModel: sharedFeedVM, // Pasar ViewModel compartido
@@ -139,10 +137,6 @@ struct MainTabView: View {
                     videoId: nil // En el contexto global no tenemos el ID, se pasa solo para cerrar o mostrar
                 )
                     .zIndex(6)
-            }
-            if showUploadPicker {
-                uploadPickerOverlay
-                    .zIndex(7)
             }
             
             if showSearchFromTab {
@@ -218,7 +212,7 @@ struct MainTabView: View {
 
     private var plusButton: some View {
         centerAccentButton(icon: "plus", title: "Crear", color: Color(red: 244/255, green: 37/255, blue: 123/255)) {
-            withAnimation(.easeOut(duration: 0.25)) { showUploadPicker = true }
+            withAnimation(.easeOut(duration: 0.25)) { showUploadVideo = true }
         }
         .frame(maxWidth: .infinity)
     }
@@ -406,53 +400,7 @@ struct MainTabView: View {
         .padding(.vertical, 2)
     }
 
-    private var uploadPickerOverlay: some View {
-        VStack(spacing: 12) {
-            Capsule().fill(Color.white.opacity(0.2)).frame(width: 48, height: 5).padding(.top, 8)
-            Text("Crear contenido")
-                .foregroundColor(.white)
-                .font(.headline.bold())
-            VStack(spacing: 12) {
-                Button {
-                    withAnimation(.easeOut(duration: 0.2)) { showUploadPicker = false }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { showUploadVideo = true }
-                } label: {
-                    HStack(spacing: 12) {
-                        Circle().fill(Color.green.opacity(0.2)).frame(width: 40, height: 40).overlay(Image(systemName: "video.fill").foregroundColor(.green))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Subir Video").foregroundColor(.white).font(.subheadline.bold())
-                            Text("Promociona platos y tu marca").foregroundColor(.white.opacity(0.8)).font(.caption)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
-            }
-            Button {
-                withAnimation(.easeOut(duration: 0.25)) { showUploadPicker = false }
-            } label: {
-                Text("Cerrar")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 12)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .background(Color.black.opacity(0.6).ignoresSafeArea())
-        .transition(.move(edge: .bottom).combined(with: .opacity))
-    }
-}
-
-// MARK: - Placeholder Screens (sin lógica por ahora)
+    // MARK: - Placeholder Screens (sin lógica por ahora)
 
 private struct StoreScreen: View {
     var body: some View {

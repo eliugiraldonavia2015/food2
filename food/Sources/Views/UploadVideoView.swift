@@ -1,405 +1,369 @@
 import SwiftUI
-import PhotosUI
 import AVFoundation
 
 struct UploadVideoView: View {
-    let onClose: () -> Void
+    var onClose: () -> Void
     
-    // MARK: - State
-    @State private var title: String = ""
-    @State private var description: String = ""
-    @State private var category: String = "Promoción"
-    @State private var tags: String = ""
-    @State private var showCustomPicker = false
-    @State private var selectedVideoURL: URL? = nil
-    @State private var thumbnailURL: URL? = nil
+    // MARK: - Camera State
+    @StateObject private var cameraModel = CameraModel()
     
-    // Upload Manager State
-    @ObservedObject private var uploadManager = UploadManager.shared
+    // MARK: - UI State
+    @State private var selectedMode: CameraMode = .grams
+    @State private var showPostMetadata = false
+    @State private var recordedVideoURL: URL? = nil
     
-    // UI Logic
-    @State private var isPreparing: Bool = false
-    @State private var showSuccessAnimation = false
-    @FocusState private var focusedField: Field?
+    // Constants
+    private let modes: [CameraMode] = [.grams, .product, .live]
     
-    private let categories = ["Promoción", "Detrás de cámaras", "Reseña", "Evento", "Receta"]
-    
-    enum Field: Hashable {
-        case title, description, tags
+    enum CameraMode: String, CaseIterable {
+        case grams = "Grams"
+        case product = "Producto"
+        case live = "Live"
     }
     
-    // Colors
-    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
-    private let surfaceColor = Color(uiColor: .secondarySystemGroupedBackground)
-    private let backgroundColor = Color(uiColor: .systemGroupedBackground)
-
     var body: some View {
         NavigationView {
             ZStack {
-                // Background
-                backgroundColor.ignoresSafeArea()
+                Color.black.ignoresSafeArea()
                 
-                if uploadManager.isProcessing {
-                    uploadingOverlay
-                        .transition(.opacity)
-                        .zIndex(10)
-                } else if showSuccessAnimation {
-                    successView
-                        .transition(.scale.combined(with: .opacity))
-                        .zIndex(11)
-                } else {
-                    mainFormContent
-                        .transition(.move(edge: .bottom))
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancelar", action: onClose)
-                        .foregroundColor(.primary)
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    Text("Nueva Publicación")
-                        .font(.headline)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        hideKeyboard()
-                        uploadManager.commitUpload(title: title, description: description)
-                    } label: {
-                        Text("Publicar")
-                            .fontWeight(.bold)
-                            .foregroundColor(canPublish ? brandPink : .gray.opacity(0.5))
+                // 1. Camera Preview
+                CameraPreviewView(session: cameraModel.session)
+                    .ignoresSafeArea()
+                    .onTapGesture(count: 2) {
+                        cameraModel.switchCamera()
                     }
-                    .disabled(!canPublish)
+                
+                // 2. Overlays
+                VStack {
+                    topControls
+                    Spacer()
                 }
+                
+                HStack {
+                    Spacer()
+                    rightSideBar
+                        .padding(.trailing, 16)
+                        .padding(.top, 100)
+                }
+                
+                VStack {
+                    Spacer()
+                    bottomControls
+                }
+                
+                // Navigation Link (Hidden)
+                NavigationLink(isActive: $showPostMetadata) {
+                    PostMetadataView(videoURL: recordedVideoURL, onClose: onClose)
+                } label: { EmptyView() }
             }
+            .navigationBarHidden(true)
         }
-        .sheet(isPresented: $showCustomPicker) {
-            CustomMediaPickerView(
-                onSelect: { url in
-                    showCustomPicker = false
-                    selectedVideoURL = url
-                    startPreparation(url: url)
-                },
-                onCancel: {
-                    showCustomPicker = false
-                }
-            )
+        .onAppear {
+            cameraModel.checkPermissions()
         }
-        .onChange(of: uploadManager.isCompleted) { completed in
-            if completed {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                    showSuccessAnimation = true
+    }
+    
+    // MARK: - Top Controls
+    private var topControls: some View {
+        HStack(alignment: .top) {
+            Button(action: onClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(10)
+            }
+            
+            Spacer()
+            
+            Button(action: {}) {
+                HStack(spacing: 6) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 14))
+                    Text("Añadir sonido")
+                        .font(.system(size: 14, weight: .semibold))
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    onClose()
-                    // Reset manager state for next time
-                    uploadManager.isCompleted = false
-                    uploadManager.progress = 0
-                    showSuccessAnimation = false
-                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.4))
+                .clipShape(Capsule())
+            }
+            
+            Spacer()
+            
+            // Placeholder to balance X button
+            Color.clear.frame(width: 44, height: 44)
+        }
+        .padding(.top, 10)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Right Sidebar
+    private var rightSideBar: some View {
+        VStack(spacing: 24) {
+            sideBarButton(icon: "arrow.triangle.2.circlepath", text: "Girar") {
+                cameraModel.switchCamera()
+            }
+            
+            sideBarButton(icon: "speedometer", text: "Velocidad")
+            sideBarButton(icon: "wand.and.stars", text: "Filtros")
+            sideBarButton(icon: "face.dashed", text: "Embellecer")
+            sideBarButton(icon: "timer", text: "Tiempo")
+            sideBarButton(icon: "bolt.slash.fill", text: "Flash") {
+                cameraModel.toggleFlash()
             }
         }
     }
     
-    // MARK: - Main Content
+    private func sideBarButton(icon: String, text: String, action: @escaping () -> Void = {}) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+                    .shadow(radius: 2)
+                Text(text)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.white)
+                    .shadow(radius: 2)
+            }
+        }
+    }
     
-    private var mainFormContent: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 24) {
-                // Video Preview Section
-                videoPreviewSection
-                
-                // Details Section
-                VStack(spacing: 0) {
-                    customTextField(
-                        icon: "text.alignleft",
-                        placeholder: "Escribe un título llamativo...",
-                        text: $title,
-                        field: .title
-                    )
-                    
-                    Divider().padding(.leading, 44)
-                    
-                    customTextField(
-                        icon: "text.quote",
-                        placeholder: "Descripción y detalles...",
-                        text: $description,
-                        field: .description,
-                        isMultiLine: true
-                    )
-                }
-                .background(surfaceColor)
-                .cornerRadius(12)
-                
-                // Category & Tags Section
-                VStack(spacing: 0) {
-                    // Category Selector
-                    HStack {
-                        Image(systemName: "tag.fill")
-                            .foregroundColor(.gray)
-                            .frame(width: 24)
-                        Text("Categoría")
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Picker("Categoría", selection: $category) {
-                            ForEach(categories, id: \.self) { cat in
-                                Text(cat).tag(cat)
-                            }
+    // MARK: - Bottom Controls
+    private var bottomControls: some View {
+        VStack(spacing: 20) {
+            // Mode Selector
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 20) {
+                    ForEach(modes, id: \.self) { mode in
+                        Button(action: {
+                            withAnimation { selectedMode = mode }
+                        }) {
+                            Text(mode.rawValue)
+                                .font(.system(size: 15, weight: selectedMode == mode ? .bold : .semibold))
+                                .foregroundColor(selectedMode == mode ? .white : .white.opacity(0.6))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 4)
+                                .background(
+                                    selectedMode == mode ? Color.black.opacity(0.3) : Color.clear
+                                )
+                                .cornerRadius(8)
                         }
-                        .pickerStyle(.menu)
-                        .tint(brandPink)
-                    }
-                    .padding()
-                    
-                    Divider().padding(.leading, 44)
-                    
-                    customTextField(
-                        icon: "number",
-                        placeholder: "Tags (ej: #comida, #tacos)",
-                        text: $tags,
-                        field: .tags
-                    )
-                }
-                .background(surfaceColor)
-                .cornerRadius(12)
-                
-                // Tips Section
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "lightbulb.fill")
-                        .foregroundColor(.yellow)
-                        .font(.title3)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Pro Tip")
-                            .font(.caption.bold())
-                            .foregroundColor(.secondary)
-                        Text("Los videos verticales de 15-30 segundos tienen 3x más visualizaciones.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.yellow.opacity(0.1))
-                .cornerRadius(12)
-                
-                Spacer(minLength: 40)
+                .padding(.horizontal, UIScreen.main.bounds.width / 2 - 50) // Center approx
             }
-            .padding(20)
-        }
-    }
-    
-    // MARK: - Components
-    
-    private var videoPreviewSection: some View {
-        Button(action: { showCustomPicker = true }) {
-            ZStack {
-                if let url = selectedVideoURL {
-                    // Selected Video Preview (Thumbnail logic could go here)
-                    if let thumb = thumbnailURL, let validUrl = URL(string: thumb.absoluteString) {
-                         AsyncImage(url: validUrl) { phase in
-                             switch phase {
-                             case .success(let image):
-                                 image
-                                     .resizable()
-                                     .scaledToFill()
-                                     .frame(height: 220)
-                                     .frame(maxWidth: .infinity)
-                                     .clipped()
-                             default:
-                                 Rectangle().fill(Color.black)
-                             }
-                         }
-                    } else {
-                        // Fallback generic preview
-                        Rectangle()
-                            .fill(Color.black)
-                            .frame(height: 220)
+            .frame(height: 40)
+            
+            // Shutter Area
+            HStack(spacing: 40) {
+                // Gallery Button
+                Button(action: {}) {
+                    VStack(spacing: 2) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.white, lineWidth: 2)
+                            .frame(width: 32, height: 32)
                             .overlay(
-                                Image(systemName: "play.circle.fill")
-                                    .font(.system(size: 50))
+                                Image(systemName: "photo")
+                                    .font(.system(size: 16))
                                     .foregroundColor(.white)
                             )
-                    }
-                    
-                    // Change Video Button Overlay
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Text("Cambiar Video")
-                                .font(.caption.bold())
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                                .padding(12)
-                        }
-                    }
-                    
-                } else {
-                    // Empty State
-                    VStack(spacing: 12) {
-                        Circle()
-                            .fill(brandPink.opacity(0.1))
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Image(systemName: "video.badge.plus")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(brandPink)
-                            )
-                        
-                        VStack(spacing: 4) {
-                            Text("Seleccionar Video")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            Text("MP4, MOV hasta 60 seg")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .frame(height: 220)
-                    .frame(maxWidth: .infinity)
-                    .background(surfaceColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [6]))
-                            .foregroundColor(brandPink.opacity(0.3))
-                    )
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
-        }
-        .buttonStyle(.plain)
-    }
-    
-    private func customTextField(icon: String, placeholder: String, text: Binding<String>, field: Field, isMultiLine: Bool = false) -> some View {
-        HStack(alignment: isMultiLine ? .top : .center, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundColor(.gray)
-                .frame(width: 24)
-                .padding(.top, isMultiLine ? 4 : 0)
-            
-            if isMultiLine {
-                TextField(placeholder, text: text, axis: .vertical)
-                    .focused($focusedField, equals: field)
-                    .lineLimit(3...6)
-            } else {
-                TextField(placeholder, text: text)
-                    .focused($focusedField, equals: field)
-            }
-        }
-        .padding()
-    }
-    
-    private var uploadingOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.8).ignoresSafeArea()
-            
-            VStack(spacing: 30) {
-                // Progress Circle
-                ZStack {
-                    Circle()
-                        .stroke(lineWidth: 6)
-                        .opacity(0.3)
-                        .foregroundColor(.gray)
-                    
-                    Circle()
-                        .trim(from: 0.0, to: CGFloat(uploadManager.progress))
-                        .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                        .foregroundColor(brandPink)
-                        .rotationEffect(Angle(degrees: 270.0))
-                        .animation(.linear(duration: 0.2), value: uploadManager.progress)
-                    
-                    VStack(spacing: 4) {
-                        Text("\(Int(uploadManager.progress * 100))%")
-                            .font(.title2.bold())
+                        Text("Cargar")
+                            .font(.system(size: 10, weight: .medium))
                             .foregroundColor(.white)
                     }
                 }
-                .frame(width: 100, height: 100)
                 
-                VStack(spacing: 8) {
-                    Text(uploadManager.statusMessage)
-                        .font(.headline)
-                        .foregroundColor(.white)
+                // Shutter Button
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.5), lineWidth: 4)
+                        .frame(width: 80, height: 80)
                     
-                    Text("Por favor no cierres la aplicación")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.7))
+                    Circle()
+                        .fill(selectedMode == .grams ? Color.red : (selectedMode == .product ? Color.blue : Color.white))
+                        .frame(width: cameraModel.isRecording ? 40 : 70, height: cameraModel.isRecording ? 40 : 70)
+                        .cornerRadius(cameraModel.isRecording ? 10 : 35)
                 }
-            }
-            .padding(40)
-            .background(.ultraThinMaterial)
-            .cornerRadius(24)
-            .shadow(radius: 20)
-            .padding(40)
-        }
-    }
-    
-    private var successView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.green)
-                .scaleEffect(showSuccessAnimation ? 1 : 0.5)
-                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showSuccessAnimation)
-            
-            Text("¡Publicado con éxito!")
-                .font(.title2.bold())
-                .foregroundColor(.primary)
-            
-            Text("Tu video ya está disponible para todos.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(40)
-        .background(surfaceColor)
-        .cornerRadius(24)
-        .shadow(radius: 20)
-        .padding(40)
-    }
-    
-    // MARK: - Logic Helpers
-    
-    private var canPublish: Bool {
-        return selectedVideoURL != nil && !title.isEmpty && !uploadManager.isProcessing && !isPreparing
-    }
-    
-    private func hideKeyboard() {
-        focusedField = nil
-    }
-    
-    private func startPreparation(url: URL) {
-        isPreparing = true
-        Task {
-            print("🎬 [UploadVideoView] Video seleccionado: \(url)")
-            await MainActor.run {
-                UploadManager.shared.prepareVideo(inputURL: url)
-                self.isPreparing = false
+                .onTapGesture {
+                    if selectedMode == .grams {
+                        handleRecording()
+                    } else {
+                        // Just simulate photo capture for Product/Live
+                        simulateCapture()
+                    }
+                }
                 
-                // Generar thumbnail local temporal
-                self.thumbnailURL = nil
-                if let thumb = self.generateLocalThumbnail(url: url) {
-                    // Guardar thumbnail en temporal para mostrarlo
-                    let tempUrl = FileManager.default.temporaryDirectory.appendingPathComponent("temp_thumb.jpg")
-                    try? thumb.jpegData(compressionQuality: 0.7)?.write(to: tempUrl)
-                    self.thumbnailURL = tempUrl
+                // Placeholder/Effects Button (Optional)
+                Button(action: {}) {
+                    VStack(spacing: 2) {
+                        Image(systemName: "face.smiling")
+                            .font(.system(size: 32))
+                            .foregroundColor(.white)
+                        Text("Efectos")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                 }
+                .opacity(0.0) // Hidden for symmetry or future use
             }
+            .padding(.bottom, 20)
+        }
+        .padding(.bottom, 10)
+        .background(
+            LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+        )
+    }
+    
+    // MARK: - Logic
+    
+    private func handleRecording() {
+        if cameraModel.isRecording {
+            cameraModel.stopRecording()
+            // Simulate processing delay then go to next screen
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // In a real app, we'd pass the file URL
+                // recordedVideoURL = cameraModel.outputURL
+                // For demo, we just navigate
+                self.showPostMetadata = true
+            }
+        } else {
+            cameraModel.startRecording()
         }
     }
     
-    private func generateLocalThumbnail(url: URL) -> UIImage? {
-        let asset = AVAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        return try? UIImage(cgImage: generator.copyCGImage(at: .zero, actualTime: nil))
+    private func simulateCapture() {
+        // Flash animation
+        withAnimation { cameraModel.isRecording = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation { cameraModel.isRecording = false }
+            self.showPostMetadata = true
+        }
+    }
+}
+
+// MARK: - Camera Model (Simplified for UI Demo)
+class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDelegate {
+    @Published var session = AVCaptureSession()
+    @Published var isRecording = false
+    @Published var alert = false
+    @Published var outputURL: URL?
+    
+    // Devices
+    private var videoInput: AVCaptureDeviceInput?
+    private var audioInput: AVCaptureDeviceInput?
+    private var movieOutput = AVCaptureMovieFileOutput()
+    private var photoOutput = AVCapturePhotoOutput()
+    
+    private var isFrontCamera = false
+    
+    func checkPermissions() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            setup()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { status in
+                if status { self.setup() }
+            }
+        case .denied:
+            self.alert = true
+        default:
+            return
+        }
+    }
+    
+    func setup() {
+        do {
+            session.beginConfiguration()
+            
+            // Camera Input
+            if let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+                videoInput = try AVCaptureDeviceInput(device: camera)
+                if session.canAddInput(videoInput!) { session.addInput(videoInput!) }
+            }
+            
+            // Audio Input
+            if let audio = AVCaptureDevice.default(for: .audio) {
+                audioInput = try AVCaptureDeviceInput(device: audio)
+                if session.canAddInput(audioInput!) { session.addInput(audioInput!) }
+            }
+            
+            // Output
+            if session.canAddOutput(movieOutput) { session.addOutput(movieOutput) }
+            if session.canAddOutput(photoOutput) { session.addOutput(photoOutput) }
+            
+            session.commitConfiguration()
+            
+            // Start Session in Background
+            DispatchQueue.global(qos: .background).async {
+                self.session.startRunning()
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
+    
+    func startRecording() {
+        // Temp URL
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(Date()).mov")
+        movieOutput.startRecording(to: tempURL, recordingDelegate: self)
+        isRecording = true
+    }
+    
+    func stopRecording() {
+        movieOutput.stopRecording()
+        isRecording = false
+    }
+    
+    func switchCamera() {
+        session.beginConfiguration()
+        
+        // Remove existing input
+        if let input = videoInput {
+            session.removeInput(input)
+        }
+        
+        // Switch position
+        isFrontCamera.toggle()
+        let position: AVCaptureDevice.Position = isFrontCamera ? .front : .back
+        
+        if let newCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) {
+            do {
+                videoInput = try AVCaptureDeviceInput(device: newCamera)
+                if session.canAddInput(videoInput!) {
+                    session.addInput(videoInput!)
+                }
+            } catch {
+                print("Error switching camera: \(error.localizedDescription)")
+            }
+        }
+        
+        session.commitConfiguration()
+    }
+    
+    func toggleFlash() {
+        // Simplified flash logic placeholder
+        guard let device = videoInput?.device else { return }
+        do {
+            try device.lockForConfiguration()
+            if device.hasTorch {
+                device.torchMode = device.torchMode == .off ? .on : .off
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("Flash error")
+        }
+    }
+    
+    // Delegate
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        if let error = error {
+            print("Error recording: \(error.localizedDescription)")
+            return
+        }
+        print("Video recorded at: \(outputFileURL)")
+        self.outputURL = outputFileURL
     }
 }
