@@ -26,6 +26,12 @@
 	<string>478456051663-9mpltnnhosu5um9d8o8lmfu89vdsdtvc.apps.googleusercontent.com</string>
 	<key>NSAppTransportSecurity</key>
 	<dict/>
+	<key>NSCameraUsageDescription</key>
+	<string>Necesitamos acceso a la cámara para grabar videos de tus platillos y promociones.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Necesitamos acceso al micrófono para grabar el audio de tus videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Necesitamos acceso a tu galería para subir videos o fotos existentes.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
