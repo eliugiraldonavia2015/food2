@@ -98,6 +98,23 @@ struct OwnProfileView: View {
                             .offset(y: animateContent ? 0 : 40)
                             .opacity(animateContent ? 1 : 0)
                             .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: animateContent)
+                            
+                            // Logout Button
+                            Button(action: {
+                                AuthService.shared.signOut()
+                            }) {
+                                Text("Cerrar Sesión")
+                                    .foregroundColor(.white)
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red)
+                                    .cornerRadius(12)
+                            }
+                            .padding(.top, 20)
+                            .offset(y: animateContent ? 0 : 50)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: animateContent)
                         }
                         .padding(.horizontal, 16)
                         .padding(.bottom, 40)

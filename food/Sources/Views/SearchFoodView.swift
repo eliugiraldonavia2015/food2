@@ -2,8 +2,10 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct SearchFoodView: View {
-    @Environment(\.presentationMode) var presentationMode
-    @Environment(\.colorScheme) var colorScheme
+    var animation: Namespace.ID
+    @Binding var isPresented: Bool
+    
+    @FocusState private var isFocused: Bool
     @State private var searchText = ""
     @State private var isSearching = false
     
@@ -40,32 +42,33 @@ struct SearchFoodView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
+                        .font(.system(size: 20))
                     
                     TextField("Buscar comida, restaurantes...", text: $searchText)
                         .foregroundColor(.primary)
+                        .focused($isFocused)
+                        .submitLabel(.search)
                 }
-                .padding(10)
+                .padding(16)
                 .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(8)
+                .cornerRadius(16)
+                // Matched Geometry for smooth transition
+                .matchedGeometryEffect(id: "searchBar", in: animation)
                 
                 Button(action: {
-                    presentationMode.wrappedValue.dismiss()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        isPresented = false
+                    }
                 }) {
                     Text("Cancelar")
                         .foregroundColor(.primary)
-                        .font(.system(size: 16))
+                        .font(.system(size: 16, weight: .semibold))
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.top, 10)
+            .padding(.top, 10) // Safe area top handled by parent ZStack usually, or ignoresSafeArea
             .padding(.bottom, 12)
-            .background(Color(uiColor: .systemBackground).ignoresSafeArea(edges: .top))
-            .overlay(
-                Rectangle()
-                    .fill(Color(uiColor: .separator))
-                    .frame(height: 0.5),
-                alignment: .bottom
-            )
+            .background(Color(uiColor: .systemBackground))
             
             // Content
             ScrollView {
@@ -86,7 +89,7 @@ struct SearchFoodView: View {
                         }
                         .padding(.horizontal, 16)
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 8)
                     
                     if searchText.isEmpty {
                         // Section Header
@@ -99,7 +102,7 @@ struct SearchFoodView: View {
                         .padding(.horizontal, 16)
                     }
                     
-                    LazyVStack(spacing: 20) {
+                    LazyVStack(spacing: 16) {
                         ForEach(filteredItems) { item in
                             HStack(spacing: 16) {
                                 // Imagen con sombra
@@ -156,15 +159,18 @@ struct SearchFoodView: View {
                             .onTapGesture {
                                 // Navigate to details
                             }
-                            .scaleEffect(isSearching ? 0.95 : 1.0)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSearching)
                         }
                     }
                 }
                 .padding(.bottom, 20)
             }
-            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+            .background(Color(uiColor: .systemBackground))
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isFocused = true
+            }
+        }
     }
 }

@@ -21,6 +21,7 @@ struct MainTabView: View {
     @State private var showFeed = false
     @State private var showFeedTrigger = false
     @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
+    @Namespace private var searchAnimation // ✅ Namespace para transición de búsqueda
 
     // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
     // INMEDIATAMENTE al entrar a la pantalla principal, no solo al abrir el drawer.
@@ -38,7 +39,11 @@ struct MainTabView: View {
                         RestaurantDashboardView(bottomInset: tabBarHeight)
                     } else {
                         // USER ROLE: Show FoodDiscoveryView as "Inicio"
-                        FoodDiscoveryView(onClose: { })
+                        FoodDiscoveryView(
+                            onClose: { },
+                            onSearch: { withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { showSearchFromTab = true } },
+                            animation: searchAnimation
+                        )
                             .overlay(
                                 // Visual Feed Trigger (State isolated to view)
                                 Group {
@@ -124,6 +129,12 @@ struct MainTabView: View {
                     .zIndex(7)
             }
             
+            if showSearchFromTab {
+                SearchFoodView(animation: searchAnimation, isPresented: $showSearchFromTab)
+                    .zIndex(20)
+                    .transition(.opacity)
+            }
+
 
         }
         
@@ -136,9 +147,6 @@ struct MainTabView: View {
         }
         .fullScreenCover(isPresented: $showUploadDish) {
             UploadDishView(onClose: { showUploadDish = false })
-        }
-        .fullScreenCover(isPresented: $showSearchFromTab) {
-            SearchFoodView()
         }
     }
 
@@ -225,7 +233,9 @@ struct MainTabView: View {
     private var searchButton: some View {
         centerAccentButton(icon: "magnifyingglass", title: "Buscar", color: Color(red: 244/255, green: 37/255, blue: 123/255)) {
             // ✅ Abrir pantalla de búsqueda global
-            showSearchFromTab = true
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                showSearchFromTab = true
+            }
         }
         .frame(maxWidth: .infinity)
     }

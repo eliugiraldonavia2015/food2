@@ -5,8 +5,12 @@ struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
     @State private var searchText = ""
     @State private var showFilters = false
-    @State private var showSearchScreen = false // ✅ Nuevo estado
+    
+    // External Actions & Animation
     var onClose: () -> Void
+    var onSearch: () -> Void
+    var animation: Namespace.ID
+    
     @State private var orderTapScale: CGFloat = 1.0
     
     // Animation States
@@ -263,7 +267,7 @@ struct FoodDiscoveryView: View {
     private var searchBar: some View {
         HStack(spacing: 12) {
             // Fake Search Bar (Button)
-            Button(action: { showSearchScreen = true }) {
+            Button(action: { onSearch() }) {
                 HStack(spacing: 12) {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(secondaryTextColor)
@@ -276,8 +280,9 @@ struct FoodDiscoveryView: View {
                     Spacer()
                 }
                 .padding(16)
-                .background(secondaryBackgroundColor)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(16)
+                .matchedGeometryEffect(id: "searchBar", in: animation)
             }
             .buttonStyle(.plain)
             
