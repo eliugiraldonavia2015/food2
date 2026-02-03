@@ -109,17 +109,19 @@ struct MainTabView: View {
                 .animation(.easeOut(duration: 0.3), value: showFeed)
 
             // FEED DRAWER OVERLAY (Isolated State)
-            FeedDrawerOverlay(
-                isOpen: $showFeed,
-                feedViewModel: sharedFeedVM, // Pasar ViewModel compartido
-                onShowComments: { count, url in
-                    commentsCount = count
-                    currentFeedImageUrl = url
-                    withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
-                },
-                isCommentsOverlayActive: showCommentsOverlay
-            )
-            .zIndex(10)
+            if selected == .feed && (auth.user?.role ?? "client") != "restaurant" {
+                FeedDrawerOverlay(
+                    isOpen: $showFeed,
+                    feedViewModel: sharedFeedVM, // Pasar ViewModel compartido
+                    onShowComments: { count, url in
+                        commentsCount = count
+                        currentFeedImageUrl = url
+                        withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = true }
+                    },
+                    isCommentsOverlayActive: showCommentsOverlay
+                )
+                .zIndex(10)
+            }
 
             // Overlay de comentarios por encima del tab bar
 
@@ -270,18 +272,18 @@ struct MainTabView: View {
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: showFeedTrigger)
                 .onAppear { showFeedTrigger = true }
                 
-                // Tap-only trigger (Drag is now handled by overlay)
+                // Tap-only trigger (Smaller Invisible Zone)
                 Color.black.opacity(0.001)
-                    .frame(width: 60, height: 140)
-                    .position(x: 30, y: 150)
+                    .frame(width: 50, height: 100) // ✅ Tighter hit area
+                    .position(x: 25, y: 50) // ✅ Centered relative to the button
                     .onTapGesture {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                             showFeed = true
                         }
                     }
             }
-            .frame(width: 60, height: 300)
-            .position(x: 30, y: geo.size.height * 0.45)
+            .frame(width: 50, height: 100) // ✅ Container also reduced
+            .position(x: 25, y: geo.size.height * 0.45)
         }
     }
 
