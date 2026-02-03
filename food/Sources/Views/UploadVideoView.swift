@@ -33,12 +33,15 @@ struct UploadVideoView: View {
                     if isReviewing, let url = cameraModel.mergedVideoURL {
                         LoopingPlayerView(videoURL: url)
                             .ignoresSafeArea()
-                    } else {
-                        CameraPreviewView(session: cameraModel.session)
+                    } else if let session = cameraModel.session {
+                        CameraPreviewView(session: session)
                             .ignoresSafeArea()
                             .onTapGesture(count: 2) {
                                 cameraModel.switchCamera()
                             }
+                    } else {
+                        // Loading State
+                        Color.black.ignoresSafeArea()
                     }
                 }
                 
@@ -379,7 +382,7 @@ struct LoopingPlayerView: UIViewRepresentable {
 
 // MARK: - Camera Model (Real Recording Implementation)
 class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDelegate {
-    @Published var session: AVCaptureSession! // Forced unwrapped lazy loaded later
+    @Published var session: AVCaptureSession? // Optional now
     @Published var isRecording = false
     @Published var alert = false
     @Published var mergedVideoURL: URL?
