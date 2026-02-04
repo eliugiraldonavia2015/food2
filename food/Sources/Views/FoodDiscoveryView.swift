@@ -33,16 +33,29 @@ struct FoodDiscoveryView: View {
     struct CategoryItem: Identifiable {
         let id = UUID()
         let name: String
-        let image: String // Changed from icon to image for visual appeal
+        let imageName: String
     }
     
     let categoryItems = [
-        CategoryItem(name: "Sushis", image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c"),
-        CategoryItem(name: "Cortes", image: "https://images.unsplash.com/photo-1600891964092-4316c288032e"),
-        CategoryItem(name: "Postres", image: "https://images.unsplash.com/photo-1563729768-6af784d6df1a"),
-        CategoryItem(name: "Bebidas", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd"),
-        CategoryItem(name: "Vegana", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
-        CategoryItem(name: "Burgers", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd")
+        CategoryItem(name: "Hamburguesas", imageName: "category_burgers"),
+        CategoryItem(name: "Pizza", imageName: "category_pizza"),
+        CategoryItem(name: "Pollo", imageName: "category_chicken"),
+        CategoryItem(name: "Encebollado", imageName: "category_encebollado"),
+        CategoryItem(name: "Bolones", imageName: "category_bolon"),
+        CategoryItem(name: "Tigrillo", imageName: "category_tigrillo"),
+        CategoryItem(name: "Chifa", imageName: "category_chifa"),
+        CategoryItem(name: "Salchipapas", imageName: "category_salchipapas"),
+        CategoryItem(name: "Sushi", imageName: "category_sushi"),
+        CategoryItem(name: "Alitas", imageName: "category_wings"),
+        CategoryItem(name: "Tacos", imageName: "category_tacos"),
+        CategoryItem(name: "Hornado", imageName: "category_hornado"),
+        CategoryItem(name: "Fritada", imageName: "category_fritada"),
+        CategoryItem(name: "Ceviches", imageName: "category_ceviche"),
+        CategoryItem(name: "Mariscos", imageName: "category_seafood"),
+        CategoryItem(name: "Comida Rápida", imageName: "category_fastfood"),
+        CategoryItem(name: "Sanduches", imageName: "category_sandwiches"),
+        CategoryItem(name: "Hot Dogs", imageName: "category_hotdogs"),
+        CategoryItem(name: "Desayunos", imageName: "category_breakfast")
     ]
     
     struct PopularItem: Identifiable {
@@ -412,7 +425,10 @@ struct FoodDiscoveryView: View {
                             }
                         }) {
                             VStack(spacing: 8) {
-                                safeImage(url: item.image, width: 70, height: 70, contentMode: .fill)
+                                Image(item.imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 70, height: 70)
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
