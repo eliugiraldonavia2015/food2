@@ -50,7 +50,7 @@ struct AddDeliveryAddressView: View {
                             .opacity(animateContent ? 1 : 0)
                             .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: animateContent)
                             
-                        Spacer(minLength: 28) // Reduced to approx 0.7cm (approx 28pts)
+                        Spacer(minLength: 12)
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 24)
