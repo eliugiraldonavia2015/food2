@@ -425,7 +425,7 @@ struct FoodDiscoveryView: View {
                             }
                         }) {
                             VStack(spacing: 8) {
-                                Image(item.image) // Usar Asset Local
+                                Image(item.image, bundle: .main) // Force main bundle
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 70, height: 70)
