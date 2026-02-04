@@ -5,6 +5,8 @@ struct FoodDiscoveryView: View {
     @State private var selectedCategory = "Burgers"
     @State private var searchText = ""
     @State private var showFilters = false
+    @State private var showAddressSelection = false
+    @State private var currentAddress = "Polanco, CDMX"
     
     // External Actions & Animation
     var onClose: () -> Void
@@ -170,6 +172,33 @@ struct FoodDiscoveryView: View {
                     .zIndex(40)
             }
         }
+        .fullScreenCover(isPresented: $showAddressSelection) {
+            DeliveryAddressSelectionView(
+                addresses: [
+                    .init(
+                        id: "home",
+                        title: "Casa",
+                        detail: "Av. Paseo de la Reforma 222,\nJuárez, Cuauhtémoc, 06600\nCiudad de México, CDMX",
+                        systemIcon: "house.fill"
+                    ),
+                    .init(
+                        id: "office",
+                        title: "Oficina",
+                        detail: "Torre Virreyes, Pedregal 24, Molino\ndel Rey, 11040 Ciudad de México,\nCDMX",
+                        systemIcon: "briefcase.fill"
+                    ),
+                    .init(
+                        id: "partner",
+                        title: "Novia",
+                        detail: "Calle Colima 123, Roma Norte,\nCuauhtémoc, 06700 Ciudad de\nMéxico, CDMX",
+                        systemIcon: "heart.fill"
+                    )
+                ],
+                initialSelectedId: nil
+            ) { selected in
+                currentAddress = selected.title
+            }
+        }
         .ignoresSafeArea(edges: .top)
         .onAppear {
             startAnimations()
@@ -197,32 +226,35 @@ struct FoodDiscoveryView: View {
     private var headerView: some View {
         HStack(alignment: .center) {
             // Location
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(primaryColor.opacity(0.1))
-                        .frame(width: 40, height: 40)
-                    Image(systemName: "mappin.and.ellipse")
-                        .foregroundColor(primaryColor)
-                        .font(.system(size: 18))
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("ENVIAR A:")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(secondaryTextColor)
-                        .tracking(0.5)
+            Button(action: { showAddressSelection = true }) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(primaryColor.opacity(0.1))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(primaryColor)
+                            .font(.system(size: 18))
+                    }
                     
-                    HStack(spacing: 4) {
-                        Text("Polanco, CDMX")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(primaryTextColor)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(primaryTextColor)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("ENVIAR A:")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(secondaryTextColor)
+                            .tracking(0.5)
+                        
+                        HStack(spacing: 4) {
+                            Text(currentAddress)
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(primaryTextColor)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(primaryTextColor)
+                        }
                     }
                 }
             }
+            .buttonStyle(PlainButtonStyle())
             
             Spacer()
             

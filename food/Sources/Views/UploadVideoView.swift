@@ -2,6 +2,64 @@ import SwiftUI
 import AVFoundation
 import Combine
 
+/*
+ ====================================================================================================
+ 🚧 ESTADO ACTUAL: IMPLEMENTACIÓN DE CÁMARA Y SUBIDA (PENDIENTE) 🚧
+ ====================================================================================================
+ 
+ FECHA ÚLTIMA MODIFICACIÓN: [Fecha Actual]
+ 
+ LO QUE SE HIZO:
+ 1. UI estilo TikTok implementada:
+    - Vista previa de cámara full screen.
+    - Controles laterales (Girar, Velocidad, Filtros, etc. - Solo UI por ahora).
+    - Selector de modos inferior (Grams, Producto, Live).
+    - Botón de grabación con animación y estados (Grabar, Pausar, Reanudar, Finalizar).
+ 
+ 2. Lógica de Grabación (CameraModel):
+    - Uso de `AVCaptureMovieFileOutput` para grabación real.
+    - Soporte para MÚLTIPLES SEGMENTOS: Se puede grabar, pausar, grabar otro clip, y al final se unen.
+    - Fusión de segmentos (`mergeSegments`) usando `AVMutableComposition` para crear un solo archivo .mov.
+    - Optimización "Lazy Loading": La sesión de cámara se inicia en background para evitar bloquear la UI al abrir.
+ 
+ 3. Flujo de Usuario:
+    - MainTabView (+) -> UploadVideoView (Cámara).
+    - Grabar -> Pausar -> Check (Siguiente).
+    - Vista de Revisión (Loop automático del video unido).
+    - "Siguiente" -> PostMetadataView (Título, Descripción, Upload real a Bunny).
+ 
+ 4. Correcciones Críticas:
+    - Se agregaron permisos en Info.plist (Cámara, Micrófono).
+    - Se corrigieron crashes por unwrapping de sesión nil.
+    - Se solucionó el layout visual al grabar (controles no desaparecen bruscamente).
+ 
+ ====================================================================================================
+ 📋 LISTA DE PENDIENTES PARA RETOMAR (TODO):
+ ====================================================================================================
+ 
+ 1. ⚠️ ACTUALIZACIÓN DE APIs DEPRECATED (iOS 16+):
+    - `AVAsset.duration`, `tracks`, `preferredTransform` son síncronas y están depreciadas.
+    - Se deben migrar a `try await asset.load(.duration)`, `loadTracks(...)`, etc.
+    - Esto genera warnings actualmente pero funciona.
+ 
+ 2. ⚠️ NAVIGATION LINK:
+    - `NavigationLink(isActive:...)` está depreciado. Migrar a `navigationDestination` o mantener si se soporta iOS 15.
+ 
+ 3. 🛠 FUNCIONALIDAD DE HERRAMIENTAS:
+    - Los botones "Velocidad", "Filtros", "Embellecer", "Tiempo" son solo visuales.
+    - Falta implementar la lógica real de filtros (posiblemente usando CIFilter / Metal).
+ 
+ 4. 🔐 SEGURIDAD:
+    - La API Key de Bunny.net está hardcodeada en `UploadManager.swift` ("b88d...").
+    - MOVER a una configuración segura (Remote Config, Info.plist ofuscado, o backend proxy).
+ 
+ 5. 🧪 PRUEBAS:
+    - Verificar la fusión de audio/video en dispositivos reales (orientación correcta).
+    - Probar gestión de memoria al grabar clips muy largos.
+ 
+ ====================================================================================================
+ */
+
 struct UploadVideoView: View {
     var onClose: () -> Void
     
