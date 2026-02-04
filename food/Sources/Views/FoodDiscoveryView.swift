@@ -36,7 +36,7 @@ struct FoodDiscoveryView: View {
         let image: String // Nombre del Asset local
     }
     
-    let categoryItems = [
+    private let categoryItems = [
         CategoryItem(name: "Hamburguesas", image: "category_burgers"),
         CategoryItem(name: "Pizza", image: "category_pizza"),
         CategoryItem(name: "Pollo", image: "category_chicken"),
