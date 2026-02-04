@@ -54,8 +54,7 @@ struct FoodDiscoveryView: View {
         CategoryItem(name: "Mariscos", imageName: "category_seafood"),
         CategoryItem(name: "Comida Rápida", imageName: "category_fastfood"),
         CategoryItem(name: "Sanduches", imageName: "category_sandwiches"),
-        CategoryItem(name: "Hot Dogs", imageName: "category_hotdogs"),
-        CategoryItem(name: "Desayunos", imageName: "category_breakfast")
+        CategoryItem(name: "Hot Dogs", imageName: "category_hotdogs")
     ]
     
     struct PopularItem: Identifiable {
