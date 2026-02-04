@@ -40,8 +40,6 @@ struct FoodDiscoveryView: View {
         CategoryItem(name: "Hamburguesas", image: "category_burgers"),
         CategoryItem(name: "Pizza", image: "category_pizza"),
         CategoryItem(name: "Pollo", image: "category_chicken"),
-        CategoryItem(name: "Encebollado", image: "category_encebollado"),
-        CategoryItem(name: "Bolones", image: "category_bolon"),
         CategoryItem(name: "Tigrillo", image: "category_tigrillo"),
         CategoryItem(name: "Chifa", image: "category_chifa"),
         CategoryItem(name: "Salchipapas", image: "category_salchipapas"),
@@ -479,6 +477,7 @@ struct FoodDiscoveryView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+                .padding(.vertical, 10) // Espacio para la animación de escala
             }
         }
     }
