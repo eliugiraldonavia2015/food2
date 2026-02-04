@@ -11,142 +11,199 @@ struct AddDeliveryAddressView: View {
     @State private var city: String = ""
     @State private var references: String = ""
     @State private var isUsingGPS = false
+    
+    // Animation States
+    @State private var animateContent = false
+    @FocusState private var focusedField: Field?
+    
+    enum Field {
+        case alias, street, city, references
+    }
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemGroupedBackground)
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
-                    .background(Color.white)
+                    .padding(.bottom, 8)
+                    .background(Color(uiColor: .systemBackground))
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    .zIndex(10)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 14) {
+                    VStack(spacing: 24) {
                         mapHeader
+                            .scaleEffect(animateContent ? 1 : 0.95)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7), value: animateContent)
+                        
                         gpsButton
-                            .padding(.top, -18)
+                            .offset(y: animateContent ? 0 : 20)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: animateContent)
+                        
                         form
-                        Spacer(minLength: 12)
+                            .offset(y: animateContent ? 0 : 20)
+                            .opacity(animateContent ? 1 : 0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: animateContent)
+                            
+                        Spacer(minLength: 100)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 10)
-                    .padding(.bottom, 18)
+                    .padding(.top, 24)
+                    .padding(.bottom, 24)
                 }
             }
         }
         .safeAreaInset(edge: .bottom) { bottomBar }
         .preferredColorScheme(.light)
+        .onAppear {
+            withAnimation {
+                animateContent = true
+            }
+        }
     }
 
     private var topBar: some View {
         ZStack {
             HStack {
                 Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.black)
-                        .font(.system(size: 18, weight: .bold))
+                    Circle()
+                        .fill(Color(uiColor: .secondarySystemBackground))
                         .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "xmark")
+                                .foregroundColor(.primary)
+                                .font(.system(size: 16, weight: .bold))
+                        )
                 }
                 Spacer()
             }
 
-            Text("Agregar Dirección")
-                .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
+            Text("Nueva Dirección")
+                .foregroundColor(.primary)
+                .font(.system(size: 17, weight: .semibold))
         }
-        .padding(.top, 8)
-        .padding(.bottom, 6)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     private var mapHeader: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.gray.opacity(0.08))
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color.fuchsia.opacity(0.05))
                 .overlay(
                     DotGrid()
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .opacity(0.5)
                 )
-                .frame(height: 210)
+                .frame(height: 200)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .strokeBorder(Color.fuchsia.opacity(0.1), lineWidth: 1)
+                )
 
-            VStack(spacing: 10) {
-                Image(systemName: "mappin.and.ellipse")
-                    .foregroundColor(.fuchsia)
-                    .font(.system(size: 36, weight: .bold))
-                    .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 8)
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 80, height: 80)
+                        .shadow(color: Color.fuchsia.opacity(0.2), radius: 20, x: 0, y: 10)
+                    
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.fuchsia)
+                        .font(.system(size: 32, weight: .bold))
+                }
+                
+                Text("Ubicación aproximada")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.secondary)
             }
         }
     }
 
     private var gpsButton: some View {
         Button(action: useGPS) {
-            HStack(spacing: 10) {
-                Image(systemName: "location.circle.fill")
-                    .foregroundColor(.brandGreen)
-                    .font(.system(size: 18, weight: .bold))
-                Text(isUsingGPS ? "Obteniendo ubicación..." : "Usar ubicación GPS")
-                    .foregroundColor(.black)
-                    .font(.system(size: 15, weight: .bold))
+            HStack(spacing: 12) {
+                Image(systemName: isUsingGPS ? "location.fill" : "location.circle.fill")
+                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .bold))
+                    .symbolEffect(.bounce, value: isUsingGPS)
+                
+                Text(isUsingGPS ? "Obteniendo ubicación..." : "Usar ubicación actual")
+                    .foregroundColor(.white)
+                    .font(.system(size: 16, weight: .bold))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .clipShape(Capsule())
-            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 8)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(colors: [.fuchsia, .fuchsia.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: .fuchsia.opacity(0.3), radius: 12, x: 0, y: 6)
         }
         .disabled(isUsingGPS)
+        .buttonStyle(ScaleButtonStyle())
     }
 
     private var form: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            field(label: "Nombre/Alias (ej. Gimnasio)", placeholder: "Casa, Oficina, etc.", text: $alias)
-            field(label: "Calle y Número", placeholder: "Av. Principal 123", text: $street)
-            field(label: "Ciudad", placeholder: "Ciudad de México", text: $city)
-            field(label: "Referencias adicionales (ej. Puerta roja)", placeholder: "Frente al parque, portón blanco...", text: $references)
+        VStack(alignment: .leading, spacing: 24) {
+            field(label: "Nombre o etiqueta", placeholder: "Ej. Casa, Oficina", text: $alias, icon: "tag.fill", fieldType: .alias)
+            field(label: "Calle y número", placeholder: "Ej. Av. Reforma 222", text: $street, icon: "signpost.right.fill", fieldType: .street)
+            field(label: "Ciudad", placeholder: "Ej. Ciudad de México", text: $city, icon: "building.2.fill", fieldType: .city)
+            field(label: "Referencias", placeholder: "Ej. Portón negro, frente al parque...", text: $references, icon: "info.circle.fill", fieldType: .references)
         }
+        .padding(24)
+        .background(Color(uiColor: .systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: Color.black.opacity(0.03), radius: 15, x: 0, y: 5)
     }
 
-    private func field(label: String, placeholder: String, text: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(label)
-                .foregroundColor(.black)
-                .font(.system(size: 14, weight: .bold))
-            ZStack(alignment: .leading) {
-                if text.wrappedValue.isEmpty {
-                    Text(placeholder)
-                        .foregroundColor(.gray.opacity(0.7))
-                        .font(.system(size: 15, weight: .semibold))
-                        .padding(.horizontal, 14)
-                }
-                TextField("", text: text)
-                    .foregroundColor(.black)
-                    .font(.system(size: 15, weight: .bold))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 14)
+    private func field(label: String, placeholder: String, text: Binding<String>, icon: String, fieldType: Field) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(focusedField == fieldType ? .fuchsia : .gray)
+                
+                Text(label)
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 13, weight: .semibold))
+                    .textCase(.uppercase)
             }
-            .background(Color.gray.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            
+            TextField(placeholder, text: text)
+                .focused($focusedField, equals: fieldType)
+                .font(.system(size: 17, weight: .medium))
+                .padding(.vertical, 12)
+                .padding(.horizontal, 0)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(focusedField == fieldType ? .fuchsia : .gray.opacity(0.2)), alignment: .bottom)
+                .animation(.easeInOut(duration: 0.2), value: focusedField)
         }
     }
 
     private var bottomBar: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
+            Divider().opacity(0.5)
+            
             Button(action: save) {
                 Text("Guardar Dirección")
                     .foregroundColor(.white)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.brandGreen)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .padding(.vertical, 18)
+                    .background(canSave ? Color.green : Color.gray.opacity(0.3))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: canSave ? Color.green.opacity(0.3) : .clear, radius: 10, x: 0, y: 6)
+                    .animation(.easeInOut, value: canSave)
             }
             .disabled(!canSave)
-            .opacity(canSave ? 1 : 0.6)
+            .padding(16)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
     }
 
     private var canSave: Bool {

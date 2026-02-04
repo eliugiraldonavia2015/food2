@@ -159,11 +159,11 @@ struct DeliveryAddressSelectionView: View {
                 // Icon Container
                 ZStack {
                     Circle()
-                        .fill(isSelected ? Color.green.opacity(0.1) : Color(uiColor: .secondarySystemBackground))
+                        .fill(isSelected ? Color.fuchsia.opacity(0.1) : Color(uiColor: .secondarySystemBackground))
                         .frame(width: 44, height: 44)
                     
                     Image(systemName: item.systemIcon)
-                        .foregroundColor(isSelected ? .green : .gray)
+                        .foregroundColor(isSelected ? .fuchsia : .gray)
                         .font(.system(size: 20, weight: .semibold))
                 }
 
@@ -176,10 +176,10 @@ struct DeliveryAddressSelectionView: View {
                         if isSelected {
                             Text("Principal")
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.green)
+                                .foregroundColor(.fuchsia)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.green.opacity(0.1))
+                                .background(Color.fuchsia.opacity(0.1))
                                 .cornerRadius(8)
                         }
                         
@@ -187,7 +187,7 @@ struct DeliveryAddressSelectionView: View {
                         
                         if isSelected {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
+                                .foregroundColor(.fuchsia)
                                 .font(.system(size: 22))
                                 .transition(.scale.combined(with: .opacity))
                         }
@@ -205,7 +205,7 @@ struct DeliveryAddressSelectionView: View {
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(isSelected ? Color.green : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.fuchsia : Color.clear, lineWidth: 2)
             )
             .shadow(
                 color: Color.black.opacity(isSelected ? 0.08 : 0.03),
@@ -221,7 +221,7 @@ struct DeliveryAddressSelectionView: View {
         Button(action: { showAddAddress = true }) {
             HStack(spacing: 12) {
                 Image(systemName: "plus.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(.fuchsia)
                     .font(.system(size: 22))
                 
                 Text("Agregar nueva dirección")
