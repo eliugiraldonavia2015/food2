@@ -2,7 +2,7 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct FoodDiscoveryView: View {
-    @State private var selectedCategory = "Hamburguesas"
+    @State private var selectedCategory: String? = nil
     @State private var searchText = ""
     @State private var showFilters = false
     @State private var showAddressSelection = false
@@ -419,7 +419,11 @@ struct FoodDiscoveryView: View {
                     ForEach(Array(categoryItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                selectedCategory = item.name
+                                if selectedCategory == item.name {
+                                    selectedCategory = nil
+                                } else {
+                                    selectedCategory = item.name
+                                }
                             }
                         }) {
                             VStack(spacing: 8) {
