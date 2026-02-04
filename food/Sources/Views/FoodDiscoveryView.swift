@@ -425,7 +425,22 @@ struct FoodDiscoveryView: View {
                             }
                         }) {
                             VStack(spacing: 8) {
-                                if let uiImage = UIImage(named: item.image) {
+                                // Intento de carga directa desde bundle path (más robusto para prototipos)
+                                if let path = Bundle.main.path(forResource: item.image, ofType: "png", inDirectory: "CategoryImages"),
+                                   let uiImage = UIImage(contentsOfFile: path) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
+                                        )
+                                        .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                } else if let uiImage = UIImage(named: item.image) {
+                                    // Fallback al Asset Catalog normal
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -438,11 +453,18 @@ struct FoodDiscoveryView: View {
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
                                         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                                 } else {
-                                    // Fallback visual si falla la carga
+                                    // Fallback visual final
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(Color.gray.opacity(0.2))
                                         .frame(width: 70, height: 70)
-                                        .overlay(Text("?").foregroundColor(.gray))
+                                        .overlay(
+                                            VStack(spacing: 2) {
+                                                Image(systemName: "photo")
+                                                Text("?")
+                                            }
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                        )
                                 }
                                 
                                 Text(item.name)
