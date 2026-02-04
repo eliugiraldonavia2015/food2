@@ -425,17 +425,25 @@ struct FoodDiscoveryView: View {
                             }
                         }) {
                             VStack(spacing: 8) {
-                                Image(item.image, bundle: .main) // Force main bundle
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 70, height: 70)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
-                                    )
-                                    .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                if let uiImage = UIImage(named: item.image) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
+                                        )
+                                        .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                } else {
+                                    // Fallback visual si falla la carga
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 70, height: 70)
+                                        .overlay(Text("?").foregroundColor(.gray))
+                                }
                                 
                                 Text(item.name)
                                     .font(.system(size: 12, weight: .medium))
