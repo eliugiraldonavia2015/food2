@@ -16,6 +16,10 @@ struct DeliveryAddressSelectionView: View {
     @State private var selectedId: String?
     @State private var showAddAddress = false
     @State private var addressesState: [AddressItem] = []
+    
+    // Animation States
+    @State private var animateContent = false
+    @State private var pressedCardId: String? = nil
 
     init(
         addresses: [AddressItem],
@@ -31,23 +35,48 @@ struct DeliveryAddressSelectionView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(uiColor: .systemGroupedBackground)
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 topBar
                     .padding(.horizontal, 16)
-                    .background(Color.white)
+                    .padding(.bottom, 8)
+                    .background(Color(uiColor: .systemBackground))
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    .zIndex(10)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 14) {
-                        ForEach(addressesState) { item in
-                            addressCard(item)
+                    VStack(spacing: 16) {
+                        if addressesState.isEmpty {
+                            emptyStateView
+                        } else {
+                            ForEach(Array(addressesState.enumerated()), id: \.element.id) { index, item in
+                                addressCard(item)
+                                    .scaleEffect(pressedCardId == item.id ? 0.96 : 1.0)
+                                    .opacity(animateContent ? 1 : 0)
+                                    .offset(y: animateContent ? 0 : 20)
+                                    .animation(
+                                        .spring(response: 0.5, dampingFraction: 0.7)
+                                        .delay(Double(index) * 0.05),
+                                        value: animateContent
+                                    )
+                            }
                         }
+                        
                         addNewAddressButton
-                        Spacer(minLength: 12)
+                            .opacity(animateContent ? 1 : 0)
+                            .offset(y: animateContent ? 0 : 20)
+                            .animation(
+                                .spring(response: 0.5, dampingFraction: 0.7)
+                                .delay(Double(addressesState.count) * 0.05 + 0.1),
+                                value: animateContent
+                            )
+                            
+                        Spacer(minLength: 100)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
+                    .padding(.top, 24)
                     .padding(.bottom, 24)
                 }
             }
@@ -56,8 +85,15 @@ struct DeliveryAddressSelectionView: View {
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $showAddAddress) {
             AddDeliveryAddressView { newAddress in
-                addressesState.append(newAddress)
-                selectedId = newAddress.id
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    addressesState.append(newAddress)
+                    selectedId = newAddress.id
+                }
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animateContent = true
             }
         }
     }
@@ -66,127 +102,183 @@ struct DeliveryAddressSelectionView: View {
         ZStack {
             HStack {
                 Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.black)
-                        .font(.system(size: 18, weight: .bold))
+                    Circle()
+                        .fill(Color(uiColor: .secondarySystemBackground))
                         .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "xmark")
+                                .foregroundColor(.primary)
+                                .font(.system(size: 16, weight: .bold))
+                        )
                 }
                 Spacer()
             }
 
-            Text("Direcciones de Entrega")
-                .foregroundColor(.black)
-                .font(.system(size: 20, weight: .bold))
+            Text("Elige tu ubicación")
+                .foregroundColor(.primary)
+                .font(.system(size: 17, weight: .semibold))
         }
-        .padding(.top, 8)
-        .padding(.bottom, 6)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+    }
+
+    private var emptyStateView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "map.fill")
+                .font(.system(size: 48))
+                .foregroundColor(.gray.opacity(0.3))
+                .padding(.bottom, 8)
+            
+            Text("No tienes direcciones guardadas")
+                .font(.headline)
+                .foregroundColor(.gray)
+            
+            Text("Agrega una dirección para recibir tus pedidos.")
+                .font(.subheadline)
+                .foregroundColor(.gray.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+        .background(Color(uiColor: .systemBackground))
+        .cornerRadius(20)
+        .opacity(animateContent ? 1 : 0)
+        .scaleEffect(animateContent ? 1 : 0.9)
     }
 
     private func addressCard(_ item: AddressItem) -> some View {
         let isSelected = selectedId == item.id
-        return Button(action: { selectedId = item.id }) {
-            HStack(alignment: .top, spacing: 12) {
-                Circle()
-                    .fill(Color.fuchsia.opacity(0.14))
-                    .frame(width: 38, height: 38)
-                    .overlay(
-                        Image(systemName: item.systemIcon)
-                            .foregroundColor(.fuchsia)
-                            .font(.system(size: 16, weight: .bold))
-                    )
+        return Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedId = item.id
+            }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }) {
+            HStack(alignment: .top, spacing: 16) {
+                // Icon Container
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? Color.green.opacity(0.1) : Color(uiColor: .secondarySystemBackground))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: item.systemIcon)
+                        .foregroundColor(isSelected ? .green : .gray)
+                        .font(.system(size: 20, weight: .semibold))
+                }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
                         Text(item.title)
-                            .foregroundColor(.black)
-                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.primary)
+                            .font(.system(size: 16, weight: .semibold))
+                        
+                        if isSelected {
+                            Text("Principal")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.green)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                        
                         Spacer()
-                        Button(action: {}) {
-                            Text("Editar")
-                                .foregroundColor(.fuchsia)
-                                .font(.system(size: 13, weight: .bold))
+                        
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.system(size: 22))
+                                .transition(.scale.combined(with: .opacity))
                         }
                     }
 
                     Text(item.detail)
-                        .foregroundColor(.gray)
-                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14))
                         .multilineTextAlignment(.leading)
-
-                    HStack {
-                        Spacer()
-                        ZStack {
-                            Circle()
-                                .stroke(isSelected ? Color.fuchsia : Color.gray.opacity(0.25), lineWidth: 2)
-                                .frame(width: 20, height: 20)
-                            if isSelected {
-                                Circle()
-                                    .fill(Color.fuchsia)
-                                    .frame(width: 10, height: 10)
-                            }
-                        }
-                    }
-                    .padding(.top, 4)
+                        .lineSpacing(4)
                 }
             }
-            .padding(14)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(16)
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(isSelected ? Color.fuchsia : Color.gray.opacity(0.15), lineWidth: isSelected ? 2 : 1)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(isSelected ? Color.green : Color.clear, lineWidth: 2)
             )
-            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 6)
+            .shadow(
+                color: Color.black.opacity(isSelected ? 0.08 : 0.03),
+                radius: isSelected ? 12 : 8,
+                x: 0,
+                y: isSelected ? 4 : 2
+            )
         }
+        .buttonStyle(ScaleButtonStyle())
     }
 
     private var addNewAddressButton: some View {
         Button(action: { showAddAddress = true }) {
-            HStack(spacing: 10) {
-                Image(systemName: "plus")
-                    .foregroundColor(.fuchsia)
-                    .font(.system(size: 16, weight: .bold))
-                Text("Agregar Nueva Dirección")
-                    .foregroundColor(.fuchsia)
-                    .font(.system(size: 15, weight: .bold))
+            HStack(spacing: 12) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.system(size: 22))
+                
+                Text("Agregar nueva dirección")
+                    .foregroundColor(.primary)
+                    .font(.system(size: 16, weight: .semibold))
+                
                 Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray.opacity(0.5))
+                    .font(.system(size: 14, weight: .semibold))
             }
-            .padding(14)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
-                    .foregroundColor(Color.fuchsia.opacity(0.55))
-            )
+            .padding(20)
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
         }
-        .padding(.top, 4)
+        .buttonStyle(ScaleButtonStyle())
     }
 
     private var bottomBar: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
+            Divider()
+                .opacity(0.5)
+            
             Button(action: confirmSelection) {
-                Text("Confirmar Dirección")
+                Text("Confirmar ubicación")
                     .foregroundColor(.white)
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.brandGreen)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .padding(.vertical, 18)
+                    .background(Color.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: Color.green.opacity(0.3), radius: 10, x: 0, y: 6)
             }
             .disabled(selectedId == nil)
-            .opacity(selectedId == nil ? 0.6 : 1)
+            .opacity(selectedId == nil ? 0.5 : 1)
+            .padding(16)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
-        .background(Color.white)
+        .background(Color(uiColor: .systemBackground))
     }
 
     private func confirmSelection() {
         guard let selectedId, let item = addressesState.first(where: { $0.id == selectedId }) else { return }
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         onConfirm(item)
         dismiss()
     }
 }
+
+// Helper for button press animation
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
+
 
