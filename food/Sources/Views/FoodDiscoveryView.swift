@@ -2,7 +2,7 @@ import SwiftUI
 import SDWebImageSwiftUI
 
 struct FoodDiscoveryView: View {
-    @State private var selectedCategory = "Burgers"
+    @State private var selectedCategory = "Hamburguesas"
     @State private var searchText = ""
     @State private var showFilters = false
     @State private var showAddressSelection = false
@@ -33,28 +33,29 @@ struct FoodDiscoveryView: View {
     struct CategoryItem: Identifiable {
         let id = UUID()
         let name: String
-        let imageName: String
+        let image: String // Nombre del Asset local
     }
     
     let categoryItems = [
-        CategoryItem(name: "Hamburguesas", imageName: "category_burgers"),
-        CategoryItem(name: "Pizza", imageName: "category_pizza"),
-        CategoryItem(name: "Pollo", imageName: "category_chicken"),
-        CategoryItem(name: "Encebollado", imageName: "category_encebollado"),
-        CategoryItem(name: "Bolones", imageName: "category_bolon"),
-        CategoryItem(name: "Tigrillo", imageName: "category_tigrillo"),
-        CategoryItem(name: "Chifa", imageName: "category_chifa"),
-        CategoryItem(name: "Salchipapas", imageName: "category_salchipapas"),
-        CategoryItem(name: "Sushi", imageName: "category_sushi"),
-        CategoryItem(name: "Alitas", imageName: "category_wings"),
-        CategoryItem(name: "Tacos", imageName: "category_tacos"),
-        CategoryItem(name: "Hornado", imageName: "category_hornado"),
-        CategoryItem(name: "Fritada", imageName: "category_fritada"),
-        CategoryItem(name: "Ceviches", imageName: "category_ceviche"),
-        CategoryItem(name: "Mariscos", imageName: "category_seafood"),
-        CategoryItem(name: "Comida Rápida", imageName: "category_fastfood"),
-        CategoryItem(name: "Sanduches", imageName: "category_sandwiches"),
-        CategoryItem(name: "Hot Dogs", imageName: "category_hotdogs")
+        CategoryItem(name: "Hamburguesas", image: "category_burgers"),
+        CategoryItem(name: "Pizza", image: "category_pizza"),
+        CategoryItem(name: "Pollo", image: "category_chicken"),
+        CategoryItem(name: "Encebollado", image: "category_encebollado"),
+        CategoryItem(name: "Bolones", image: "category_bolon"),
+        CategoryItem(name: "Tigrillo", image: "category_tigrillo"),
+        CategoryItem(name: "Chifa", image: "category_chifa"),
+        CategoryItem(name: "Salchipapas", image: "category_salchipapas"),
+        CategoryItem(name: "Sushi", image: "category_sushi"),
+        CategoryItem(name: "Alitas", image: "category_wings"),
+        CategoryItem(name: "Tacos", image: "category_tacos"),
+        CategoryItem(name: "Hornado", image: "category_hornado"),
+        CategoryItem(name: "Fritada", image: "category_fritada"),
+        CategoryItem(name: "Ceviches", image: "category_ceviche"),
+        CategoryItem(name: "Mariscos", image: "category_seafood"),
+        CategoryItem(name: "Comida Rápida", image: "category_fastfood"),
+        CategoryItem(name: "Sanduches", image: "category_sandwiches"),
+        CategoryItem(name: "Hot Dogs", image: "category_hotdogs"),
+        CategoryItem(name: "Desayunos", image: "category_breakfast")
     ]
     
     struct PopularItem: Identifiable {
@@ -424,7 +425,7 @@ struct FoodDiscoveryView: View {
                             }
                         }) {
                             VStack(spacing: 8) {
-                                Image(item.imageName)
+                                Image(item.image) // Usar Asset Local
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 70, height: 70)

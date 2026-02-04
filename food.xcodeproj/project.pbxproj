@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		103441042EBC30B50083F417 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 103441032EBC30B50083F417 /* Assets.xcassets */; };
 		1034412D2EBC32260083F417 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 1034412C2EBC32260083F417 /* FirebaseAI */; };
 		1034412F2EBC32260083F417 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1034412E2EBC32260083F417 /* FirebaseAILogic */; };
 		103441312EBC32260083F417 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 103441302EBC32260083F417 /* FirebaseAnalytics */; };
@@ -40,7 +39,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		103441032EBC30B50083F417 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		103441012EBC30B50083F417 /* food.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = food.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1034410E2EBC30B70083F417 /* foodTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foodTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		103441182EBC30B80083F417 /* foodUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foodUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -295,7 +293,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				103441042EBC30B50083F417 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -645,6 +642,45 @@
 				TEST_TARGET_NAME = food;
 			};
 			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		103440FC2EBC30B50083F417 /* Build configuration list for PBXProject "food" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				103441202EBC30B80083F417 /* Debug */,
+				103441212EBC30B80083F417 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		103441222EBC30B80083F417 /* Build configuration list for PBXNativeTarget "food" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				103441232EBC30B80083F417 /* Debug */,
+				103441242EBC30B80083F417 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		103441252EBC30B80083F417 /* Build configuration list for PBXNativeTarget "foodTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				103441262EBC30B80083F417 /* Debug */,
+				103441272EBC30B80083F417 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		103441282EBC30B80083F417 /* Build configuration list for PBXNativeTarget "foodUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				103441292EBC30B80083F417 /* Debug */,
+				1034412A2EBC30B80083F417 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
