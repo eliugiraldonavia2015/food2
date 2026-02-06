@@ -3,6 +3,7 @@ import SDWebImageSwiftUI
 
 struct FoodDiscoveryView: View {
     @State private var selectedCategory: String? = nil
+    @State private var showAllCategories = false
     @State private var searchText = ""
     @State private var showFilters = false
     @State private var showAddressSelection = false
@@ -30,31 +31,8 @@ struct FoodDiscoveryView: View {
     private let secondaryTextColor = Color.gray
     
     // MARK: - Data Models
-    struct CategoryItem: Identifiable {
-        let id = UUID()
-        let name: String
-        let image: String // Nombre del Asset local
-    }
-    
-    private let categoryItems = [
-        CategoryItem(name: "Hamburguesas", image: "category_burgers"),
-        CategoryItem(name: "Pizza", image: "category_pizza"),
-        CategoryItem(name: "Pollo", image: "category_chicken"),
-        CategoryItem(name: "Tigrillo", image: "category_tigrillo"),
-        CategoryItem(name: "Chifa", image: "category_chifa"),
-        CategoryItem(name: "Salchipapas", image: "category_salchipapas"),
-        CategoryItem(name: "Sushi", image: "category_sushi"),
-        CategoryItem(name: "Alitas", image: "category_wings"),
-        CategoryItem(name: "Tacos", image: "category_tacos"),
-        CategoryItem(name: "Hornado", image: "category_hornado"),
-        CategoryItem(name: "Fritada", image: "category_fritada"),
-        CategoryItem(name: "Ceviches", image: "category_ceviche"),
-        CategoryItem(name: "Mariscos", image: "category_seafood"),
-        CategoryItem(name: "Comida Rápida", image: "category_fastfood"),
-        CategoryItem(name: "Sanduches", image: "category_sandwiches"),
-        CategoryItem(name: "Hot Dogs", image: "category_hotdogs"),
-        CategoryItem(name: "Desayunos", image: "category_breakfast")
-    ]
+    // Using shared CategoryItem model
+    private let categoryItems = allCategoryItems
     
     struct PopularItem: Identifiable {
         let id = UUID()
@@ -182,6 +160,9 @@ struct FoodDiscoveryView: View {
                     .transition(.move(edge: .bottom))
                     .zIndex(40)
             }
+        }
+        .fullScreenCover(isPresented: $showAllCategories) {
+            AllCategoriesView(selectedCategory: $selectedCategory)
         }
         .fullScreenCover(isPresented: $showAddressSelection) {
             DeliveryAddressSelectionView(
@@ -407,7 +388,9 @@ struct FoodDiscoveryView: View {
                     .foregroundColor(primaryTextColor)
                 Spacer()
                 Button("Ver todo") {
-                    // Action
+                    withAnimation {
+                        showAllCategories = true
+                    }
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(primaryColor)
