@@ -414,148 +414,75 @@ struct FoodDiscoveryView: View {
             }
             .padding(.horizontal, 20)
             
-            // 1. TOP ROW (2 Big Items)
-            if categoryItems.count >= 2 {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    // Item 0 (Big)
-                    let item0 = categoryItems[0]
-                    Button(action: {
-                        toggleSelection(for: item0.name)
-                    }) {
-                        bigCategoryCard(item: item0, index: 0)
+                    ForEach(Array(categoryItems.enumerated()), id: \.element.id) { index, item in
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                if selectedCategory == item.name {
+                                    selectedCategory = nil
+                                } else {
+                                    selectedCategory = item.name
+                                }
+                            }
+                        }) {
+                            VStack(spacing: 8) {
+                                // Intento de carga directa desde bundle path (más robusto para prototipos)
+                                if let path = Bundle.main.path(forResource: item.image, ofType: "png", inDirectory: "CategoryImages"),
+                                   let uiImage = UIImage(contentsOfFile: path) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
+                                        )
+                                        .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                } else if let uiImage = UIImage(named: item.image) {
+                                    // Fallback al Asset Catalog normal
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 70, height: 70)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
+                                        )
+                                        .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                } else {
+                                    // Fallback visual final
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 70, height: 70)
+                                        .overlay(
+                                            VStack(spacing: 2) {
+                                                Image(systemName: "photo")
+                                                Text("?")
+                                            }
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                        )
+                                }
+                                
+                                Text(item.name)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(selectedCategory == item.name ? primaryColor : primaryTextColor)
+                            }
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .scaleEffect(animateCategories ? 1 : 0.5)
+                        .opacity(animateCategories ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.05 + 0.3), value: animateCategories)
                     }
-                    .buttonStyle(ScaleButtonStyle())
-                    
-                    // Item 1 (Big)
-                    let item1 = categoryItems[1]
-                    Button(action: {
-                        toggleSelection(for: item1.name)
-                    }) {
-                        bigCategoryCard(item: item1, index: 1)
-                    }
-                    .buttonStyle(ScaleButtonStyle())
                 }
                 .padding(.horizontal, 20)
+                .padding(.vertical, 10) // Espacio para la animación de escala
             }
-            
-            // 2. BOTTOM ROW (Scrollable Items)
-            if categoryItems.count > 2 {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(Array(categoryItems.dropFirst(2).enumerated()), id: \.element.id) { index, item in
-                            Button(action: {
-                                toggleSelection(for: item.name)
-                            }) {
-                                smallCategoryCard(item: item)
-                            }
-                            .buttonStyle(ScaleButtonStyle())
-                            .scaleEffect(animateCategories ? 1 : 0.5)
-                            .opacity(animateCategories ? 1 : 0)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.05 + 0.3), value: animateCategories)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10) // Espacio para la animación de escala
-                }
-            }
-        }
-    }
-
-    private func toggleSelection(for name: String) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-            if selectedCategory == name {
-                selectedCategory = nil
-            } else {
-                selectedCategory = name
-            }
-        }
-    }
-
-    private func bigCategoryCard(item: CategoryItem, index: Int) -> some View {
-        let isSelected = selectedCategory == item.name
-        // Distinct background colors for top 2
-        let bgColor = index == 0 ? Color.orange.opacity(0.1) : Color.green.opacity(0.1)
-        
-        return VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(bgColor)
-                    .frame(height: 140)
-                    .frame(maxWidth: .infinity)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 3)
-                    )
-                
-                // Image Logic
-                if let path = Bundle.main.path(forResource: item.image, ofType: "png", inDirectory: "CategoryImages"),
-                   let uiImage = UIImage(contentsOfFile: path) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 100)
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-                } else if let uiImage = UIImage(named: item.image) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 100)
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-                }
-            }
-            
-            Text(item.name)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(isSelected ? primaryColor : primaryTextColor)
-        }
-    }
-
-    private func smallCategoryCard(item: CategoryItem) -> some View {
-        let isSelected = selectedCategory == item.name
-        
-        return VStack(spacing: 8) {
-            if let path = Bundle.main.path(forResource: item.image, ofType: "png", inDirectory: "CategoryImages"),
-               let uiImage = UIImage(contentsOfFile: path) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 70, height: 70)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 3)
-                    )
-                    .scaleEffect(isSelected ? 1.1 : 1.0)
-                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-            } else if let uiImage = UIImage(named: item.image) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 70, height: 70)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isSelected ? primaryColor : Color.clear, lineWidth: 3)
-                    )
-                    .scaleEffect(isSelected ? 1.1 : 1.0)
-                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-            } else {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(width: 70, height: 70)
-                    .overlay(
-                        VStack(spacing: 2) {
-                            Image(systemName: "photo")
-                            Text("?")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    )
-            }
-            
-            Text(item.name)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(isSelected ? primaryColor : primaryTextColor)
         }
     }
     
