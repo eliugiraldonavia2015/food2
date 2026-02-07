@@ -166,19 +166,30 @@ struct UploadVideoView: View {
             
             Spacer()
             
-            if !cameraModel.isRecording {
-                Button(action: {}) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 14))
-                        Text("Añadir sonido")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
+            // Timer Indicator
+            VStack(spacing: 4) {
+                Text(formatDuration(cameraModel.totalDuration))
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.black.opacity(0.4))
-                    .clipShape(Capsule())
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(8)
+                
+                if !cameraModel.isRecording && cameraModel.totalDuration == 0 {
+                    Button(action: {}) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "music.note")
+                                .font(.system(size: 14))
+                            Text("Añadir sonido")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.4))
+                        .clipShape(Capsule())
+                    }
                 }
             }
             
@@ -189,6 +200,12 @@ struct UploadVideoView: View {
         }
         .padding(.top, 10)
         .padding(.horizontal)
+    }
+    
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
     
     // MARK: - Right Sidebar
@@ -249,7 +266,7 @@ struct UploadVideoView: View {
                 .padding(.horizontal, UIScreen.main.bounds.width / 2 - 50)
             }
             .frame(height: 40)
-            .disabled(cameraModel.isRecording || isReviewing || isPaused)
+            .disabled(cameraModel.isRecording || isReviewing)
             
             // Shutter Area
             HStack(spacing: 40) {
@@ -309,24 +326,9 @@ struct UploadVideoView: View {
                         }
                     }
                     
-                    // Right Button: Effects (Idle) / Pause (Recording) / Next (Paused)
-                    if cameraModel.isRecording {
-                        // PAUSE BUTTON
-                        Button(action: {
-                            withAnimation {
-                                cameraModel.pauseRecording()
-                                isPaused = true
-                            }
-                        }) {
-                            VStack(spacing: 2) {
-                                Image(systemName: "pause.circle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.red)
-                                    .background(Circle().fill(Color.white))
-                            }
-                        }
-                    } else if isPaused {
-                        // NEXT BUTTON (Checkmark)
+                    // Right Button: Effects (Idle) / Next (Paused with segments)
+                    if !cameraModel.isRecording && cameraModel.totalDuration > 0 {
+                        // NEXT BUTTON (Checkmark) - Only appears if we have recorded something and are paused
                         Button(action: {
                             finishRecordingSession()
                         }) {
@@ -337,8 +339,8 @@ struct UploadVideoView: View {
                                     .background(Circle().fill(Color.white))
                             }
                         }
-                    } else {
-                        // EFFECTS BUTTON (Idle)
+                    } else if !cameraModel.isRecording {
+                        // EFFECTS BUTTON (Idle / No segments)
                         Button(action: {}) {
                            VStack(spacing: 2) {
                                Image(systemName: "face.smiling")
@@ -349,6 +351,9 @@ struct UploadVideoView: View {
                                    .foregroundColor(.white)
                            }
                        }
+                    } else {
+                        // Recording: Show nothing or placeholder to keep layout balanced
+                        Color.clear.frame(width: 40, height: 40)
                     }
                 }
             }
@@ -365,18 +370,19 @@ struct UploadVideoView: View {
     
     private func handleRecording() {
         if cameraModel.isRecording {
-            // User tapped "Stop" while recording -> Finish and Review
-            finishRecordingSession()
+            // User tapped "Record" button while recording -> PAUSE
+            cameraModel.pauseRecording()
+            // No separate "isPaused" state needed, cameraModel.isRecording tells us state
         } else {
-            // User tapped "Record" -> Start or Resume
+            // User tapped "Record" button while paused/idle -> START/RESUME
             cameraModel.startRecording()
-            isPaused = false
         }
     }
     
     private func finishRecordingSession() {
-        cameraModel.pauseRecording() // Stop current segment
-        isPaused = false
+        if cameraModel.isRecording {
+            cameraModel.pauseRecording()
+        }
         
         // Merge and Review
         cameraModel.mergeSegments { url in
@@ -577,6 +583,16 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
         }
         print("Segment recorded: \(outputFileURL)")
         recordedSegments.append(outputFileURL)
+        
+        // Update precise time
+        if let startTime = recordingStartTime {
+            let duration = Date().timeIntervalSince(startTime)
+            accumulatedTime += duration
+            DispatchQueue.main.async {
+                self.totalDuration = self.accumulatedTime
+            }
+        }
+        recordingStartTime = nil
     }
     
     // MARK: - Merge Logic
