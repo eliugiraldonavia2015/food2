@@ -204,8 +204,7 @@ final class UploadManager: ObservableObject {
             thumbnailUrl: thumbnailUrl,
             duration: self.currentVideoDuration,
             width: width,
-            height: height,
-            orientation: orientation
+            height: height
         )
         
         DatabaseService.shared.createVideoDocument(video: newVideo) { error in
