@@ -1,3 +1,6 @@
+import SwiftUI
+import AVFoundation
+import UIKit
 
 // MARK: - Feed Video Player (Custom implementation for AspectFill)
 struct FeedVideoPlayer: UIViewRepresentable {
