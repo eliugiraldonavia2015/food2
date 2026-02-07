@@ -97,6 +97,7 @@ public struct Video: Identifiable, Codable {
             "shares": shares,
             "width": width ?? 0,
             "height": height ?? 0,
+            "orientation": orientation ?? "portrait", // Default safe fallback
             "fileId": fileId ?? id
         ]
     }

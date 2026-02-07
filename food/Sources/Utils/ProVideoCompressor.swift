@@ -92,6 +92,12 @@ final class ProVideoCompressor {
             
             // Si bajamos resolución, bajamos bitrate proporcionalmente
             targetBitrate = targetBitrate * 0.6
+        } else {
+             // CRITICAL FIX: Even if we don't downscale, we must ensure target width/height match orientation.
+             // If source is 1080x1920 (Portrait), target must be 1080x1920.
+             // renderWidth/Height already account for rotation in step 1.
+             targetWidth = renderWidth
+             targetHeight = renderHeight
         }
         
         // B) Ajuste de Bitrate (Eficiencia HEVC)
@@ -200,7 +206,17 @@ final class ProVideoCompressor {
                 
                 let writerInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
                 writerInput.expectsMediaDataInRealTime = false 
-                writerInput.transform = try await videoTrack.load(.preferredTransform)
+                // CRITICAL FIX: Do NOT set transform on writerInput if we are already rotating the buffer/dimensions
+                // The videoSettings width/height are the FINAL encoded dimensions.
+                // If we set transform here, it might rotate the already-rotated content again or mess up metadata.
+                // writerInput.transform = try await videoTrack.load(.preferredTransform) 
+                
+                // Instead, we ensure the videoSettings width/height match the desired output orientation (Portrait vs Landscape)
+                // which we calculated in calculateOptimalLayer. The compressor logic handles the pixel buffer encoding.
+                // However, for correct playback metadata, we might need a transform if the buffer is physically landscape but encoded as such.
+                // But since we are encoding to specific width/height, the output file will have those physical dimensions.
+                // So transform should be .identity usually, unless we want to rotate it further.
+                writerInput.transform = .identity
                 
                 if writer.canAdd(writerInput) { writer.add(writerInput) }
                 

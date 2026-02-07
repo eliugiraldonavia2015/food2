@@ -137,14 +137,44 @@ final class UploadManager: ObservableObject {
                         
                         // Generar y subir thumbnail
                         self.handleThumbnail(videoURL: videoToUpload, ulid: fileId, accessKey: accessKey) { thumbUrl in
-                            // Guardar en Firestore
-                            self.saveToFirestore(
-                                fileId: fileId,
-                                title: title,
-                                description: description,
-                                videoUrl: videoUrl.absoluteString,
-                                thumbnailUrl: thumbUrl?.absoluteString ?? ""
-                            )
+                            Task {
+                                let asset = AVAsset(url: videoToUpload)
+                                var width: Int? = nil
+                                var height: Int? = nil
+                                var orientation: String = "portrait" // Default
+                                
+                                if let track = try? await asset.loadTracks(withMediaType: .video).first {
+                                    let size = try? await track.load(.naturalSize)
+                                    // Considerar transform para dimensiones visuales
+                                    // Pero para metadatos de archivo, a veces queremos lo físico. 
+                                    // Guardemos lo visual (render size) que es lo que importa al player.
+                                    let t = try? await track.load(.preferredTransform)
+                                    let transform = t ?? .identity
+                                    let s = size ?? .zero
+                                    let isPortrait = abs(transform.b) == 1.0 && abs(transform.c) == 1.0
+                                    width = isPortrait ? Int(s.height) : Int(s.width)
+                                    height = isPortrait ? Int(s.width) : Int(s.height)
+                                    
+                                    // Determinar etiqueta de orientación
+                                    if let w = width, let h = height {
+                                        if w > h { orientation = "landscape" }
+                                        else if w < h { orientation = "portrait" }
+                                        else { orientation = "square" }
+                                    }
+                                }
+                                
+                                // Guardar en Firestore con dimensiones y orientación
+                                self.saveToFirestore(
+                                    fileId: fileId,
+                                    title: title,
+                                    description: description,
+                                    videoUrl: videoUrl.absoluteString,
+                                    thumbnailUrl: thumbUrl?.absoluteString ?? "",
+                                    width: width,
+                                    height: height,
+                                    orientation: orientation
+                                )
+                            }
                         }
                         
                     case .failure(let err):
@@ -156,7 +186,7 @@ final class UploadManager: ObservableObject {
         }
     }
     
-    private func saveToFirestore(fileId: String, title: String, description: String, videoUrl: String, thumbnailUrl: String) {
+    private func saveToFirestore(fileId: String, title: String, description: String, videoUrl: String, thumbnailUrl: String, width: Int? = nil, height: Int? = nil, orientation: String? = nil) {
         guard let userId = AuthService.shared.user?.uid else {
             self.error = "Usuario no autenticado"
             self.isProcessing = false
@@ -170,7 +200,10 @@ final class UploadManager: ObservableObject {
             description: description,
             videoUrl: videoUrl,
             thumbnailUrl: thumbnailUrl,
-            duration: self.currentVideoDuration
+            duration: self.currentVideoDuration,
+            width: width,
+            height: height,
+            orientation: orientation
         )
         
         DatabaseService.shared.createVideoDocument(video: newVideo) { error in
