@@ -70,6 +70,7 @@ struct UploadVideoView: View {
     @State private var selectedMode: CameraMode = .grams
     @State private var showPostMetadata = false
     @State private var isReviewing = false // Nueva variable para modo revisión
+    @State private var showDiscardAlert = false // Alerta para descartar grabación
     
     // Constants
     private let modes: [CameraMode] = [.grams, .product, .live]
