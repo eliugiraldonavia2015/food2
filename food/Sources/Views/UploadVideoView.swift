@@ -7,7 +7,7 @@ import Combine
  🚧 ESTADO ACTUAL: IMPLEMENTACIÓN DE CÁMARA Y SUBIDA (PENDIENTE) 🚧
  ====================================================================================================
  
- FECHA ÚLTIMA MODIFICACIÓN: [Fecha Actual]
+ FECHA ÚLTIMA MODIFICACIÓN: 2026-02-06 (Update)
  
  LO QUE SE HIZO:
  1. UI estilo TikTok implementada:
@@ -306,16 +306,25 @@ struct UploadVideoView: View {
     
     // MARK: - Right Sidebar
     private var rightSideBar: some View {
-        VStack(spacing: 24) {
-            // Standard Options
+        VStack(spacing: 20) {
+            // Flip Camera
             sideBarButton(icon: "arrow.triangle.2.circlepath", text: "Girar") {
                 cameraModel.switchCamera()
             }
-            sideBarButton(icon: "speedometer", text: "Velocidad")
-            sideBarButton(icon: "wand.and.stars", text: "Filtros")
-            sideBarButton(icon: "face.dashed", text: "Embellecer")
-            sideBarButton(icon: "timer", text: "Tiempo")
-            sideBarButton(icon: "bolt.slash.fill", text: "Flash") {
+            
+            // Timer Button
+            sideBarButton(
+                icon: timerOption == .off ? "timer" : "timer.circle.fill",
+                text: timerOption == .off ? "Tiempo" : "\(timerOption.rawValue)s"
+            ) {
+                let all = TimerOption.allCases
+                if let index = all.firstIndex(of: timerOption) {
+                    timerOption = all[(index + 1) % all.count]
+                }
+            }
+            
+            // Flash Button
+            sideBarButton(icon: cameraModel.isFlashOn ? "bolt.fill" : "bolt.slash.fill", text: "Flash") {
                 cameraModel.toggleFlash()
             }
         }
@@ -341,25 +350,34 @@ struct UploadVideoView: View {
     private var bottomControls: some View {
         VStack(spacing: 20) {
             // Mode Selector
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 20) {
-                    ForEach(modes, id: \.self) { mode in
-                        Button(action: {
-                            withAnimation { selectedMode = mode }
-                        }) {
-                            Text(mode.rawValue)
-                                .font(.system(size: 15, weight: selectedMode == mode ? .bold : .semibold))
-                                .foregroundColor(selectedMode == mode ? .white : .white.opacity(0.6))
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 4)
-                                .background(
-                                    selectedMode == mode ? Color.black.opacity(0.3) : Color.clear
-                                )
-                                .cornerRadius(8)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 20) {
+                        ForEach(modes, id: \.self) { mode in
+                            Button(action: {
+                                withAnimation { selectedMode = mode }
+                            }) {
+                                Text(mode.rawValue)
+                                    .font(.system(size: 15, weight: selectedMode == mode ? .bold : .semibold))
+                                    .foregroundColor(selectedMode == mode ? .white : .white.opacity(0.6))
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        selectedMode == mode ? Color.black.opacity(0.3) : Color.clear
+                                    )
+                                    .cornerRadius(8)
+                            }
+                            .id(mode)
                         }
                     }
+                    .padding(.horizontal, UIScreen.main.bounds.width / 2 - 40)
                 }
-                .padding(.horizontal, UIScreen.main.bounds.width / 2 - 50)
+                .onChange(of: selectedMode) { _, newMode in
+                    withAnimation { proxy.scrollTo(newMode, anchor: .center) }
+                }
+                .onAppear {
+                    proxy.scrollTo(selectedMode, anchor: .center)
+                }
             }
             .frame(height: 40)
             .disabled(cameraModel.isRecording || isReviewing)
@@ -587,6 +605,7 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     @Published var alert = false
     @Published var mergedVideoURL: URL?
     @Published var recordingDuration: TimeInterval = 0
+    @Published var isFlashOn = false
     
     // Internal
     private var videoInput: AVCaptureDeviceInput?
@@ -739,9 +758,14 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
         guard let device = videoInput?.device, device.hasTorch else { return }
         do {
             try device.lockForConfiguration()
-            device.torchMode = device.torchMode == .off ? .on : .off
+            device.torchMode = device.torchMode == .on ? .off : .on
+            DispatchQueue.main.async {
+                self.isFlashOn = device.torchMode == .on
+            }
             device.unlockForConfiguration()
-        } catch {}
+        } catch {
+            print("Error toggling flash: \(error)")
+        }
     }
     
     // MARK: - Delegate
