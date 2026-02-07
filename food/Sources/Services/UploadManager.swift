@@ -18,6 +18,8 @@ final class UploadManager: ObservableObject {
     private var preparedVideoURL: URL?
     private var currentVideoDuration: Double = 60.0 // Valor por defecto seguro
     
+    // Updated: 2026-02-06 (Force Refresh)
+    
     // Pesos relativos para la barra de progreso
     private let compressionWeight = 0.4 // 40% del tiempo
     private let uploadWeight = 0.6      // 60% del tiempo
