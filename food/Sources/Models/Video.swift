@@ -81,6 +81,7 @@ public struct Video: Identifiable, Codable {
         self.shares = data["shares"] as? Int ?? 0
         self.width = data["width"] as? Int
         self.height = data["height"] as? Int
+        self.orientation = data["orientation"] as? String
         self.fileId = data["fileId"] as? String
     }
     
