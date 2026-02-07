@@ -1359,7 +1359,7 @@ struct FeedView: View {
                 
                 // 2. Video Player (Solo si existe URL y player)
                 if let _ = item.videoUrl, let p = player {
-                    VideoPlayer(player: p)
+                    FeedVideoPlayer(player: p)
                         .disabled(true)
                         .allowsHitTesting(false)
                         // Sin opacidad condicional ni animación: "Raw" playback
