@@ -555,6 +555,7 @@ struct UploadVideoView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             withAnimation { cameraModel.isRecording = false }
             self.showPostMetadata = true
+            self.cameraModel.stopSession() // Stop session when moving to metadata
         }
     }
 }

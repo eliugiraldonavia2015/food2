@@ -192,6 +192,10 @@ struct PostMetadataView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        .onDisappear {
+            // Ensure any potential audio from preview generation is stopped
+            // Note: Currently we only show image, but good practice
+        }
     }
     
     private func customTextField(icon: String, placeholder: String, text: Binding<String>, field: Field, isMultiLine: Bool = false) -> some View {
