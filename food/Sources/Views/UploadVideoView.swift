@@ -560,7 +560,7 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
             guard let self = self, let startTime = self.recordingStartTime else { return }
             let currentSegmentDuration = Date().timeIntervalSince(startTime)
             DispatchQueue.main.async {
-                self.totalDuration = self.accumulatedTime + currentSegmentDuration
+                self.recordingDuration = self.accumulatedTime + currentSegmentDuration
             }
         }
     }
