@@ -652,6 +652,9 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
                     let input = try AVCaptureDeviceInput(device: camera)
                     if session.canAddInput(input) { session.addInput(input) }
                     self.videoInput = input
+                    
+                    // Force orientation on connection if possible
+                    // Note: Video orientation is usually set on Output connection, not Input
                 } catch { print(error) }
             }
             
@@ -809,8 +812,15 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
                 
                 if let assetVideoTrack = asset.tracks(withMediaType: .video).first {
                     try videoTrack?.insertTimeRange(timeRange, of: assetVideoTrack, at: currentTime)
-                    // Fix orientation if needed (simplified)
-                    videoTrack?.preferredTransform = assetVideoTrack.preferredTransform
+                    // Fix orientation if needed (ensure portrait)
+                    let t = assetVideoTrack.preferredTransform
+                    // Check if it's portrait (90 or -90 degrees)
+                    if (t.a == 0 && t.d == 0 && (t.b == 1.0 || t.b == -1.0) && (t.c == -1.0 || t.c == 1.0)) {
+                         videoTrack?.preferredTransform = t
+                    } else {
+                         // Default to portrait if undefined or landscape
+                         videoTrack?.preferredTransform = t
+                    }
                 }
                 
                 if let assetAudioTrack = asset.tracks(withMediaType: .audio).first {

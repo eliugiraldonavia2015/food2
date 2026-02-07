@@ -173,12 +173,13 @@ struct PostMetadataView: View {
                  AsyncImage(url: validUrl) { phase in
                      switch phase {
                      case .success(let image):
-                         image
-                             .resizable()
-                             .scaledToFill()
-                             .frame(height: 220)
-                             .frame(maxWidth: .infinity)
-                             .clipped()
+                         GeometryReader { geo in
+                             image
+                                 .resizable()
+                                 .scaledToFill() // Ensures it fills the frame without distortion
+                                 .frame(width: geo.size.width, height: geo.size.height)
+                                 .clipped()
+                         }
                      default:
                          Rectangle().fill(Color.black)
                      }
@@ -186,10 +187,10 @@ struct PostMetadataView: View {
             } else {
                 Rectangle()
                     .fill(Color.black)
-                    .frame(height: 220)
                     .overlay(ProgressView().tint(.white))
             }
         }
+        .frame(height: 350) // Increased height for better vertical preview
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
         .onDisappear {
