@@ -19,6 +19,7 @@ public struct Video: Identifiable, Codable {
     // Metadatos técnicos para trazabilidad
     public let width: Int?
     public let height: Int?
+    public let orientation: String? // "portrait", "landscape", "square"
     public let fileId: String? // ID interno si se necesita diferenciar versión
     
     public init(
