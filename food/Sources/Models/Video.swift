@@ -31,7 +31,8 @@ public struct Video: Identifiable, Codable {
         thumbnailUrl: String,
         duration: Double,
         width: Int? = nil,
-        height: Int? = nil
+        height: Int? = nil,
+        orientation: String? = nil
     ) {
         self.id = id
         self.userId = userId
@@ -46,6 +47,7 @@ public struct Video: Identifiable, Codable {
         self.shares = 0
         self.width = width
         self.height = height
+        self.orientation = orientation
         self.fileId = id // Por defecto usamos el mismo ID
     }
     
