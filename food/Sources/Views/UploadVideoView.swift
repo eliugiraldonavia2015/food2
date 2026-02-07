@@ -167,7 +167,7 @@ struct UploadVideoView: View {
             
             // Timer Indicator
             VStack(spacing: 4) {
-                Text(formatDuration(cameraModel.totalDuration))
+                Text(formatDuration(cameraModel.recordingDuration))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
@@ -175,7 +175,7 @@ struct UploadVideoView: View {
                     .background(Color.black.opacity(0.5))
                     .cornerRadius(8)
                 
-                if !cameraModel.isRecording && cameraModel.totalDuration == 0 {
+                if !cameraModel.isRecording && cameraModel.recordingDuration == 0 {
                     Button(action: {}) {
                         HStack(spacing: 6) {
                             Image(systemName: "music.note")
@@ -621,7 +621,7 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
             let duration = Date().timeIntervalSince(startTime)
             accumulatedTime += duration
             DispatchQueue.main.async {
-                self.totalDuration = self.accumulatedTime
+                self.recordingDuration = self.accumulatedTime
             }
         }
         recordingStartTime = nil
