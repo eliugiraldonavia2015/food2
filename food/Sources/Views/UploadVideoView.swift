@@ -120,9 +120,9 @@ struct UploadVideoView: View {
                     VStack {
                         HStack {
                             Button(action: {
-                                // Retake / Cancel Review
+                                // Resume Recording (keep segments)
                                 isReviewing = false
-                                cameraModel.resetSegments()
+                                cameraModel.mergedVideoURL = nil // Clear preview, keep segments
                                 cameraModel.startSession() // Re-start camera session
                             }) {
                                 Image(systemName: "chevron.backward")
