@@ -145,6 +145,73 @@ struct UploadVideoView: View {
                 NavigationLink(isActive: $showPostMetadata) {
                     PostMetadataView(videoURL: cameraModel.mergedVideoURL, onClose: onClose)
                 } label: { EmptyView() }
+                
+                // Custom Discard Alert Overlay
+                if showDiscardAlert {
+                    ZStack {
+                        // Dimmed Background
+                        Color.black.opacity(0.6)
+                            .ignoresSafeArea()
+                            .transition(.opacity)
+                            .onTapGesture {
+                                withAnimation(.spring()) { showDiscardAlert = false }
+                            }
+                        
+                        // Dialog Card
+                        VStack(spacing: 24) {
+                            VStack(spacing: 12) {
+                                Text("¿Empezar de nuevo?")
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                                
+                                Text("Si cancelas ahora, se eliminarán los clips grabados y volverás al inicio.")
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal)
+                            }
+                            
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    withAnimation(.spring()) { showDiscardAlert = false }
+                                }) {
+                                    Text("Seguir grabando")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(12)
+                                }
+                                
+                                Button(action: {
+                                    withAnimation(.spring()) {
+                                        showDiscardAlert = false
+                                        cameraModel.resetSegments()
+                                    }
+                                }) {
+                                    Text("Descartar")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(Color.red)
+                                        .cornerRadius(12)
+                                }
+                            }
+                        }
+                        .padding(24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+                        )
+                        .frame(width: 320)
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                    }
+                    .zIndex(100)
+                }
             }
             .navigationBarHidden(true)
         }
@@ -156,7 +223,13 @@ struct UploadVideoView: View {
     // MARK: - Top Controls
     private var topControls: some View {
         HStack(alignment: .top) {
-            Button(action: onClose) {
+            Button(action: {
+                if cameraModel.recordingDuration > 0 {
+                    showDiscardAlert = true
+                } else {
+                    onClose()
+                }
+            }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundColor(.white)
@@ -366,6 +439,13 @@ struct UploadVideoView: View {
     }
     
     // MARK: - Logic
+    
+    private func calculateModeOffset() -> CGFloat {
+        guard let index = modes.firstIndex(of: selectedMode) else { return 0 }
+        let itemWidth: CGFloat = 80
+        let centerIndex = CGFloat(modes.count - 1) / 2.0
+        return (centerIndex - CGFloat(index)) * itemWidth
+    }
     
     private func handleRecording() {
         if cameraModel.isRecording {
