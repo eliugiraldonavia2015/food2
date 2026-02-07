@@ -71,9 +71,18 @@ struct UploadVideoView: View {
     @State private var showPostMetadata = false
     @State private var isReviewing = false // Nueva variable para modo revisión
     @State private var showDiscardAlert = false // Alerta para descartar grabación
+    @State private var timerOption: TimerOption = .off
+    @State private var currentCountdown: Int? = nil
     
     // Constants
     private let modes: [CameraMode] = [.grams, .product, .live]
+    
+    enum TimerOption: Int, CaseIterable {
+        case off = 0
+        case s3 = 3
+        case s7 = 7
+        case s15 = 15
+    }
     
     enum CameraMode: String, CaseIterable {
         case grams = "Grams"
@@ -146,6 +155,20 @@ struct UploadVideoView: View {
                 NavigationLink(isActive: $showPostMetadata) {
                     PostMetadataView(videoURL: cameraModel.mergedVideoURL, onClose: onClose)
                 } label: { EmptyView() }
+                
+                // Countdown Overlay
+                if let count = currentCountdown {
+                    ZStack {
+                        Color.black.opacity(0.3).ignoresSafeArea()
+                        Text("\(count)")
+                            .font(.system(size: 150, weight: .bold))
+                            .foregroundColor(.white)
+                            .shadow(radius: 10)
+                            .transition(.scale.combined(with: .opacity))
+                            .id(count) // Forces transition animation
+                    }
+                    .zIndex(200)
+                }
                 
                 // Custom Discard Alert Overlay
                 if showDiscardAlert {
@@ -452,10 +475,43 @@ struct UploadVideoView: View {
         if cameraModel.isRecording {
             // User tapped "Record" button while recording -> PAUSE
             cameraModel.pauseRecording()
-            // No separate "isPaused" state needed, cameraModel.isRecording tells us state
         } else {
-            // User tapped "Record" button while paused/idle -> START/RESUME
-            cameraModel.startRecording()
+            // Start Logic
+            if timerOption != .off && cameraModel.recordingDuration == 0 {
+                // Start Countdown only for the first segment (or always? usually always if timer is on)
+                // TikTok timer usually applies to the START of a segment.
+                startCountdown()
+            } else {
+                cameraModel.startRecording()
+            }
+        }
+    }
+    
+    private func startCountdown() {
+        currentCountdown = timerOption.rawValue
+        
+        func tick() {
+            guard let count = currentCountdown, count > 0 else {
+                // Finish
+                withAnimation { currentCountdown = nil }
+                cameraModel.startRecording()
+                return
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                withAnimation(.spring()) {
+                    currentCountdown = count - 1
+                }
+                tick()
+            }
+        }
+        
+        // Initial tick trigger
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation(.spring()) {
+                if let c = currentCountdown { currentCountdown = c - 1 }
+            }
+            tick()
         }
     }
     
