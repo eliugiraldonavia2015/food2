@@ -69,7 +69,6 @@ struct UploadVideoView: View {
     // MARK: - UI State
     @State private var selectedMode: CameraMode = .grams
     @State private var showPostMetadata = false
-    @State private var isPaused = false // Nueva variable para controlar pausa
     @State private var isReviewing = false // Nueva variable para modo revisión
     
     // Constants
@@ -327,7 +326,7 @@ struct UploadVideoView: View {
                     }
                     
                     // Right Button: Effects (Idle) / Next (Paused with segments)
-                    if !cameraModel.isRecording && cameraModel.totalDuration > 0 {
+                    if !cameraModel.isRecording && cameraModel.recordingDuration > 0 {
                         // NEXT BUTTON (Checkmark) - Only appears if we have recorded something and are paused
                         Button(action: {
                             finishRecordingSession()
@@ -450,6 +449,7 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     @Published var isRecording = false
     @Published var alert = false
     @Published var mergedVideoURL: URL?
+    @Published var recordingDuration: TimeInterval = 0
     
     // Internal
     private var videoInput: AVCaptureDeviceInput?
@@ -458,6 +458,11 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
     
     private var recordedSegments: [URL] = []
     private var isFrontCamera = false
+    
+    // Timer Logic
+    private var accumulatedTime: TimeInterval = 0
+    private var recordingStartTime: Date?
+    private var timer: Timer?
     
     override init() {
         super.init()
@@ -532,17 +537,44 @@ class CameraModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDeleg
         guard let movieOutput = movieOutput else { return }
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mov")
         movieOutput.startRecording(to: tempURL, recordingDelegate: self)
+        
+        // Start Timer
+        recordingStartTime = Date()
+        startTimer()
+        
         DispatchQueue.main.async { self.isRecording = true }
     }
     
     func pauseRecording() {
         movieOutput?.stopRecording() // Stops current segment
+        
+        // Stop Timer
+        stopTimer()
+        
         DispatchQueue.main.async { self.isRecording = false }
+    }
+    
+    private func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self, let startTime = self.recordingStartTime else { return }
+            let currentSegmentDuration = Date().timeIntervalSince(startTime)
+            DispatchQueue.main.async {
+                self.totalDuration = self.accumulatedTime + currentSegmentDuration
+            }
+        }
+    }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
     
     func resetSegments() {
         recordedSegments.removeAll()
         mergedVideoURL = nil
+        accumulatedTime = 0
+        recordingDuration = 0
     }
     
     func switchCamera() {
