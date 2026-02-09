@@ -91,7 +91,15 @@ struct UploadVideoView: View {
         case s3 = 3
         case s7 = 7
         case s15 = 15
-        // MARK: - Gallery & Trimmer Logic
+    }
+    
+    enum CameraMode: String, CaseIterable {
+        case grams = "Grams"
+        case product = "Producto"
+        case live = "Live"
+    }
+    
+    // MARK: - Gallery & Trimmer Logic
     
     private func handleGallerySelection(url: URL) {
         let asset = AVAsset(url: url)
@@ -134,12 +142,6 @@ struct UploadVideoView: View {
                 }
             }
         }
-    }
-    
-    enum CameraMode: String, CaseIterable {
-        case grams = "Grams"
-        case product = "Producto"
-        case live = "Live"
     }
     
     var body: some View {
