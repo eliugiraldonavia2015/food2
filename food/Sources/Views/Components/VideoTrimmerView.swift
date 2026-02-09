@@ -170,12 +170,12 @@ struct VideoTrimmerView: View {
             guard let duration = duration else { return }
             let totalSeconds = duration.seconds
             
-            var times: [NSValue] = []
+            var times: [CMTime] = []
             let step = totalSeconds / Double(thumbnailCount)
             
             for i in 0..<thumbnailCount {
                 let time = CMTime(seconds: Double(i) * step, preferredTimescale: 600)
-                times.append(NSValue(time: time))
+                times.append(time)
             }
             
             for await image in generator.images(for: times) {
