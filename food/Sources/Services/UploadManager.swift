@@ -148,7 +148,6 @@ final class UploadManager: ObservableObject {
                                         height = Int(size?.height ?? 1280)
                                         orientation = "portrait" // Siempre será portrait físicamente
                                     }
-                                }
                                 
                                 // Guardar en Firestore con dimensiones y orientación
                                 self.saveToFirestore(
