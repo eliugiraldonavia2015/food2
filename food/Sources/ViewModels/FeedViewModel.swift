@@ -144,7 +144,8 @@ final class FeedViewModel: ObservableObject {
             comments: video.comments,
             shares: video.shares,
             videoUrl: video.videoUrl,
-            posterUrl: video.thumbnailUrl
+            posterUrl: video.thumbnailUrl,
+            orientation: video.orientation // ✅ Mapeamos la orientación real
         )
     }
 
@@ -181,6 +182,7 @@ struct FeedItem: Identifiable {
     let shares: Int
     let videoUrl: String?
     let posterUrl: String?
+    let orientation: String? // ✅ Nuevo campo para metadatos de orientación
     
     // Init actualizado
     init(
@@ -199,7 +201,8 @@ struct FeedItem: Identifiable {
         comments: Int,
         shares: Int,
         videoUrl: String? = nil,
-        posterUrl: String? = nil
+        posterUrl: String? = nil,
+        orientation: String? = nil // ✅ Nuevo parámetro
     ) {
         self.id = id
         self.videoId = videoId
@@ -217,5 +220,6 @@ struct FeedItem: Identifiable {
         self.shares = shares
         self.videoUrl = videoUrl
         self.posterUrl = posterUrl
+        self.orientation = orientation
     }
 }

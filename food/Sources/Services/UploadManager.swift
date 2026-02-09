@@ -52,36 +52,27 @@ final class UploadManager: ObservableObject {
         }
         
         pendingCompressionTask = Task {
-            let optimalLayer = await ProVideoCompressor.calculateOptimalLayer(for: inputURL)
+            // Usamos la nueva compresión inteligente "TikTok Style"
+            // Esto siempre devuelve un video 720x1280 normalizado
+            var resultURL = inputURL
             
-            switch optimalLayer {
-            case .passThrough:
-                print("⚡️ [UploadManager] Video eficiente. Preparación lista.")
-                self.compressionProgress = 1.0
-                return inputURL
-                
-            case .custom(let config):
-                print("🔄 [UploadManager] Comprimiendo a \(config.height)p en background...")
-                var resultURL = inputURL
-                
-                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-                    ProVideoCompressor.compress(inputURL: inputURL, level: optimalLayer, onProgress: { p in
-                        self.compressionProgress = p
-                        // No actualizamos UI aquí (silencioso)
-                    }) { result in
-                        switch result {
-                        case .success(let url):
-                            print("✅ [UploadManager] Compresión background terminada.")
-                            resultURL = url
-                        case .failure(let error):
-                            print("⚠️ [UploadManager] Falló compresión background: \(error)")
-                            resultURL = inputURL
-                        }
-                        continuation.resume()
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                // Forzamos la variante HD que ahora internamente hace el Smart Normalization
+                VideoCompressor.compress(inputURL: inputURL, variant: .hd_720p_hevc) { result in
+                    switch result {
+                    case .success(let url):
+                        print("✅ [UploadManager] Normalización background terminada.")
+                        resultURL = url
+                        self.compressionProgress = 1.0
+                    case .failure(let error):
+                        print("⚠️ [UploadManager] Falló normalización background: \(error)")
+                        // Si falla, usamos el original, pero el servidor podría recibir algo no normalizado
+                        resultURL = inputURL
                     }
+                    continuation.resume()
                 }
-                return resultURL
             }
+            return resultURL
         }
     }
     
@@ -145,23 +136,17 @@ final class UploadManager: ObservableObject {
                                 var height: Int? = nil
                                 var orientation: String = "portrait" // Default
                                 
-                                if let track = try? await asset.loadTracks(withMediaType: .video).first {
-                                    let size = try? await track.load(.naturalSize)
-                                    // Considerar transform para dimensiones visuales
-                                    // Pero para metadatos de archivo, a veces queremos lo físico. 
-                                    // Guardemos lo visual (render size) que es lo que importa al player.
-                                    let t = try? await track.load(.preferredTransform)
-                                    let transform = t ?? .identity
-                                    let s = size ?? .zero
-                                    let isPortrait = abs(transform.b) == 1.0 && abs(transform.c) == 1.0
-                                    width = isPortrait ? Int(s.height) : Int(s.width)
-                                    height = isPortrait ? Int(s.width) : Int(s.height)
+                                // Ahora que hemos normalizado el video, sabemos que físicamente es 720x1280 (Portrait)
+                                    // PERO guardamos la orientación LÓGICA original para que el UI pueda saber si era landscape originalmente
+                                    // aunque visualmente ya está "quemado" con bandas negras.
+                                    // Sin embargo, para efectos prácticos, el video entregado ES portrait.
                                     
-                                    // Determinar etiqueta de orientación
-                                    if let w = width, let h = height {
-                                        if w > h { orientation = "landscape" }
-                                        else if w < h { orientation = "portrait" }
-                                        else { orientation = "square" }
+                                    // Vamos a leer los datos reales del archivo subido (que ya está normalizado)
+                                    if let track = try? await asset.loadTracks(withMediaType: .video).first {
+                                        let size = try? await track.load(.naturalSize)
+                                        width = Int(size?.width ?? 720)
+                                        height = Int(size?.height ?? 1280)
+                                        orientation = "portrait" // Siempre será portrait físicamente
                                     }
                                 }
                                 
@@ -204,7 +189,8 @@ final class UploadManager: ObservableObject {
             thumbnailUrl: thumbnailUrl,
             duration: self.currentVideoDuration,
             width: width,
-            height: height
+            height: height,
+            orientation: orientation
         )
         
         DatabaseService.shared.createVideoDocument(video: newVideo) { error in

@@ -9,6 +9,12 @@ enum VideoVariant {
 }
 
 final class VideoCompressor {
+    
+    // Configuración Maestra de Salida (Canvas TikTok)
+    static let masterWidth: CGFloat = 720
+    static let masterHeight: CGFloat = 1280
+    static let masterSize = CGSize(width: masterWidth, height: masterHeight)
+    
     static func compress(inputURL: URL, variant: VideoVariant, completion: @escaping (Result<URL, Error>) -> Void) {
         let asset = AVAsset(url: inputURL)
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
@@ -16,83 +22,111 @@ final class VideoCompressor {
             return
         }
         
-        // Determinar altura objetivo según variante
-        let targetH: CGFloat
-        switch variant {
-        case .low: targetH = 360
-        case .sd_480p: targetH = 480
-        case .qhd_540p: targetH = 540
-        case .hd_720p_hevc: targetH = 720
-        }
-        
-        // Calcular dimensiones manteniendo Aspect Ratio
-        let originalSize = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
+        // 1. Analizar geometría original
+        let transform = videoTrack.preferredTransform
+        let originalSize = videoTrack.naturalSize.applying(transform)
         let absSize = CGSize(width: abs(originalSize.width), height: abs(originalSize.height))
-        let aspect = absSize.width / max(absSize.height, 1)
-        var targetW = floor(aspect * targetH)
-        if Int(targetW) % 2 != 0 { targetW += 1 } // Asegurar paridad
-        let renderSize = CGSize(width: max(targetW, 2), height: max(targetH, 2))
         
-        // Configurar composición de video (Scaling)
+        // 2. Crear Composición "Smart Normalize"
         let composition = AVMutableVideoComposition()
-        composition.renderSize = renderSize
+        composition.renderSize = masterSize // SIEMPRE 720x1280 (9:16)
         composition.frameDuration = CMTime(value: 1, timescale: 30) // 30 FPS
+        
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
+        
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
-        layerInstruction.setTransform(videoTrack.preferredTransform, at: .zero)
+        
+        // 3. Calcular Transformación Inteligente (Fill vs Fit)
+        let finalTransform = calculateSmartTransform(
+            sourceSize: absSize,
+            targetSize: masterSize,
+            originalTransform: transform
+        )
+        
+        layerInstruction.setTransform(finalTransform, at: .zero)
         instruction.layerInstructions = [layerInstruction]
         composition.instructions = [instruction]
         
-        // Preparar archivo de salida
+        // 4. Exportar
+        export(asset: asset, composition: composition, completion: completion)
+    }
+    
+    // Lógica "TikTok":
+    // - Si es vertical (9:16 aprox) -> Aspect FILL (Llenar pantalla, recortar bordes mínimos)
+    // - Si es cuadrado/landscape -> Aspect FIT (Encajar completo, rellenar con negro/blur)
+    private static func calculateSmartTransform(sourceSize: CGSize, targetSize: CGSize, originalTransform: CGAffineTransform) -> CGAffineTransform {
+        let sourceRatio = sourceSize.width / sourceSize.height
+        let targetRatio = targetSize.width / targetSize.height
+        
+        let isVerticalSource = sourceRatio < 0.8 // Algo más vertical que cuadrado (ej: 4:5, 9:16)
+        
+        var scaleFactor: CGFloat
+        var xOffset: CGFloat = 0
+        var yOffset: CGFloat = 0
+        
+        if isVerticalSource {
+            // Estrategia: ASPECT FILL (Zoom para llenar)
+            // Se calcula la escala necesaria para cubrir la dimensión más grande
+            let widthRatio = targetSize.width / sourceSize.width
+            let heightRatio = targetSize.height / sourceSize.height
+            
+            // Usamos max() para que ambos lados cubran el target (crop)
+            scaleFactor = max(widthRatio, heightRatio)
+            
+            let scaledWidth = sourceSize.width * scaleFactor
+            let scaledHeight = sourceSize.height * scaleFactor
+            
+            // Centrar
+            xOffset = (targetSize.width - scaledWidth) / 2
+            yOffset = (targetSize.height - scaledHeight) / 2
+            
+        } else {
+            // Estrategia: ASPECT FIT (Encajar completo con bandas negras)
+            // Usamos min() para que el video quepa entero
+            let widthRatio = targetSize.width / sourceSize.width
+            let heightRatio = targetSize.height / sourceSize.height
+            
+            scaleFactor = min(widthRatio, heightRatio)
+            
+            let scaledWidth = sourceSize.width * scaleFactor
+            let scaledHeight = sourceSize.height * scaleFactor
+            
+            // Centrar en el canvas negro
+            xOffset = (targetSize.width - scaledWidth) / 2
+            yOffset = (targetSize.height - scaledHeight) / 2
+        }
+        
+        // Combinar transformaciones:
+        // 1. Aplicar la rotación original del video (si estaba de lado)
+        // 2. Escalar
+        // 3. Mover al centro
+        
+        // Nota: El orden de multiplicación de matrices en CoreGraphics es inverso al intuitivo.
+        // T = Translation * Scale * OriginalRotation
+        // Pero primero debemos corregir el origen del video original si tiene rotación.
+        
+        // Simplificación robusta:
+        // Usamos la transformación base para corregir orientación y origen al (0,0) visual
+        // Luego aplicamos nuestro Scale y Translate sobre eso.
+        
+        let finalTransform = originalTransform
+            .concatenating(CGAffineTransform(scaleX: scaleFactor, y: scaleFactor))
+            .concatenating(CGAffineTransform(translationX: xOffset, y: yOffset))
+            
+        return finalTransform
+    }
+    
+    private static func export(asset: AVAsset, composition: AVMutableVideoComposition, completion: @escaping (Result<URL, Error>) -> Void) {
         let fileName = UUID().uuidString + ".mp4"
         let outURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
         if FileManager.default.fileExists(atPath: outURL.path) {
             try? FileManager.default.removeItem(at: outURL)
         }
         
-        // Seleccionar Preset según variante
-        let compatible = AVAssetExportSession.exportPresets(compatibleWith: asset)
-        var preset: String = AVAssetExportPresetMediumQuality // Default seguro
-        
-        switch variant {
-        case .low:
-            // LowQuality suele ser 144p-240p. Medium es aprox 360p-480p.
-            // Para "Mini" queremos algo mejor que pixelado pero ligero.
-            if compatible.contains(AVAssetExportPresetMediumQuality) {
-                preset = AVAssetExportPresetMediumQuality
-            } else {
-                preset = AVAssetExportPresetLowQuality
-            }
-            
-        case .sd_480p:
-            if compatible.contains(AVAssetExportPreset640x480) {
-                preset = AVAssetExportPreset640x480
-            }
-            
-        case .qhd_540p:
-            if compatible.contains(AVAssetExportPreset960x540) {
-                preset = AVAssetExportPreset960x540
-            } else if compatible.contains(AVAssetExportPresetMediumQuality) {
-                preset = AVAssetExportPresetMediumQuality
-            }
-            
-        case .hd_720p_hevc:
-            // Intentar usar HEVC 720p explícitamente si existe (iOS 11+)
-            let hevc720 = "AVAssetExportPresetHEVC1280x720"
-            if compatible.contains(hevc720) {
-                preset = hevc720
-            } else if compatible.contains(AVAssetExportPresetHEVC1920x1080) {
-                // Si solo hay 1080p HEVC, es mejor bajar a 720p H.264 para no inflar tamaño
-                preset = AVAssetExportPreset1280x720
-            } else if compatible.contains(AVAssetExportPreset1280x720) {
-                preset = AVAssetExportPreset1280x720
-            }
-        }
-        
-        print("🛠 [VideoCompressor] Usando preset: \(preset) para variante: \(variant)")
-        
-        guard let exporter = AVAssetExportSession(asset: asset, presetName: preset) else {
+        // Usamos un preset HD genérico porque el tamaño real lo define la composición
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPreset1280x720) else {
             completion(.failure(NSError(domain: "VideoCompressor", code: -4, userInfo: [NSLocalizedDescriptionKey: "No se pudo crear ExportSession"])))
             return
         }
