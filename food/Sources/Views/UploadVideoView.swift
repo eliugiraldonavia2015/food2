@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 import Combine
+import PhotosUI
 
 /*
  ====================================================================================================
@@ -74,6 +75,14 @@ struct UploadVideoView: View {
     @State private var timerOption: TimerOption = .off
     @State private var currentCountdown: Int? = nil
     
+    @State private var showTrimmer = false
+    @State private var tempVideoAsset: AVAsset? = nil
+    
+    // MARK: - Picker State
+    @State private var showPicker = false
+    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var isProcessingSelection = false
+    
     // Constants
     private let modes: [CameraMode] = [.grams, .product, .live]
     
@@ -82,7 +91,51 @@ struct UploadVideoView: View {
         case s3 = 3
         case s7 = 7
         case s15 = 15
+        // MARK: - Gallery & Trimmer Logic
+    
+    private func handleGallerySelection(url: URL) {
+        let asset = AVAsset(url: url)
+        Task {
+            let duration = try? await asset.load(.duration).seconds
+            guard let duration = duration else { return }
+            
+            await MainActor.run {
+                self.tempVideoAsset = asset
+                if duration > 15.0 {
+                    // Show Trimmer Warning
+                    self.showTrimmer = true
+                } else {
+                    // Direct Use
+                    self.cameraModel.mergedVideoURL = url
+                    self.isReviewing = true
+                    self.cameraModel.stopSession()
+                }
+            }
+        }
     }
+    
+    private func processTrimmedVideo(asset: AVAsset, range: CMTimeRange) {
+        // Export trimmed video
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { return }
+        
+        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent("trimmed_\(UUID().uuidString).mov")
+        exporter.outputURL = outputURL
+        exporter.outputFileType = .mov
+        exporter.timeRange = range
+        
+        exporter.exportAsynchronously {
+            DispatchQueue.main.async {
+                if exporter.status == .completed {
+                    self.cameraModel.mergedVideoURL = outputURL
+                    self.isReviewing = true
+                    self.cameraModel.stopSession()
+                } else {
+                    print("Error trimming video: \(String(describing: exporter.error))")
+                }
+            }
+        }
+    }
+}
     
     enum CameraMode: String, CaseIterable {
         case grams = "Grams"
@@ -236,8 +289,39 @@ struct UploadVideoView: View {
                     }
                     .zIndex(100)
                 }
+                // 3. Trimmer Overlay
+                if showTrimmer, let asset = tempVideoAsset {
+                    VideoTrimmerView(
+                        asset: asset,
+                        onComplete: { range in
+                            processTrimmedVideo(asset: asset, range: range)
+                            showTrimmer = false
+                        },
+                        onCancel: {
+                            showTrimmer = false
+                            tempVideoAsset = nil
+                        }
+                    )
+                    .zIndex(10)
+                    .transition(.move(edge: .bottom))
+                }
             }
             .navigationBarHidden(true)
+            .fullScreenCover(isPresented: $showPostMetadata) {
+                PostMetadataView(
+                    videoURL: cameraModel.mergedVideoURL,
+                    onClose: {
+                        showPostMetadata = false
+                        // Reset flow if needed
+                    }
+                )
+            }
+            .sheet(isPresented: $showPicker) {
+                 CustomMediaPickerView(onSelect: { url in
+                     handleGallerySelection(url: url)
+                     showPicker = false
+                 })
+            }
         }
         .onAppear {
             cameraModel.checkPermissions()
@@ -403,7 +487,9 @@ struct UploadVideoView: View {
                     // Recording/Idle Mode
                     
                     // Left Button (Gallery)
-                    Button(action: {}) {
+                    Button(action: {
+                        showPicker = true
+                    }) {
                         VStack(spacing: 2) {
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(Color.white, lineWidth: 2)
