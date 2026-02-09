@@ -318,10 +318,15 @@ struct UploadVideoView: View {
                 )
             }
             .sheet(isPresented: $showPicker) {
-                 CustomMediaPickerView(onSelect: { url in
-                     handleGallerySelection(url: url)
-                     showPicker = false
-                 })
+                 CustomMediaPickerView(
+                    onSelect: { url in
+                         handleGallerySelection(url: url)
+                         showPicker = false
+                     },
+                    onCancel: {
+                        showPicker = false
+                    }
+                 )
             }
         }
         .onAppear {
