@@ -135,7 +135,6 @@ struct UploadVideoView: View {
             }
         }
     }
-}
     
     enum CameraMode: String, CaseIterable {
         case grams = "Grams"
