@@ -456,7 +456,7 @@ struct LoginView: View {
                     .keyboardType(.numberPad)
                     
                     PrimaryGradientButton(title: "Verify Code", icon: "checkmark.shield.fill") {
-                        Task { await auth.verifyCode(verificationCode) }
+                        auth.verifyCode(verificationCode)
                     }
                     
                     if canResendCode {
@@ -494,8 +494,7 @@ struct LoginView: View {
                     }
                     
                     PrimaryGradientButton(title: "Send Code", icon: "message.fill") {
-                        let fullNumber = "+593" + phoneNumber.filter { $0.isNumber }
-                        Task { await auth.verifyPhoneNumber(fullNumber) }
+                        sendVerificationCode()
                     }
                     .disabled(!isValidPhoneNumber || auth.isLoading)
                     .opacity(isValidPhoneNumber ? 1 : 0.6)
@@ -611,6 +610,19 @@ struct LoginView: View {
         password == confirmPassword &&
         !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         isUsernameAvailable
+    }
+    
+    private func sendVerificationCode() {
+        let fullNumber = "+593" + phoneNumber.filter { $0.isNumber }
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            alertMessage = "Window Context Error"
+            showAlert = true
+            return
+        }
+        
+        auth.sendVerificationCode(phoneNumber: fullNumber, presentingVC: rootViewController)
     }
     
     private func handleGoogleSignIn() {
