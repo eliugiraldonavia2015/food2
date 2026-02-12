@@ -43,7 +43,7 @@ struct LoginView: View {
     
     // Focus
     @FocusState private var focusedField: FocusField?
-    private enum FocusField {
+    enum FocusField {
         case emailOrUser, password, firstName, lastName, email, username, confirmPass, phone, code
     }
     

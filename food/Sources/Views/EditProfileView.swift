@@ -88,11 +88,11 @@ struct EditProfileView: View {
                         
                         // Section: Fields
                         VStack(spacing: 20) {
-                            ModernTextField(label: "Nombre", placeholder: "Nombre", text: $name)
+                            EditProfileTextField(label: "Nombre", placeholder: "Nombre", text: $name)
                             
                             usernameField
                             
-                            ModernTextField(label: "Ubicación", placeholder: "Ciudad, País", text: $location)
+                            EditProfileTextField(label: "Ubicación", placeholder: "Ciudad, País", text: $location)
                             
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Biografía")
@@ -440,8 +440,12 @@ struct EditProfileView: View {
     }
 }
 
-// Helper Component
-struct ModernTextField: View {
+// Removed duplicate ModernTextField definition
+// It was already defined in LoginView.swift, but due to access control issues, we should probably move it to a shared file.
+// However, since we cannot easily move files in this context without breaking other things or creating new files,
+// we will rename this local version to `EditProfileTextField` to avoid conflict.
+
+struct EditProfileTextField: View {
     let label: String
     let placeholder: String
     @Binding var text: String
