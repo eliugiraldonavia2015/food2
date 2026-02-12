@@ -12,7 +12,7 @@ enum AuthFlow {
     case phone
 }
 
-// MARK: - Modern Login View
+// MARK: - Login View 3.0 (Modern, Vistoso & Comodo)
 struct LoginView: View {
     @StateObject private var auth = AuthService.shared
     
@@ -32,18 +32,18 @@ struct LoginView: View {
     @State private var currentAuthFlow: AuthFlow = .main
     @State private var isShowingForgotPassword = false
     @State private var showSuccessAnimation = false
+    @State private var backgroundOffset: CGFloat = 0
     
-    // Validation & Feedback
+    // Validation
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var isUsernameAvailable = true
     @State private var checkingUsername = false
     @State private var passwordStrength: PasswordStrength?
-    @State private var shakeOffset: CGFloat = 0
     
     // Focus
-    @FocusState private var focusedField: FocusField?
-    enum FocusField {
+    @FocusState private var focusedField: AuthFocusField?
+    enum AuthFocusField {
         case emailOrUser, password, firstName, lastName, email, username, confirmPass, phone, code
     }
     
@@ -54,88 +54,96 @@ struct LoginView: View {
     private let phoneNumberKit = PhoneNumberKit()
     #endif
     
-    // Theme Colors
-    private let brandPrimary = Color(red: 244/255, green: 37/255, blue: 123/255) // Brand Pink
-    private let brandSecondary = Color(red: 255/255, green: 149/255, blue: 0/255) // Orange
-    private let darkBg = Color(red: 18/255, green: 18/255, blue: 20/255)
-    
     var body: some View {
         NavigationStack {
             ZStack {
-                // 1. Dynamic Background
-                DynamicBackgroundView()
+                // 1. Vivid Animated Background
+                VividMeshBackground()
                     .ignoresSafeArea()
                     .onTapGesture { focusedField = nil }
                 
-                // 2. Main Scrollable Content
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        Spacer().frame(height: 60)
+                // 2. Main Content - Bottom Sheet Style
+                VStack(spacing: 0) {
+                    // Top Space / Logo Area
+                    if focusedField == nil {
+                        Spacer()
                         
-                        // Header Logo
-                        VStack(spacing: 16) {
+                        VStack(spacing: 12) {
                             BrandLogoView()
-                                .shadow(color: brandPrimary.opacity(0.5), radius: 20, x: 0, y: 10)
-                                .scaleEffect(1.2)
+                                .scaleEffect(1.5)
+                                .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
                             
                             Text("FoodTook")
-                                .font(.system(size: 36, weight: .black, design: .rounded))
-                                .foregroundStyle(.white)
-                                .tracking(1)
+                                .font(.system(size: 42, weight: .heavy, design: .rounded))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.1), radius: 5)
+                            
+                            Text(isSignUp ? "Únete a la revolución" : "El sabor te espera")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.9))
                         }
+                        .transition(.scale.combined(with: .opacity))
                         .padding(.bottom, 40)
-                        
-                        // Content Card
-                        VStack(spacing: 24) {
-                            if currentAuthFlow == .phone {
-                                phoneAuthContent
-                                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                            } else if isShowingForgotPassword {
-                                forgotPasswordContent
-                                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
-                            } else {
-                                mainAuthContent
-                                    .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .trailing)))
-                            }
-                        }
-                        .padding(24)
-                        .background(
-                            RoundedRectangle(cornerRadius: 32)
-                                .fill(Color(uiColor: .systemGray6).opacity(0.1))
-                                .background(.ultraThinMaterial)
-                                .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Spacer().frame(height: 40)
                     }
-                    .frame(minHeight: UIScreen.main.bounds.height)
+                    
+                    Spacer()
+                    
+                    // Glass Card Container
+                    ZStack {
+                        // Glass Background
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .mask(RoundedCorner(radius: 40, corners: [.topLeft, .topRight]))
+                            .shadow(color: .black.opacity(0.15), radius: 30, y: -5)
+                        
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 32) {
+                                // Drag Handle
+                                Capsule()
+                                    .fill(Color.white.opacity(0.3))
+                                    .frame(width: 40, height: 4)
+                                    .padding(.top, 16)
+                                
+                                // Content Switcher
+                                if currentAuthFlow == .phone {
+                                    phoneAuthContent
+                                } else if isShowingForgotPassword {
+                                    forgotPasswordContent
+                                } else {
+                                    mainAuthContent
+                                }
+                                
+                                Spacer().frame(height: 50)
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                    }
+                    .frame(height: UIScreen.main.bounds.height * (focusedField == nil ? 0.65 : 0.9))
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: focusedField)
                 }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
                 
-                // 3. Success Overlay
+                // 3. Success Animation Overlay
                 if showSuccessAnimation {
-                    SuccessOverlayView()
-                        .transition(.opacity)
+                    SuccessExplosionView()
                         .zIndex(100)
                 }
             }
-            .preferredColorScheme(.dark)
             .navigationBarHidden(true)
-            .alert("FoodTook", isPresented: $showAlert) {
+            .alert("Aviso", isPresented: $showAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(alertMessage)
             }
             .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
-                    triggerSuccessAnimation()
+                    withAnimation { showSuccessAnimation = true }
                 }
             }
             .onChange(of: auth.errorMessage) { _, error in
                 if let error = error {
                     alertMessage = error
                     showAlert = true
-                    shakeForm()
                 }
             }
         }
@@ -144,44 +152,35 @@ struct LoginView: View {
     // MARK: - Main Auth Content
     private var mainAuthContent: some View {
         VStack(spacing: 24) {
-            // Segmented Control
-            HStack(spacing: 0) {
-                TabButton(title: "Log In", isSelected: !isSignUp) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { isSignUp = false }
-                }
-                TabButton(title: "Sign Up", isSelected: isSignUp) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { isSignUp = true }
-                }
-            }
-            .background(Color.black.opacity(0.2))
-            .clipShape(Capsule())
-            .padding(.bottom, 10)
+            // Toggle Switch
+            AuthToggle(isSignUp: $isSignUp)
             
             // Forms
             Group {
                 if isSignUp {
                     signUpForm
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
                     loginForm
+                        .transition(.move(edge: .leading).combined(with: .opacity))
                 }
             }
-            .offset(x: shakeOffset)
             
             // Divider
             HStack {
-                Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
-                Text("OR")
+                VStack { Divider().background(Color.black.opacity(0.1)) }
+                Text("O CONTINÚA CON")
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundColor(.gray)
-                Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1)
+                VStack { Divider().background(Color.black.opacity(0.1)) }
             }
             
             // Social Buttons
             HStack(spacing: 20) {
-                SocialCircleButton(image: "g.circle.fill", color: .white) { handleGoogleSignIn() }
-                SocialCircleButton(image: "apple.logo", color: .white) { /* Apple Auth */ }
-                SocialCircleButton(image: "phone.fill", color: .green) {
+                SocialIconBtn(icon: "g.circle.fill", color: .red) { handleGoogleSignIn() }
+                SocialIconBtn(icon: "apple.logo", color: .black) { /* Apple */ }
+                SocialIconBtn(icon: "phone.circle.fill", color: .green) {
                     withAnimation { currentAuthFlow = .phone }
                 }
             }
@@ -190,19 +189,19 @@ struct LoginView: View {
     
     // MARK: - Login Form
     private var loginForm: some View {
-        VStack(spacing: 16) {
-            ModernTextField(
+        VStack(spacing: 20) {
+            AuthTextField(
                 text: $emailOrUsername,
-                placeholder: "Email or Username",
+                placeholder: "Usuario o Email",
                 icon: "person.fill",
                 focusedField: $focusedField,
                 fieldId: .emailOrUser
             )
             
             VStack(alignment: .trailing, spacing: 8) {
-                ModernTextField(
+                AuthTextField(
                     text: $password,
-                    placeholder: "Password",
+                    placeholder: "Contraseña",
                     icon: "lock.fill",
                     isSecure: true,
                     focusedField: $focusedField,
@@ -210,20 +209,16 @@ struct LoginView: View {
                 )
                 
                 Button(action: { withAnimation { isShowingForgotPassword = true } }) {
-                    Text("Forgot Password?")
+                    Text("¿Olvidaste tu contraseña?")
                         .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(brandPrimary)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
                 }
             }
             
-            SmartLoadingButton(
-                title: "Log In",
-                isLoading: auth.isLoading,
-                action: {
-                    Task { await loginUseCase.signIn(identifier: emailOrUsername, password: password) }
-                }
-            )
+            BigGradientButton(title: "INICIAR SESIÓN", isLoading: auth.isLoading) {
+                Task { await loginUseCase.signIn(identifier: emailOrUsername, password: password) }
+            }
             .disabled(emailOrUsername.isEmpty || password.isEmpty)
             .opacity(emailOrUsername.isEmpty || password.isEmpty ? 0.6 : 1)
         }
@@ -233,28 +228,25 @@ struct LoginView: View {
     private var signUpForm: some View {
         VStack(spacing: 16) {
             HStack(spacing: 12) {
-                ModernTextField(text: $firstName, placeholder: "First", icon: "person", focusedField: $focusedField, fieldId: .firstName)
-                ModernTextField(text: $lastName, placeholder: "Last", icon: "person", focusedField: $focusedField, fieldId: .lastName)
+                AuthTextField(text: $firstName, placeholder: "Nombre", icon: "person", focusedField: $focusedField, fieldId: .firstName)
+                AuthTextField(text: $lastName, placeholder: "Apellido", icon: "person", focusedField: $focusedField, fieldId: .lastName)
             }
             
-            ModernTextField(text: $email, placeholder: "Email", icon: "envelope", focusedField: $focusedField, fieldId: .email)
+            AuthTextField(text: $email, placeholder: "Correo Electrónico", icon: "envelope", focusedField: $focusedField, fieldId: .email)
             
             VStack(spacing: 4) {
-                ModernTextField(
+                AuthTextField(
                     text: $username,
-                    placeholder: "Username",
+                    placeholder: "Usuario (@ejemplo)",
                     icon: "at",
                     focusedField: $focusedField,
                     fieldId: .username,
-                    statusIcon: isUsernameAvailable && !username.isEmpty ? "checkmark.circle.fill" : nil,
-                    statusColor: .green
+                    isValid: isUsernameAvailable && !username.isEmpty
                 )
-                .onChange(of: username) { _, newValue in
-                    checkUsernameAvailability(newValue)
-                }
+                .onChange(of: username) { _, val in checkUsernameAvailability(val) }
                 
                 if !username.isEmpty && !isUsernameAvailable {
-                    Text("Username taken")
+                    Text("Usuario no disponible")
                         .font(.caption2)
                         .foregroundColor(.red)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -263,9 +255,9 @@ struct LoginView: View {
             }
             
             VStack(spacing: 4) {
-                ModernTextField(text: $password, placeholder: "Password", icon: "lock", isSecure: true, focusedField: $focusedField, fieldId: .password)
-                    .onChange(of: password) { _, newValue in
-                        passwordStrength = auth.evaluatePasswordStrength(newValue, email: email, username: username)
+                AuthTextField(text: $password, placeholder: "Contraseña", icon: "lock", isSecure: true, focusedField: $focusedField, fieldId: .password)
+                    .onChange(of: password) { _, val in
+                        passwordStrength = auth.evaluatePasswordStrength(val, email: email, username: username)
                     }
                 
                 if let strength = passwordStrength {
@@ -273,83 +265,48 @@ struct LoginView: View {
                 }
             }
             
-            ModernTextField(text: $confirmPassword, placeholder: "Confirm Password", icon: "lock.shield", isSecure: true, focusedField: $focusedField, fieldId: .confirmPass)
+            AuthTextField(text: $confirmPassword, placeholder: "Confirmar Contraseña", icon: "lock.shield", isSecure: true, focusedField: $focusedField, fieldId: .confirmPass)
             
-            SmartLoadingButton(
-                title: "Create Account",
-                isLoading: auth.isLoading,
-                action: registerUser
-            )
+            BigGradientButton(title: "CREAR CUENTA", isLoading: auth.isLoading) {
+                registerUser()
+            }
             .disabled(!isSignUpFormValid)
             .opacity(isSignUpFormValid ? 1 : 0.6)
         }
     }
     
-    // MARK: - Phone Auth Content
+    // MARK: - Phone & Forgot Password
     private var phoneAuthContent: some View {
         VStack(spacing: 24) {
-            // Header
-            HStack {
-                Button(action: { withAnimation { currentAuthFlow = .main } }) {
-                    Image(systemName: "arrow.left")
-                        .font(.title3.bold())
-                        .foregroundColor(.white)
-                }
-                Spacer()
-                Text("Phone Login")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-                Color.clear.frame(width: 24)
-            }
+            headerWithBack(title: "Acceso con Móvil") { currentAuthFlow = .main }
             
             if auth.phoneAuthState.isAwaitingCode {
                 VStack(spacing: 20) {
-                    Text("Enter Verification Code")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
-                    
-                    Text("Sent to \(phoneNumber)")
+                    Text("Código enviado a \(phoneNumber)")
+                        .font(.subheadline)
                         .foregroundColor(.gray)
                     
-                    ModernTextField(
-                        text: $verificationCode,
-                        placeholder: "000000",
-                        icon: "key",
-                        focusedField: $focusedField,
-                        fieldId: .code
-                    )
-                    .keyboardType(.numberPad)
+                    AuthTextField(text: $verificationCode, placeholder: "123456", icon: "key", focusedField: $focusedField, fieldId: .code)
+                        .keyboardType(.numberPad)
                     
-                    SmartLoadingButton(title: "Verify", isLoading: auth.isLoading) {
+                    BigGradientButton(title: "VERIFICAR", isLoading: auth.isLoading) {
                         auth.verifyCode(verificationCode)
                     }
                 }
             } else {
                 VStack(spacing: 20) {
-                    Text("What's your number?")
-                        .font(.title2.bold())
-                        .foregroundColor(.white)
-                    
                     HStack(spacing: 12) {
                         Text("🇪🇨 +593")
                             .font(.headline)
-                            .foregroundColor(.white)
                             .padding()
-                            .background(Color.white.opacity(0.1))
+                            .background(Color.gray.opacity(0.1))
                             .cornerRadius(16)
                         
-                        ModernTextField(
-                            text: $phoneNumber,
-                            placeholder: "99 123 4567",
-                            icon: "phone",
-                            focusedField: $focusedField,
-                            fieldId: .phone
-                        )
-                        .keyboardType(.numberPad)
+                        AuthTextField(text: $phoneNumber, placeholder: "99 999 9999", icon: "phone", focusedField: $focusedField, fieldId: .phone)
+                            .keyboardType(.numberPad)
                     }
                     
-                    SmartLoadingButton(title: "Send Code", isLoading: auth.isLoading) {
+                    BigGradientButton(title: "ENVIAR CÓDIGO", isLoading: auth.isLoading) {
                         sendVerificationCode()
                     }
                 }
@@ -357,66 +314,37 @@ struct LoginView: View {
         }
     }
     
-    // MARK: - Forgot Password Content
     private var forgotPasswordContent: some View {
         VStack(spacing: 24) {
-            HStack {
-                Button(action: { withAnimation { isShowingForgotPassword = false } }) {
-                    Image(systemName: "arrow.left")
-                        .font(.title3.bold())
-                        .foregroundColor(.white)
-                }
-                Spacer()
-                Text("Recovery")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-                Color.clear.frame(width: 24)
-            }
+            headerWithBack(title: "Recuperar Cuenta") { isShowingForgotPassword = false }
             
-            Text("Don't worry, happens to the best of us.")
-                .font(.body)
-                .foregroundColor(.gray)
+            Text("Ingresa tu correo para recibir instrucciones.")
                 .multilineTextAlignment(.center)
+                .foregroundColor(.gray)
             
-            ModernTextField(
-                text: $email,
-                placeholder: "Enter your email",
-                icon: "envelope",
-                focusedField: $focusedField,
-                fieldId: .email
-            )
+            AuthTextField(text: $email, placeholder: "tucorreo@ejemplo.com", icon: "envelope", focusedField: $focusedField, fieldId: .email)
             
-            SmartLoadingButton(title: "Send Reset Link", isLoading: auth.isLoading) {
-                // Trigger password reset logic
+            BigGradientButton(title: "ENVIAR ENLACE", isLoading: auth.isLoading) {
+                // Logic
             }
         }
     }
     
-    // MARK: - Actions & Helpers
-    
-    private func triggerSuccessAnimation() {
-        withAnimation {
-            showSuccessAnimation = true
-        }
-        // Let animation play before navigating/dismissing (handled by RootView usually)
-    }
-    
-    private func shakeForm() {
-        let duration = 0.5
-        withAnimation(.linear(duration: duration)) {
-            shakeOffset = 10
-        }
-        Task {
-            try? await Task.sleep(nanoseconds: 50_000_000)
-            withAnimation { shakeOffset = -10 }
-            try? await Task.sleep(nanoseconds: 50_000_000)
-            withAnimation { shakeOffset = 10 }
-            try? await Task.sleep(nanoseconds: 50_000_000)
-            withAnimation { shakeOffset = 0 }
+    private func headerWithBack(title: String, action: @escaping () -> Void) -> some View {
+        HStack {
+            Button(action: { withAnimation { action() } }) {
+                Image(systemName: "arrow.left.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.primary)
+            }
+            Spacer()
+            Text(title).font(.headline.bold())
+            Spacer()
+            Color.clear.frame(width: 30)
         }
     }
     
+    // MARK: - Logic
     private func checkUsernameAvailability(_ username: String) {
         guard !username.isEmpty else { return }
         checkingUsername = true
@@ -424,11 +352,8 @@ struct LoginView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             DatabaseService.shared.isUsernameAvailable(username) { result in
                 DispatchQueue.main.async {
-                    if case .success(let available) = result {
-                        self.isUsernameAvailable = available
-                    } else {
-                        self.isUsernameAvailable = false
-                    }
+                    if case .success(let available) = result { self.isUsernameAvailable = available }
+                    else { self.isUsernameAvailable = false }
                     self.checkingUsername = false
                 }
             }
@@ -442,14 +367,14 @@ struct LoginView: View {
         auth.sendVerificationCode(phoneNumber: fullNumber, presentingVC: rootViewController)
     }
     
-    private func registerUser() {
-        Task { await signupUseCase.signUp(email: email, password: password, firstName: firstName, lastName: lastName, username: username) }
-    }
-    
     private func handleGoogleSignIn() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController else { return }
         auth.signInWithGoogle(presentingVC: rootViewController)
+    }
+    
+    private func registerUser() {
+        Task { await signupUseCase.signUp(email: email, password: password, firstName: firstName, lastName: lastName, username: username) }
     }
     
     private var isSignUpFormValid: Bool {
@@ -457,98 +382,83 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Components
+// MARK: - Custom Components
 
-struct DynamicBackgroundView: View {
+struct VividMeshBackground: View {
     @State private var animate = false
     
     var body: some View {
         ZStack {
-            Color(red: 10/255, green: 10/255, blue: 12/255) // Almost black
+            Color.black
             
-            // Animated Blobs
+            // Orbes animados
             GeometryReader { geo in
-                Circle()
-                    .fill(Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.4))
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 80)
-                    .offset(x: animate ? -50 : 50, y: animate ? -100 : 0)
+                Circle().fill(Color(red: 244/255, green: 37/255, blue: 123/255))
+                    .frame(width: 350, height: 350)
+                    .blur(radius: 100)
+                    .offset(x: animate ? -50 : 150, y: animate ? -100 : -200)
                 
-                Circle()
-                    .fill(Color.orange.opacity(0.3))
-                    .frame(width: 250, height: 250)
-                    .blur(radius: 80)
-                    .offset(x: geo.size.width - (animate ? 100 : 200), y: geo.size.height - (animate ? 150 : 250))
+                Circle().fill(Color.orange)
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 90)
+                    .offset(x: animate ? 150 : -50, y: animate ? 300 : 100)
+                
+                Circle().fill(Color.purple)
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 100)
+                    .offset(x: animate ? -100 : 200, y: animate ? 500 : 400)
             }
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
                 animate.toggle()
             }
         }
     }
 }
 
-struct ModernTextField: View {
+struct AuthTextField: View {
     @Binding var text: String
     let placeholder: String
     let icon: String
     var isSecure: Bool = false
-    var focusedField: FocusState<LoginView.FocusField?>.Binding
-    var fieldId: LoginView.FocusField
-    var statusIcon: String? = nil
-    var statusColor: Color = .green
+    var focusedField: FocusState<LoginView.AuthFocusField?>.Binding
+    var fieldId: LoginView.AuthFocusField
+    var isValid: Bool? = nil
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 12) {
             Image(systemName: icon)
+                .foregroundColor(focusedField.wrappedValue == fieldId ? .black : .gray)
                 .font(.system(size: 18))
-                .foregroundColor(focusedField.wrappedValue == fieldId ? .white : .gray)
-                .frame(width: 24)
             
             if isSecure {
-                SecureField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray.opacity(0.7)))
+                SecureField(placeholder, text: $text)
             } else {
-                TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray.opacity(0.7)))
+                TextField(placeholder, text: $text)
             }
             
-            if let statusIcon = statusIcon {
-                Image(systemName: statusIcon)
-                    .foregroundColor(statusColor)
+            if let valid = isValid {
+                Image(systemName: valid ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .foregroundColor(valid ? .green : .red)
             }
         }
         .padding()
-        .background(Color.white.opacity(0.08))
+        .background(Color.white.opacity(0.5)) // Semi-transparent white
+        .background(.ultraThinMaterial)
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(focusedField.wrappedValue == fieldId ? Color.white.opacity(0.3) : Color.clear, lineWidth: 1)
+                .stroke(focusedField.wrappedValue == fieldId ? Color.black : Color.clear, lineWidth: 1.5)
         )
-        .foregroundColor(.white)
         .focused(focusedField, equals: fieldId)
+        .scaleEffect(focusedField.wrappedValue == fieldId ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3), value: focusedField.wrappedValue)
+        .foregroundColor(.black)
     }
 }
 
-struct TabButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(isSelected ? .black : .gray)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(isSelected ? Color.white : Color.clear)
-                .clipShape(Capsule())
-                .padding(2)
-        }
-    }
-}
-
-struct SmartLoadingButton: View {
+struct BigGradientButton: View {
     let title: String
     let isLoading: Bool
     let action: () -> Void
@@ -557,46 +467,132 @@ struct SmartLoadingButton: View {
         Button(action: action) {
             ZStack {
                 if isLoading {
-                    ProgressView()
-                        .tint(.white)
+                    ProgressView().tint(.white)
                 } else {
                     Text(title)
-                        .font(.headline)
-                        .bold()
+                        .font(.headline.bold())
+                        .tracking(1)
                 }
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(
-                LinearGradient(
-                    colors: [Color(red: 244/255, green: 37/255, blue: 123/255), Color.orange],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+                LinearGradient(colors: [Color(red: 244/255, green: 37/255, blue: 123/255), Color.orange], startPoint: .leading, endPoint: .trailing)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.3), radius: 10, x: 0, y: 5)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.4), radius: 10, y: 5)
         }
     }
 }
 
-struct SocialCircleButton: View {
-    let image: String
+struct AuthToggle: View {
+    @Binding var isSignUp: Bool
+    
+    var body: some View {
+        HStack {
+            AuthTab(title: "Log In", isSelected: !isSignUp) { withAnimation { isSignUp = false } }
+            AuthTab(title: "Sign Up", isSelected: isSignUp) { withAnimation { isSignUp = true } }
+        }
+        .padding(4)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(16)
+    }
+}
+
+struct AuthTab: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(isSelected ? .black : .gray)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(isSelected ? Color.white : Color.clear)
+                .cornerRadius(12)
+                .shadow(color: isSelected ? .black.opacity(0.1) : .clear, radius: 2, y: 1)
+        }
+    }
+}
+
+struct SocialIconBtn: View {
+    let icon: String
     let color: Color
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: image)
-                .font(.system(size: 24))
+            Image(systemName: icon)
+                .font(.title2)
                 .foregroundColor(color)
-                .frame(width: 56, height: 56)
-                .background(Color.white.opacity(0.1))
+                .frame(width: 50, height: 50)
+                .background(Color.white)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
+                .shadow(color: .black.opacity(0.1), radius: 5, y: 2)
         }
     }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
+}
+
+// MARK: - Success Animation
+struct SuccessExplosionView: View {
+    @State private var scale: CGFloat = 0.5
+    @State private var opacity: Double = 0
+    @State private var rotation: Double = -45
+    
+    var body: some View {
+        ZStack {
+            Color.white.ignoresSafeArea()
+            
+            // Confetti or abstract shapes
+            ForEach(0..<10) { i in
+                Circle()
+                    .fill(colors.randomElement()!)
+                    .frame(width: CGFloat.random(in: 10...30))
+                    .offset(x: CGFloat.random(in: -150...150), y: CGFloat.random(in: -300...300))
+                    .scaleEffect(scale)
+                    .opacity(opacity)
+            }
+            
+            VStack {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 120))
+                    .foregroundStyle(
+                        LinearGradient(colors: [Color(red: 244/255, green: 37/255, blue: 123/255), Color.orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .rotationEffect(.degrees(rotation))
+                    .scaleEffect(scale)
+                
+                Text("¡Bienvenido!")
+                    .font(.system(size: 32, weight: .heavy))
+                    .foregroundColor(.black)
+                    .padding(.top, 20)
+                    .opacity(opacity)
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.5)) {
+                scale = 1.0
+                opacity = 1.0
+                rotation = 0
+            }
+        }
+    }
+    
+    let colors: [Color] = [.red, .orange, .purple, .pink, .yellow]
 }
 
 struct PasswordStrengthLine: View {
@@ -606,7 +602,7 @@ struct PasswordStrengthLine: View {
         HStack(spacing: 4) {
             ForEach(0..<4) { index in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(index < Int(strength.strength.uiProgressValue * 4) ? strength.strength.uiColor : Color.white.opacity(0.1))
+                    .fill(index < Int(strength.strength.uiProgressValue * 4) ? strength.strength.uiColor : Color.gray.opacity(0.2))
                     .frame(height: 4)
                     .frame(maxWidth: .infinity)
             }
@@ -615,41 +611,7 @@ struct PasswordStrengthLine: View {
     }
 }
 
-// MARK: - Success Overlay
-struct SuccessOverlayView: View {
-    @State private var scale: CGFloat = 0.1
-    @State private var opacity: Double = 0
-    
-    var body: some View {
-        ZStack {
-            Color(red: 244/255, green: 37/255, blue: 123/255) // Brand Pink Flood
-                .ignoresSafeArea()
-            
-            VStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundColor(.white)
-                    .scaleEffect(scale)
-                
-                Text("Welcome!")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .opacity(opacity)
-                    .padding(.top, 20)
-            }
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
-                scale = 1.0
-            }
-            withAnimation(.easeIn(duration: 0.5).delay(0.3)) {
-                opacity = 1.0
-            }
-        }
-    }
-}
-
-// MARK: - UI Helper Extensions
+// MARK: - Extensions Recovery
 fileprivate extension PasswordStrength.StrengthLevel {
     var uiColor: Color {
         switch self.colorIdentifier {
