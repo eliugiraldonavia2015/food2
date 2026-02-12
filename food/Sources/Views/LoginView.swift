@@ -195,15 +195,15 @@ struct LoginView: View {
                 dividerWithText(isShowingSignUp ? "OR JOIN WITH" : "OR LOGIN WITH")
                 
                 HStack(spacing: 24) {
-                    SocialButton(icon: "g.circle.fill", color: .white) {
+                    LoginSocialButton(icon: "g.circle.fill", color: .white) {
                         handleGoogleSignIn()
                     }
                     
-                    SocialButton(icon: "apple.logo", color: .white) {
+                    LoginSocialButton(icon: "apple.logo", color: .white) {
                         // Apple Sign In Action
                     }
                     
-                    SocialButton(icon: "phone.circle.fill", color: .white) {
+                    LoginSocialButton(icon: "phone.circle.fill", color: .white) {
                         withAnimation { currentAuthFlow = .phone }
                     }
                 }
@@ -648,9 +648,10 @@ struct LoginView: View {
     // Removed performUsernameCheck as it is now integrated above
 
     // Restoring the method name expected by the view
-    private func handlePhoneAuthStateChange(_ newState: PhoneAuthState) {
-         if case .completed = newState {
+    private func handlePhoneAuthStateChange(_ newState: AuthService.PhoneAuthState) {
+         if case .verified = newState {
              // Dismiss or handle completion
+             // For example, navigate to main app or just let the auth state listener handle it (which switches root view)
          }
     }
     
@@ -772,7 +773,7 @@ private struct PrimaryGradientButton: View {
     }
 }
 
-private struct SocialButton: View {
+private struct LoginSocialButton: View {
     let icon: String
     let color: Color
     let action: () -> Void
