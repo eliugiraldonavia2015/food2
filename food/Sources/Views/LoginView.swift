@@ -606,7 +606,7 @@ struct PasswordStrengthLine: View {
         HStack(spacing: 4) {
             ForEach(0..<4) { index in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(index < Int(strength.strength.progressValue * 4) ? strength.strength.uiColor : Color.white.opacity(0.1))
+                    .fill(index < Int(strength.strength.uiProgressValue * 4) ? strength.strength.uiColor : Color.white.opacity(0.1))
                     .frame(height: 4)
                     .frame(maxWidth: .infinity)
             }
@@ -646,5 +646,21 @@ struct SuccessOverlayView: View {
                 opacity = 1.0
             }
         }
+    }
+}
+
+// MARK: - UI Helper Extensions
+fileprivate extension PasswordStrength.StrengthLevel {
+    var uiColor: Color {
+        switch self.colorIdentifier {
+        case "red": return .red
+        case "orange": return .orange
+        case "green": return .green
+        default: return .gray
+        }
+    }
+    
+    var uiProgressValue: CGFloat {
+        return CGFloat(self.progressValue)
     }
 }
