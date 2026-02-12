@@ -453,23 +453,86 @@ struct BigGradientButton: View {
     let isLoading: Bool
     let action: () -> Void
     
+    // Brand Colors
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let brandOrange = Color.orange
+    
     var body: some View {
         Button(action: action) {
             ZStack {
                 if isLoading {
-                    ProgressView().tint(.white)
+                    ProfessionalSpinner()
+                        .transition(.scale.combined(with: .opacity))
                 } else {
                     Text(title)
                         .font(.headline.bold())
                         .tracking(1)
+                        .foregroundColor(.white)
+                        .transition(.scale.combined(with: .opacity))
                 }
             }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(Color(red: 244/255, green: 37/255, blue: 123/255)) // Solid Brand Pink
-            .clipShape(Capsule()) // Pill shape
-            .shadow(color: Color(red: 244/255, green: 37/255, blue: 123/255).opacity(0.4), radius: 10, y: 5)
+            // Morphing Geometry
+            .frame(width: isLoading ? 56 : nil, height: 56)
+            .frame(maxWidth: isLoading ? 56 : .infinity)
+            .background(
+                ZStack {
+                    if isLoading {
+                        Circle()
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.1), radius: 5, y: 5)
+                    } else {
+                        LinearGradient(colors: [brandPink, brandOrange], startPoint: .leading, endPoint: .trailing)
+                            .clipShape(Capsule())
+                    }
+                }
+            )
+            // Animations
+            .clipShape(Capsule())
+            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: isLoading)
+            .shadow(color: isLoading ? .clear : brandPink.opacity(0.4), radius: 10, y: 5)
+        }
+        .disabled(isLoading)
+    }
+}
+
+struct ProfessionalSpinner: View {
+    @State private var rotation: Double = 0
+    @State private var innerRotation: Double = 0
+    
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    
+    var body: some View {
+        ZStack {
+            // Outer Ring (Gradient)
+            Circle()
+                .trim(from: 0, to: 0.7)
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [brandPink, .orange]),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                )
+                .frame(width: 32, height: 32)
+                .rotationEffect(Angle(degrees: rotation))
+            
+            // Inner Ring (Counter-rotating)
+            Circle()
+                .trim(from: 0, to: 0.6)
+                .stroke(
+                    brandPink.opacity(0.5),
+                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                )
+                .frame(width: 18, height: 18)
+                .rotationEffect(Angle(degrees: -innerRotation))
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+            withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
+                innerRotation = 360
+            }
         }
     }
 }
