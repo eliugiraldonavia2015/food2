@@ -100,10 +100,17 @@ struct NotificationsScreen: View {
                     .padding(.bottom, 100) // Extra padding for bottom tab bar
                 }
             }
-        }
-        .fullScreenCover(item: $selectedStory) { story in
-            StoryDetailView(update: story) {
-                selectedStory = nil
+            
+            // 3. Story Overlay
+            if let story = selectedStory {
+                StoryDetailView(update: story) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        selectedStory = nil
+                    }
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(100)
+                .ignoresSafeArea()
             }
         }
         .onAppear {
@@ -178,7 +185,9 @@ struct NotificationsScreen: View {
                 // Restaurant Circles
                 ForEach(updates) { update in
                     Button(action: {
-                        selectedStory = update
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            selectedStory = update
+                        }
                     }) {
                         VStack(spacing: 6) {
                             ZStack {

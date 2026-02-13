@@ -29,6 +29,9 @@ struct StoryDetailView: View {
             // Main Content Layer
             GeometryReader { proxy in
                 ZStack(alignment: .bottom) {
+                    // Background (Dark) - Attached to the card content
+                    Color.black
+                    
                     // Story Image
                     WebImage(url: URL(string: storyImage))
                         .resizable()
