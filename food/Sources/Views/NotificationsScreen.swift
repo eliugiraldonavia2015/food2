@@ -45,6 +45,7 @@ struct NotificationsScreen: View {
     ]
     
     @State private var animateList = false
+    @State private var selectedStory: RestaurantUpdate?
 
     // MARK: - Body
     var body: some View {
@@ -98,6 +99,11 @@ struct NotificationsScreen: View {
                     }
                     .padding(.bottom, 100) // Extra padding for bottom tab bar
                 }
+            }
+        }
+        .fullScreenCover(item: $selectedStory) { story in
+            StoryDetailView(update: story) {
+                selectedStory = nil
             }
         }
         .onAppear {
@@ -171,46 +177,51 @@ struct NotificationsScreen: View {
                 
                 // Restaurant Circles
                 ForEach(updates) { update in
-                    VStack(spacing: 6) {
-                        ZStack {
-                            // Ring
-                            if update.hasUpdate {
-                                Circle()
-                                    .stroke(
-                                        AngularGradient(
-                                            gradient: Gradient(colors: [
-                                                Color(red: 244/255, green: 37/255, blue: 123/255), // Brand Pink
-                                                Color.orange
-                                            ]),
-                                            center: .center
-                                        ),
-                                        lineWidth: 2.5
-                                    )
-                                    .frame(width: 72, height: 72)
-                            } else {
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                                    .frame(width: 72, height: 72)
+                    Button(action: {
+                        selectedStory = update
+                    }) {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                // Ring
+                                if update.hasUpdate {
+                                    Circle()
+                                        .stroke(
+                                            AngularGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color(red: 244/255, green: 37/255, blue: 123/255), // Brand Pink
+                                                    Color.orange
+                                                ]),
+                                                center: .center
+                                            ),
+                                            lineWidth: 2.5
+                                        )
+                                        .frame(width: 72, height: 72)
+                                } else {
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                        .frame(width: 72, height: 72)
+                                }
+                                
+                                // Image
+                                if let url = URL(string: update.logo) {
+                                    WebImage(url: url)
+                                        .resizable()
+                                        .scaledToFit() // Logos usually fit better
+                                        .padding(12)   // Padding inside circle for logo
+                                        .frame(width: 64, height: 64)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                }
                             }
                             
-                            // Image
-                            if let url = URL(string: update.logo) {
-                                WebImage(url: url)
-                                    .resizable()
-                                    .scaledToFit() // Logos usually fit better
-                                    .padding(12)   // Padding inside circle for logo
-                                    .frame(width: 64, height: 64)
-                                    .background(Color.white)
-                                    .clipShape(Circle())
-                            }
+                            Text(update.name)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                                .frame(width: 70)
                         }
-                        
-                        Text(update.name)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
-                            .frame(width: 70)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.trailing, 20)
