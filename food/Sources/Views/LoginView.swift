@@ -454,7 +454,7 @@ struct BigGradientButton: View {
     let action: () -> Void
     
     // Brand Colors
-    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+    private let brandPink = Color(red: 244/255.0, green: 37/255.0, blue: 123/255.0)
     private let brandOrange = Color.orange
     
     var body: some View {
