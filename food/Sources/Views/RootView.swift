@@ -58,16 +58,17 @@ struct RootView: View {
             .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
             
             // ⏳ Overlay de carga global (Login/Auth)
-            if auth.isLoading {
-                ZStack {
-                    Color.black.opacity(0.2)
-                        .edgesIgnoringSafeArea(.all)
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .orange))
-                        .scaleEffect(1.5)
-                }
-                .zIndex(999)
-            }
+            // ELIMINADO: Ya tenemos animación personalizada en LoginView
+            // if auth.isLoading {
+            //     ZStack {
+            //         Color.black.opacity(0.2)
+            //             .edgesIgnoringSafeArea(.all)
+            //         ProgressView()
+            //             .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+            //             .scaleEffect(1.5)
+            //     }
+            //     .zIndex(999)
+            // }
             
             // 🚀 Overlay de Subida de Video (Zero-Wait)
             // NOTA: Usamos el componente público definido en Components/UploadStatusOverlay.swift
