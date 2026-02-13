@@ -26,9 +26,6 @@ struct StoryDetailView: View {
     
     var body: some View {
         ZStack {
-            // Background (Dark)
-            Color.black.ignoresSafeArea()
-            
             // Main Content Layer
             GeometryReader { proxy in
                 ZStack(alignment: .bottom) {
