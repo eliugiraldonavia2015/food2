@@ -158,9 +158,10 @@ struct StoryDetailView: View {
                     }
                 }
                 .offset(y: dragOffset)
-                .scaleEffect(1.0 - (dragOffset / 1000.0))
-                .rotation3DEffect(.degrees(Double(dragOffset / 20)), axis: (x: 1, y: 0, z: 0))
-                .opacity(1.0 - (dragOffset / 500.0))
+                // Simplificamos la animación: solo movimiento vertical, sin escala ni rotación ni opacidad gradual
+                // .scaleEffect(1.0 - (dragOffset / 1000.0))
+                // .rotation3DEffect(.degrees(Double(dragOffset / 20)), axis: (x: 1, y: 0, z: 0))
+                // .opacity(1.0 - (dragOffset / 500.0))
             }
             
             // Flash Offer Overlay
@@ -219,6 +220,9 @@ struct FlashOfferView: View {
     @Binding var isPresented: Bool
     let update: NotificationsScreen.RestaurantUpdate
     var onDismiss: () -> Void
+    
+    // Añadimos gesto de arrastre a la FlashOfferView
+    @State private var offset: CGFloat = 0
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -331,6 +335,27 @@ struct FlashOfferView: View {
             .background(Color(uiColor: .systemBackground))
             .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
             .shadow(radius: 20)
+            .offset(y: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if value.translation.height > 0 {
+                            offset = value.translation.height
+                        }
+                    }
+                    .onEnded { value in
+                        if value.translation.height > 100 {
+                            withAnimation {
+                                isPresented = false
+                                onDismiss()
+                            }
+                        } else {
+                            withAnimation(.spring()) {
+                                offset = 0
+                            }
+                        }
+                    }
+            )
             .transition(.move(edge: .bottom))
         }
     }
