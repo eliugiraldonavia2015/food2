@@ -158,9 +158,9 @@ struct StoryDetailView: View {
                     }
                 }
                 .offset(y: dragOffset)
-                .scaleEffect(1 - (dragOffset / 1000))
+                .scaleEffect(1.0 - (dragOffset / 1000.0))
                 .rotation3DEffect(.degrees(Double(dragOffset / 20)), axis: (x: 1, y: 0, z: 0))
-                .opacity(1 - (dragOffset / 500))
+                .opacity(1.0 - (dragOffset / 500.0))
             }
             
             // Flash Offer Overlay
@@ -333,16 +333,5 @@ struct FlashOfferView: View {
             .shadow(radius: 20)
             .transition(.move(edge: .bottom))
         }
-    }
-}
-
-// Helper for rounded corners specific sides
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
     }
 }
