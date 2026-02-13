@@ -496,8 +496,7 @@ struct BigGradientButton: View {
 }
 
 struct ProfessionalSpinner: View {
-    @State private var rotation: Double = 0
-    @State private var innerRotation: Double = 0
+    @State private var isAnimating = false
     
     private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
     
@@ -508,13 +507,18 @@ struct ProfessionalSpinner: View {
                 .trim(from: 0, to: 0.7)
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [brandPink, .orange]),
+                        gradient: Gradient(colors: [brandPink, brandPink.opacity(0.3)]),
                         center: .center
                     ),
                     style: StrokeStyle(lineWidth: 4, lineCap: .round)
                 )
                 .frame(width: 32, height: 32)
-                .rotationEffect(Angle(degrees: rotation))
+                .rotationEffect(Angle(degrees: isAnimating ? 360 : 0))
+                .animation(
+                    Animation.linear(duration: 1.0)
+                        .repeatForever(autoreverses: false),
+                    value: isAnimating
+                )
             
             // Inner Ring (Counter-rotating)
             Circle()
@@ -524,15 +528,20 @@ struct ProfessionalSpinner: View {
                     style: StrokeStyle(lineWidth: 3, lineCap: .round)
                 )
                 .frame(width: 18, height: 18)
-                .rotationEffect(Angle(degrees: -innerRotation))
+                .rotationEffect(Angle(degrees: isAnimating ? -360 : 0))
+                .animation(
+                    Animation.linear(duration: 1.5)
+                        .repeatForever(autoreverses: false),
+                    value: isAnimating
+                )
         }
         .onAppear {
-            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                rotation = 360
+            DispatchQueue.main.async {
+                isAnimating = true
             }
-            withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
-                innerRotation = 360
-            }
+        }
+        .onDisappear {
+            isAnimating = false
         }
     }
 }
