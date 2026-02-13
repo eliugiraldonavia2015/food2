@@ -13,6 +13,7 @@ struct StoryDetailView: View {
     @State private var showDetails = false
     @State private var dragOffset: CGFloat = 0
     @State private var isAnimating = false
+    @State private var showFlashOffer = false
     
     // Constants
     private let storyDuration: TimeInterval = 5.0
@@ -128,7 +129,10 @@ struct StoryDetailView: View {
                             
                             // Flash Offer Button
                             Button(action: {
-                                // Action for flash offer
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                    showFlashOffer = true
+                                    isPaused = true
+                                }
                             }) {
                                 HStack(spacing: 6) {
                                     Text("View Flash Offer")
@@ -153,13 +157,26 @@ struct StoryDetailView: View {
                         }
                     }
                 }
+                .offset(y: dragOffset)
+                .scaleEffect(1 - (dragOffset / 1000))
+                .rotation3DEffect(.degrees(Double(dragOffset / 20)), axis: (x: 1, y: 0, z: 0))
+                .opacity(1 - (dragOffset / 500))
+            }
+            
+            // Flash Offer Overlay
+            if showFlashOffer {
+                FlashOfferView(isPresented: $showFlashOffer, update: update) {
+                    isPaused = false
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(100)
             }
         }
         .onAppear {
             isAnimating = true
         }
         .onReceive(timer) { _ in
-            guard !isPaused else { return }
+            guard !isPaused && !showFlashOffer else { return }
             if progress < 1.0 {
                 progress += 0.05 / storyDuration
             } else {
@@ -169,22 +186,163 @@ struct StoryDetailView: View {
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
+                    guard !showFlashOffer else { return }
                     // Pause on touch down
                     isPaused = true
-                    if value.translation.height < 0 {
-                         // Handling swipe up logic if needed
+                    
+                    if value.translation.height > 0 {
+                        dragOffset = value.translation.height
                     }
                 }
                 .onEnded { value in
+                    guard !showFlashOffer else { return }
+                    
                     if value.translation.height > 100 {
                         onClose() // Swipe down to close
                     } else if value.translation.height < -50 {
-                        // Swipe up action
-                        print("Swiped up")
+                        // Swipe up action for flash offer
+                         withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            showFlashOffer = true
+                        }
                     } else {
-                        isPaused = false
+                        withAnimation(.spring()) {
+                            dragOffset = 0
+                            isPaused = false
+                        }
                     }
                 }
         )
+    }
+}
+
+struct FlashOfferView: View {
+    @Binding var isPresented: Bool
+    let update: NotificationsScreen.RestaurantUpdate
+    var onDismiss: () -> Void
+    
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.6).ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation {
+                        isPresented = false
+                        onDismiss()
+                    }
+                }
+            
+            VStack(spacing: 0) {
+                // Handle
+                Capsule()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 40, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
+                
+                // Content
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header
+                        VStack(spacing: 8) {
+                            Text("FLASH OFFER")
+                                .font(.system(size: 12, weight: .bold))
+                                .tracking(2)
+                                .foregroundColor(.orange)
+                            
+                            Text("50% OFF")
+                                .font(.system(size: 48, weight: .heavy))
+                                .foregroundColor(.primary)
+                            
+                            Text("Classic Cheese Burger")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // Hero Image
+                        WebImage(url: URL(string: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd"))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 250)
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                            .padding(.horizontal)
+                        
+                        // Timer / Details
+                        HStack(spacing: 20) {
+                            VStack(spacing: 4) {
+                                Text("EXPIRES IN")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.secondary)
+                                Text("04:59")
+                                    .font(.title2)
+                                    .fontDesign(.monospaced)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.red)
+                            }
+                            
+                            Divider()
+                                .frame(height: 40)
+                            
+                            VStack(spacing: 4) {
+                                Text("CODE")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.secondary)
+                                Text("BURGER50")
+                                    .font(.title2)
+                                    .fontDesign(.monospaced)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .cornerRadius(16)
+                        .padding(.horizontal)
+                        
+                        // Action Button
+                        Button(action: {
+                            // Claim action
+                        }) {
+                            Text("Redeem Now")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(Color.black)
+                                .cornerRadius(16)
+                                .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
+                        
+                        Text("Valid only for today. Cannot be combined with other offers.")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                            .padding(.bottom, 40)
+                    }
+                }
+            }
+            .background(Color(uiColor: .systemBackground))
+            .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
+            .shadow(radius: 20)
+            .transition(.move(edge: .bottom))
+        }
+    }
+}
+
+// Helper for rounded corners specific sides
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
