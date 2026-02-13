@@ -157,12 +157,11 @@ struct StoryDetailView: View {
                         }
                     }
                 }
-                .offset(y: dragOffset)
-                // Simplificamos la animación: solo movimiento vertical, sin escala ni rotación ni opacidad gradual
-                // .scaleEffect(1.0 - (dragOffset / 1000.0))
-                // .rotation3DEffect(.degrees(Double(dragOffset / 20)), axis: (x: 1, y: 0, z: 0))
-                // .opacity(1.0 - (dragOffset / 500.0))
+                .scaleEffect(1.0)
+                .rotation3DEffect(.degrees(0), axis: (x: 1, y: 0, z: 0))
+                .opacity(1.0)
             }
+            .offset(y: dragOffset)
             
             // Flash Offer Overlay
             if showFlashOffer {
@@ -336,25 +335,34 @@ struct FlashOfferView: View {
             .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
             .shadow(radius: 20)
             .offset(y: offset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        if value.translation.height > 0 {
-                            offset = value.translation.height
-                        }
-                    }
-                    .onEnded { value in
-                        if value.translation.height > 100 {
-                            withAnimation {
-                                isPresented = false
-                                onDismiss()
-                            }
-                        } else {
-                            withAnimation(.spring()) {
-                                offset = 0
-                            }
-                        }
-                    }
+            .overlay(
+                // Invisible draggable area at the top
+                GeometryReader { geo in
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .frame(height: geo.size.height * 0.2) // 20% height
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    if value.translation.height > 0 {
+                                        offset = value.translation.height
+                                    }
+                                }
+                                .onEnded { value in
+                                    if value.translation.height > 100 {
+                                        withAnimation {
+                                            isPresented = false
+                                            onDismiss()
+                                        }
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            offset = 0
+                                        }
+                                    }
+                                }
+                        )
+                },
+                alignment: .top
             )
             .transition(.move(edge: .bottom))
         }
