@@ -225,7 +225,10 @@ struct FlashOfferView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            Color.black.opacity(0.6).ignoresSafeArea()
+            // Invisible background for tap-to-dismiss
+            Color.clear
+                .contentShape(Rectangle())
+                .ignoresSafeArea()
                 .onTapGesture {
                     withAnimation {
                         isPresented = false
