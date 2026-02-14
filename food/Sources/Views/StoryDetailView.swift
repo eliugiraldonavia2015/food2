@@ -80,18 +80,18 @@ struct StoryDetailView: View {
                             WebImage(url: URL(string: update.logo))
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 36, height: 36)
+                                .frame(width: 44, height: 44)
                                 .clipShape(Circle())
                                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                             
                             // Text
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(update.name)
-                                    .font(.system(size: 15, weight: .semibold))
+                                    .font(.system(size: 17, weight: .semibold))
                                     .foregroundColor(.white)
                                 
                                 Text(storySubtitle)
-                                    .font(.system(size: 13, weight: .regular))
+                                    .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.white.opacity(0.8))
                             }
                             
