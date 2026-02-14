@@ -273,6 +273,14 @@ struct FlashOfferView: View {
                             .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
                             .padding(.horizontal)
                         
+                        // Description
+                        Text("Deliciosa hamburguesa con carne 100% Angus, queso cheddar fundido, cebolla caramelizada, lechuga fresca y nuestra salsa especial de la casa.")
+                            .font(.system(size: 15))
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                            .padding(.top, -10)
+                        
                         // Timer / Details
                         HStack(spacing: 20) {
                             VStack(spacing: 4) {
