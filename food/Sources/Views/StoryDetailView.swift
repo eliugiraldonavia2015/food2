@@ -72,7 +72,7 @@ struct StoryDetailView: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.top, 16) // Safe area top
+                        .padding(.top, 56) // Increased top padding (was 16)
                         
                         // Header
                         HStack(spacing: 12) {
