@@ -13,6 +13,7 @@ struct FoodDiscoveryView: View {
     var onClose: () -> Void
     var onSearch: () -> Void
     var animation: Namespace.ID
+    @Binding var selectedStory: RestaurantUpdate? // Binding for stories
     
     @State private var orderTapScale: CGFloat = 1.0
     
@@ -87,6 +88,14 @@ struct FoodDiscoveryView: View {
         ]
     }
     
+    // Stories Data
+    let updates: [RestaurantUpdate] = [
+        .init(name: "McDonald's", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", hasUpdate: true),
+        .init(name: "Starbucks", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", hasUpdate: true),
+        .init(name: "KFC", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png", hasUpdate: false),
+        .init(name: "Domino's", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", hasUpdate: true)
+    ]
+    
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -105,6 +114,10 @@ struct FoodDiscoveryView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 10) // Safe Area Top adjustment if needed
                         .padding(.bottom, 20)
+                        
+                        // Stories
+                        restaurantUpdatesSection
+                            .padding(.bottom, 24)
                         
                         // Hero Promo
                         heroPromo
@@ -887,6 +900,80 @@ struct FilterSheet: View {
         .ignoresSafeArea()
     }
     
+    private var restaurantUpdatesSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                // Add Story Button (Optional)
+                VStack(spacing: 6) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(uiColor: .systemGray6))
+                            .frame(width: 68, height: 68)
+                        Image(systemName: "plus")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundColor(.primary)
+                    }
+                    Text("Mis Favoritos")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.gray)
+                }
+                .padding(.leading, 20)
+                
+                // Restaurant Circles
+                ForEach(updates) { update in
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            selectedStory = update
+                        }
+                    }) {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                // Ring
+                                if update.hasUpdate {
+                                    Circle()
+                                        .stroke(
+                                            AngularGradient(
+                                                gradient: Gradient(colors: [
+                                                    Color(red: 244/255, green: 37/255, blue: 123/255), // Brand Pink
+                                                    Color.orange
+                                                ]),
+                                                center: .center
+                                            ),
+                                            lineWidth: 2.5
+                                        )
+                                        .frame(width: 72, height: 72)
+                                } else {
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                        .frame(width: 72, height: 72)
+                                }
+                                
+                                // Image
+                                if let url = URL(string: update.logo) {
+                                    WebImage(url: url)
+                                        .resizable()
+                                        .scaledToFit() // Logos usually fit better
+                                        .padding(12)   // Padding inside circle for logo
+                                        .frame(width: 64, height: 64)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                }
+                            }
+                            
+                            Text(update.name)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+                                .frame(width: 70)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.trailing, 20)
+        }
+    }
+
     private func filterSection<Content: View>(title: String, id: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: {

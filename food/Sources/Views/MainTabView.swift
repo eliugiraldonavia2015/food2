@@ -19,7 +19,7 @@ struct MainTabView: View {
     @State private var showFeed = false
     @State private var showFeedTrigger = false
     @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
-    @State private var selectedStory: NotificationsScreen.RestaurantUpdate? = nil // ✅ Estado para historia seleccionada
+    @State private var selectedStory: RestaurantUpdate? = nil // ✅ Estado para historia seleccionada
     @Namespace private var searchAnimation // ✅ Namespace para transición de búsqueda
 
     // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
@@ -42,7 +42,8 @@ struct MainTabView: View {
                             onClose: { },
                             // 🚀 ANIMACIÓN OPTIMIZADA: Más rápida (0.2s) para evitar sensación de lag
                             onSearch: { withAnimation(.easeOut(duration: 0.2)) { showSearchFromTab = true } },
-                            animation: searchAnimation
+                            animation: searchAnimation,
+                            selectedStory: $selectedStory
                         )
                             .overlay(
                                 // Visual Feed Trigger (State isolated to view)
@@ -54,7 +55,7 @@ struct MainTabView: View {
                                 }
                             )
                     }
-                case .notifications: NotificationsScreen(selectedStory: $selectedStory)
+                case .notifications: NotificationsScreen()
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
                 case .profile:
@@ -95,7 +96,8 @@ struct MainTabView: View {
                             showSearchFromTab = true
                         }
                     },
-                    animation: searchAnimation
+                    animation: searchAnimation,
+                    selectedStory: $selectedStory
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .zIndex(2)

@@ -17,6 +17,7 @@ struct NotificationsScreen: View {
         var unread: Bool
     }
 
+    // MARK: - State
     @State private var items: [NotificationItem] = [
         .init(kind: .order, user: "Food2 Delivery", message: "Tu pedido de Sushi Master ha sido entregado. ¡Disfruta!", time: "Ahora", thumbnail: nil, unread: true),
         .init(kind: .like, user: "camila_eats", message: "le gustó tu reseña de Tacos El Califa", time: "Hace 5 min", thumbnail: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80", unread: true),
@@ -28,23 +29,7 @@ struct NotificationsScreen: View {
         .init(kind: .follow, user: "carlos_g", message: "comenzó a seguirte", time: "Ayer", thumbnail: nil, unread: false)
     ]
     
-    // Restaurant Updates (Stories Style)
-    struct RestaurantUpdate: Identifiable {
-        let id = UUID()
-        let name: String
-        let logo: String
-        let hasUpdate: Bool
-    }
-    
-    let updates: [RestaurantUpdate] = [
-        .init(name: "McDonald's", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", hasUpdate: true),
-        .init(name: "Starbucks", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", hasUpdate: true),
-        .init(name: "KFC", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png", hasUpdate: false),
-        .init(name: "Domino's", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", hasUpdate: true)
-    ]
-    
     @State private var animateList = false
-    @Binding var selectedStory: RestaurantUpdate?
     
     // MARK: - Body
     var body: some View {
@@ -60,16 +45,6 @@ struct NotificationsScreen: View {
                 
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        // Restaurant Updates (Stories)
-                        restaurantUpdatesSection
-                            .padding(.top, 10)
-                            .padding(.bottom, 5)
-                        
-                        Divider()
-                            .padding(.bottom, 5)
-                        
-                        // Spacer for top padding
-                        Spacer().frame(height: 10)
                         
                         // Section: New
                         let unreadItems = items.filter { $0.unread }
@@ -152,78 +127,8 @@ struct NotificationsScreen: View {
     
     // MARK: - Components
     
-    private var restaurantUpdatesSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                // Add Story Button (Optional)
-                VStack(spacing: 6) {
-                    ZStack {
-                        Circle()
-                            .fill(Color(uiColor: .systemGray6))
-                            .frame(width: 68, height: 68)
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.primary)
-                    }
-                    Text("Mis Favoritos")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.gray)
-                }
-                .padding(.leading, 20)
-                
-                // Restaurant Circles
-                ForEach(updates) { update in
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            selectedStory = update
-                        }
-                    }) {
-                        VStack(spacing: 6) {
-                            ZStack {
-                                // Ring
-                                if update.hasUpdate {
-                                    Circle()
-                                        .stroke(
-                                            AngularGradient(
-                                                gradient: Gradient(colors: [
-                                                    Color(red: 244/255, green: 37/255, blue: 123/255), // Brand Pink
-                                                    Color.orange
-                                                ]),
-                                                center: .center
-                                            ),
-                                            lineWidth: 2.5
-                                        )
-                                        .frame(width: 72, height: 72)
-                                } else {
-                                    Circle()
-                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                                        .frame(width: 72, height: 72)
-                                }
-                                
-                                // Image
-                                if let url = URL(string: update.logo) {
-                                    WebImage(url: url)
-                                        .resizable()
-                                        .scaledToFit() // Logos usually fit better
-                                        .padding(12)   // Padding inside circle for logo
-                                        .frame(width: 64, height: 64)
-                                        .background(Color.white)
-                                        .clipShape(Circle())
-                                }
-                            }
-                            
-                            Text(update.name)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                                .frame(width: 70)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.trailing, 20)
-        }
+    private var notificationRow: some View {
+        EmptyView() // Just a placeholder or remove it if not needed
     }
 }
 

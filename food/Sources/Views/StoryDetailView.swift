@@ -4,7 +4,7 @@ import Combine
 
 struct StoryDetailView: View {
     // MARK: - Properties
-    let update: NotificationsScreen.RestaurantUpdate
+    let update: RestaurantUpdate
     var onClose: () -> Void
     
     // State
@@ -217,7 +217,7 @@ struct StoryDetailView: View {
 
 struct FlashOfferView: View {
     @Binding var isPresented: Bool
-    let update: NotificationsScreen.RestaurantUpdate
+    let update: RestaurantUpdate
     var onDismiss: () -> Void
     
     // Añadimos gesto de arrastre a la FlashOfferView
