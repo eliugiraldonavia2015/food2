@@ -17,7 +17,6 @@ struct NotificationsScreen: View {
         var unread: Bool
     }
 
-    // MARK: - State
     @State private var items: [NotificationItem] = [
         .init(kind: .order, user: "Food2 Delivery", message: "Tu pedido de Sushi Master ha sido entregado. ¡Disfruta!", time: "Ahora", thumbnail: nil, unread: true),
         .init(kind: .like, user: "camila_eats", message: "le gustó tu reseña de Tacos El Califa", time: "Hace 5 min", thumbnail: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80", unread: true),
@@ -45,8 +44,8 @@ struct NotificationsScreen: View {
     ]
     
     @State private var animateList = false
-    @State private var selectedStory: RestaurantUpdate?
-
+    @Binding var selectedStory: RestaurantUpdate?
+    
     // MARK: - Body
     var body: some View {
         ZStack {
@@ -101,17 +100,7 @@ struct NotificationsScreen: View {
                 }
             }
             
-            // 3. Story Overlay
-            if let story = selectedStory {
-                StoryDetailView(update: story) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        selectedStory = nil
-                    }
-                }
-                .transition(.move(edge: .bottom))
-                .zIndex(100)
-                .ignoresSafeArea()
-            }
+            // 3. Story Overlay logic removed from here as it is now in MainTabView
         }
         .onAppear {
             animateList = true

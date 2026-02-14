@@ -19,6 +19,7 @@ struct MainTabView: View {
     @State private var showFeed = false
     @State private var showFeedTrigger = false
     @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
+    @State private var selectedStory: NotificationsScreen.RestaurantUpdate? = nil // ✅ Estado para historia seleccionada
     @Namespace private var searchAnimation // ✅ Namespace para transición de búsqueda
 
     // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
@@ -53,7 +54,7 @@ struct MainTabView: View {
                                 }
                             )
                     }
-                case .notifications: NotificationsScreen()
+                case .notifications: NotificationsScreen(selectedStory: $selectedStory)
                 case .store: StoreScreen()
                 case .messages: MessagesListView()
                 case .profile:
@@ -144,8 +145,18 @@ struct MainTabView: View {
                     .zIndex(20)
                     .transition(.opacity)
             }
-
-
+            
+            // Story Overlay (Global to cover everything including TabBar)
+            if let story = selectedStory {
+                StoryDetailView(update: story) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        selectedStory = nil
+                    }
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(100)
+                .ignoresSafeArea()
+            }
         }
         
         .animation(.easeOut(duration: 0.25), value: showCommentsOverlay)
