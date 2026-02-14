@@ -72,7 +72,7 @@ struct StoryDetailView: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.top, 56) // Increased top padding (was 16)
+                        .padding(.top, 64) // Increased top padding further (was 56)
                         
                         // Header
                         HStack(spacing: 12) {
@@ -80,18 +80,18 @@ struct StoryDetailView: View {
                             WebImage(url: URL(string: update.logo))
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 44, height: 44)
+                                .frame(width: 50, height: 50) // Increased size (was 44)
                                 .clipShape(Circle())
                                 .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                             
                             // Text
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(update.name)
-                                    .font(.system(size: 17, weight: .semibold))
+                                    .font(.system(size: 19, weight: .bold)) // Increased size & weight (was 17, semibold)
                                     .foregroundColor(.white)
                                 
                                 Text(storySubtitle)
-                                    .font(.system(size: 14, weight: .regular))
+                                    .font(.system(size: 15, weight: .medium)) // Increased size & weight (was 14, regular)
                                     .foregroundColor(.white.opacity(0.8))
                             }
                             
@@ -334,6 +334,7 @@ struct FlashOfferView: View {
                     }
                 }
             }
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.75) // Limit height to 75%
             .background(Color(uiColor: .systemBackground))
             .clipShape(RoundedCorner(radius: 30, corners: [.topLeft, .topRight]))
             .shadow(radius: 20)
