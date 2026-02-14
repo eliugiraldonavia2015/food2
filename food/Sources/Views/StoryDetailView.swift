@@ -318,9 +318,9 @@ struct FlashOfferView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(Color.black)
+                                .background(Color.green) // Changed from Black to Green
                                 .cornerRadius(16)
-                                .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+                                .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4) // Green shadow
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 20)
