@@ -405,30 +405,34 @@ struct FoodDiscoveryView: View {
     }
     
     private var heroPromo: some View {
-        ZStack(alignment: .bottomLeading) {
-            safeImage(url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", width: nil, height: 220, contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .overlay(
-                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .leading, endPoint: .trailing)
-                )
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("EXCLUSIVO DE HOY")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(primaryColor)
-                    .tracking(1)
+        Button(action: {
+            selectedDishId = "green-burger"
+            showFullMenu = true
+        }) {
+            ZStack(alignment: .bottomLeading) {
+                safeImage(url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", width: nil, height: 220, contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .overlay(
+                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .leading, endPoint: .trailing)
+                    )
                 
-                Text("Sabor ")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white) +
-                Text("Premium")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(primaryColor) +
-                Text("\nen tu puerta.")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Button(action: {}) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("EXCLUSIVO DE HOY")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(primaryColor)
+                        .tracking(1)
+                    
+                    Text("Sabor ")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white) +
+                    Text("Premium")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(primaryColor) +
+                    Text("\nen tu puerta.")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    // Visual "Button" only
                     Text("Pedir Ahora")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
@@ -436,23 +440,24 @@ struct FoodDiscoveryView: View {
                         .padding(.vertical, 10)
                         .background(primaryColor)
                         .cornerRadius(20)
+                        .padding(.top, 8)
                 }
-                .padding(.top, 8)
+                .padding(24)
             }
-            .padding(24)
+            .cornerRadius(24)
+            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            .overlay(
+                // Pagination Dots
+                HStack(spacing: 6) {
+                    Capsule().fill(primaryColor).frame(width: 20, height: 6)
+                    Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+                    Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+                }
+                .padding(.bottom, 12)
+                , alignment: .bottom
+            )
         }
-        .cornerRadius(24)
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-        .overlay(
-            // Pagination Dots
-            HStack(spacing: 6) {
-                Capsule().fill(primaryColor).frame(width: 20, height: 6)
-                Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
-                Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
-            }
-            .padding(.bottom, 12)
-            , alignment: .bottom
-        )
+        .buttonStyle(ScaleButtonStyle())
     }
     
     private var categoriesSection: some View {
@@ -601,7 +606,11 @@ struct FoodDiscoveryView: View {
             VStack(spacing: 24) {
                 ForEach(Array(Self.featuredRestaurants.enumerated()), id: \.element.id) { index, restaurant in
                     Button(action: {
-                        // Navigate to restaurant details
+                        // Navigate to restaurant details (Full Menu)
+                        // Para restaurantes, abrimos el menú sin seleccionar un platillo específico automáticamente,
+                        // a menos que queramos destacar el "best seller". Por ahora, solo abrir menú.
+                        selectedDishId = nil 
+                        showFullMenu = true
                     }) {
                         VStack(alignment: .leading, spacing: 0) {
                             // Image Top
