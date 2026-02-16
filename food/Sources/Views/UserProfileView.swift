@@ -18,7 +18,7 @@ struct UserProfileView: View {
     
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
-    private let dragThreshold: CGFloat = UIScreen.main.bounds.width * 0.25 // 25% drag to dismiss
+    private let dragThreshold: CGFloat = UIScreen.main.bounds.width * 0.15 // 15% like FeedDrawer
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 2),
         GridItem(.flexible(), spacing: 2),
@@ -117,29 +117,30 @@ struct UserProfileView: View {
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
-        .offset(x: dragOffset)
-        .gesture(
-            DragGesture()
-                .onChanged { value in
-                    // Only allow dragging from the left edge (first 50pts) and only to the right
-                    if value.startLocation.x < 50 && value.translation.width > 0 {
-                        withAnimation(.interactiveSpring()) {
-                            dragOffset = value.translation.width
-                        }
-                    }
-                }
-                .onEnded { value in
-                    if value.startLocation.x < 50 {
-                        if value.translation.width > dragThreshold {
-                            dismiss()
-                        } else {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { // Match FeedDrawer physics
-                                dragOffset = 0
+        // Invisible Drag Zone for Swipe Back
+        .overlay(alignment: .leading) {
+            Color.clear
+                .frame(width: 40) // Invisible zone on the left edge
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if value.translation.width > 0 {
+                                dragOffset = value.translation.width
                             }
                         }
-                    }
-                }
-        )
+                        .onEnded { value in
+                            if value.translation.width > dragThreshold {
+                                dismiss()
+                            } else {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                    dragOffset = 0
+                                }
+                            }
+                        }
+                )
+        }
+        .offset(x: dragOffset)
         .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
         .preferredColorScheme(.light)
