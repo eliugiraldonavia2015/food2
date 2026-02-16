@@ -102,18 +102,21 @@ struct FoodDiscoveryView: View {
             backgroundColor.ignoresSafeArea()
             
             VStack(spacing: 0) {
+                // Fixed Header
+                headerView
+                    .padding(.horizontal, 20)
+                    .padding(.top, 60) // Safe Area adjustment
+                    .padding(.bottom, 10)
+                    .background(backgroundColor)
+                
                 // Scrollable Content
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
                         
-                        // Header & Search
-                        VStack(spacing: 16) {
-                            headerView
-                            searchBar
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10) // Safe Area Top adjustment if needed
-                        .padding(.bottom, 20)
+                        // Search Bar
+                        searchBar
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 20)
                         
                         // Stories
                         restaurantUpdatesSection
@@ -143,7 +146,6 @@ struct FoodDiscoveryView: View {
                         trendingSection
                             .padding(.bottom, 120) // Space for floating bar
                     }
-                    .padding(.top, 50) // Space for Status Bar
                 }
             }
             .blur(radius: showFilters ? 6 : 0)

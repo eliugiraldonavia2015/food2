@@ -23,10 +23,6 @@ struct MessagesListView: View {
         return base.filter { $0.title.localizedCaseInsensitiveContains(q) || $0.subtitle.localizedCaseInsensitiveContains(q) }
     }
     
-    // Active users (mocked from conversations for now)
-    private var activeUsers: [Conversation] {
-        store.conversations.filter { $0.isOnline }
-    }
 
     var body: some View {
         NavigationStack {
@@ -39,13 +35,7 @@ struct MessagesListView: View {
                 
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Active Stories Section
-                        if !activeUsers.isEmpty {
-                            activeStoriesSection
-                            Divider()
-                                .padding(.vertical, 10)
-                        }
-                        
+
                         // Messages List
                         LazyVStack(spacing: 0) {
                             ForEach(Array(filteredConversations.enumerated()), id: \.element.id) { index, convo in
@@ -135,67 +125,7 @@ struct MessagesListView: View {
         .padding(.bottom, 16)
     }
     
-    private var activeStoriesSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                // Add Story Button
-                VStack(spacing: 8) {
-                    ZStack {
-                        Circle()
-                            .fill(Color(uiColor: .systemGray6))
-                            .frame(width: 64, height: 64)
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(.primary)
-                    }
-                    Text("Tu historia")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.gray)
-                }
-                .padding(.leading, 20)
-                
-                // Active Users
-                ForEach(activeUsers) { user in
-                    VStack(spacing: 8) {
-                        ZStack(alignment: .bottomTrailing) {
-                            Circle()
-                                .fill(Color.gray.opacity(0.1))
-                                .frame(width: 64, height: 64)
-                                .overlay(
-                                    Image(systemName: user.avatarSystemName)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .padding(14)
-                                        .foregroundColor(.gray)
-                                )
-                                .overlay(
-                                    Circle()
-                                        .stroke(brandPink, lineWidth: 2)
-                                        .padding(-4)
-                                        .opacity(user.unreadCount ?? 0 > 0 ? 1 : 0)
-                                )
-                            
-                            if user.isOnline {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 16, height: 16)
-                                    .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 3))
-                            }
-                        }
-                        
-                        Text(user.title.components(separatedBy: " ").first ?? user.title)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
-                            .frame(width: 70)
-                    }
-                }
-            }
-            .padding(.trailing, 20)
-            .padding(.top, 10) // Fix cutoff
-            .padding(.bottom, 10)
-        }
-    }
+
 }
 
 // MARK: - Conversation Row
