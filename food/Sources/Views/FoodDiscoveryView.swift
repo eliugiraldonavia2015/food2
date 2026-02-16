@@ -17,6 +17,9 @@ struct FoodDiscoveryView: View {
     
     @State private var orderTapScale: CGFloat = 1.0
     
+    // Scroll Tracking
+    @State private var scrollOffset: CGFloat = 0
+    
     // Animation States
     @State private var animateHeader = false
     @State private var animateSearch = false
@@ -146,6 +149,15 @@ struct FoodDiscoveryView: View {
                         trendingSection
                             .padding(.bottom, 120) // Space for floating bar
                     }
+                    .background(GeometryReader {
+                        Color.clear.preference(key: ViewOffsetKey.self, value: -$0.frame(in: .named("scroll")).origin.y)
+                    })
+                }
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ViewOffsetKey.self) { value in
+                    withAnimation {
+                        scrollOffset = value
+                    }
                 }
             }
             .blur(radius: showFilters ? 6 : 0)
@@ -267,6 +279,19 @@ struct FoodDiscoveryView: View {
             
             // Right Icons
             HStack(spacing: 12) {
+                if scrollOffset > 80 {
+                    Button(action: { onSearch() }) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(primaryTextColor)
+                            .frame(width: 40, height: 40)
+                            .background(secondaryBackgroundColor)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .transition(.scale.combined(with: .opacity))
+                }
+                
                 Button(action: {}) {
                     Image(systemName: "gift")
                         .font(.system(size: 20))
@@ -1106,5 +1131,14 @@ struct FlowLayout: Layout {
         }
         
         return (CGSize(width: maxWidth, height: currentY + lineHeight), points)
+    }
+}
+
+// MARK: - View Offset Key
+struct ViewOffsetKey: PreferenceKey {
+    typealias Value = CGFloat
+    static var defaultValue = CGFloat.zero
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value += nextValue()
     }
 }
