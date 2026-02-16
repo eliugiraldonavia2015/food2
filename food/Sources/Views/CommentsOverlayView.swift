@@ -9,6 +9,7 @@ public struct CommentsOverlayView: View {
     @State private var commentText: String = ""
     @State private var comments: [Comment] = [] // Lista local para UI
     @State private var isLoading = false
+    @State private var isSending = false // Animación botón enviar
     
     // Modelo de comentario PÚBLICO
     public struct Comment: Identifiable {
@@ -18,14 +19,16 @@ public struct CommentsOverlayView: View {
         public let text: String
         public let timestamp: Date
         public let avatarUrl: String
+        public let replies: [Comment] // Respuestas anidadas
         
-        public init(id: String, userId: String, username: String, text: String, timestamp: Date, avatarUrl: String) {
+        public init(id: String, userId: String, username: String, text: String, timestamp: Date, avatarUrl: String, replies: [Comment] = []) {
             self.id = id
             self.userId = userId
             self.username = username
             self.text = text
             self.timestamp = timestamp
             self.avatarUrl = avatarUrl
+            self.replies = replies
         }
     }
     
@@ -35,12 +38,27 @@ public struct CommentsOverlayView: View {
         self.videoId = videoId
     }
     
+    // MOCK DATA
+    private func getMockComments() -> [Comment] {
+        return [
+            Comment(id: "1", userId: "u1", username: "Sofía G.", text: "¡Se ve increíble! 😍 ¿Dónde es?", timestamp: Date().addingTimeInterval(-3600), avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", replies: [
+                Comment(id: "1a", userId: "u2", username: "Carlos R.", text: "Es en La Condesa, muy recomendado.", timestamp: Date().addingTimeInterval(-1800), avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e")
+            ]),
+            Comment(id: "2", userId: "u3", username: "Andrea M.", text: "Necesito probar esa hamburguesa YA 🍔🔥", timestamp: Date().addingTimeInterval(-7200), avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb"),
+            Comment(id: "3", userId: "u4", username: "FoodieMex", text: "El mejor lugar de tacos 🌮", timestamp: Date().addingTimeInterval(-10000), avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", replies: [
+                Comment(id: "3a", userId: "u5", username: "Luisa P.", text: "¡Totalmente de acuerdo!", timestamp: Date().addingTimeInterval(-5000), avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2")
+            ]),
+            Comment(id: "4", userId: "u6", username: "Ricardo T.", text: "¿Tienen opciones veganas? 🌱", timestamp: Date().addingTimeInterval(-15000), avatarUrl: "https://images.unsplash.com/photo-1527980965255-d3b416303d12"),
+            Comment(id: "5", userId: "u7", username: "Valeria S.", text: "Excelente servicio ⭐️⭐️⭐️⭐️⭐️", timestamp: Date().addingTimeInterval(-20000), avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9", replies: [
+                Comment(id: "5a", userId: "u8", username: "Restaurante", text: "¡Gracias Valeria! Te esperamos pronto.", timestamp: Date().addingTimeInterval(-1000), avatarUrl: "https://images.unsplash.com/photo-1556910103-1c02745a30bf")
+            ]),
+            Comment(id: "6", userId: "u9", username: "Miguel A.", text: "Precio?", timestamp: Date().addingTimeInterval(-25000), avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d")
+        ]
+    }
+    
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Fondo oscuro semitransparente
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture(perform: onClose)
+            // Fondo oscuro eliminado de aquí (ahora en MainTabView)
             
             VStack(spacing: 0) {
                 // Header
@@ -82,6 +100,8 @@ public struct CommentsOverlayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 8)
+                    // Espacio extra al final para que el último comentario no quede tapado por el input
+                    .padding(.bottom, 80) 
                 }
                 
                 // Input Bar
@@ -97,13 +117,22 @@ public struct CommentsOverlayView: View {
                             TextField("Añadir comentario...", text: $commentText)
                                 .foregroundColor(.white)
                                 .accentColor(.white)
+                                .submitLabel(.send)
                             
                             if !commentText.isEmpty {
                                 Button(action: sendComment) {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.green)
+                                    if isSending {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Image(systemName: "arrow.up.circle.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.green)
+                                            .transition(.scale.combined(with: .opacity))
+                                    }
                                 }
+                                .disabled(isSending)
                             }
                         }
                         .padding(.horizontal, 12)
@@ -122,13 +151,43 @@ public struct CommentsOverlayView: View {
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
             .cornerRadius(16, corners: [.topLeft, .topRight])
             .padding(.bottom, 0) // Reset padding
+            // ✅ Fix: Mover toda la vista hacia arriba cuando aparece el teclado
+            .offset(y: -keyboardHeight)
+            .animation(.easeOut(duration: 0.16), value: keyboardHeight)
         }
         .edgesIgnoringSafeArea(.bottom) // ✅ Fix: Extender hasta abajo
-        .onAppear(perform: loadComments)
+        .onAppear {
+            loadComments()
+            setupKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
+        }
+    }
+    
+    @State private var keyboardHeight: CGFloat = 0
+    
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                self.keyboardHeight = keyboardFrame.height
+            }
+        }
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            self.keyboardHeight = 0
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self)
     }
     
     private func loadComments() {
-        guard let vid = videoId else { return }
+        guard let vid = videoId else { 
+            // Cargar mocks si no hay ID (modo diseño/prueba)
+            self.comments = getMockComments()
+            return 
+        }
         isLoading = true
         
         DatabaseService.shared.fetchComments(videoId: vid) { result in
@@ -145,29 +204,32 @@ public struct CommentsOverlayView: View {
     }
     
     private func sendComment() {
-        guard let vid = videoId, !commentText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        guard let user = AuthService.shared.user else { return } // Validar auth
+        // Validar texto
+        guard !commentText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         
         let text = commentText
         commentText = "" // Limpiar input inmediatamente
+        withAnimation { isSending = true } // Iniciar animación
         
-        // Optimistic UI: Mostrar comentario localmente
-        let tempComment = Comment(
-            id: UUID().uuidString,
-            userId: user.uid,
-            username: user.username ?? "Yo",
-            text: text,
-            timestamp: Date(),
-            avatarUrl: user.photoURL?.absoluteString ?? ""
-        )
-        withAnimation {
-            comments.insert(tempComment, at: 0)
-        }
-        
-        DatabaseService.shared.postComment(videoId: vid, text: text, userId: user.uid) { error in
-            if let error = error {
-                print("Error sending comment: \(error)")
-                // TODO: Revertir optimistic UI si falla
+        // Simulación o Envío Real
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation {
+                let user = AuthService.shared.user
+                let tempComment = Comment(
+                   id: UUID().uuidString,
+                   userId: user?.uid ?? "me",
+                   username: user?.username ?? "Yo",
+                   text: text,
+                   timestamp: Date(),
+                   avatarUrl: user?.photoURL?.absoluteString ?? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
+                )
+                comments.insert(tempComment, at: 0)
+                isSending = false
+                
+                // Si hay video real, intentar enviar a BD en background
+                if let vid = videoId, let uid = user?.uid {
+                    DatabaseService.shared.postComment(videoId: vid, text: text, userId: uid) { _ in }
+                }
             }
         }
     }
@@ -176,6 +238,7 @@ public struct CommentsOverlayView: View {
 // Subvista para cada fila de comentario
 struct CommentRow: View {
     let comment: CommentsOverlayView.Comment
+    @State private var showReplies = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -199,9 +262,65 @@ struct CommentRow: View {
                     .foregroundColor(.white)
                     .lineLimit(nil)
                 
-                Text(timeAgo(comment.timestamp))
-                    .font(.system(size: 10))
-                    .foregroundColor(.gray)
+                HStack(spacing: 16) {
+                    Text(timeAgo(comment.timestamp))
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                    
+                    Text("Responder")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.gray)
+                }
+                .padding(.top, 2)
+                
+                // Mostrar Respuestas
+                if let replies = comment.replies, !replies.isEmpty {
+                    if showReplies {
+                        ForEach(replies) { reply in
+                            HStack(alignment: .top, spacing: 12) {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 24, height: 24)
+                                    .overlay(
+                                        AsyncImage(url: URL(string: reply.avatarUrl)) { img in
+                                            img.resizable().aspectRatio(contentMode: .fill)
+                                        } placeholder: { Color.clear }
+                                    )
+                                    .clipShape(Circle())
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(reply.username)
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.8))
+                                    Text(reply.text)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .padding(.top, 8)
+                        }
+                        
+                        Button(action: { withAnimation { showReplies = false } }) {
+                            Text("Ocultar respuestas")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.gray.opacity(0.8))
+                                .padding(.top, 8)
+                                .padding(.leading, 12)
+                        }
+                    } else {
+                        Button(action: { withAnimation { showReplies = true } }) {
+                            HStack(spacing: 8) {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.5))
+                                    .frame(width: 24, height: 1)
+                                Text("Ver \(replies.count) respuestas")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.gray.opacity(0.8))
+                            }
+                            .padding(.top, 8)
+                        }
+                    }
+                }
             }
             Spacer()
         }

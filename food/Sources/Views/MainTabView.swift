@@ -134,6 +134,15 @@ struct MainTabView: View {
 
             // Overlay de comentarios por encima del tab bar
             if selected == .feed, showCommentsOverlay {
+                // Fondo oscuro separado para animación de fade
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false }
+                    }
+                    .zIndex(29) // Justo debajo de los comentarios (30)
+                    .transition(.opacity)
+
                 CommentsOverlayView(
                     count: commentsCount,
                     onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } },
