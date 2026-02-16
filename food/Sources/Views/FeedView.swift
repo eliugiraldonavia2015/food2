@@ -271,7 +271,6 @@ struct FeedView: View {
                     ) 
                 }
             }
-            .presentationBackground(.clear) // Make fullScreenCover background transparent
         }
         .fullScreenCover(isPresented: $showMenu) {
             let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]

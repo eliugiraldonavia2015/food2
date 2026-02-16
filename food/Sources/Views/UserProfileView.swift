@@ -13,13 +13,10 @@ struct UserProfileView: View {
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
-    @State private var dragOffset: CGFloat = 0 // Interactive dismissal offset
-    @State private var isDragging = false // Track dragging state to optimize view updates
     private let showBackButton: Bool
     
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
-    private let dragThreshold: CGFloat = UIScreen.main.bounds.width * 0.15 // 15% like FeedDrawer
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 2),
         GridItem(.flexible(), spacing: 2),
@@ -118,35 +115,6 @@ struct UserProfileView: View {
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
-        // Invisible Drag Zone for Swipe Back
-        .overlay(alignment: .leading) {
-            Color.clear
-                .frame(width: 40) // Invisible zone on the left edge
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            if !isDragging { isDragging = true }
-                            let translation = value.translation.width
-                            if translation > 0 {
-                                dragOffset = translation
-                            }
-                        }
-                        .onEnded { value in
-                            isDragging = false
-                            if value.translation.width > dragThreshold {
-                                dismiss()
-                            } else {
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                    dragOffset = 0
-                                }
-                            }
-                        }
-                )
-        }
-        .offset(x: dragOffset)
-        .drawingGroup() // Force Metal rendering
-        .shadow(color: isDragging ? Color.black.opacity(0.1) : .clear, radius: 10, x: -5, y: 0) // Shadow only during drag
         .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
         .preferredColorScheme(.light)
