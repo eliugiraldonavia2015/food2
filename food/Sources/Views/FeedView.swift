@@ -108,6 +108,7 @@ struct FeedView: View {
                         bottomInset: bottomInset,
                         expandedDescriptions: $expandedDescriptions,
                         isCommentsOverlayActive: isCommentsOverlayActive,
+                        isShareOverlayActive: showShare,
                         isFullyOpen: isFullyOpen, // ✅ Pasar estado
                         isActive: idx == selectedVM.currentIndex,
                         isScreenActive: isVisible && !(showRestaurantProfile || showUserProfile || showMenu), // ✅ isVisible controla la reproducción
@@ -358,9 +359,11 @@ struct FeedView: View {
                     onClose: { showComments = false },
                     videoId: item.videoId // ✅ Pasamos el ID real
                 )
+                .zIndex(30) // Match comments overlay z-index
             }
             if showShare {
                 ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
+                    .zIndex(35) // Higher than comments to be safe, definitely covers feed trigger
             }
             if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { _ in
                 withAnimation(.easeOut(duration: 0.25)) { showMusic = false }
@@ -445,7 +448,8 @@ struct FeedView: View {
         let bottomInset: CGFloat
         @Binding var expandedDescriptions: Set<UUID>
         let isCommentsOverlayActive: Bool
-        let isFullyOpen: Bool // ✅ Nuevo
+        let isShareOverlayActive: Bool // ✅ Nuevo: para bloquear interacción
+        let isFullyOpen: Bool // ✅ Controla si la vista está 100% desplegada
         let isActive: Bool
         let isScreenActive: Bool
         
@@ -511,12 +515,13 @@ struct FeedView: View {
             .init(name: "Laura", emoji: "👩")
         ]
         
-        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isFullyOpen: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, selectedItemForProfile: Binding<FeedItem?>, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
+        init(item: FeedItem, size: CGSize, bottomInset: CGFloat, expandedDescriptions: Binding<Set<UUID>>, isCommentsOverlayActive: Bool, isShareOverlayActive: Bool, isFullyOpen: Bool, isActive: Bool, isScreenActive: Bool, activeVideoId: UUID?, viewModel: FeedViewModel, selectedItemForProfile: Binding<FeedItem?>, onShowProfile: @escaping (UIImage?) -> Void, onShowMenu: @escaping () -> Void, onShowComments: @escaping () -> Void, onShowShare: @escaping () -> Void, onShowMusic: @escaping () -> Void) {
             self.item = item
             self.size = size
             self.bottomInset = bottomInset
             self._expandedDescriptions = expandedDescriptions
             self.isCommentsOverlayActive = isCommentsOverlayActive
+            self.isShareOverlayActive = isShareOverlayActive
             self.isFullyOpen = isFullyOpen
             self.isActive = isActive
             self.isScreenActive = isScreenActive
@@ -599,7 +604,7 @@ struct FeedView: View {
 
         private var gradientOverlay: some View {
             Group {
-                if !isCommentsOverlayActive {
+                if !isCommentsOverlayActive && !isShareOverlayActive {
                     LinearGradient(colors: [.black.opacity(0.2), .clear], startPoint: .bottom, endPoint: .top)
                         .allowsHitTesting(false)
                 }
@@ -608,7 +613,7 @@ struct FeedView: View {
 
         private var likeHeartOverlay: some View {
             Group {
-                if showLikeHeart && !isCommentsOverlayActive {
+                if showLikeHeart && !isCommentsOverlayActive && !isShareOverlayActive {
                     Image(systemName: "heart.fill")
                         .foregroundColor(.white)
                         .font(.system(size: 100))
@@ -629,7 +634,7 @@ struct FeedView: View {
                         .contentShape(Rectangle())
                         .onTapGesture(count: 2) { handleDoubleTap() }
                         .onTapGesture { handleSingleTap() }
-                        .allowsHitTesting(!isCommentsOverlayActive)
+                        .allowsHitTesting(!isCommentsOverlayActive && !isShareOverlayActive)
                 }
             }
         }
@@ -639,8 +644,8 @@ struct FeedView: View {
                 if item.id.uuidString == "00000000-0000-0000-0000-000000000000" {
                     introCardOverlay
                 } else {
-                    if !isCommentsOverlayActive { leftColumn }
-                    if !isCommentsOverlayActive { rightColumn }
+                    if !isCommentsOverlayActive && !isShareOverlayActive { leftColumn }
+                    if !isCommentsOverlayActive && !isShareOverlayActive { rightColumn }
                 }
             }
         }
@@ -653,7 +658,7 @@ struct FeedView: View {
                     .clipped()
                     .onTapGesture(count: 2) { handleDoubleTap() }
                     .onTapGesture {
-                        guard !isCommentsOverlayActive else { return } // ✅ Bloquear tap si comentarios están activos
+                        guard !isCommentsOverlayActive && !isShareOverlayActive else { return } // ✅ Bloquear tap si comentarios o share están activos
                         guard item.videoUrl != nil else { return }
                         let willPause = !isPaused
                         withAnimation(.easeInOut(duration: 0.08)) { isPaused = willPause }
@@ -865,7 +870,7 @@ struct FeedView: View {
         }
 
         private func handleDoubleTap() {
-            guard !isCommentsOverlayActive else { return }
+            guard !isCommentsOverlayActive && !isShareOverlayActive else { return }
             hapticHeavy.prepare()
             hapticHeavy.impactOccurred()
 
@@ -1430,42 +1435,42 @@ struct FeedView: View {
         }
 
         private var savedToast: some View {
-            HStack(spacing: 12) {
-                Text(toastMode == .saved ? "Guardado en \(lastSavedFolder)" : "Quitado de \(lastSavedFolder)")
-                    .foregroundColor(.white)
-                    .font(.system(size: 14, weight: .semibold))
-                Spacer(minLength: 0)
-                if toastMode == .saved {
-                    Button(action: {
-                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
-                        onShowMusic()
-                    }) {
-                        Text("Cambiar")
-                            .foregroundColor(.green)
-                            .font(.system(size: 14, weight: .bold))
-                    }
-                } else {
-                    Button(action: {
-                        isBookmarked = true
-                        toastMode = .saved
-                        withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
-                    }) {
-                        Text("Deshacer")
-                            .foregroundColor(.green)
-                            .font(.system(size: 14, weight: .bold))
-                    }
+        HStack(spacing: 12) {
+            Text(toastMode == .saved ? "Guardado en \(lastSavedFolder)" : "Quitado de \(lastSavedFolder)")
+                .foregroundColor(.white)
+                .font(.system(size: 14, weight: .semibold))
+            Spacer(minLength: 0)
+            if toastMode == .saved {
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                    onShowMusic()
+                }) {
+                    Text("Cambiar")
+                        .foregroundColor(.green)
+                        .font(.system(size: 14, weight: .bold))
+                }
+            } else {
+                Button(action: {
+                    isBookmarked = true
+                    toastMode = .saved
+                    withAnimation(.easeOut(duration: 0.2)) { showSavedToast = false }
+                }) {
+                    Text("Deshacer")
+                        .foregroundColor(.green)
+                        .font(.system(size: 14, weight: .bold))
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.95)))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 60) // Increased from 8 to 60 to move it higher
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
 
         private func presentToast(_ mode: SavedToastMode) {
             toastWork?.cancel()

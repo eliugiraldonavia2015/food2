@@ -65,12 +65,21 @@ struct ShareOverlayView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
+                // Dimming Background with tap-to-dismiss
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        onClose()
+                    }
+                    .transition(.opacity)
+                
                 sheet(bottomInset: geo.safeAreaInsets.bottom)
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     .transition(.move(edge: .bottom))
             }
         }
-        .transition(.move(edge: .bottom))
+        .ignoresSafeArea() // Ensure it covers everything
+        .transition(.opacity) // Use opacity transition for the whole view
     }
 
     private func sheet(bottomInset: CGFloat) -> some View {
