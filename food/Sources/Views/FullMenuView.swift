@@ -129,6 +129,7 @@ struct FullMenuView: View {
     let distanceKm: Double?
     let isEditing: Bool
     let cachedCoverImage: UIImage? // Imagen precargada
+    let initialDishId: String? // ID del platillo para abrir automáticamente
     
     @StateObject private var viewModel: FullMenuViewModel
     @Environment(\.dismiss) private var dismiss
@@ -163,6 +164,7 @@ struct FullMenuView: View {
         distanceKm: Double?,
         isEditing: Bool = false,
         cachedCoverImage: UIImage? = nil,
+        initialDishId: String? = nil,
         onDismissToRoot: (() -> Void)? = nil
     ) {
         self.restaurantId = restaurantId
@@ -174,6 +176,7 @@ struct FullMenuView: View {
         self.distanceKm = distanceKm
         self.isEditing = isEditing
         self.cachedCoverImage = cachedCoverImage
+        self.initialDishId = initialDishId
         self.onDismissToRoot = onDismissToRoot
         self._viewModel = StateObject(wrappedValue: FullMenuViewModel(restaurantId: restaurantId))
     }
@@ -386,6 +389,16 @@ struct FullMenuView: View {
                 cart["green-burger"] = 1
             }
             showMenuMiniHeader = false
+            
+            // Auto-open dish if requested
+            if let initialDishId = initialDishId {
+                if let dish = viewModel.dishes.first(where: { $0.id == initialDishId }) {
+                    // Small delay to allow view to layout properly before animation
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        openDishSheet(dish)
+                    }
+                }
+            }
         }
         .overlay {
             ZStack {

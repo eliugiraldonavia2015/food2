@@ -27,6 +27,10 @@ struct FoodDiscoveryView: View {
     @State private var animateCategories = false
     @State private var animateContent = false
     
+    // Navigation States
+    @State private var showFullMenu = false
+    @State private var selectedDishId: String? = nil
+    
     // MARK: - Design Constants
     private let primaryColor = Color.green // Replaces Pink from image
     private let accentColor = Color.orange
@@ -675,6 +679,17 @@ struct FoodDiscoveryView: View {
                     ForEach(Array(Self.trendingItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             // Play video or show details
+                            // Map to dummy dish IDs
+                            if item.name.contains("Bowl") {
+                                selectedDishId = "sushi-bowl"
+                            } else if item.name.contains("Tacos") {
+                                selectedDishId = "tacos-pastor"
+                            } else if item.name.contains("Pasta") {
+                                selectedDishId = "pizza-margarita" // Closest match
+                            } else {
+                                selectedDishId = "green-burger"
+                            }
+                            showFullMenu = true
                         }) {
                             ZStack(alignment: .bottomLeading) {
                                 safeImage(url: item.imageUrl, width: 220, height: 280, contentMode: .fill)
