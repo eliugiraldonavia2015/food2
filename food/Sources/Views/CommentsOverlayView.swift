@@ -115,12 +115,15 @@ public struct CommentsOverlayView: View {
                     .padding(.vertical, 12)
                 }
                 .background(Color.black.opacity(0.9))
+                // ✅ Fix: Fondo negro sólido para el safe area
+                .padding(.bottom, 0) 
             }
             .frame(height: UIScreen.main.bounds.height * 0.65)
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
             .cornerRadius(16, corners: [.topLeft, .topRight])
-            .transition(.move(edge: .bottom))
+            .padding(.bottom, 0) // Reset padding
         }
+        .edgesIgnoringSafeArea(.bottom) // ✅ Fix: Extender hasta abajo
         .onAppear(perform: loadComments)
     }
     

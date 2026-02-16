@@ -140,6 +140,8 @@ struct MainTabView: View {
                     videoId: nil // En el contexto global no tenemos el ID, se pasa solo para cerrar o mostrar
                 )
                     .zIndex(30) // ✅ Fix: Z-Index elevado para cubrir Feed (10) y TabBar (4)
+                    .transition(.move(edge: .bottom)) // ✅ Fix: Transición desde abajo como StoryDetailView
+                    .ignoresSafeArea() // ✅ Fix: Cubrir safe area completamente
             }
             
             if showSearchFromTab {
