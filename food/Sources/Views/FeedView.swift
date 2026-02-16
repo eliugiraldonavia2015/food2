@@ -243,41 +243,35 @@ struct FeedView: View {
                     )
                 }
             )
+            .presentationBackground(.clear) // Make fullScreenCover background transparent
         }
         .fullScreenCover(isPresented: $showUserProfile) {
             // Decidir qué perfil mostrar (Real vs Mock)
-            if let uid = selectedUserId {
-                // ✅ Perfil Real Conectado
-                // Usar snapshot si existe, o fallback al índice actual
-                let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
-                UserProfileView(
-                    userId: uid,
-                    initialCoverUrl: item.backgroundUrl,
-                    initialAvatarUrl: item.avatarUrl,
-                    initialName: item.username,
-                    cachedImage: selectedProfileImage
-                )
-            } else {
-                // ⚠️ Legacy Mock Profile (Mantenemos para demos)
-                let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
-                // ... (código legacy mock se mantiene pero inaccesible si hay selectedUserId)
-                // Para simplificar y evitar duplicar lógica de mock compleja aquí,
-                // si es mock, usamos una versión "dummy" del UserProfileView nuevo o el viejo si pudiéramos
-                // Pero como UserProfileView cambió su init, necesitamos un adaptador si queremos mantener mocks.
-                // Por ahora, asumiremos que si es mock, no cargará datos reales y mostrará loading o error,
-                // OJO: El UserProfileView nuevo REQUIERE un ID real.
-                
-                // FIX: Para no romper los mocks existentes, pasamos un ID falso "mock_user"
-                // y el ViewModel debería manejarlo (o simplemente fallar gracefuly).
-                // Lo ideal sería migrar los mocks a datos reales en Firebase, pero por tiempo:
-                UserProfileView(
-                    userId: "mock_user",
-                    initialCoverUrl: item.backgroundUrl,
-                    initialAvatarUrl: item.avatarUrl,
-                    initialName: item.username,
-                    cachedImage: selectedProfileImage
-                ) 
+            Group {
+                if let uid = selectedUserId {
+                    // ✅ Perfil Real Conectado
+                    // Usar snapshot si existe, o fallback al índice actual
+                    let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                    UserProfileView(
+                        userId: uid,
+                        initialCoverUrl: item.backgroundUrl,
+                        initialAvatarUrl: item.avatarUrl,
+                        initialName: item.username,
+                        cachedImage: selectedProfileImage
+                    )
+                } else {
+                    // ⚠️ Legacy Mock Profile (Mantenemos para demos)
+                    let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]
+                    UserProfileView(
+                        userId: "mock_user",
+                        initialCoverUrl: item.backgroundUrl,
+                        initialAvatarUrl: item.avatarUrl,
+                        initialName: item.username,
+                        cachedImage: selectedProfileImage
+                    ) 
+                }
             }
+            .presentationBackground(.clear) // Make fullScreenCover background transparent
         }
         .fullScreenCover(isPresented: $showMenu) {
             let item = selectedItemForProfile ?? currentItems[min(selectedVM.currentIndex, max(currentItems.count - 1, 0))]

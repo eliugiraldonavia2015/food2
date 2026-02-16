@@ -125,6 +125,7 @@ struct UserProfileView: View {
                 .gesture(
                     DragGesture()
                         .onChanged { value in
+                            // Simple update, no animations during drag to reduce lag
                             if value.translation.width > 0 {
                                 dragOffset = value.translation.width
                             }
