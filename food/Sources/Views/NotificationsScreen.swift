@@ -24,6 +24,8 @@ struct NotificationsScreen: View {
     }
 
     // MARK: - State
+    private let brandPink = Color(red: 244/255, green: 37/255, blue: 123/255)
+
     // Simulating grouped data
     @State private var sections: [NotificationSection] = [
         .init(title: "Nuevo", items: [
@@ -47,13 +49,13 @@ struct NotificationsScreen: View {
         NavigationView {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(sections) { section in
+                    ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
                         VStack(alignment: .leading, spacing: 16) {
                             Text(section.title)
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.black)
                                 .padding(.horizontal, 20)
-                                .padding(.top, 24)
+                                .padding(.top, index == 0 ? 0 : 24)
                                 .padding(.bottom, 8)
                             
                             ForEach(section.items) { item in
@@ -109,16 +111,16 @@ struct MinimalNotificationRow: View {
             // Text Content
             HStack(spacing: 4) {
                 Text(item.user)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(.black)
                 +
                 Text(" \(item.message)")
-                    .font(.system(size: 16))
+                    .font(.system(size: 15))
                     .foregroundColor(.black)
                     .fontWeight(.regular)
                 +
                 Text(" \(item.time)")
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
                     .foregroundColor(.gray)
             }
             .multilineTextAlignment(.leading)
@@ -134,7 +136,7 @@ struct MinimalNotificationRow: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
-                        .background(Color.blue)
+                        .background(Color(red: 244/255, green: 37/255, blue: 123/255))
                         .cornerRadius(8)
                 }
             } else if item.kind == .like || item.kind == .comment {
