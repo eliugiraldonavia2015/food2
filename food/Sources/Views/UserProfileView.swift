@@ -110,11 +110,19 @@ struct UserProfileView: View {
                         .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                 }
                 .padding(.leading, 16)
-                .padding(.top, 10)
+                .padding(.top, 50)
                 .opacity(animateContent ? 1 : 0)
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    if value.startLocation.x < 50 && value.translation.width > 80 {
+                        dismiss()
+                    }
+                }
+        )
         .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
         .preferredColorScheme(.light)
