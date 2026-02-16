@@ -656,10 +656,11 @@ struct FeedView: View {
             ZStack(alignment: .top) {
                 // 1. Video Player
                 mediaView
-                    .frame(width: size.width, height: isCommentsOverlayActive ? size.height * 0.35 : size.height)
+                    .frame(width: size.width, height: size.height) // ✅ Fix: No cambiar altura con comentarios
                     .clipped()
                     .onTapGesture(count: 2) { handleDoubleTap() }
                     .onTapGesture {
+                        guard !isCommentsOverlayActive else { return } // ✅ Bloquear tap si comentarios están activos
                         guard item.videoUrl != nil else { return }
                         let willPause = !isPaused
                         withAnimation(.easeInOut(duration: 0.08)) { isPaused = willPause }

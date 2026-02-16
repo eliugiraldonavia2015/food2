@@ -790,32 +790,6 @@ struct FeedDrawerOverlay: View {
 
                 // Right Edge Gesture (Active when Open)
                 if isOpen {
-                    Color.clear
-                        .frame(width: 40)
-                        .contentShape(Rectangle())
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    if value.translation.width < 0 {
-                                        dragOffset = value.translation.width
-                                    }
-                                }
-                                .onEnded { value in
-                                    let threshold = width * 0.15
-                                    if value.translation.width < -threshold {
-                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                            isOpen = false
-                                            dragOffset = 0
-                                        }
-                                    } else {
-                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                            dragOffset = 0
-                                        }
-                                    }
-                                }
-                        )
-
                     // Visual Close Indicator (Right Side)
                     closeTriggerView
                 }
@@ -847,7 +821,7 @@ struct FeedDrawerOverlay: View {
                 
                 // Tap-only trigger
                 Color.black.opacity(0.001)
-                    .frame(width: 60, height: 140)
+                    .frame(width: 60, height: 110) // ✅ Reduced hit area (~0.3cm padding)
                     .position(x: 30, y: 150) // Center in the 60 width
                     .onTapGesture {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
