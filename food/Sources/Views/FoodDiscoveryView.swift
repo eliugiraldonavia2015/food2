@@ -573,22 +573,44 @@ struct FoodDiscoveryView: View {
                 HStack(spacing: 16) {
                     ForEach(Array(Self.popularItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
-                            // Navigation to item details
-                        }) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                safeImage(url: item.imageUrl, width: 160, height: 160, contentMode: .fill)
-                                    .cornerRadius(20)
-                                
-                                Text(item.name)
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(primaryTextColor)
-                                    .lineLimit(1)
-                                
-                                Text(String(format: "$%.2f", item.price))
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(primaryColor)
+                            // Map to dummy dish IDs
+                            if item.name.contains("Bowl") {
+                                selectedDishId = "sushi-bowl"
+                            } else if item.name.contains("Pizza") {
+                                selectedDishId = "pizza-margarita"
+                            } else {
+                                selectedDishId = "green-burger"
                             }
-                            .frame(width: 160)
+                            showFullMenu = true
+                        }) {
+                            ZStack(alignment: .bottomLeading) {
+                                safeImage(url: item.imageUrl, width: 200, height: 250, contentMode: .fill)
+                                    .overlay(
+                                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .bottom, endPoint: .center)
+                                    )
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.restaurant)
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(primaryColor)
+                                        .tracking(0.5)
+                                    
+                                    Text(item.name)
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .lineLimit(2)
+                                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                                    
+                                    Text(String(format: "$%.2f", item.price))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
+                                }
+                                .padding(16)
+                            }
+                            .frame(width: 200, height: 250)
+                            .cornerRadius(20)
+                            .contentShape(Rectangle()) // Ensure tap area
+                            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .scaleEffect(animateContent ? 1 : 0.5)
@@ -625,50 +647,58 @@ struct FoodDiscoveryView: View {
                         selectedDishId = nil 
                         showFullMenu = true
                     }) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Image Top
-                            safeImage(url: restaurant.imageUrl, width: nil, height: 180, contentMode: .fill)
+                        ZStack(alignment: .bottom) {
+                            // Image Background
+                            safeImage(url: restaurant.imageUrl, width: nil, height: 250, contentMode: .fill)
                                 .frame(maxWidth: .infinity)
                                 .clipped()
+                                .overlay(
+                                    LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .bottom, endPoint: .center)
+                                )
                             
-                            // Info Bottom
-                            VStack(alignment: .leading, spacing: 8) {
+                            // Info Overlay
+                            VStack(alignment: .leading, spacing: 6) {
                                 HStack {
                                     Text(restaurant.title)
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(primaryTextColor)
+                                        .font(.system(size: 22, weight: .bold))
+                                        .foregroundColor(.white)
                                     Spacer()
                                     HStack(spacing: 4) {
                                         Image(systemName: "star.fill")
                                             .foregroundColor(.orange)
-                                            .font(.system(size: 12))
+                                            .font(.system(size: 14))
                                         Text(String(format: "%.1f", restaurant.rating))
                                             .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(primaryTextColor)
+                                            .foregroundColor(.white)
                                     }
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background(secondaryBackgroundColor)
+                                    .background(Color.black.opacity(0.6))
                                     .cornerRadius(8)
                                 }
                                 
                                 Text("\(restaurant.subtitle) • \(restaurant.priceLevel)")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(secondaryTextColor)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.9))
                                 
                                 HStack(spacing: 16) {
-                                    Label(restaurant.time, systemImage: "clock")
-                                    Label(restaurant.delivery, systemImage: "bicycle")
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "clock")
+                                        Text(restaurant.time)
+                                    }
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "bicycle")
+                                        Text(restaurant.delivery)
+                                    }
                                 }
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(secondaryTextColor)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(primaryColor)
                             }
-                            .padding(16)
-                            .background(Color.white)
+                            .padding(20)
                         }
                         .cornerRadius(24)
                         .contentShape(Rectangle()) // Ensure tap area
-                        .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .scaleEffect(animateContent ? 1 : 0.95)
@@ -717,29 +747,45 @@ struct FoodDiscoveryView: View {
                             ZStack(alignment: .bottomLeading) {
                                 safeImage(url: item.imageUrl, width: 220, height: 280, contentMode: .fill)
                                     .overlay(
-                                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.6), .clear]), startPoint: .bottom, endPoint: .center)
+                                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.7), .clear]), startPoint: .bottom, endPoint: .center)
                                     )
                                     .cornerRadius(20)
                                 
                                 // Play Button Center
                                 Image(systemName: "play.circle.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.white.opacity(0.8))
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.white.opacity(0.9))
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
+                                    if let badge = item.badge {
+                                        Text(badge)
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(primaryColor)
+                                            .cornerRadius(8)
+                                            .padding(.bottom, 4)
+                                    }
+                                    
                                     Text(item.name)
-                                        .font(.system(size: 16, weight: .bold))
+                                        .font(.system(size: 18, weight: .bold))
                                         .foregroundColor(.white)
+                                        .lineLimit(2)
+                                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
+                                        
                                     Text(item.price)
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundColor(primaryColor)
+                                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
                                 }
                                 .padding(16)
                             }
                             .frame(width: 220, height: 280)
                             .contentShape(Rectangle()) // Ensure tap area
-                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                            .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .scaleEffect(animateContent ? 1 : 0.8)
