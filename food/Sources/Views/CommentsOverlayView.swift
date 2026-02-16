@@ -65,13 +65,13 @@ public struct CommentsOverlayView: View {
                 HStack {
                     Spacer()
                     Text("\(count) comentarios")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
                     
                     Button(action: onClose) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 24, height: 24)
                             .background(Color.white.opacity(0.1))
@@ -254,21 +254,21 @@ struct CommentRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(comment.username)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white.opacity(0.8))
                 
                 Text(comment.text)
-                    .font(.system(size: 14))
+                    .font(.system(size: 16))
                     .foregroundColor(.white)
                     .lineLimit(nil)
                 
                 HStack(spacing: 16) {
                     Text(timeAgo(comment.timestamp))
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .foregroundColor(.gray)
                     
                     Text("Responder")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.gray)
                 }
                 .padding(.top, 2)
@@ -290,10 +290,10 @@ struct CommentRow: View {
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(reply.username)
-                                        .font(.system(size: 12, weight: .bold))
+                                        .font(.system(size: 14, weight: .bold))
                                         .foregroundColor(.white.opacity(0.8))
                                     Text(reply.text)
-                                        .font(.system(size: 13))
+                                        .font(.system(size: 15))
                                         .foregroundColor(.white)
                                 }
                             }
@@ -302,7 +302,7 @@ struct CommentRow: View {
                         
                         Button(action: { withAnimation { showReplies = false } }) {
                             Text("Ocultar respuestas")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(.gray.opacity(0.8))
                                 .padding(.top, 8)
                                 .padding(.leading, 12)
@@ -314,7 +314,7 @@ struct CommentRow: View {
                                     .fill(Color.gray.opacity(0.5))
                                     .frame(width: 24, height: 1)
                                 Text("Ver \(comment.replies.count) respuestas")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .font(.system(size: 13, weight: .semibold))
                                     .foregroundColor(.gray.opacity(0.8))
                             }
                             .padding(.top, 8)

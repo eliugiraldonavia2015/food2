@@ -138,7 +138,7 @@ struct FeedView: View {
                         },
                         onShowMenu: { showMenu = true },
                         onShowComments: { onGlobalShowComments?(item.comments, item.backgroundUrl) },
-                        onShowShare: { withAnimation(.easeOut(duration: 0.25)) { showShare = true } },
+                        onShowShare: { withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showShare = true } },
                         onShowMusic: { showMusic = true }
                     )
                     .id(item.id)
@@ -367,7 +367,7 @@ struct FeedView: View {
                 .zIndex(30) // Match comments overlay z-index
             }
             if showShare {
-                ShareOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showShare = false } })
+                ShareOverlayView(onClose: { withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showShare = false } })
                     .zIndex(35) // Higher than comments to be safe, definitely covers feed trigger
             }
             if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { _ in

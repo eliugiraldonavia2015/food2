@@ -79,7 +79,7 @@ struct ShareOverlayView: View {
             }
         }
         .ignoresSafeArea() // Ensure it covers everything
-        .transition(.opacity) // Use opacity transition for the whole view
+        // .transition(.opacity) // Removed to allow individual transitions
     }
 
     private func sheet(bottomInset: CGFloat) -> some View {
