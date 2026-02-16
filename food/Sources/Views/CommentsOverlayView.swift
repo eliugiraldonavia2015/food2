@@ -274,9 +274,9 @@ struct CommentRow: View {
                 .padding(.top, 2)
                 
                 // Mostrar Respuestas
-                if let replies = comment.replies, !replies.isEmpty {
+                if !comment.replies.isEmpty {
                     if showReplies {
-                        ForEach(replies) { reply in
+                        ForEach(comment.replies) { reply in
                             HStack(alignment: .top, spacing: 12) {
                                 Circle()
                                     .fill(Color.gray.opacity(0.3))
@@ -313,7 +313,7 @@ struct CommentRow: View {
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.5))
                                     .frame(width: 24, height: 1)
-                                Text("Ver \(replies.count) respuestas")
+                                Text("Ver \(comment.replies.count) respuestas")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(.gray.opacity(0.8))
                             }
