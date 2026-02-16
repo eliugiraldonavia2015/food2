@@ -13,10 +13,12 @@ struct UserProfileView: View {
     @State private var headerMinY: CGFloat = 0
     @State private var animateContent = false
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
+    @State private var dragOffset: CGFloat = 0 // Interactive dismissal offset
     private let showBackButton: Bool
     
     private let headerHeight: CGFloat = 280
     private let refreshThreshold: CGFloat = UIScreen.main.bounds.height * 0.15
+    private let dragThreshold: CGFloat = UIScreen.main.bounds.width * 0.25 // 25% drag to dismiss
     private let photoColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 2),
         GridItem(.flexible(), spacing: 2),
@@ -110,16 +112,31 @@ struct UserProfileView: View {
                         .overlay(Image(systemName: "chevron.left").foregroundColor(.white).font(.system(size: 14, weight: .bold)))
                 }
                 .padding(.leading, 16)
-                .padding(.top, 50)
+                .padding(.top, 60) // Lowered to match FullMenuView position
                 .opacity(animateContent ? 1 : 0)
                 .animation(.easeIn.delay(0.3), value: animateContent)
             }
         }
+        .offset(x: dragOffset)
         .gesture(
             DragGesture()
+                .onChanged { value in
+                    // Only allow dragging from the left edge (first 50pts) and only to the right
+                    if value.startLocation.x < 50 && value.translation.width > 0 {
+                        withAnimation(.interactiveSpring()) {
+                            dragOffset = value.translation.width
+                        }
+                    }
+                }
                 .onEnded { value in
-                    if value.startLocation.x < 50 && value.translation.width > 80 {
-                        dismiss()
+                    if value.startLocation.x < 50 {
+                        if value.translation.width > dragThreshold {
+                            dismiss()
+                        } else {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { // Match FeedDrawer physics
+                                dragOffset = 0
+                            }
+                        }
                     }
                 }
         )
