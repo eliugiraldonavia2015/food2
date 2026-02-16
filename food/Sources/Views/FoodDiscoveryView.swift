@@ -250,6 +250,18 @@ struct FoodDiscoveryView: View {
                 currentAddress = selected.title
             }
         }
+        .fullScreenCover(isPresented: $showFullMenu) {
+            FullMenuView(
+                restaurantId: "hardcoded-discovery",
+                restaurantName: "FoodTook Demo",
+                coverUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+                avatarUrl: "https://images.unsplash.com/photo-1556910103-1c02745a30bf",
+                location: "Polanco, CDMX",
+                branchName: "Sucursal Principal",
+                distanceKm: 1.5,
+                initialDishId: selectedDishId
+            )
+        }
         .ignoresSafeArea(edges: .top)
         .onAppear {
             startAnimations()
@@ -444,6 +456,7 @@ struct FoodDiscoveryView: View {
                 }
                 .padding(24)
             }
+            .contentShape(Rectangle()) // Ensure tap area
             .cornerRadius(24)
             .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
             .overlay(
@@ -654,6 +667,7 @@ struct FoodDiscoveryView: View {
                             .background(Color.white)
                         }
                         .cornerRadius(24)
+                        .contentShape(Rectangle()) // Ensure tap area
                         .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -724,6 +738,7 @@ struct FoodDiscoveryView: View {
                                 .padding(16)
                             }
                             .frame(width: 220, height: 280)
+                            .contentShape(Rectangle()) // Ensure tap area
                             .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                         }
                         .buttonStyle(ScaleButtonStyle())
