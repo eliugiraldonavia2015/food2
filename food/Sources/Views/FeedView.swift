@@ -6,6 +6,7 @@ import Combine
 struct FeedView: View {
     let bottomInset: CGFloat
     let onGlobalShowComments: ((Int, String) -> Void)?
+    let onShareOverlayChange: ((Bool) -> Void)? // ✅ Nuevo callback para notificar estado de share
     let isCommentsOverlayActive: Bool
     let isVisible: Bool // Controla si la vista es visible (aunque sea parcialmente)
     let isFullyOpen: Bool // ✅ Controla si la vista está 100% desplegada
@@ -77,10 +78,11 @@ struct FeedView: View {
     @State private var showSearch = false // ✅ Nuevo estado para búsqueda
     @State private var expandedDescriptions: Set<UUID> = []
 
-    init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, isCommentsOverlayActive: Bool = false, isVisible: Bool = true, isFullyOpen: Bool = true) {
+    init(viewModel: FeedViewModel, bottomInset: CGFloat, onGlobalShowComments: ((Int, String) -> Void)? = nil, onShareOverlayChange: ((Bool) -> Void)? = nil, isCommentsOverlayActive: Bool = false, isVisible: Bool = true, isFullyOpen: Bool = true) {
         self.forYouVM = viewModel
         self.bottomInset = bottomInset
         self.onGlobalShowComments = onGlobalShowComments
+        self.onShareOverlayChange = onShareOverlayChange
         self.isCommentsOverlayActive = isCommentsOverlayActive
         self.isVisible = isVisible
         self.isFullyOpen = isFullyOpen
@@ -161,6 +163,9 @@ struct FeedView: View {
         .onDisappear {
             forYouVM.cancelPrefetch()
             followingVM.cancelPrefetch()
+        }
+        .onChange(of: showShare) { newValue in
+            onShareOverlayChange?(newValue)
         }
         .onChange(of: activeTab) { _, _ in
             // 🛑 DETENER TODO EL AUDIO AL CAMBIAR DE TAB

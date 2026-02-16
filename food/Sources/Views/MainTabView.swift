@@ -733,6 +733,7 @@ struct FeedDrawerOverlay: View {
     
     @State private var dragOffset: CGFloat = 0
     @State private var animateTrigger = false
+    @State private var isShareActive = false // ✅ Track share overlay state
     
     var body: some View {
         GeometryReader { geo in
@@ -760,6 +761,7 @@ struct FeedDrawerOverlay: View {
                     viewModel: feedViewModel,
                     bottomInset: 0,
                     onGlobalShowComments: onShowComments,
+                    onShareOverlayChange: { isActive in withAnimation { isShareActive = isActive } }, // ✅ Sync share state
                     isCommentsOverlayActive: isCommentsOverlayActive,
                     isVisible: isOpen || dragOffset > 0, // ✅ Solo reproduce si se ve (incluso parcialmente)
                     isFullyOpen: isOpen // ✅ Señal de que llegó al 100%
@@ -800,7 +802,7 @@ struct FeedDrawerOverlay: View {
                 }
 
                 // Right Edge Gesture (Active when Open)
-                if isOpen {
+                if isOpen && !isShareActive {
                     // Visual Close Indicator (Right Side)
                     closeTriggerView
                 }
