@@ -46,16 +46,33 @@ struct NotificationsScreen: View {
     
     // MARK: - Body
     var body: some View {
-        NavigationView {
+        VStack(spacing: 0) {
+            // Custom Header
+            HStack {
+                Spacer()
+                Text("Actividad")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.black)
+                Spacer()
+            }
+            .padding(.vertical, 12)
+            .background(Color.white)
+            .overlay(
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(Color.gray.opacity(0.2)),
+                alignment: .bottom
+            )
+            
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
                         VStack(alignment: .leading, spacing: 16) {
                             Text(section.title)
-                                .font(.system(size: 18, weight: .bold))
+                                .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.black)
                                 .padding(.horizontal, 20)
-                                .padding(.top, index == 0 ? 0 : 24)
+                                .padding(.top, index == 0 ? 16 : 24)
                                 .padding(.bottom, 8)
                             
                             ForEach(section.items) { item in
@@ -66,9 +83,7 @@ struct NotificationsScreen: View {
                 }
                 .padding(.bottom, 80)
             }
-            .navigationTitle("Actividad")
-            .navigationBarTitleDisplayMode(.inline)
-            .background(Color.white.ignoresSafeArea())
+            .background(Color.white)
         }
     }
 }
@@ -79,22 +94,22 @@ struct MinimalNotificationRow: View {
     let item: NotificationsScreen.NotificationItem
     
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 14) {
             // Avatar
             ZStack(alignment: .bottomTrailing) {
                 if let thumb = item.thumbnail, let url = URL(string: thumb) {
                     WebImage(url: url)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 52, height: 52)
+                        .frame(width: 48, height: 48)
                         .clipShape(Circle())
                 } else {
                     Circle()
                         .fill(Color.gray.opacity(0.1))
-                        .frame(width: 52, height: 52)
+                        .frame(width: 48, height: 48)
                         .overlay(
                             Image(systemName: "person.fill")
-                                .font(.system(size: 22))
+                                .font(.system(size: 20))
                                 .foregroundColor(.gray)
                         )
                 }
@@ -111,11 +126,11 @@ struct MinimalNotificationRow: View {
             // Text Content
             HStack(spacing: 4) {
                 Text(item.user)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 14.5, weight: .bold))
                     .foregroundColor(.black)
                 +
                 Text(" \(item.message)")
-                    .font(.system(size: 15))
+                    .font(.system(size: 14.5))
                     .foregroundColor(.black)
                     .fontWeight(.regular)
                 +
@@ -132,7 +147,7 @@ struct MinimalNotificationRow: View {
             if item.kind == .follow {
                 Button(action: {}) {
                     Text("Seguir")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 13.5, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
@@ -142,7 +157,7 @@ struct MinimalNotificationRow: View {
             } else if item.kind == .like || item.kind == .comment {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.2))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 48, height: 48)
                     .overlay(
                         Image(systemName: "photo")
                             .foregroundColor(.gray)
