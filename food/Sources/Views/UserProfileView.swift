@@ -14,6 +14,7 @@ struct UserProfileView: View {
     @State private var animateContent = false
     @State private var loadedCoverImage: UIImage? = nil // Para precargar FullMenuView
     @State private var dragOffset: CGFloat = 0 // Interactive dismissal offset
+    @State private var isDragging = false // Track dragging state to optimize view updates
     private let showBackButton: Bool
     
     private let headerHeight: CGFloat = 280
@@ -125,12 +126,14 @@ struct UserProfileView: View {
                 .gesture(
                     DragGesture()
                         .onChanged { value in
-                            // Simple update, no animations during drag to reduce lag
-                            if value.translation.width > 0 {
-                                dragOffset = value.translation.width
+                            if !isDragging { isDragging = true }
+                            let translation = value.translation.width
+                            if translation > 0 {
+                                dragOffset = translation
                             }
                         }
                         .onEnded { value in
+                            isDragging = false
                             if value.translation.width > dragThreshold {
                                 dismiss()
                             } else {
@@ -142,6 +145,8 @@ struct UserProfileView: View {
                 )
         }
         .offset(x: dragOffset)
+        .drawingGroup() // Force Metal rendering
+        .shadow(color: isDragging ? Color.black.opacity(0.1) : .clear, radius: 10, x: -5, y: 0) // Shadow only during drag
         .background(Color.white.ignoresSafeArea())
         .tint(Color.fuchsia)
         .preferredColorScheme(.light)
