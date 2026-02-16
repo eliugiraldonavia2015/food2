@@ -21,6 +21,7 @@ struct FoodDiscoveryView: View {
     @State private var scrollOffset: CGFloat = 0
     
     // Animation States
+    @State private var hasAppeared = false
     @State private var animateHeader = false
     @State private var animateSearch = false
     @State private var animateCategories = false
@@ -39,7 +40,7 @@ struct FoodDiscoveryView: View {
     private let categoryItems = allCategoryItems
     
     struct PopularItem: Identifiable {
-        let id = UUID()
+        let id: UUID
         let name: String
         let restaurant: String
         let price: Double
@@ -47,16 +48,27 @@ struct FoodDiscoveryView: View {
         let rating: Double
         let discount: Int?
         let imageUrl: String
+        
+        init(id: UUID = UUID(), name: String, restaurant: String, price: Double, time: String, rating: Double, discount: Int?, imageUrl: String) {
+            self.id = id
+            self.name = name
+            self.restaurant = restaurant
+            self.price = price
+            self.time = time
+            self.rating = rating
+            self.discount = discount
+            self.imageUrl = imageUrl
+        }
     }
     
-    let popularItems = [
+    private static let popularItems = [
         PopularItem(name: "Zen Garden Bowl", restaurant: "Green Life", price: 145.00, time: "20-30 min", rating: 4.8, discount: nil, imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"),
         PopularItem(name: "Truffle Pizza", restaurant: "Mozza", price: 220.00, time: "30-45 min", rating: 4.7, discount: 15, imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591"),
         PopularItem(name: "Salmon Rice Bowl", restaurant: "Tokyo Eats", price: 210.00, time: "25-40 min", rating: 4.9, discount: nil, imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c")
     ]
     
     struct RestaurantItem: Identifiable {
-        let id = UUID()
+        let id: UUID
         let title: String
         let subtitle: String
         let time: String
@@ -65,31 +77,47 @@ struct FoodDiscoveryView: View {
         let imageUrl: String
         let priceLevel: String
         let tags: [String]
+        
+        init(id: UUID = UUID(), title: String, subtitle: String, time: String, delivery: String, rating: Double, imageUrl: String, priceLevel: String, tags: [String]) {
+            self.id = id
+            self.title = title
+            self.subtitle = subtitle
+            self.time = time
+            self.delivery = delivery
+            self.rating = rating
+            self.imageUrl = imageUrl
+            self.priceLevel = priceLevel
+            self.tags = tags
+        }
     }
 
-    private var featuredRestaurants: [RestaurantItem] {
-        [
-            RestaurantItem(title: "Sakura Artisanal Sushi", subtitle: "Japonés • Premium", time: "20-30 min", delivery: "Envío gratis", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c", priceLevel: "$$$", tags: ["Premium"]),
-            RestaurantItem(title: "The Grill Master", subtitle: "Hamburguesas • Grill", time: "15-25 min", delivery: "Pick-up disponible", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", priceLevel: "$$", tags: []),
-            RestaurantItem(title: "La Dolce Vita", subtitle: "Italiana • Pasta", time: "30-45 min", delivery: "Envío $25", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", priceLevel: "$$", tags: [])
-        ]
-    }
+    private static let featuredRestaurants: [RestaurantItem] = [
+        RestaurantItem(title: "Sakura Artisanal Sushi", subtitle: "Japonés • Premium", time: "20-30 min", delivery: "Envío gratis", rating: 4.9, imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c", priceLevel: "$$$", tags: ["Premium"]),
+        RestaurantItem(title: "The Grill Master", subtitle: "Hamburguesas • Grill", time: "15-25 min", delivery: "Pick-up disponible", rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", priceLevel: "$$", tags: []),
+        RestaurantItem(title: "La Dolce Vita", subtitle: "Italiana • Pasta", time: "30-45 min", delivery: "Envío $25", rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1473093226795-d6b06c273fd7", priceLevel: "$$", tags: [])
+    ]
     
     struct TrendingItem: Identifiable {
-        let id = UUID()
+        let id: UUID
         let name: String
         let price: String
         let imageUrl: String
         let badge: String?
+        
+        init(id: UUID = UUID(), name: String, price: String, imageUrl: String, badge: String?) {
+            self.id = id
+            self.name = name
+            self.price = price
+            self.imageUrl = imageUrl
+            self.badge = badge
+        }
     }
 
-    private var trendingItems: [TrendingItem] {
-        [
-            TrendingItem(name: "Baked Feta Pasta", price: "$185.00", imageUrl: "https://images.unsplash.com/photo-1626844131082-256783844137", badge: "TIKTOK VIRAL"),
-            TrendingItem(name: "Salmon Rice Bowl", price: "$210.00", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", badge: nil),
-            TrendingItem(name: "Birria Tacos", price: "$120.00", imageUrl: "https://images.unsplash.com/photo-1504544750208-dc0358e63f7f", badge: "POPULAR")
-        ]
-    }
+    private static let trendingItems: [TrendingItem] = [
+        TrendingItem(name: "Baked Feta Pasta", price: "$185.00", imageUrl: "https://images.unsplash.com/photo-1626844131082-256783844137", badge: "TIKTOK VIRAL"),
+        TrendingItem(name: "Salmon Rice Bowl", price: "$210.00", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", badge: nil),
+        TrendingItem(name: "Birria Tacos", price: "$120.00", imageUrl: "https://images.unsplash.com/photo-1504544750208-dc0358e63f7f", badge: "POPULAR")
+    ]
     
     // Stories Data
     let updates: [RestaurantUpdate] = [
@@ -226,6 +254,9 @@ struct FoodDiscoveryView: View {
     }
     
     private func startAnimations() {
+        guard !hasAppeared else { return }
+        hasAppeared = true
+        
         withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
             animateHeader = true
         }
@@ -518,7 +549,7 @@ struct FoodDiscoveryView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(Array(popularItems.enumerated()), id: \.element.id) { index, item in
+                    ForEach(Array(Self.popularItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             // Navigation to item details
                         }) {
@@ -564,7 +595,7 @@ struct FoodDiscoveryView: View {
             .padding(.horizontal, 20)
             
             VStack(spacing: 24) {
-                ForEach(Array(featuredRestaurants.enumerated()), id: \.element.id) { index, restaurant in
+                ForEach(Array(Self.featuredRestaurants.enumerated()), id: \.element.id) { index, restaurant in
                     Button(action: {
                         // Navigate to restaurant details
                     }) {
@@ -641,7 +672,7 @@ struct FoodDiscoveryView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(Array(trendingItems.enumerated()), id: \.element.id) { index, item in
+                    ForEach(Array(Self.trendingItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             // Play video or show details
                         }) {
