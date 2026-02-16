@@ -139,7 +139,7 @@ struct MainTabView: View {
                     onClose: { withAnimation(.easeOut(duration: 0.25)) { showCommentsOverlay = false } },
                     videoId: nil // En el contexto global no tenemos el ID, se pasa solo para cerrar o mostrar
                 )
-                    .zIndex(6)
+                    .zIndex(30) // ✅ Fix: Z-Index elevado para cubrir Feed (10) y TabBar (4)
             }
             
             if showSearchFromTab {
