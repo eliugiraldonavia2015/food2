@@ -583,34 +583,21 @@ struct FoodDiscoveryView: View {
                             }
                             showFullMenu = true
                         }) {
-                            ZStack(alignment: .bottomLeading) {
-                                safeImage(url: item.imageUrl, width: 200, height: 250, contentMode: .fill)
-                                    .overlay(
-                                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .bottom, endPoint: .center)
-                                    )
+                            VStack(alignment: .leading, spacing: 8) {
+                                safeImage(url: item.imageUrl, width: 160, height: 160, contentMode: .fill)
+                                    .cornerRadius(20)
                                 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.restaurant)
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(primaryColor)
-                                        .tracking(0.5)
-                                    
-                                    Text(item.name)
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .lineLimit(2)
-                                        .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                                    
-                                    Text(String(format: "$%.2f", item.price))
-                                        .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.white.opacity(0.9))
-                                }
-                                .padding(16)
+                                Text(item.name)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(primaryTextColor)
+                                    .lineLimit(1)
+                                
+                                Text(String(format: "$%.2f", item.price))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(primaryColor)
                             }
-                            .frame(width: 200, height: 250)
-                            .cornerRadius(20)
+                            .frame(width: 160)
                             .contentShape(Rectangle()) // Ensure tap area
-                            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .scaleEffect(animateContent ? 1 : 0.5)
