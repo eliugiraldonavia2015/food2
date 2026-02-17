@@ -61,14 +61,10 @@ public struct CommentsOverlayView: View {
         let screenHeight = UIScreen.main.bounds.height
         let contentHeight = screenHeight * 0.65
         
-        ZStack(alignment: .bottom) {
-            // 1. Fondo Principal y Contenido (ESTÁTICO)
-            // Este bloque define la altura y forma del modal.
-            // Usamos un ZStack para asegurar que el contenido ocupe todo el frame.
-            ZStack(alignment: .top) {
-                Color(red: 0.1, green: 0.1, blue: 0.1)
-                    .cornerRadius(16, corners: [.topLeft, .topRight])
-                
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                // 1. Fondo y Contenido (ESTÁTICO)
+                // Ocupa el 65% de la pantalla y NO se mueve con el teclado.
                 VStack(spacing: 0) {
                     // Header
                     HStack {
@@ -111,79 +107,84 @@ public struct CommentsOverlayView: View {
                             }
                             .padding(.horizontal)
                             .padding(.top, 8)
-                            // Espacio inferior para evitar que el input tape el último comentario
-                            .padding(.bottom, 100) 
+                            // Espacio reservado "vacío" detrás de la barra de input.
+                            // Esto asegura que el último comentario se pueda ver scrolleando.
+                            // Altura estimada barra (60) + safe area
+                            .padding(.bottom, 60 + geo.safeAreaInsets.bottom)
                         }
                     }
                 }
-            }
-            .frame(height: contentHeight)
-            // 🛑 IMPORTANTE: Ignorar teclado aquí para que este bloque NO se mueva
-            .ignoresSafeArea(.keyboard) 
-            
-            // 2. Input Bar (FLOTANTE)
-            // Se posiciona en la parte inferior del ZStack.
-            // Su posición se ajusta con offset/padding basado en el teclado.
-            VStack(spacing: 0) {
-                Divider().background(Color.white.opacity(0.15))
-                HStack(spacing: 12) {
-                    // Avatar
-                    Circle()
-                        .fill(Color.gray)
-                        .frame(width: 32, height: 32)
-                    
-                    HStack {
-                        TextField("Añadir comentario...", text: $commentText)
-                            .foregroundColor(.white)
-                            .accentColor(.white)
-                            .submitLabel(.send)
-                        
-                        if !commentText.isEmpty {
-                            Button(action: sendComment) {
-                                if isSending {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                                        .scaleEffect(0.8)
-                                } else {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.green)
-                                        .transition(.scale.combined(with: .opacity))
-                                }
-                            }
-                            .disabled(isSending)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(red: 0.15, green: 0.15, blue: 0.15))
-                    .cornerRadius(20)
-                }
-                .padding(.horizontal)
-                .padding(.top, 12)
-                .padding(.bottom, 6) // Padding visual interno constante
+                .frame(height: contentHeight)
+                .background(Color(red: 0.1, green: 0.1, blue: 0.1))
+                .cornerRadius(16, corners: [.topLeft, .topRight])
+                .ignoresSafeArea(.keyboard) // CRUCIAL: Contenido estático
                 
-                // Espacio seguro inferior (Home Indicator)
-                // Solo se aplica si el teclado NO está visible.
-                // Si el teclado está visible, este espacio es 0 (el teclado ya trae su espacio).
-                Color.clear
-                    .frame(height: keyboardHeight > 0 ? 0 : 20) // Altura aproximada del safe area bottom
+                // 2. Input Bar (FLOTANTE - OVERLAY)
+                // Se posiciona encima del contenido.
+                VStack(spacing: 0) {
+                    Divider().background(Color.white.opacity(0.15))
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 32, height: 32)
+                        
+                        HStack {
+                            TextField("Añadir comentario...", text: $commentText)
+                                .foregroundColor(.white)
+                                .accentColor(.white)
+                                .submitLabel(.send)
+                            
+                            if !commentText.isEmpty {
+                                Button(action: sendComment) {
+                                    if isSending {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Image(systemName: "arrow.up.circle.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.green)
+                                            .transition(.scale.combined(with: .opacity))
+                                    }
+                                }
+                                .disabled(isSending)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(red: 0.15, green: 0.15, blue: 0.15))
+                        .cornerRadius(20)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    .padding(.bottom, 12) // Padding visual interno de la barra
+                    
+                    // Espacio para Safe Area (Home Indicator)
+                    // Solo visible si el teclado NO está (keyboardHeight == 0)
+                    if keyboardHeight == 0 {
+                        Color.clear.frame(height: geo.safeAreaInsets.bottom)
+                    }
+                }
+                .background(Color.black) // Fondo negro sólido para la barra
+                // Mover hacia arriba con el teclado
+                // Usamos offset negativo para subir visualmente la barra
+                // El valor es keyboardHeight. Como keyboardHeight incluye safeArea en iOS,
+                // al subir keyboardHeight, cubrimos exactamente el teclado.
+                // PERO: Si usamos offset, dejamos un hueco abajo.
+                // MEJOR: Padding Bottom.
+                // Si keyboardHeight > 0, aplicamos ese padding. El background negro de la barra
+                // NO se estira con padding si está aplicado al VStack interno.
+                // Necesitamos aplicar background AL FINAL.
+                // REVISIÓN: Usaremos offset(y: -keyboardHeight) porque queremos que la barra FLOTE
+                // y se POSICIONE ENCIMA del teclado, tal cual pidió el usuario.
+                // Al usar offset, la barra sube. El espacio que deja abajo es transparente,
+                // pero como el teclado está ahí, se ve el teclado.
+                .offset(y: -keyboardHeight)
+                .animation(.easeOut(duration: 0.25), value: keyboardHeight)
             }
-            .background(Color.black) // Fondo negro sólido
-            // Mover hacia arriba con el teclado
-            // Usamos offset para NO afectar el layout del contenedor padre (TikTok style)
-            // Pero necesitamos cubrir el hueco.
-            // Alternativa: Padding bottom.
-            // Al aplicar padding(.bottom, keyboardHeight) a este elemento, y tener background,
-            // el background se estira para cubrir ese padding.
-            .padding(.bottom, keyboardHeight)
-            // Animación suave
-            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+            .ignoresSafeArea(.keyboard) // Todo el contenedor ignora el teclado para evitar empujes automáticos
         }
-        // Frame fijo para todo el componente
         .frame(height: contentHeight)
-        // Ignorar safe area del teclado globalmente en este componente
-        .ignoresSafeArea(.keyboard)
         .onAppear {
             loadComments()
             setupKeyboardObservers()
