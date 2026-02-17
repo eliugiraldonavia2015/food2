@@ -367,6 +367,15 @@ struct FeedView: View {
                 .zIndex(30) // Match comments overlay z-index
             }
             if showShare {
+                // Fondo oscuro separado
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(DesignConstants.Animation.sheetPresentation) { showShare = false }
+                    }
+                    .zIndex(34) // Debajo de ShareOverlayView (35)
+                    .transition(.opacity)
+                
                 ShareOverlayView(onClose: { withAnimation(DesignConstants.Animation.sheetPresentation) { showShare = false } })
                     .zIndex(35) // Higher than comments to be safe, definitely covers feed trigger
                     .transition(DesignConstants.Animation.sheetTransition)

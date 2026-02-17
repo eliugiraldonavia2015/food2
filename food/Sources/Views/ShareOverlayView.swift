@@ -64,23 +64,8 @@ struct ShareOverlayView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                // Dimming Background with tap-to-dismiss
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(DesignConstants.Animation.sheetPresentation) {
-                            onClose()
-                        }
-                    }
-                    .transition(.opacity)
-                    .zIndex(0)
-                
-                sheet(bottomInset: geo.safeAreaInsets.bottom)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                    .transition(DesignConstants.Animation.sheetTransition)
-                    .zIndex(1)
-            }
+            sheet(bottomInset: geo.safeAreaInsets.bottom)
+                .frame(maxHeight: .infinity, alignment: .bottom)
         }
         .ignoresSafeArea()
     }
