@@ -59,8 +59,12 @@ public struct CommentsOverlayView: View {
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Fondo oscuro eliminado de aquí (ahora en MainTabView)
+            // Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
+            Color(red: 0.1, green: 0.1, blue: 0.1)
+                .ignoresSafeArea()
+                .cornerRadius(16, corners: [.topLeft, .topRight])
             
+            // Contenido Principal
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -85,27 +89,29 @@ public struct CommentsOverlayView: View {
                 
                 // Lista de comentarios
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 16) {
-                        if isLoading {
-                            ProgressView().padding()
-                        } else if comments.isEmpty {
-                            Text("Sé el primero en comentar 👇")
-                                .foregroundColor(.gray)
-                                .padding(.top, 40)
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            ForEach(comments) { comment in
-                                CommentRow(comment: comment)
+                    ScrollViewReader { proxy in
+                        LazyVStack(alignment: .leading, spacing: 16) {
+                            if isLoading {
+                                ProgressView().padding()
+                            } else if comments.isEmpty {
+                                Text("Sé el primero en comentar 👇")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 40)
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                ForEach(comments) { comment in
+                                    CommentRow(comment: comment)
+                                        .id(comment.id)
+                                }
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .padding(.bottom, 20) // Espacio final
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    // Espacio extra al final para que el último comentario no quede tapado por el input
-                    .padding(.bottom, 80) 
                 }
                 
-                // Input Bar
+                // Input Bar (Siempre visible abajo)
                 VStack(spacing: 0) {
                     Divider().background(Color.white.opacity(0.15))
                     HStack(spacing: 12) {
@@ -143,20 +149,15 @@ public struct CommentsOverlayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 12)
-                    .padding(.bottom, 34) // Espacio extra para safe area en iPhones sin botón home
+                    // Fondo negro sólido para el input bar que cubre el safe area cuando no hay teclado
+                    .background(Color.black.opacity(0.95)) 
                 }
-                .background(Color.black.opacity(0.95)) // Fondo más sólido
-                .padding(.bottom, -34) // Compensar el padding para extender fondo
             }
-            .frame(height: UIScreen.main.bounds.height * 0.65)
-            .background(Color(red: 0.1, green: 0.1, blue: 0.1))
-            .cornerRadius(16, corners: [.topLeft, .topRight])
-            .padding(.bottom, 0) // Reset padding
-            // ✅ Fix: Mover toda la vista hacia arriba cuando aparece el teclado
-            .offset(y: -keyboardHeight)
-            .animation(.easeOut(duration: 0.16), value: keyboardHeight)
+            .padding(.bottom, keyboardHeight) // El contenido sube, el fondo se queda
         }
-        .edgesIgnoringSafeArea(.bottom) // ✅ Fix: Extender hasta abajo
+        .frame(height: UIScreen.main.bounds.height * 0.65)
+        .ignoresSafeArea(.container, edges: .bottom) // Importante para que el fondo llegue al borde
+        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onAppear {
             loadComments()
             setupKeyboardObservers()
