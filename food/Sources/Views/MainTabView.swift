@@ -150,7 +150,7 @@ struct MainTabView: View {
                 )
                     .zIndex(30) // ✅ Fix: Z-Index elevado para cubrir Feed (10) y TabBar (4)
                     .transition(.move(edge: .bottom)) // ✅ Fix: Transición desde abajo como StoryDetailView
-                    .ignoresSafeArea() // ✅ Fix: Cubrir safe area completamente
+                    .ignoresSafeArea() // ✅ Fix: Cubrir safe area completamente (incluyendo teclado)
             }
             
             if showSearchFromTab {

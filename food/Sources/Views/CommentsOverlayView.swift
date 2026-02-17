@@ -58,125 +58,132 @@ public struct CommentsOverlayView: View {
     }
     
     public var body: some View {
+        let screenHeight = UIScreen.main.bounds.height
+        let contentHeight = screenHeight * 0.65
+        
         ZStack(alignment: .bottom) {
-            // 1. Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
-            Color(red: 0.1, green: 0.1, blue: 0.1)
-                .ignoresSafeArea()
-                .cornerRadius(16, corners: [.topLeft, .topRight])
-            
-            // 2. Contenido Principal (Lista de Comentarios)
-            // Usamos un contenedor que ocupa TODO el espacio disponible, ignorando el teclado.
-            // Esto asegura que el fondo y la lista NO se muevan cuando el teclado sube.
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Spacer()
-                    Text("\(count) comentarios")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                    Spacer()
-                    
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 24, height: 24)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+            // 1. Fondo Principal y Contenido (ESTÁTICO)
+            // Este bloque define la altura y forma del modal.
+            // Usamos un ZStack para asegurar que el contenido ocupe todo el frame.
+            ZStack(alignment: .top) {
+                Color(red: 0.1, green: 0.1, blue: 0.1)
+                    .cornerRadius(16, corners: [.topLeft, .topRight])
                 
-                // Lista de comentarios
-                ScrollView {
-                    ScrollViewReader { proxy in
-                        LazyVStack(alignment: .leading, spacing: 16) {
-                            if isLoading {
-                                ProgressView().padding()
-                            } else if comments.isEmpty {
-                                Text("Sé el primero en comentar 👇")
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 40)
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                ForEach(comments) { comment in
-                                    CommentRow(comment: comment)
-                                        .id(comment.id)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
-                        // Aquí SÍ necesitamos considerar el teclado para que el scroll llegue hasta el final
-                        .padding(.bottom, 80 + keyboardHeight) 
-                    }
-                }
-            }
-            .frame(maxHeight: .infinity) // Ocupa todo el espacio vertical disponible
-            
-            // 3. Input Bar (Flotante y pegado al teclado)
-            // Al estar en un ZStack con alignment .bottom, este elemento "flota" sobre el contenido principal.
-            // Su movimiento es independiente del fondo.
-            GeometryReader { geo in
                 VStack(spacing: 0) {
-                    Divider().background(Color.white.opacity(0.15))
-                    HStack(spacing: 12) {
-                        // Avatar usuario actual (placeholder)
-                        Circle()
-                            .fill(Color.gray)
-                            .frame(width: 32, height: 32)
-                            
-                        HStack {
-                            TextField("Añadir comentario...", text: $commentText)
+                    // Header
+                    HStack {
+                        Spacer()
+                        Text("\(count) comentarios")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        
+                        Button(action: onClose) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(.white)
-                                .accentColor(.white)
-                                .submitLabel(.send)
-                            
-                            if !commentText.isEmpty {
-                                Button(action: sendComment) {
-                                    if isSending {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                                            .scaleEffect(0.8)
-                                    } else {
-                                        Image(systemName: "arrow.up.circle.fill")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(.green)
-                                            .transition(.scale.combined(with: .opacity))
-                                    }
-                                }
-                                .disabled(isSending)
-                            }
+                                .frame(width: 24, height: 24)
+                                .background(Color.white.opacity(0.1))
+                                .clipShape(Circle())
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color(red: 0.15, green: 0.15, blue: 0.15)) // Gris oscuro sólido
-                        .cornerRadius(20)
                     }
                     .padding(.horizontal)
-                    .padding(.top, 12)
-                    // Ajuste fino: Cuando está el teclado, reducimos el padding inferior visual a 6 para que se vea más compacto
-                    .padding(.bottom, keyboardHeight > 0 ? 6 : 12)
-                    // Padding inferior interno para safe area cuando teclado está oculto
-                    // Cuando hay teclado, este padding interno se reduce a 0
-                    .padding(.bottom, keyboardHeight == 0 ? max(geo.safeAreaInsets.bottom, 20) : 0)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+                    
+                    // Lista de comentarios
+                    ScrollView {
+                        ScrollViewReader { proxy in
+                            LazyVStack(alignment: .leading, spacing: 16) {
+                                if isLoading {
+                                    ProgressView().padding()
+                                } else if comments.isEmpty {
+                                    Text("Sé el primero en comentar 👇")
+                                        .foregroundColor(.gray)
+                                        .padding(.top, 40)
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    ForEach(comments) { comment in
+                                        CommentRow(comment: comment)
+                                            .id(comment.id)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            // Espacio inferior para evitar que el input tape el último comentario
+                            .padding(.bottom, 100) 
+                        }
+                    }
                 }
-                // Padding inferior externo para subir con el teclado
-                // Restamos un poco (e.g. 2px) para asegurar overlap y eliminar gaps transparentes
-                .padding(.bottom, max(0, keyboardHeight))
-                // Background aplicado DESPUÉS del padding externo para que cubra el área "empujada" (el hueco del teclado)
-                // Esto asegura que si el teclado es más bajo o hay un gap, se vea NEGRO y no transparente.
-                .background(Color.black) // Negro sólido (sin opacidad)
             }
+            .frame(height: contentHeight)
+            // 🛑 IMPORTANTE: Ignorar teclado aquí para que este bloque NO se mueva
+            .ignoresSafeArea(.keyboard) 
+            
+            // 2. Input Bar (FLOTANTE)
+            // Se posiciona en la parte inferior del ZStack.
+            // Su posición se ajusta con offset/padding basado en el teclado.
+            VStack(spacing: 0) {
+                Divider().background(Color.white.opacity(0.15))
+                HStack(spacing: 12) {
+                    // Avatar
+                    Circle()
+                        .fill(Color.gray)
+                        .frame(width: 32, height: 32)
+                    
+                    HStack {
+                        TextField("Añadir comentario...", text: $commentText)
+                            .foregroundColor(.white)
+                            .accentColor(.white)
+                            .submitLabel(.send)
+                        
+                        if !commentText.isEmpty {
+                            Button(action: sendComment) {
+                                if isSending {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.green)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
+                            }
+                            .disabled(isSending)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(red: 0.15, green: 0.15, blue: 0.15))
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 6) // Padding visual interno constante
+                
+                // Espacio seguro inferior (Home Indicator)
+                // Solo se aplica si el teclado NO está visible.
+                // Si el teclado está visible, este espacio es 0 (el teclado ya trae su espacio).
+                Color.clear
+                    .frame(height: keyboardHeight > 0 ? 0 : 20) // Altura aproximada del safe area bottom
+            }
+            .background(Color.black) // Fondo negro sólido
+            // Mover hacia arriba con el teclado
+            // Usamos offset para NO afectar el layout del contenedor padre (TikTok style)
+            // Pero necesitamos cubrir el hueco.
+            // Alternativa: Padding bottom.
+            // Al aplicar padding(.bottom, keyboardHeight) a este elemento, y tener background,
+            // el background se estira para cubrir ese padding.
+            .padding(.bottom, keyboardHeight)
+            // Animación suave
+            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         }
-        // 🛑 FIJAR ALTURA ESTÁTICA: Esto evita que el contenedor crezca cuando sale el teclado
-        .frame(height: UIScreen.main.bounds.height * 0.65)
-        // Aplicamos ignoresSafeArea aquí también para asegurar que el sistema no empuje nada
-        .ignoresSafeArea(.keyboard, edges: .bottom)
-        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+        // Frame fijo para todo el componente
+        .frame(height: contentHeight)
+        // Ignorar safe area del teclado globalmente en este componente
+        .ignoresSafeArea(.keyboard)
         .onAppear {
             loadComments()
             setupKeyboardObservers()

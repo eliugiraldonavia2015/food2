@@ -376,6 +376,7 @@ struct FeedView: View {
                 .zIndex(30) // Match comments overlay z-index
                 .transition(.move(edge: .bottom))
                 .frame(maxHeight: .infinity, alignment: .bottom) // 🛑 CRUCIAL: Alinear al fondo
+                .ignoresSafeArea(.keyboard) // ✅ Fix: Asegurar que el contenedor padre no empuje el overlay
             }
             if showShare {
                 // Fondo oscuro separado
