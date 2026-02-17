@@ -245,14 +245,12 @@ struct CommentRow: View {
         HStack(alignment: .top, spacing: 12) {
             WebImage(url: URL(string: comment.avatarUrl))
                 .resizable()
-                .placeholder {
-                    Circle().fill(Color.gray.opacity(0.3))
-                }
                 .indicator(.activity)
                 .transition(.fade(duration: 0.5))
                 .scaledToFill()
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
+                .background(Circle().fill(Color.gray.opacity(0.3))) // Fallback background
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(comment.username)
@@ -282,12 +280,12 @@ struct CommentRow: View {
                             HStack(alignment: .top, spacing: 12) {
                                 WebImage(url: URL(string: reply.avatarUrl))
                                     .resizable()
-                                    .placeholder {
-                                        Circle().fill(Color.gray.opacity(0.3))
-                                    }
+                                    .indicator(.activity)
+                                    .transition(.fade(duration: 0.5))
                                     .scaledToFill()
                                     .frame(width: 24, height: 24)
                                     .clipShape(Circle())
+                                    .background(Circle().fill(Color.gray.opacity(0.3)))
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(reply.username)
