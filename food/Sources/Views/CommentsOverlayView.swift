@@ -58,69 +58,69 @@ public struct CommentsOverlayView: View {
     }
     
     public var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                // 1. Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
-                Color(red: 0.1, green: 0.1, blue: 0.1)
-                    .ignoresSafeArea()
-                    .cornerRadius(16, corners: [.topLeft, .topRight])
-                
-                // 2. Contenido Principal (Lista de Comentarios)
-                // Usamos un contenedor que ocupa TODO el espacio disponible, ignorando el teclado.
-                // Esto asegura que el fondo y la lista NO se muevan cuando el teclado sube.
-                VStack(spacing: 0) {
-                    // Header
-                    HStack {
-                        Spacer()
-                        Text("\(count) comentarios")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                        Spacer()
-                        
-                        Button(action: onClose) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 24, height: 24)
-                                .background(Color.white.opacity(0.1))
-                                .clipShape(Circle())
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
+        ZStack(alignment: .bottom) {
+            // 1. Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
+            Color(red: 0.1, green: 0.1, blue: 0.1)
+                .ignoresSafeArea()
+                .cornerRadius(16, corners: [.topLeft, .topRight])
+            
+            // 2. Contenido Principal (Lista de Comentarios)
+            // Usamos un contenedor que ocupa TODO el espacio disponible, ignorando el teclado.
+            // Esto asegura que el fondo y la lista NO se muevan cuando el teclado sube.
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Spacer()
+                    Text("\(count) comentarios")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Spacer()
                     
-                    // Lista de comentarios
-                    ScrollView {
-                        ScrollViewReader { proxy in
-                            LazyVStack(alignment: .leading, spacing: 16) {
-                                if isLoading {
-                                    ProgressView().padding()
-                                } else if comments.isEmpty {
-                                    Text("Sé el primero en comentar 👇")
-                                        .foregroundColor(.gray)
-                                        .padding(.top, 40)
-                                        .frame(maxWidth: .infinity)
-                                } else {
-                                    ForEach(comments) { comment in
-                                        CommentRow(comment: comment)
-                                            .id(comment.id)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
-                            // Aquí SÍ necesitamos considerar el teclado para que el scroll llegue hasta el final
-                            .padding(.bottom, 80 + keyboardHeight) 
-                        }
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
                     }
                 }
-                .frame(maxHeight: .infinity) // Ocupa todo el espacio vertical disponible
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
                 
-                // 3. Input Bar (Flotante y pegado al teclado)
-                // Al estar en un ZStack con alignment .bottom, este elemento "flota" sobre el contenido principal.
-                // Su movimiento es independiente del fondo.
+                // Lista de comentarios
+                ScrollView {
+                    ScrollViewReader { proxy in
+                        LazyVStack(alignment: .leading, spacing: 16) {
+                            if isLoading {
+                                ProgressView().padding()
+                            } else if comments.isEmpty {
+                                Text("Sé el primero en comentar 👇")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 40)
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                ForEach(comments) { comment in
+                                    CommentRow(comment: comment)
+                                        .id(comment.id)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
+                        // Aquí SÍ necesitamos considerar el teclado para que el scroll llegue hasta el final
+                        .padding(.bottom, 80 + keyboardHeight) 
+                    }
+                }
+            }
+            .frame(maxHeight: .infinity) // Ocupa todo el espacio vertical disponible
+            
+            // 3. Input Bar (Flotante y pegado al teclado)
+            // Al estar en un ZStack con alignment .bottom, este elemento "flota" sobre el contenido principal.
+            // Su movimiento es independiente del fondo.
+            GeometryReader { geo in
                 VStack(spacing: 0) {
                     Divider().background(Color.white.opacity(0.15))
                     HStack(spacing: 12) {
@@ -171,8 +171,6 @@ public struct CommentsOverlayView: View {
                 // Esto asegura que si el teclado es más bajo o hay un gap, se vea NEGRO y no transparente.
                 .background(Color.black) // Negro sólido (sin opacidad)
             }
-            // 🛑 CRUCIAL: Esto debe aplicarse al ZStack interno también
-            .ignoresSafeArea(.keyboard, edges: .bottom) 
         }
         // 🛑 FIJAR ALTURA ESTÁTICA: Esto evita que el contenedor crezca cuando sale el teclado
         .frame(height: UIScreen.main.bounds.height * 0.65)
