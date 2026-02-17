@@ -147,11 +147,13 @@ public struct CommentsOverlayView: View {
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color(red: 0.15, green: 0.15, blue: 0.15)) // Gris oscuro sólido
                         .cornerRadius(20)
                     }
                     .padding(.horizontal)
-                    .padding(.vertical, 12)
+                    .padding(.top, 12)
+                    // Ajuste fino: Cuando está el teclado, reducimos el padding inferior visual a 6 para que se vea más compacto
+                    .padding(.bottom, keyboardHeight > 0 ? 6 : 12)
                     // Padding inferior interno para safe area cuando teclado está oculto
                     // Cuando hay teclado, este padding interno se reduce a 0
                     .padding(.bottom, keyboardHeight == 0 ? max(geo.safeAreaInsets.bottom, 20) : 0)
@@ -161,7 +163,7 @@ public struct CommentsOverlayView: View {
                 .padding(.bottom, max(0, keyboardHeight))
                 // Background aplicado DESPUÉS del padding externo para que cubra el área "empujada" (el hueco del teclado)
                 // Esto asegura que si el teclado es más bajo o hay un gap, se vea NEGRO y no transparente.
-                .background(Color.black.opacity(0.95))
+                .background(Color.black) // Negro sólido (sin opacidad)
             }
             .ignoresSafeArea(.keyboard, edges: .bottom) // Evita el desplazamiento automático del sistema
         }
