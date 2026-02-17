@@ -167,22 +167,16 @@ public struct CommentsOverlayView: View {
                 }
                 .background(Color.black) // Fondo negro sólido para la barra
                 // Mover hacia arriba con el teclado
-                // Usamos offset negativo para subir visualmente la barra
-                // El valor es keyboardHeight. Como keyboardHeight incluye safeArea en iOS,
-                // al subir keyboardHeight, cubrimos exactamente el teclado.
-                // PERO: Si usamos offset, dejamos un hueco abajo.
-                // MEJOR: Padding Bottom.
-                // Si keyboardHeight > 0, aplicamos ese padding. El background negro de la barra
-                // NO se estira con padding si está aplicado al VStack interno.
-                // Necesitamos aplicar background AL FINAL.
-                // REVISIÓN: Usaremos offset(y: -keyboardHeight) porque queremos que la barra FLOTE
-                // y se POSICIONE ENCIMA del teclado, tal cual pidió el usuario.
-                // Al usar offset, la barra sube. El espacio que deja abajo es transparente,
-                // pero como el teclado está ahí, se ve el teclado.
-                .offset(y: -keyboardHeight)
+                // FIX CRÍTICO: No usamos offset negativo. Usamos padding bottom.
+                // Al estar en un ZStack con alignment .bottom, el padding bottom empuja el elemento hacia arriba.
+                // El teclado en iOS ya ocupa espacio, así que simplemente añadimos ese espacio.
+                // Pero como usamos .ignoresSafeArea(.keyboard) en el contenedor padre, el teclado NO empuja nada automáticamente.
+                // Por lo tanto, debemos empujar nosotros manualmente la barra.
+                .padding(.bottom, keyboardHeight)
                 .animation(.easeOut(duration: 0.25), value: keyboardHeight)
             }
-            .ignoresSafeArea(.keyboard) // Todo el contenedor ignora el teclado para evitar empujes automáticos
+            // FIX CRÍTICO: El ZStack interno TAMBIÉN debe ignorar el teclado para que el sistema NO intente moverlo.
+            .ignoresSafeArea(.keyboard)
         }
         .frame(height: contentHeight)
         .onAppear {
