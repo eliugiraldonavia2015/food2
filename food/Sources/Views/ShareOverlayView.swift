@@ -69,17 +69,20 @@ struct ShareOverlayView: View {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        onClose()
+                        withAnimation(DesignConstants.Animation.sheetPresentation) {
+                            onClose()
+                        }
                     }
                     .transition(.opacity)
+                    .zIndex(0)
                 
                 sheet(bottomInset: geo.safeAreaInsets.bottom)
                     .frame(maxHeight: .infinity, alignment: .bottom)
-                    .transition(.move(edge: .bottom))
+                    .transition(DesignConstants.Animation.sheetTransition)
+                    .zIndex(1)
             }
         }
-        .ignoresSafeArea() // Ensure it covers everything
-        // .transition(.opacity) // Removed to allow individual transitions
+        .ignoresSafeArea()
     }
 
     private func sheet(bottomInset: CGFloat) -> some View {
@@ -125,8 +128,13 @@ struct ShareOverlayView: View {
         .frame(maxWidth: .infinity)
         .padding(.bottom, bottomInset + bottomExtraSpacing)
         .background(sheetBackgroundColor)
-        .clipShape(FullMenuRoundedCorners(radius: 18, corners: [.topLeft, .topRight]))
-        .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: -4)
+        .clipShape(FullMenuRoundedCorners(radius: DesignConstants.Layout.cornerRadius, corners: [.topLeft, .topRight]))
+        .shadow(
+            color: DesignConstants.Layout.sheetShadowColor, 
+            radius: DesignConstants.Layout.sheetShadowRadius, 
+            x: 0, 
+            y: DesignConstants.Layout.sheetShadowY
+        )
         .ignoresSafeArea(edges: .bottom)
     }
 
@@ -136,7 +144,11 @@ struct ShareOverlayView: View {
                 .foregroundColor(primaryTextColor)
                 .font(.system(size: 20, weight: .bold))
             Spacer()
-            Button(action: onClose) {
+            Button(action: {
+                withAnimation(DesignConstants.Animation.sheetPresentation) {
+                    onClose()
+                }
+            }) {
                 ZStack {
                     Circle().fill(closeButtonBackgroundColor).frame(width: 34, height: 34)
                     Image(systemName: "xmark")
@@ -180,7 +192,7 @@ struct ShareOverlayView: View {
                 .font(.system(size: 12))
         }
         .onTapGesture {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            withAnimation(DesignConstants.Animation.stagedContent) {
                 if sent.contains(p.id) { sent.remove(p.id) } else { sent.insert(p.id) }
             }
         }

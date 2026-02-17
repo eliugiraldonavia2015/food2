@@ -367,8 +367,9 @@ struct FeedView: View {
                 .zIndex(30) // Match comments overlay z-index
             }
             if showShare {
-                ShareOverlayView(onClose: { withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showShare = false } })
+                ShareOverlayView(onClose: { withAnimation(DesignConstants.Animation.sheetPresentation) { showShare = false } })
                     .zIndex(35) // Higher than comments to be safe, definitely covers feed trigger
+                    .transition(DesignConstants.Animation.sheetTransition)
             }
             if showMusic { SaveFoldersOverlayView(onClose: { withAnimation(.easeOut(duration: 0.25)) { showMusic = false } }, onSelect: { _ in
                 withAnimation(.easeOut(duration: 0.25)) { showMusic = false }
@@ -1258,7 +1259,11 @@ struct FeedView: View {
                 // Share button
                 VStack(spacing: 6) {
                     ZStack {
-                        Button(action: onShowShare) {
+                        Button(action: {
+                            withAnimation(DesignConstants.Animation.sheetPresentation) {
+                                onShowShare()
+                            }
+                        }) {
                             Image(systemName: "paperplane")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -1273,7 +1278,9 @@ struct FeedView: View {
                             .contentShape(Rectangle())
                             .highPriorityGesture(
                                 TapGesture().onEnded {
-                                    onShowShare()
+                                    withAnimation(DesignConstants.Animation.sheetPresentation) {
+                                        onShowShare()
+                                    }
                                 }
                             )
                             .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
