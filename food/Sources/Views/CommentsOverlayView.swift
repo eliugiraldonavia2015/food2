@@ -58,127 +58,131 @@ public struct CommentsOverlayView: View {
     }
     
     public var body: some View {
+        // Altura de pantalla fija (para cálculos)
         let screenHeight = UIScreen.main.bounds.height
+        // Altura del contenido (65% de la pantalla)
         let contentHeight = screenHeight * 0.65
         
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                // 1. Fondo y Contenido (ESTÁTICO)
-                // Ocupa el 65% de la pantalla y NO se mueve con el teclado.
-                VStack(spacing: 0) {
-                    // Header
-                    HStack {
-                        Spacer()
-                        Text("\(count) comentarios")
-                            .font(.system(size: 16, weight: .bold))
+        // ZStack raíz que ocupa TODA la pantalla pero permite transparencias
+        ZStack(alignment: .bottom) {
+            
+            // 1. Contenedor del contenido principal (Fondo + Lista)
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Spacer()
+                    Text("\(count) comentarios")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Spacer()
+                    
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
-                        Spacer()
-                        
-                        Button(action: onClose) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 24, height: 24)
-                                .background(Color.white.opacity(0.1))
-                                .clipShape(Circle())
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
-                    
-                    // Lista de comentarios
-                    ScrollView {
-                        ScrollViewReader { proxy in
-                            LazyVStack(alignment: .leading, spacing: 16) {
-                                if isLoading {
-                                    ProgressView().padding()
-                                } else if comments.isEmpty {
-                                    Text("Sé el primero en comentar 👇")
-                                        .foregroundColor(.gray)
-                                        .padding(.top, 40)
-                                        .frame(maxWidth: .infinity)
-                                } else {
-                                    ForEach(comments) { comment in
-                                        CommentRow(comment: comment)
-                                            .id(comment.id)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                            // Espacio reservado "vacío" detrás de la barra de input.
-                            // Esto asegura que el último comentario se pueda ver scrolleando.
-                            // Altura estimada barra (60) + safe area
-                            .padding(.bottom, 60 + geo.safeAreaInsets.bottom)
-                        }
+                            .frame(width: 24, height: 24)
+                            .background(Color.white.opacity(0.1))
+                            .clipShape(Circle())
                     }
                 }
-                .frame(height: contentHeight)
-                .background(Color(red: 0.1, green: 0.1, blue: 0.1))
-                .cornerRadius(16, corners: [.topLeft, .topRight])
-                .ignoresSafeArea(.keyboard) // CRUCIAL: Contenido estático
+                .padding(.horizontal)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
                 
-                // 2. Input Bar (FLOTANTE - OVERLAY)
-                // Se posiciona encima del contenido.
-                VStack(spacing: 0) {
-                    Divider().background(Color.white.opacity(0.15))
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.gray)
-                            .frame(width: 32, height: 32)
-                        
-                        HStack {
-                            TextField("Añadir comentario...", text: $commentText)
-                                .foregroundColor(.white)
-                                .accentColor(.white)
-                                .submitLabel(.send)
-                            
-                            if !commentText.isEmpty {
-                                Button(action: sendComment) {
-                                    if isSending {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                                            .scaleEffect(0.8)
-                                    } else {
-                                        Image(systemName: "arrow.up.circle.fill")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(.green)
-                                            .transition(.scale.combined(with: .opacity))
-                                    }
+                // Lista de comentarios
+                ScrollView {
+                    ScrollViewReader { proxy in
+                        LazyVStack(alignment: .leading, spacing: 16) {
+                            if isLoading {
+                                ProgressView().padding()
+                            } else if comments.isEmpty {
+                                Text("Sé el primero en comentar 👇")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 40)
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                ForEach(comments) { comment in
+                                    CommentRow(comment: comment)
+                                        .id(comment.id)
                                 }
-                                .disabled(isSending)
                             }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color(red: 0.15, green: 0.15, blue: 0.15))
-                        .cornerRadius(20)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-                    .padding(.bottom, 12) // Padding visual interno de la barra
-                    
-                    // Espacio para Safe Area (Home Indicator)
-                    // Solo visible si el teclado NO está (keyboardHeight == 0)
-                    if keyboardHeight == 0 {
-                        Color.clear.frame(height: geo.safeAreaInsets.bottom)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        // Espacio extra al final para que el último comentario no quede tapado por la barra
+                        // 100 es suficiente para cubrir la barra + safe area
+                        .padding(.bottom, 100)
                     }
                 }
-                .background(Color.black) // Fondo negro sólido para la barra
-                // Mover hacia arriba con el teclado
-                // FIX CRÍTICO: No usamos offset negativo. Usamos padding bottom.
-                // Al estar en un ZStack con alignment .bottom, el padding bottom empuja el elemento hacia arriba.
-                // El teclado en iOS ya ocupa espacio, así que simplemente añadimos ese espacio.
-                // Pero como usamos .ignoresSafeArea(.keyboard) en el contenedor padre, el teclado NO empuja nada automáticamente.
-                // Por lo tanto, debemos empujar nosotros manualmente la barra.
-                .padding(.bottom, keyboardHeight)
-                .animation(.easeOut(duration: 0.25), value: keyboardHeight)
             }
-            // FIX CRÍTICO: El ZStack interno TAMBIÉN debe ignorar el teclado para que el sistema NO intente moverlo.
+            .frame(height: contentHeight)
+            .background(Color(red: 0.1, green: 0.1, blue: 0.1))
+            .cornerRadius(16, corners: [.topLeft, .topRight])
+            // 🛑 ESTE CONTENEDOR DEBE IGNORAR EL TECLADO ABSOLUTAMENTE
             .ignoresSafeArea(.keyboard)
+            
+            // 2. Input Bar (Flotante)
+            // Se coloca encima del contenido anterior.
+            // Usamos GeometryReader SOLO aquí para obtener el safeArea bottom real si lo necesitamos
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    Spacer() // Empujar todo hacia abajo
+                    
+                    VStack(spacing: 0) {
+                        Divider().background(Color.white.opacity(0.15))
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(Color.gray)
+                                .frame(width: 32, height: 32)
+                            
+                            HStack {
+                                TextField("Añadir comentario...", text: $commentText)
+                                    .foregroundColor(.white)
+                                    .accentColor(.white)
+                                    .submitLabel(.send)
+                                
+                                if !commentText.isEmpty {
+                                    Button(action: sendComment) {
+                                        if isSending {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                                .scaleEffect(0.8)
+                                        } else {
+                                            Image(systemName: "arrow.up.circle.fill")
+                                                .font(.system(size: 24))
+                                                .foregroundColor(.green)
+                                                .transition(.scale.combined(with: .opacity))
+                                        }
+                                    }
+                                    .disabled(isSending)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(red: 0.15, green: 0.15, blue: 0.15))
+                            .cornerRadius(20)
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 12)
+                        .padding(.bottom, 12) // Padding visual interno
+                        
+                        // Si el teclado NO está visible, necesitamos rellenar el safe area bottom
+                        if keyboardHeight == 0 {
+                            Color.clear.frame(height: geo.safeAreaInsets.bottom)
+                        }
+                    }
+                    .background(Color.black) // Fondo negro
+                    // Empujamos la barra hacia arriba según la altura del teclado
+                    .padding(.bottom, keyboardHeight)
+                    .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+                }
+                // 🛑 ESTA VISTA INTERNA TAMBIÉN DEBE IGNORAR EL TECLADO para que el sistema no la mueva automáticamente
+                .ignoresSafeArea(.keyboard)
+            }
         }
-        .frame(height: contentHeight)
+        // 🛑 IGNORAR TODO (incluyendo teclado) A NIVEL RAÍZ
+        // Esto evita que el sistema redimensione el contenedor principal
+        .ignoresSafeArea(.all)
         .onAppear {
             loadComments()
             setupKeyboardObservers()
