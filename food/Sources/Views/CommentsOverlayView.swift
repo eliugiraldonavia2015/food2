@@ -65,7 +65,9 @@ public struct CommentsOverlayView: View {
                     .ignoresSafeArea()
                     .cornerRadius(16, corners: [.topLeft, .topRight])
                 
-                // 2. Contenido Principal
+                // 2. Contenido Principal (Lista de Comentarios)
+                // Usamos un contenedor que ocupa TODO el espacio disponible, ignorando el teclado.
+                // Esto asegura que el fondo y la lista NO se muevan cuando el teclado sube.
                 VStack(spacing: 0) {
                     // Header
                     HStack {
@@ -109,12 +111,16 @@ public struct CommentsOverlayView: View {
                             .padding(.horizontal)
                             .padding(.top, 8)
                             // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
+                            // Aquí SÍ necesitamos considerar el teclado para que el scroll llegue hasta el final
                             .padding(.bottom, 80 + keyboardHeight) 
                         }
                     }
                 }
+                .frame(maxHeight: .infinity) // Ocupa todo el espacio vertical disponible
                 
                 // 3. Input Bar (Flotante y pegado al teclado)
+                // Al estar en un ZStack con alignment .bottom, este elemento "flota" sobre el contenido principal.
+                // Su movimiento es independiente del fondo.
                 VStack(spacing: 0) {
                     Divider().background(Color.white.opacity(0.15))
                     HStack(spacing: 12) {
