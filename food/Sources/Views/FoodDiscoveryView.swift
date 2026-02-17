@@ -9,6 +9,8 @@ struct FoodDiscoveryView: View {
     @State private var showAddressSelection = false
     @State private var currentAddress = "Polanco, CDMX"
     
+    @Environment(\.colorScheme) var colorScheme
+    
     // External Actions & Animation
     var onClose: () -> Void
     var onSearch: () -> Void
@@ -34,10 +36,26 @@ struct FoodDiscoveryView: View {
     // MARK: - Design Constants
     private let primaryColor = Color.green // Replaces Pink from image
     private let accentColor = Color.orange
-    private let backgroundColor = Color.white // Clean white background
-    private let secondaryBackgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray for Search/Cards
-    private let primaryTextColor = Color.black.opacity(0.9)
-    private let secondaryTextColor = Color.gray
+    
+    private var backgroundColor: Color {
+        Color(uiColor: .systemBackground)
+    }
+    
+    private var secondaryBackgroundColor: Color {
+        Color(uiColor: .secondarySystemBackground)
+    }
+    
+    private var cardBackgroundColor: Color {
+        Color(uiColor: .secondarySystemGroupedBackground)
+    }
+    
+    private var primaryTextColor: Color {
+        Color.primary
+    }
+    
+    private var secondaryTextColor: Color {
+        Color.secondary
+    }
     
     // MARK: - Data Models
     // Using shared CategoryItem model
@@ -891,20 +909,20 @@ struct FoodDiscoveryView: View {
                                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                                         .frame(width: 72, height: 72)
                                 }
-                                
-                                // Image
-                                if let url = URL(string: update.logo) {
-                                    WebImage(url: url)
-                                        .resizable()
-                                        .scaledToFit() // Logos usually fit better
-                                        .padding(12)   // Padding inside circle for logo
-                                        .frame(width: 64, height: 64)
-                                        .background(Color.white)
-                                        .clipShape(Circle())
-                                }
-                            }
                             
-                            Text(update.name)
+                            // Image
+                            if let url = URL(string: update.logo) {
+                                WebImage(url: url)
+                                    .resizable()
+                                    .scaledToFit() // Logos usually fit better
+                                    .padding(12)   // Padding inside circle for logo
+                                    .frame(width: 64, height: 64)
+                                    .background(Color(uiColor: .tertiarySystemGroupedBackground))
+                                    .clipShape(Circle())
+                            }
+                        }
+                        
+                        Text(update.name)
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.primary)
                                 .lineLimit(1)
@@ -970,12 +988,12 @@ struct FilterSheet: View {
                         }
                     }
                     .padding()
-                    .padding(.top, 10)
-                    .background(Color.white)
-                    
-                    // Content List
-                    ScrollView {
-                        VStack(spacing: 12) {
+                        .padding(.top, 10)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        
+                        // Content List
+                        ScrollView {
+                            VStack(spacing: 12) {
                             // Precio
                             filterSection(title: "Precio: \(getPriceString())", id: "Precio") {
                                 VStack(spacing: 8) {
@@ -1019,7 +1037,7 @@ struct FilterSheet: View {
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(selectedRatings.contains(star) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                            .background(selectedRatings.contains(star) ? Color.orange : Color(uiColor: .tertiarySystemFill))
                                             .cornerRadius(8)
                                         }
                                     }
@@ -1037,7 +1055,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(uiColor: .tertiarySystemFill))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1069,7 +1087,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedOffers.contains(offer) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(uiColor: .tertiarySystemFill))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1093,13 +1111,13 @@ struct FilterSheet: View {
                             .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding()
-                    .background(Color.white)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    }
+                    .frame(height: geometry.size.height * 0.75)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .cornerRadius(24, corners: [.topLeft, .topRight])
+                    .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
                 }
-                .frame(height: geometry.size.height * 0.75)
-                .background(Color.white)
-                .cornerRadius(24, corners: [.topLeft, .topRight])
-                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
-            }
         }
         .ignoresSafeArea()
     }
@@ -1127,7 +1145,7 @@ struct FilterSheet: View {
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color(red: 0.95, green: 0.95, blue: 0.97).opacity(0.5))
+                .background(Color(uiColor: .quaternarySystemFill))
             }
             
             if expandedSection == id {
@@ -1137,7 +1155,7 @@ struct FilterSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(Color.white)
+        .background(Color(uiColor: .tertiarySystemGroupedBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
