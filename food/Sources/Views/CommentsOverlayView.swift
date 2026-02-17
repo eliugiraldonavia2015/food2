@@ -157,6 +157,7 @@ public struct CommentsOverlayView: View {
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
         .ignoresSafeArea(.container, edges: .bottom) // Importante para que el fondo llegue al borde
+        .ignoresSafeArea(.keyboard, edges: .bottom) // ✅ Fix: Evitar que SwiftUI empuje la vista automáticamente (doble gap)
         .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onAppear {
             loadComments()
