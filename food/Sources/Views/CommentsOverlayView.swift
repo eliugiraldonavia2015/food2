@@ -158,18 +158,14 @@ public struct CommentsOverlayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.top, 12)
-                    // Ajuste fino: Cuando está el teclado, reducimos el padding inferior visual a 6 para que se vea más compacto
-                    .padding(.bottom, keyboardHeight > 0 ? 6 : 12)
-                    // Padding inferior interno para safe area cuando teclado está oculto
-                    // Cuando hay teclado, este padding interno se reduce a 0
+                    .padding(.bottom, 12) // Padding inferior interno estándar
+                    // Padding extra SOLO para safe area si NO hay teclado
                     .padding(.bottom, keyboardHeight == 0 ? max(geo.safeAreaInsets.bottom, 20) : 0)
                 }
-                // Padding inferior externo para subir con el teclado
-                // Restamos un poco (e.g. 2px) para asegurar overlap y eliminar gaps transparentes
-                .padding(.bottom, max(0, keyboardHeight))
-                // Background aplicado DESPUÉS del padding externo para que cubra el área "empujada" (el hueco del teclado)
-                // Esto asegura que si el teclado es más bajo o hay un gap, se vea NEGRO y no transparente.
-                .background(Color.black) // Negro sólido (sin opacidad)
+                .background(Color.black) // Fondo negro del input
+                // El truco definitivo: Offset en lugar de padding para mover la barra
+                // Al usar offset, no afectamos el layout de otros elementos.
+                .offset(y: -keyboardHeight)
             }
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
