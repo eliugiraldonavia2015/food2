@@ -59,12 +59,7 @@ public struct CommentsOverlayView: View {
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // 1. Fondo Principal del Modal (Estático)
-            Color(red: 0.1, green: 0.1, blue: 0.1)
-                .ignoresSafeArea()
-                .cornerRadius(16, corners: [.topLeft, .topRight])
-            
-            // 2. Contenido Principal (Header + Lista) - Ocupa todo el espacio menos el input
+            // 1. Fondo y Contenido Principal (Fijo)
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -107,14 +102,15 @@ public struct CommentsOverlayView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 8)
-                        // Espacio extra al final para que el último comentario no quede tapado por el input flotante
-                        .padding(.bottom, 100) 
+                        // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
+                        .padding(.bottom, 80 + keyboardHeight) 
                     }
                 }
             }
-            .frame(maxHeight: .infinity, alignment: .top)
+            .background(Color(red: 0.1, green: 0.1, blue: 0.1))
+            .cornerRadius(16, corners: [.topLeft, .topRight])
             
-            // 3. Input Bar Flotante (Independiente)
+            // 2. Input Bar (Flotante sobre el contenido)
             VStack(spacing: 0) {
                 Divider().background(Color.white.opacity(0.15))
                 HStack(spacing: 12) {
@@ -153,15 +149,18 @@ public struct CommentsOverlayView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 12)
                 // Fondo negro sólido para el input bar
-                .background(Color.black.opacity(0.95))
+                .background(Color.black.opacity(0.95)) 
+                
+                // Espacio seguro inferior negro cuando no hay teclado
+                if keyboardHeight == 0 {
+                    Color.black.opacity(0.95).frame(height: 34)
+                }
             }
-            // Posicionamiento absoluto desde abajo
-            .padding(.bottom, keyboardHeight) 
-            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+            .padding(.bottom, keyboardHeight) // Se mueve con el teclado
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
         .ignoresSafeArea(.container, edges: .bottom) // Importante para que el fondo llegue al borde
-        .ignoresSafeArea(.keyboard, edges: .bottom) // Evitar que SwiftUI empuje todo
+        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onAppear {
             loadComments()
             setupKeyboardObservers()
