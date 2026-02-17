@@ -1,4 +1,5 @@
 import SwiftUI
+import SDWebImageSwiftUI
 
 public struct CommentsOverlayView: View {
     let count: Int
