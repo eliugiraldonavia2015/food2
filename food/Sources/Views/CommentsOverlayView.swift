@@ -164,20 +164,16 @@ public struct CommentsOverlayView: View {
                     // Cuando hay teclado, este padding interno se reduce a 0
                     .padding(.bottom, keyboardHeight == 0 ? max(geo.safeAreaInsets.bottom, 20) : 0)
                 }
-                // Background aplicado al contenedor del input
-                .background(Color.black) 
-                // CRUCIAL: Usamos offset para mover SOLO la barra, NO padding.
-                // El padding empuja el layout padre (ZStack), el offset solo mueve este elemento visualmente.
-                // Al estar alineado al .bottom del ZStack, un offset negativo lo subiría.
-                // PERO, como queremos que suba CON el teclado, usamos padding .bottom SOLO en este elemento
-                // PERO asegurándonos de que el ZStack padre ignore el teclado.
-                // La clave es que el ZStack tiene .ignoresSafeArea(.keyboard), por lo que el teclado NO empuja nada por defecto.
-                // Nosotros empujamos MANUALMENTE solo esta barra.
-                .offset(y: -keyboardHeight)
+                // Padding inferior externo para subir con el teclado
+                // Restamos un poco (e.g. 2px) para asegurar overlap y eliminar gaps transparentes
+                .padding(.bottom, max(0, keyboardHeight))
+                // Background aplicado DESPUÉS del padding externo para que cubra el área "empujada" (el hueco del teclado)
+                // Esto asegura que si el teclado es más bajo o hay un gap, se vea NEGRO y no transparente.
+                .background(Color.black) // Negro sólido (sin opacidad)
             }
-            .ignoresSafeArea(.keyboard, edges: .bottom) // Evita el desplazamiento automático del sistema
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
+        .ignoresSafeArea(.keyboard) // Aplicado al contenedor final para evitar cualquier desplazamiento del sistema
         .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onAppear {
             loadComments()
