@@ -3,6 +3,7 @@ import FirebaseCore
 import FirebaseAuth
 import UserNotifications
 import SDWebImage
+import AVFoundation // Importar AVFoundation
 #if canImport(GoogleSignIn)
 import GoogleSignIn
 #endif
@@ -22,6 +23,15 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         SDWebImagePrefetcher.shared.maxConcurrentPrefetchCount = 2
         SDImageCache.shared.config.maxMemoryCost = 50 * 1024 * 1024
         SDImageCache.shared.config.maxMemoryCount = 120
+        
+        // 🔊 CONFIGURACIÓN DE AUDIO: Permitir sonido en modo silencio
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+            print("[AppDelegate] ✅ AudioSession configurado: .playback (ignora switch de silencio)")
+        } catch {
+            print("[AppDelegate] ❌ Error configurando AudioSession: \(error.localizedDescription)")
+        }
 
         // Queremos recibir APNs (silent push) para Phone Auth
         UNUserNotificationCenter.current().delegate = self

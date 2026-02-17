@@ -397,6 +397,15 @@ struct FeedView: View {
             }) }
         }
         .animation(.easeInOut, value: showRestaurantProfile || showMenu || showComments || showShare || showMusic)
+        .onAppear {
+            // 🔊 FORZAR MODO PLAYBACK: Para que los videos suenen incluso en modo silencio
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                print("❌ [FeedView] Error configurando AudioSession: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func modalCard(title: String, onClose: @escaping () -> Void) -> some View {
