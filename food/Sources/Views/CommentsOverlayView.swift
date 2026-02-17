@@ -58,104 +58,111 @@ public struct CommentsOverlayView: View {
     }
     
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            // 1. Fondo y Contenido Principal (Fijo)
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Spacer()
-                    Text("\(count) comentarios")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
-                    Spacer()
-                    
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 24, height: 24)
-                            .background(Color.white.opacity(0.1))
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+        GeometryReader { geo in
+            ZStack(alignment: .bottom) {
+                // 1. Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
+                Color(red: 0.1, green: 0.1, blue: 0.1)
+                    .ignoresSafeArea()
+                    .cornerRadius(16, corners: [.topLeft, .topRight])
                 
-                // Lista de comentarios
-                ScrollView {
-                    ScrollViewReader { proxy in
-                        LazyVStack(alignment: .leading, spacing: 16) {
-                            if isLoading {
-                                ProgressView().padding()
-                            } else if comments.isEmpty {
-                                Text("Sé el primero en comentar 👇")
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 40)
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                ForEach(comments) { comment in
-                                    CommentRow(comment: comment)
-                                        .id(comment.id)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
-                        .padding(.bottom, 80 + keyboardHeight) 
-                    }
-                }
-            }
-            .background(Color(red: 0.1, green: 0.1, blue: 0.1))
-            .cornerRadius(16, corners: [.topLeft, .topRight])
-            
-            // 2. Input Bar (Flotante sobre el contenido)
-            VStack(spacing: 0) {
-                Divider().background(Color.white.opacity(0.15))
-                HStack(spacing: 12) {
-                    // Avatar usuario actual (placeholder)
-                    Circle()
-                        .fill(Color.gray)
-                        .frame(width: 32, height: 32)
-                        
+                // 2. Contenido Principal
+                VStack(spacing: 0) {
+                    // Header
                     HStack {
-                        TextField("Añadir comentario...", text: $commentText)
+                        Spacer()
+                        Text("\(count) comentarios")
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.white)
-                            .accentColor(.white)
-                            .submitLabel(.send)
+                        Spacer()
                         
-                        if !commentText.isEmpty {
-                            Button(action: sendComment) {
-                                if isSending {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                                        .scaleEffect(0.8)
-                                } else {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.green)
-                                        .transition(.scale.combined(with: .opacity))
-                                }
-                            }
-                            .disabled(isSending)
+                        Button(action: onClose) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 24, height: 24)
+                                .background(Color.white.opacity(0.1))
+                                .clipShape(Circle())
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(20)
+                    .padding(.horizontal)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
+                    
+                    // Lista de comentarios
+                    ScrollView {
+                        ScrollViewReader { proxy in
+                            LazyVStack(alignment: .leading, spacing: 16) {
+                                if isLoading {
+                                    ProgressView().padding()
+                                } else if comments.isEmpty {
+                                    Text("Sé el primero en comentar 👇")
+                                        .foregroundColor(.gray)
+                                        .padding(.top, 40)
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    ForEach(comments) { comment in
+                                        CommentRow(comment: comment)
+                                            .id(comment.id)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            // Espacio extra dinámico para que el último comentario no quede tapado por el input + teclado
+                            .padding(.bottom, 80 + keyboardHeight) 
+                        }
+                    }
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 12)
+                
+                // 3. Input Bar (Flotante y pegado al teclado)
+                VStack(spacing: 0) {
+                    Divider().background(Color.white.opacity(0.15))
+                    HStack(spacing: 12) {
+                        // Avatar usuario actual (placeholder)
+                        Circle()
+                            .fill(Color.gray)
+                            .frame(width: 32, height: 32)
+                            
+                        HStack {
+                            TextField("Añadir comentario...", text: $commentText)
+                                .foregroundColor(.white)
+                                .accentColor(.white)
+                                .submitLabel(.send)
+                            
+                            if !commentText.isEmpty {
+                                Button(action: sendComment) {
+                                    if isSending {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Image(systemName: "arrow.up.circle.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.green)
+                                            .transition(.scale.combined(with: .opacity))
+                                    }
+                                }
+                                .disabled(isSending)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(20)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    // Padding inferior interno para safe area cuando teclado está oculto
+                    .padding(.bottom, keyboardHeight == 0 ? max(geo.safeAreaInsets.bottom, 20) : 0)
+                }
                 .background(Color.black.opacity(0.95))
+                // Padding inferior externo para subir con el teclado
+                .padding(.bottom, keyboardHeight)
             }
-            .background(Color.black.opacity(0.95)) // Fondo extendido para rebotes
-            .offset(y: -keyboardHeight) // Usar offset negativo para subir sobre el teclado
-            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+            .ignoresSafeArea(.keyboard, edges: .bottom) // Evita el desplazamiento automático del sistema
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
-        .ignoresSafeArea(.container, edges: .bottom)
+        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onAppear {
             loadComments()
             setupKeyboardObservers()

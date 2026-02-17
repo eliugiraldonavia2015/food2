@@ -359,12 +359,23 @@ struct FeedView: View {
             if showComments {
                 let idx = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
                 let item = currentItems[idx]
+                // Fondo oscuro para comentarios (opcional, igual que Share)
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation { showComments = false }
+                    }
+                    .zIndex(29)
+                    .transition(.opacity)
+
                 CommentsOverlayView(
                     count: item.comments,
                     onClose: { showComments = false },
                     videoId: item.videoId // ✅ Pasamos el ID real
                 )
                 .zIndex(30) // Match comments overlay z-index
+                .transition(.move(edge: .bottom))
+                .frame(maxHeight: .infinity, alignment: .bottom) // 🛑 CRUCIAL: Alinear al fondo
             }
             if showShare {
                 // Fondo oscuro separado
