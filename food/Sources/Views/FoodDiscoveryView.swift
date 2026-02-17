@@ -38,23 +38,23 @@ struct FoodDiscoveryView: View {
     private let accentColor = Color.orange
     
     private var backgroundColor: Color {
-        Color(uiColor: .systemBackground)
+        colorScheme == .dark ? Color.black : Color.white
     }
     
     private var secondaryBackgroundColor: Color {
-        Color(uiColor: .secondarySystemBackground)
+        colorScheme == .dark ? Color(uiColor: .systemGray6) : Color(uiColor: .secondarySystemBackground)
     }
     
     private var cardBackgroundColor: Color {
-        Color(uiColor: .secondarySystemGroupedBackground)
+        colorScheme == .dark ? Color(uiColor: .tertiarySystemGroupedBackground) : Color.white
     }
     
     private var primaryTextColor: Color {
-        Color.primary
+        colorScheme == .dark ? .white : .black.opacity(0.9)
     }
     
     private var secondaryTextColor: Color {
-        Color.secondary
+        colorScheme == .dark ? .gray : .gray
     }
     
     // MARK: - Data Models
@@ -350,7 +350,7 @@ struct FoodDiscoveryView: View {
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(primaryTextColor)
                             .frame(width: 40, height: 40)
-                            .background(secondaryBackgroundColor)
+                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
                             .clipShape(Circle())
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -362,7 +362,7 @@ struct FoodDiscoveryView: View {
                         .font(.system(size: 20))
                         .foregroundColor(primaryTextColor)
                         .frame(width: 40, height: 40)
-                        .background(secondaryBackgroundColor)
+                        .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
                         .clipShape(Circle())
                 }
                 .buttonStyle(ScaleButtonStyle())
@@ -373,7 +373,7 @@ struct FoodDiscoveryView: View {
                             .font(.system(size: 20))
                             .foregroundColor(primaryTextColor)
                             .frame(width: 40, height: 40)
-                            .background(secondaryBackgroundColor)
+                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
                             .clipShape(Circle())
                         
                         Circle()
@@ -404,12 +404,12 @@ struct FoodDiscoveryView: View {
                     
                     Text("Buscar platillos o restaurantes")
                         .font(.system(size: 16))
-                        .foregroundColor(primaryTextColor.opacity(0.6)) // Placeholder look
+                        .foregroundColor(colorScheme == .dark ? Color.gray : primaryTextColor.opacity(0.6)) // Placeholder look
                     
                     Spacer()
                 }
                 .padding(16)
-                .background(Color(uiColor: .secondarySystemBackground))
+                .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(16)
                 .matchedGeometryEffect(id: "searchBar", in: animation)
             }
@@ -869,7 +869,7 @@ struct FoodDiscoveryView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Circle()
-                            .fill(Color(uiColor: .systemGray6))
+                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : Color(uiColor: .systemGray6))
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
@@ -877,7 +877,7 @@ struct FoodDiscoveryView: View {
                     }
                     Text("Mis Favoritos")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.gray)
+                        .foregroundColor(colorScheme == .dark ? .gray : .gray)
                 }
                 .padding(.leading, 20)
                 
@@ -917,14 +917,14 @@ struct FoodDiscoveryView: View {
                                     .scaledToFit() // Logos usually fit better
                                     .padding(12)   // Padding inside circle for logo
                                     .frame(width: 64, height: 64)
-                                    .background(Color(uiColor: .tertiarySystemGroupedBackground))
+                                    .background(colorScheme == .dark ? Color.white : Color(uiColor: .tertiarySystemGroupedBackground))
                                     .clipShape(Circle())
                             }
                         }
                         
                         Text(update.name)
                                 .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .white : .primary)
                                 .lineLimit(1)
                                 .frame(width: 70)
                         }
