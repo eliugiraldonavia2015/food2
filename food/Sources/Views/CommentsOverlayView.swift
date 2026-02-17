@@ -59,12 +59,12 @@ public struct CommentsOverlayView: View {
     
     public var body: some View {
         ZStack(alignment: .bottom) {
-            // Fondo Principal del Modal (Siempre visible y cubre hasta abajo)
+            // 1. Fondo Principal del Modal (Estático)
             Color(red: 0.1, green: 0.1, blue: 0.1)
                 .ignoresSafeArea()
                 .cornerRadius(16, corners: [.topLeft, .topRight])
             
-            // Contenido Principal
+            // 2. Contenido Principal (Header + Lista) - Ocupa todo el espacio menos el input
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -107,58 +107,61 @@ public struct CommentsOverlayView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 8)
-                        .padding(.bottom, 20) // Espacio final
+                        // Espacio extra al final para que el último comentario no quede tapado por el input flotante
+                        .padding(.bottom, 100) 
                     }
-                }
-                
-                // Input Bar (Siempre visible abajo)
-                VStack(spacing: 0) {
-                    Divider().background(Color.white.opacity(0.15))
-                    HStack(spacing: 12) {
-                        // Avatar usuario actual (placeholder)
-                        Circle()
-                            .fill(Color.gray)
-                            .frame(width: 32, height: 32)
-                            
-                        HStack {
-                            TextField("Añadir comentario...", text: $commentText)
-                                .foregroundColor(.white)
-                                .accentColor(.white)
-                                .submitLabel(.send)
-                            
-                            if !commentText.isEmpty {
-                                Button(action: sendComment) {
-                                    if isSending {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                                            .scaleEffect(0.8)
-                                    } else {
-                                        Image(systemName: "arrow.up.circle.fill")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(.green)
-                                            .transition(.scale.combined(with: .opacity))
-                                    }
-                                }
-                                .disabled(isSending)
-                            }
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(20)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    // Fondo negro sólido para el input bar que cubre el safe area cuando no hay teclado
-                    .background(Color.black.opacity(0.95)) 
                 }
             }
-            .padding(.bottom, keyboardHeight) // El contenido sube, el fondo se queda
+            .frame(maxHeight: .infinity, alignment: .top)
+            
+            // 3. Input Bar Flotante (Independiente)
+            VStack(spacing: 0) {
+                Divider().background(Color.white.opacity(0.15))
+                HStack(spacing: 12) {
+                    // Avatar usuario actual (placeholder)
+                    Circle()
+                        .fill(Color.gray)
+                        .frame(width: 32, height: 32)
+                        
+                    HStack {
+                        TextField("Añadir comentario...", text: $commentText)
+                            .foregroundColor(.white)
+                            .accentColor(.white)
+                            .submitLabel(.send)
+                        
+                        if !commentText.isEmpty {
+                            Button(action: sendComment) {
+                                if isSending {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .green))
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.green)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
+                            }
+                            .disabled(isSending)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                // Fondo negro sólido para el input bar
+                .background(Color.black.opacity(0.95))
+            }
+            // Posicionamiento absoluto desde abajo
+            .padding(.bottom, keyboardHeight) 
+            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
         .ignoresSafeArea(.container, edges: .bottom) // Importante para que el fondo llegue al borde
-        .ignoresSafeArea(.keyboard, edges: .bottom) // ✅ Fix: Evitar que SwiftUI empuje la vista automáticamente (doble gap)
-        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+        .ignoresSafeArea(.keyboard, edges: .bottom) // Evitar que SwiftUI empuje todo
         .onAppear {
             loadComments()
             setupKeyboardObservers()
