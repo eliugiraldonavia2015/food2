@@ -142,10 +142,10 @@ public struct CommentsOverlayView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 12)
+                    .padding(.bottom, 34) // Espacio extra para safe area en iPhones sin botón home
                 }
-                .background(Color.black.opacity(0.9))
-                // ✅ Fix: Fondo negro sólido para el safe area
-                .padding(.bottom, 0) 
+                .background(Color.black.opacity(0.95)) // Fondo más sólido
+                .padding(.bottom, -34) // Compensar el padding para extender fondo
             }
             .frame(height: UIScreen.main.bounds.height * 0.65)
             .background(Color(red: 0.1, green: 0.1, blue: 0.1))
@@ -242,14 +242,15 @@ struct CommentRow: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Circle() // Avatar
-                .fill(Color.gray.opacity(0.3))
+            WebImage(url: URL(string: comment.avatarUrl))
+                .resizable()
+                .placeholder {
+                    Circle().fill(Color.gray.opacity(0.3))
+                }
+                .indicator(.activity)
+                .transition(.fade(duration: 0.5))
+                .scaledToFill()
                 .frame(width: 32, height: 32)
-                .overlay(
-                    AsyncImage(url: URL(string: comment.avatarUrl)) { img in
-                        img.resizable().aspectRatio(contentMode: .fill)
-                    } placeholder: { Color.clear }
-                )
                 .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 4) {
@@ -278,14 +279,13 @@ struct CommentRow: View {
                     if showReplies {
                         ForEach(comment.replies) { reply in
                             HStack(alignment: .top, spacing: 12) {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
+                                WebImage(url: URL(string: reply.avatarUrl))
+                                    .resizable()
+                                    .placeholder {
+                                        Circle().fill(Color.gray.opacity(0.3))
+                                    }
+                                    .scaledToFill()
                                     .frame(width: 24, height: 24)
-                                    .overlay(
-                                        AsyncImage(url: URL(string: reply.avatarUrl)) { img in
-                                            img.resizable().aspectRatio(contentMode: .fill)
-                                        } placeholder: { Color.clear }
-                                    )
                                     .clipShape(Circle())
                                 
                                 VStack(alignment: .leading, spacing: 2) {
