@@ -148,19 +148,14 @@ public struct CommentsOverlayView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 12)
-                // Fondo negro sólido para el input bar
-                .background(Color.black.opacity(0.95)) 
-                
-                // Espacio seguro inferior negro cuando no hay teclado
-                if keyboardHeight == 0 {
-                    Color.black.opacity(0.95).frame(height: 34)
-                }
+                .background(Color.black.opacity(0.95))
             }
-            .padding(.bottom, keyboardHeight) // Se mueve con el teclado
+            .background(Color.black.opacity(0.95)) // Fondo extendido para rebotes
+            .offset(y: -keyboardHeight) // Usar offset negativo para subir sobre el teclado
+            .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         }
         .frame(height: UIScreen.main.bounds.height * 0.65)
-        .ignoresSafeArea(.container, edges: .bottom) // Importante para que el fondo llegue al borde
-        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
+        .ignoresSafeArea(.container, edges: .bottom)
         .onAppear {
             loadComments()
             setupKeyboardObservers()
