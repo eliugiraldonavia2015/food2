@@ -33,8 +33,9 @@ struct FoodDiscoveryView: View {
     
     // MARK: - Design Constants
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage("isDarkModeEnabled") private var isDarkModeEnabled: Bool = false
     
-    private var isDarkMode: Bool { colorScheme == .dark }
+    private var isDarkMode: Bool { isDarkModeEnabled }
 
     // Colors
     private var primaryColor: Color { .green }
@@ -946,8 +947,9 @@ struct FilterSheet: View {
     var onClose: () -> Void
     
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage("isDarkModeEnabled") private var isDarkModeEnabled: Bool = false
     
-    private var isDarkMode: Bool { colorScheme == .dark }
+    private var isDarkMode: Bool { isDarkModeEnabled }
     
     private var backgroundColor: Color {
         isDarkMode ? Color(uiColor: .secondarySystemBackground) : Color.white

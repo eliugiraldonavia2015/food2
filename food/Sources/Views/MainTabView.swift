@@ -874,7 +874,7 @@ struct FeedDrawerOverlay: View {
 private struct SettingsScreen: View {
     let onClose: () -> Void
     @State private var pushEnabled: Bool = true
-    @State private var darkModeEnabled: Bool = true
+    @AppStorage("isDarkModeEnabled") private var isDarkModeEnabled: Bool = false
     @State private var showSub: Subscreen? = nil
 
     enum Subscreen { case notifications, privacy, language, payments, security, help }
@@ -945,7 +945,7 @@ private struct SettingsScreen: View {
             ScrollView {
                 VStack(spacing: 12) {
                     toggleRow(icon: "bell", title: "Notificaciones", subtitle: "Recibir notificaciones push", binding: $pushEnabled)
-                    toggleRow(icon: "moon", title: "Modo Oscuro", subtitle: "Tema de la aplicación", binding: $darkModeEnabled)
+                    toggleRow(icon: "moon", title: "Modo Oscuro", subtitle: "Tema de la aplicación", binding: $isDarkModeEnabled)
                     navRowButton(icon: "bell", title: "Notificaciones", subtitle: "Configura tus preferencias") { showSub = .notifications }
                     navRowButton(icon: "lock", title: "Privacidad", subtitle: "Controla tu privacidad") { showSub = .privacy }
                     navRowButton(icon: "globe", title: "Idioma", subtitle: "Español") { showSub = .language }
