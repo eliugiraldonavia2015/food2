@@ -448,6 +448,7 @@ struct OrderPlacedOverlayView: View {
     @State private var isAnimating = false
     @State private var showText = false
     @State private var ripple = false
+    @StateObject private var soundPlayer = SoundPlayer()
     
     var body: some View {
         ZStack {
