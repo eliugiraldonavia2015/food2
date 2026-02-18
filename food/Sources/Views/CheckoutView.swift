@@ -3,6 +3,7 @@ import MapKit
 import Combine
 import SDWebImageSwiftUI
 import AVFoundation
+import UserNotifications
 
 class SoundPlayer: ObservableObject {
     var player: AVAudioPlayer?
@@ -831,6 +832,7 @@ struct OrderTrackingView: View {
         }
         .preferredColorScheme(.light)
         .onAppear {
+            requestNotificationPermission()
             // Initial position logic handled via geometry reader if needed, 
             // but here we set a flag or let the first geometry update set it.
             // We'll set it to a value that triggers the .onChange of geometry or just rely on state.
@@ -862,6 +864,47 @@ struct OrderTrackingView: View {
     }
     
     // MARK: - Simulation Logic
+
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+    }
+    
+    private func sendNotification(for status: OrderStatus) {
+        let content = UNMutableNotificationContent()
+        content.sound = .default
+        
+        switch status {
+        case .sent:
+            return 
+        case .confirmed:
+            content.title = "Pedido Confirmado"
+            content.body = "El restaurante ha recibido tu orden y comenzará a prepararla en breve."
+        case .preparing:
+            content.title = "En la Cocina"
+            content.body = "Nuestros chefs están preparando tus alimentos con los mejores ingredientes."
+        case .courierToRestaurant:
+            content.title = "Repartidor Asignado"
+            content.body = "Juan va en camino al restaurante para recoger tu pedido."
+        case .pickup:
+            content.title = "Recogiendo Pedido"
+            content.body = "El repartidor está en el restaurante verificando tu orden."
+        case .courierToCustomer:
+            content.title = "En Camino"
+            content.body = "Tu pedido ha salido del restaurante. Llegará en aproximadamente 15 minutos."
+        case .arrived:
+            content.title = "¡Llegamos!"
+            content.body = "Juan está esperando en tu ubicación. No olvides el código de entrega."
+        case .completed:
+            content.title = "Disfruta tu Comida"
+            content.body = "Entrega completada. Gracias por confiar en nosotros."
+        }
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request)
+    }
+
     func advanceSimulation() {
         guard status != .completed else { return }
         
@@ -870,9 +913,11 @@ struct OrderTrackingView: View {
             // Stop auto-advance at 'arrived' to let user verify code
             if status == .arrived { return }
             
+            let nextStatus = allCases[currentIndex + 1]
             withAnimation(.spring()) {
-                status = allCases[currentIndex + 1]
+                status = nextStatus
             }
+            sendNotification(for: nextStatus)
         }
     }
     
@@ -881,6 +926,7 @@ struct OrderTrackingView: View {
             status = .completed
             // Confetti or haptic could go here
         }
+        sendNotification(for: .completed)
     }
     
     // MARK: - Logic
