@@ -271,9 +271,8 @@ struct CommentRow: View {
         HStack(alignment: .top, spacing: 12) {
             WebImage(url: URL(string: comment.avatarUrl))
                 .resizable()
-                .placeholder(Image(systemName: "person.circle.fill")) // Placeholder simple
-                .indicator(.activity)
-                .transition(.fade(duration: 0.5))
+                .indicator(Indicator.activity)
+                .transition(SDWebImageTransition.fade(duration: 0.5))
                 .scaledToFill()
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
