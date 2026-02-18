@@ -32,12 +32,35 @@ struct FoodDiscoveryView: View {
     @State private var selectedDishId: String? = nil
     
     // MARK: - Design Constants
-    private let primaryColor = Color.green // Replaces Pink from image
-    private let accentColor = Color.orange
-    private let backgroundColor = Color.white // Clean white background
-    private let secondaryBackgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray for Search/Cards
-    private let primaryTextColor = Color.black.opacity(0.9)
-    private let secondaryTextColor = Color.gray
+    @Environment(\.colorScheme) var colorScheme
+    
+    private var isDarkMode: Bool { colorScheme == .dark }
+
+    // Colors
+    private var primaryColor: Color { .green }
+    private var accentColor: Color { .orange }
+    
+    private var backgroundColor: Color {
+        isDarkMode ? Color.black : Color.white
+    }
+    
+    private var surfaceColor: Color {
+        // Cards, Sheets, etc.
+        isDarkMode ? Color(red: 0.11, green: 0.11, blue: 0.12) : Color.white
+    }
+    
+    private var secondaryBackgroundColor: Color {
+        // Search bar, secondary buttons
+        isDarkMode ? Color(red: 0.17, green: 0.17, blue: 0.18) : Color(red: 0.96, green: 0.96, blue: 0.98)
+    }
+    
+    private var primaryTextColor: Color {
+        isDarkMode ? .white : Color.black.opacity(0.9)
+    }
+    
+    private var secondaryTextColor: Color {
+        isDarkMode ? Color(red: 0.6, green: 0.6, blue: 0.65) : Color.gray
+    }
     
     // MARK: - Data Models
     // Using shared CategoryItem model
@@ -266,7 +289,6 @@ struct FoodDiscoveryView: View {
         .onAppear {
             startAnimations()
         }
-        .preferredColorScheme(.light)
     }
     
     private func startAnimations() {
@@ -391,7 +413,7 @@ struct FoodDiscoveryView: View {
                     Spacer()
                 }
                 .padding(16)
-                .background(Color(uiColor: .secondarySystemBackground))
+                .background(secondaryBackgroundColor)
                 .cornerRadius(16)
                 .matchedGeometryEffect(id: "searchBar", in: animation)
             }
@@ -458,7 +480,7 @@ struct FoodDiscoveryView: View {
             }
             .contentShape(Rectangle()) // Ensure tap area
             .cornerRadius(24)
-            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
             .overlay(
                 // Pagination Dots
                 HStack(spacing: 6) {
@@ -516,7 +538,7 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                        .shadow(color: isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                                 } else if let uiImage = UIImage(named: item.image) {
                                     // Fallback al Asset Catalog normal
                                     Image(uiImage: uiImage)
@@ -529,7 +551,7 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                        .shadow(color: isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                                 } else {
                                     // Fallback visual final
                                     RoundedRectangle(cornerRadius: 16)
@@ -685,7 +707,7 @@ struct FoodDiscoveryView: View {
                         }
                         .cornerRadius(24)
                         .contentShape(Rectangle()) // Ensure tap area
-                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
+                        .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .scaleEffect(animateContent ? 1 : 0.95)
@@ -772,7 +794,7 @@ struct FoodDiscoveryView: View {
                             }
                             .frame(width: 220, height: 280)
                             .contentShape(Rectangle()) // Ensure tap area
-                            .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
+                            .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .scaleEffect(animateContent ? 1 : 0.8)
@@ -820,7 +842,7 @@ struct FoodDiscoveryView: View {
         .padding(16)
         .background(primaryColor)
         .cornerRadius(24)
-        .shadow(color: primaryColor.opacity(0.4), radius: 10, x: 0, y: 5)
+        .shadow(color: primaryColor.opacity(isDarkMode ? 0.2 : 0.4), radius: 10, x: 0, y: 5)
     }
 
     // MARK: - Helpers
@@ -851,7 +873,7 @@ struct FoodDiscoveryView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Circle()
-                            .fill(Color(uiColor: .systemGray6))
+                            .fill(secondaryBackgroundColor)
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
@@ -899,7 +921,7 @@ struct FoodDiscoveryView: View {
                                         .scaledToFit() // Logos usually fit better
                                         .padding(12)   // Padding inside circle for logo
                                         .frame(width: 64, height: 64)
-                                        .background(Color.white)
+                                        .background(surfaceColor)
                                         .clipShape(Circle())
                                 }
                             }
@@ -922,6 +944,16 @@ struct FoodDiscoveryView: View {
 // MARK: - FilterSheet
 struct FilterSheet: View {
     var onClose: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white
+    }
+    
+    private var chipBackgroundColor: Color {
+        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color(red: 0.95, green: 0.95, blue: 0.97)
+    }
     
     // Estado de expansión
     @State private var expandedSection: String? = nil
@@ -971,7 +1003,7 @@ struct FilterSheet: View {
                     }
                     .padding()
                     .padding(.top, 10)
-                    .background(Color.white)
+                    .background(backgroundColor)
                     
                     // Content List
                     ScrollView {
@@ -1019,7 +1051,7 @@ struct FilterSheet: View {
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(selectedRatings.contains(star) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                            .background(selectedRatings.contains(star) ? Color.orange : chipBackgroundColor)
                                             .cornerRadius(8)
                                         }
                                     }
@@ -1037,7 +1069,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : chipBackgroundColor)
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1069,7 +1101,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedOffers.contains(offer) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
+                                                .background(selectedOffers.contains(offer) ? Color.orange : chipBackgroundColor)
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1090,15 +1122,15 @@ struct FilterSheet: View {
                             .padding()
                             .background(Color.green)
                             .cornerRadius(12)
-                            .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding()
-                    .background(Color.white)
+                    .background(backgroundColor)
                 }
                 .frame(height: geometry.size.height * 0.75)
-                .background(Color.white)
+                .background(backgroundColor)
                 .cornerRadius(24, corners: [.topLeft, .topRight])
-                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
+                .shadow(color: isDarkMode ? Color.white.opacity(0.1) : Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
             }
         }
         .ignoresSafeArea()
@@ -1127,7 +1159,7 @@ struct FilterSheet: View {
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color(red: 0.95, green: 0.95, blue: 0.97).opacity(0.5))
+                .background(chipBackgroundColor.opacity(0.5))
             }
             
             if expandedSection == id {
@@ -1137,9 +1169,9 @@ struct FilterSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(Color.white)
+        .background(surfaceColor)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
     
     // MARK: - Helpers
