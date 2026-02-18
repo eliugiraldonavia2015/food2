@@ -2,6 +2,29 @@ import SwiftUI
 import MapKit
 import Combine
 import SDWebImageSwiftUI
+import AVFoundation
+
+class SoundPlayer: ObservableObject {
+    var player: AVAudioPlayer?
+
+    func playSound(named name: String) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
+            print("Sound file not found: \(name).mp3")
+            return
+        }
+        
+        do {
+            // Configure audio session to play even if switch is on silent
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            player = try AVAudioPlayer(contentsOf: url)
+            player?.play()
+        } catch {
+            print("Error playing sound: \(error.localizedDescription)")
+        }
+    }
+}
 
 struct CheckoutView: View {
     struct LineItem: Identifiable, Hashable {
@@ -489,6 +512,9 @@ struct OrderPlacedOverlayView: View {
         }
         .preferredColorScheme(.light)
         .onAppear {
+            // Play Sound
+            soundPlayer.playSound(named: "whoosh-ding-alert-jam-fx-1-00-04")
+            
             isAnimating = true
             ripple = true
             showText = true
