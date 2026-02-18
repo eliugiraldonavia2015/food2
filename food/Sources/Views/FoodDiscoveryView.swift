@@ -538,7 +538,7 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Cooor.black.opacity(0.05): 0, y: 2)
+                                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                                 } else if let uiImage = UIImage(named: item.image) {
                                     // Fallback al Asset Catalog normal
                                     Image(uiImage: uiImage)
@@ -993,9 +993,9 @@ struct FilterSheet: View {
                                 .cornerRadius(8)
                         }
                     }
-                    .padding()(Colorui: secondarySysmBackground)
+                    .padding()
                     .padding(.top, 10)
-                    .background(Color.white)
+                    .background(Color(uiColor: .secondarySystemBackground))
                     
                     // Content List
                     ScrollView {
