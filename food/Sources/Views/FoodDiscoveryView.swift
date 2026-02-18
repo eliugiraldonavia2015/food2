@@ -947,12 +947,18 @@ struct FilterSheet: View {
     
     @Environment(\.colorScheme) var colorScheme
     
+    private var isDarkMode: Bool { colorScheme == .dark }
+    
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color.white
+        isDarkMode ? Color(uiColor: .secondarySystemBackground) : Color.white
+    }
+    
+    private var surfaceColor: Color {
+        isDarkMode ? Color(red: 0.17, green: 0.17, blue: 0.18) : Color.white
     }
     
     private var chipBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .tertiarySystemBackground) : Color(red: 0.95, green: 0.95, blue: 0.97)
+        isDarkMode ? Color(uiColor: .tertiarySystemBackground) : Color(red: 0.95, green: 0.95, blue: 0.97)
     }
     
     // Estado de expansión
