@@ -9,8 +9,6 @@ struct FoodDiscoveryView: View {
     @State private var showAddressSelection = false
     @State private var currentAddress = "Polanco, CDMX"
     
-    @Environment(\.colorScheme) var colorScheme
-    
     // External Actions & Animation
     var onClose: () -> Void
     var onSearch: () -> Void
@@ -34,27 +32,33 @@ struct FoodDiscoveryView: View {
     @State private var selectedDishId: String? = nil
     
     // MARK: - Design Constants
+    @Environment(\.colorScheme) var colorScheme
+    
     private let primaryColor = Color.green // Replaces Pink from image
     private let accentColor = Color.orange
     
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color.black : Color.white
+        colorScheme == .dark ? Color(uiColor: .systemBackground) : Color.white
     }
     
     private var secondaryBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .systemGray6) : Color(uiColor: .secondarySystemBackground)
+        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color(red: 0.96, green: 0.96, blue: 0.98)
     }
     
     private var cardBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .tertiarySystemGroupedBackground) : Color.white
+        colorScheme == .dark ? Color(uiColor: .secondarySystemGroupedBackground) : Color.white
     }
     
     private var primaryTextColor: Color {
-        colorScheme == .dark ? .white : .black.opacity(0.9)
+        colorScheme == .dark ? .white : Color.black.opacity(0.9)
     }
     
     private var secondaryTextColor: Color {
-        colorScheme == .dark ? .gray : .gray
+        colorScheme == .dark ? Color.gray : Color.gray
+    }
+    
+    private var shadowColor: Color {
+        colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.05)
     }
     
     // MARK: - Data Models
@@ -350,7 +354,7 @@ struct FoodDiscoveryView: View {
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(primaryTextColor)
                             .frame(width: 40, height: 40)
-                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
+                            .background(secondaryBackgroundColor)
                             .clipShape(Circle())
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -362,7 +366,7 @@ struct FoodDiscoveryView: View {
                         .font(.system(size: 20))
                         .foregroundColor(primaryTextColor)
                         .frame(width: 40, height: 40)
-                        .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
+                        .background(secondaryBackgroundColor)
                         .clipShape(Circle())
                 }
                 .buttonStyle(ScaleButtonStyle())
@@ -373,14 +377,14 @@ struct FoodDiscoveryView: View {
                             .font(.system(size: 20))
                             .foregroundColor(primaryTextColor)
                             .frame(width: 40, height: 40)
-                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : secondaryBackgroundColor)
+                            .background(secondaryBackgroundColor)
                             .clipShape(Circle())
                         
                         Circle()
                             .fill(Color.red)
                             .frame(width: 10, height: 10)
                             .overlay(
-                                Circle().stroke(Color.white, lineWidth: 1.5)
+                                Circle().stroke(backgroundColor, lineWidth: 1.5)
                             )
                             .offset(x: 2, y: 2)
                     }
@@ -404,12 +408,12 @@ struct FoodDiscoveryView: View {
                     
                     Text("Buscar platillos o restaurantes")
                         .font(.system(size: 16))
-                        .foregroundColor(colorScheme == .dark ? Color.gray : primaryTextColor.opacity(0.6)) // Placeholder look
+                        .foregroundColor(primaryTextColor.opacity(0.6)) // Placeholder look
                     
                     Spacer()
                 }
                 .padding(16)
-                .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : Color(uiColor: .secondarySystemBackground))
+                .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(16)
                 .matchedGeometryEffect(id: "searchBar", in: animation)
             }
@@ -534,7 +538,7 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                        .shadow(color: Cooor.black.opacity(0.05): 0, y: 2)
                                 } else if let uiImage = UIImage(named: item.image) {
                                     // Fallback al Asset Catalog normal
                                     Image(uiImage: uiImage)
@@ -547,11 +551,11 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                        .shadow(color: Cooor.black.opacity(0.05): 0, y: 2)
                                 } else {
                                     // Fallback visual final
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.gray.opacity(0.2))
+                                        .fill(Color.gryy.opacity(0.2)))
                                         .frame(width: 70, height: 70)
                                         .overlay(
                                             VStack(spacing: 2) {
@@ -869,7 +873,7 @@ struct FoodDiscoveryView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Circle()
-                            .background(colorScheme == .dark ? Color(uiColor: .tertiarySystemFill) : Color(uiColor: .systemGray6))
+                            .fill(Coloi(sitemGr: .systemGray6a)y6))
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
@@ -877,7 +881,7 @@ struct FoodDiscoveryView: View {
                     }
                     Text("Mis Favoritos")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(colorScheme == .dark ? .gray : .gray)
+                        .foregroundColor(.gray)
                 }
                 .padding(.leading, 20)
                 
@@ -909,22 +913,22 @@ struct FoodDiscoveryView: View {
                                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                                         .frame(width: 72, height: 72)
                                 }
-                            
-                            // Image
-                            if let url = URL(string: update.logo) {
-                                WebImage(url: url)
-                                    .resizable()
-                                    .scaledToFit() // Logos usually fit better
-                                    .padding(12)   // Padding inside circle for logo
-                                    .frame(width: 64, height: 64)
-                                    .background(colorScheme == .dark ? Color.white : Color(uiColor: .tertiarySystemGroupedBackground))
-                                    .clipShape(Circle())
+                                
+                                // Image
+                                if let url = URL(string: update.logo) {
+                                    WebImage(url: url)
+                                        .resizable()
+                                        .scaledToFit() // Logos usually fit better
+                                        .padding(12)   // Padding inside circle for logo
+                                        .frame(width: 64, height: 64)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                }
                             }
-                        }
-                        
-                        Text(update.name)
+                            
+                            Text(update.name)
                                 .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(colorScheme == .dark ? .white : .primary)
+                                .foregroundColor(.primary)
                                 .lineLimit(1)
                                 .frame(width: 70)
                         }
@@ -940,6 +944,8 @@ struct FoodDiscoveryView: View {
 // MARK: - FilterSheet
 struct FilterSheet: View {
     var onClose: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
     
     // Estado de expansión
     @State private var expandedSection: String? = nil
@@ -987,13 +993,13 @@ struct FilterSheet: View {
                                 .cornerRadius(8)
                         }
                     }
-                    .padding()
-                        .padding(.top, 10)
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        
-                        // Content List
-                        ScrollView {
-                            VStack(spacing: 12) {
+                    .padding()(Colorui: secondarySysmBackground)
+                    .padding(.top, 10)
+                    .background(Color.white)
+                    
+                    // Content List
+                    ScrollView {
+                        VStack(spacing: 12) {
                             // Precio
                             filterSection(title: "Precio: \(getPriceString())", id: "Precio") {
                                 VStack(spacing: 8) {
@@ -1037,7 +1043,7 @@ struct FilterSheet: View {
                                             }
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 10)
-                                            .background(selectedRatings.contains(star) ? Color.orange : Color(uiColor: .tertiarySystemFill))
+                                            .background(selectedRatings.contains(star) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                             .cornerRadius(8)
                                         }
                                     }
@@ -1055,7 +1061,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(uiColor: .tertiarySystemFill))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(uiColor: .systemGray6))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1087,7 +1093,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedOffers.contains(offer) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(uiColor: .tertiarySystemFill))
+                                                .background(selectedOffers.contains(offer) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1111,13 +1117,13 @@ struct FilterSheet: View {
                             .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding()
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    }
-                    .frame(height: geometry.size.height * 0.75)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .cornerRadius(24, corners: [.topLeft, .topRight])
-                    .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
+                    .background(Color.white)
                 }
+                .frame(height: geometry.size.height * 0.75)
+                .background(Color.white)
+                .cornerRadius(24, corners: [.topLeft, .topRight])
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
+            }
         }
         .ignoresSafeArea()
     }
@@ -1145,7 +1151,7 @@ struct FilterSheet: View {
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color(uiColor: .quaternarySystemFill))
+                .background(Color(uiColor: .systemGray6).opacity(0.5))
             }
             
             if expandedSection == id {
@@ -1155,7 +1161,7 @@ struct FilterSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(Color(uiColor: .tertiarySystemGroupedBackground))
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
