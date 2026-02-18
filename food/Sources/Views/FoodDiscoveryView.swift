@@ -32,34 +32,12 @@ struct FoodDiscoveryView: View {
     @State private var selectedDishId: String? = nil
     
     // MARK: - Design Constants
-    @Environment(\.colorScheme) var colorScheme
-    
     private let primaryColor = Color.green // Replaces Pink from image
     private let accentColor = Color.orange
-    
-    private var backgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .systemBackground) : Color.white
-    }
-    
-    private var secondaryBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : Color(red: 0.96, green: 0.96, blue: 0.98)
-    }
-    
-    private var cardBackgroundColor: Color {
-        colorScheme == .dark ? Color(uiColor: .secondarySystemGroupedBackground) : Color.white
-    }
-    
-    private var primaryTextColor: Color {
-        colorScheme == .dark ? .white : Color.black.opacity(0.9)
-    }
-    
-    private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.gray : Color.gray
-    }
-    
-    private var shadowColor: Color {
-        colorScheme == .dark ? Color.black.opacity(0.3) : Color.black.opacity(0.05)
-    }
+    private let backgroundColor = Color.white // Clean white background
+    private let secondaryBackgroundColor = Color(red: 0.96, green: 0.96, blue: 0.98) // Soft Gray for Search/Cards
+    private let primaryTextColor = Color.black.opacity(0.9)
+    private let secondaryTextColor = Color.gray
     
     // MARK: - Data Models
     // Using shared CategoryItem model
@@ -384,7 +362,7 @@ struct FoodDiscoveryView: View {
                             .fill(Color.red)
                             .frame(width: 10, height: 10)
                             .overlay(
-                                Circle().stroke(backgroundColor, lineWidth: 1.5)
+                                Circle().stroke(Color.white, lineWidth: 1.5)
                             )
                             .offset(x: 2, y: 2)
                     }
@@ -538,7 +516,7 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                                 } else if let uiImage = UIImage(named: item.image) {
                                     // Fallback al Asset Catalog normal
                                     Image(uiImage: uiImage)
@@ -551,11 +529,11 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
                                 } else {
                                     // Fallback visual final
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(secondaryBackgroundColor)
+                                        .fill(Color.gray.opacity(0.2))
                                         .frame(width: 70, height: 70)
                                         .overlay(
                                             VStack(spacing: 2) {
@@ -873,7 +851,7 @@ struct FoodDiscoveryView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Circle()
-                            .fill(secondaryBackgroundColor)
+                            .fill(Color(uiColor: .systemGray6))
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
@@ -945,8 +923,6 @@ struct FoodDiscoveryView: View {
 struct FilterSheet: View {
     var onClose: () -> Void
     
-    @Environment(\.colorScheme) var colorScheme
-    
     // Estado de expansión
     @State private var expandedSection: String? = nil
     
@@ -995,7 +971,7 @@ struct FilterSheet: View {
                     }
                     .padding()
                     .padding(.top, 10)
-                    .background(Color(uiColor: .secondarySystemBackground))
+                    .background(Color.white)
                     
                     // Content List
                     ScrollView {
@@ -1061,7 +1037,7 @@ struct FilterSheet: View {
                                                 .foregroundColor(selectedFoodTypes.contains(type) ? .white : .primary)
                                                 .padding(.horizontal, 16)
                                                 .padding(.vertical, 10)
-                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(uiColor: .systemGray6))
+                                                .background(selectedFoodTypes.contains(type) ? Color.orange : Color(red: 0.95, green: 0.95, blue: 0.97))
                                                 .cornerRadius(8)
                                         }
                                     }
@@ -1151,7 +1127,7 @@ struct FilterSheet: View {
                         .rotationEffect(.degrees(expandedSection == id ? 180 : 0))
                 }
                 .padding()
-                .background(Color(uiColor: .systemGray6).opacity(0.5))
+                .background(Color(red: 0.95, green: 0.95, blue: 0.97).opacity(0.5))
             }
             
             if expandedSection == id {
@@ -1161,7 +1137,7 @@ struct FilterSheet: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
