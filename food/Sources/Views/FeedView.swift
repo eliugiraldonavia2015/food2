@@ -155,7 +155,7 @@ struct FeedView: View {
             .background(Color.black.ignoresSafeArea())
         }
         .ignoresSafeArea()
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .onAppear {
             selectedVM.currentIndex = min(selectedVM.currentIndex, max(currentItems.count - 1, 0))
             selectedVM.prefetch(urls: currentItems.map { $0.backgroundUrl })

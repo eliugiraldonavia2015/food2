@@ -90,6 +90,7 @@ struct FoodApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .preferredColorScheme(.light)
                 // URL schemes y enlaces universales que abren la app
                 .onOpenURL { url in
                     handleIncomingURL(url)

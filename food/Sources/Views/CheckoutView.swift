@@ -1331,7 +1331,7 @@ struct DeliveryChatView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
     }
     
     private func messageBubble(_ msg: ChatMessage) -> some View {

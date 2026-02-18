@@ -76,7 +76,7 @@ struct RestaurantEditMenuView: View {
             topBar
             if showDishSheet { dishBottomSheet }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .onAppear {
             MenuService.shared.getSectionCatalog { res in
                 if case .success(let items) = res {

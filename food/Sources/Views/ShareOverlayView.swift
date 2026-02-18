@@ -27,7 +27,7 @@ struct ShareOverlayView: View {
     init(
         onClose: @escaping () -> Void,
         showsMoreOptions: Bool = true,
-        theme: Theme = .dark
+        theme: Theme = .light
     ) {
         self.onClose = onClose
         self.showsMoreOptions = showsMoreOptions

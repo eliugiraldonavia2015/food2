@@ -80,7 +80,7 @@ struct OnboardingView: View {
                     }
                 }
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     if viewModel.currentStep == .photo || viewModel.currentStep == .interests || viewModel.currentStep == .role {
