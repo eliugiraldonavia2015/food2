@@ -551,11 +551,11 @@ struct FoodDiscoveryView: View {
                                                 .stroke(selectedCategory == item.name ? primaryColor : Color.clear, lineWidth: 3)
                                         )
                                         .scaleEffect(selectedCategory == item.name ? 1.1 : 1.0)
-                                        .shadow(color: Cooor.black.opacity(0.05): 0, y: 2)
+                                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                                 } else {
                                     // Fallback visual final
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.gryy.opacity(0.2)))
+                                        .fill(secondaryBackgroundColor)
                                         .frame(width: 70, height: 70)
                                         .overlay(
                                             VStack(spacing: 2) {
@@ -873,7 +873,7 @@ struct FoodDiscoveryView: View {
                 VStack(spacing: 6) {
                     ZStack {
                         Circle()
-                            .fill(Coloi(sitemGr: .systemGray6a)y6))
+                            .fill(secondaryBackgroundColor)
                             .frame(width: 68, height: 68)
                         Image(systemName: "plus")
                             .font(.system(size: 24, weight: .semibold))
