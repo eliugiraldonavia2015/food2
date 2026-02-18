@@ -272,7 +272,6 @@ struct CommentRow: View {
             WebImage(url: URL(string: comment.avatarUrl))
                 .resizable()
                 .indicator(Indicator.activity)
-                .transition(SDWebImageTransition.fade(duration: 0.5))
                 .scaledToFill()
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
