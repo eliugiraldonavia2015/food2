@@ -896,21 +896,21 @@ struct OrderTrackingView: View {
             // Limpiar notificaciones anteriores de esta simulación
             center.removeAllPendingNotificationRequests()
             
-            // Programar secuencia
-            self.scheduleNotification(title: "Pedido Confirmado", body: "El restaurante ha recibido tu orden y comenzará a prepararla en breve.", delay: 5)
-            self.scheduleNotification(title: "En la Cocina", body: "Nuestros chefs están preparando tus alimentos con los mejores ingredientes.", delay: 15)
-            self.scheduleNotification(title: "Repartidor Asignado", body: "Juan va en camino al restaurante para recoger tu pedido.", delay: 30)
-            self.scheduleNotification(title: "Recogiendo Pedido", body: "El repartidor está en el restaurante verificando tu orden.", delay: 45)
-            self.scheduleNotification(title: "En Camino", body: "Tu pedido ha salido del restaurante. Llegará en aproximadamente 15 minutos.", delay: 60)
-            self.scheduleNotification(title: "¡Llegamos!", body: "Juan está esperando en tu ubicación. No olvides el código de entrega.", delay: 80)
+            // Programar secuencia con nuevos textos cortos y directos
+            self.scheduleNotification(title: "Pedido Confirmado", body: "El restaurante está preparando tu orden.", delay: 5)
+            self.scheduleNotification(title: "En la Cocina", body: "Tus alimentos se están cocinando ahora mismo.", delay: 15)
+            self.scheduleNotification(title: "Repartidor Asignado", body: "Juan va en camino a recoger tu pedido.", delay: 30)
+            self.scheduleNotification(title: "Recogiendo Pedido", body: "El repartidor está en el restaurante.", delay: 45)
+            self.scheduleNotification(title: "En Camino", body: "Tu pedido salió. Llega en 15 min.", delay: 60)
+            self.scheduleNotification(title: "¡Llegamos!", body: "Juan te espera afuera. Código: \(self.deliveryCode)", delay: 80)
         }
     }
     
     private func scheduleNotification(title: String, body: String, delay: TimeInterval) {
         let content = UNMutableNotificationContent()
-        content.title = title
+        content.title = title // El sistema lo pone en Bold automáticamente
         content.body = body
-        content.sound = UNNotificationSound.default
+        content.sound = UNNotificationSound(named: UNNotificationSoundName("mixkit-correct-answer-tone-2870.wav"))
         content.interruptionLevel = .timeSensitive // iOS 15+ para asegurar visibilidad
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
