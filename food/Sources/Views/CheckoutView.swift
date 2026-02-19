@@ -910,7 +910,7 @@ struct OrderTrackingView: View {
         let content = UNMutableNotificationContent()
         content.title = title // El sistema lo pone en Bold automáticamente
         content.body = body
-        content.sound = UNNotificationSound(named: UNNotificationSoundName("mixkit-correct-answer-tone-2870.wav"))
+        content.sound = UNNotificationSound(named: UNNotificationSoundName("pushnotifsound.wav"))
         content.interruptionLevel = .timeSensitive // iOS 15+ para asegurar visibilidad
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
