@@ -45,9 +45,17 @@ struct RootView: View {
                             .transition(.opacity)
                     }
                 } else {
-                    // Estado de carga inicial o transición
-                    Color(red: 244/255, green: 37/255, blue: 123/255)
-                        .ignoresSafeArea()
+                    // Estado de carga inicial o transición (Splash simulado)
+                    // Debe coincidir EXACTAMENTE con LaunchScreen.storyboard
+                    ZStack {
+                        Color(red: 244/255, green: 37/255, blue: 123/255)
+                            .ignoresSafeArea()
+                        Image("foodtook_isotipo_blanco")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 220, height: 220)
+                            .offset(x: -30) // Offset idéntico al LaunchScreen
+                    }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
