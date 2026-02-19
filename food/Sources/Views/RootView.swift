@@ -125,23 +125,19 @@ struct RootView: View {
 private struct StartupSplashView: View {
         var body: some View {
             ZStack {
+                // Background Color matching LaunchScreen
                 Color(red: 244/255, green: 37/255, blue: 123/255)
                     .ignoresSafeArea()
-                if let uiImage = loadSplashImage() {
+                
+                // Logo Image
+                if let uiImage = UIImage(named: "foodtook_isotipo_blanco") {
                     Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 220, height: 220)
-                    .offset(x: -50) // Offset para coincidir con LaunchScreen.storyboard
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 320, height: 320) // Matching storyboard constraints
+                        .offset(x: -50) // Matching storyboard centerX constant
                 }
             }
-        }
-
-        private func loadSplashImage() -> UIImage? {
-            if let img = UIImage(named: "foodtook_isotipo_blanco") {
-                return img
-            }
-            return nil
         }
     }
 
