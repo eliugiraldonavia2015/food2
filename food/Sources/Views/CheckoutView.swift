@@ -609,9 +609,13 @@ struct OrderTrackingView: View {
     @State private var showChat = false
     @State private var showMenu = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     
     // Simulation Timer
-    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    // Persistence
+    @AppStorage("orderStartTime") private var orderStartTime: Double = 0
     
     // Constants
     private let collapsedHeight: CGFloat = 100
@@ -832,7 +836,12 @@ struct OrderTrackingView: View {
         }
         .preferredColorScheme(.light)
         .onAppear {
-            requestNotificationPermission()
+            if orderStartTime == 0 {
+                orderStartTime = Date().timeIntervalSince1970
+                scheduleNotifications()
+            }
+            updateSimulationState()
+            
             // Initial position logic handled via geometry reader if needed, 
             // but here we set a flag or let the first geometry update set it.
             // We'll set it to a value that triggers the .onChange of geometry or just rely on state.
@@ -841,8 +850,15 @@ struct OrderTrackingView: View {
             // A common trick is to use a high value and let the clamping logic fix it, 
             // or initialize it when we have size.
         }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                updateSimulationState()
+                // Limpiar badges al entrar
+                UNUserNotificationCenter.current().setBadgeCount(0) { _ in }
+            }
+        }
         .onReceive(timer) { _ in
-            advanceSimulation()
+            updateSimulationState()
         }
         .sheet(isPresented: $showChat) {
             DeliveryChatView()
@@ -865,68 +881,80 @@ struct OrderTrackingView: View {
     
     // MARK: - Simulation Logic
 
-    private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+    private func scheduleNotifications() {
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("Error requesting notification auth: \(error)")
+                return
+            }
+            guard granted else { 
+                print("Notification permission denied")
+                return 
+            }
+            
+            // Limpiar notificaciones anteriores de esta simulación
+            center.removeAllPendingNotificationRequests()
+            
+            // Programar secuencia
+            self.scheduleNotification(title: "Pedido Confirmado", body: "El restaurante ha recibido tu orden y comenzará a prepararla en breve.", delay: 5)
+            self.scheduleNotification(title: "En la Cocina", body: "Nuestros chefs están preparando tus alimentos con los mejores ingredientes.", delay: 15)
+            self.scheduleNotification(title: "Repartidor Asignado", body: "Juan va en camino al restaurante para recoger tu pedido.", delay: 30)
+            self.scheduleNotification(title: "Recogiendo Pedido", body: "El repartidor está en el restaurante verificando tu orden.", delay: 45)
+            self.scheduleNotification(title: "En Camino", body: "Tu pedido ha salido del restaurante. Llegará en aproximadamente 15 minutos.", delay: 60)
+            self.scheduleNotification(title: "¡Llegamos!", body: "Juan está esperando en tu ubicación. No olvides el código de entrega.", delay: 80)
+        }
     }
     
-    private func sendNotification(for status: OrderStatus) {
+    private func scheduleNotification(title: String, body: String, delay: TimeInterval) {
         let content = UNMutableNotificationContent()
-        content.sound = .default
+        content.title = title
+        content.body = body
+        content.sound = UNNotificationSound.default
+        content.interruptionLevel = .timeSensitive // iOS 15+ para asegurar visibilidad
         
-        switch status {
-        case .sent:
-            return 
-        case .confirmed:
-            content.title = "Pedido Confirmado"
-            content.body = "El restaurante ha recibido tu orden y comenzará a prepararla en breve."
-        case .preparing:
-            content.title = "En la Cocina"
-            content.body = "Nuestros chefs están preparando tus alimentos con los mejores ingredientes."
-        case .courierToRestaurant:
-            content.title = "Repartidor Asignado"
-            content.body = "Juan va en camino al restaurante para recoger tu pedido."
-        case .pickup:
-            content.title = "Recogiendo Pedido"
-            content.body = "El repartidor está en el restaurante verificando tu orden."
-        case .courierToCustomer:
-            content.title = "En Camino"
-            content.body = "Tu pedido ha salido del restaurante. Llegará en aproximadamente 15 minutos."
-        case .arrived:
-            content.title = "¡Llegamos!"
-            content.body = "Juan está esperando en tu ubicación. No olvides el código de entrega."
-        case .completed:
-            content.title = "Disfruta tu Comida"
-            content.body = "Entrega completada. Gracias por confiar en nosotros."
-        }
-        
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error)")
+            }
+        }
     }
 
-    func advanceSimulation() {
-        guard status != .completed else { return }
+    private func updateSimulationState() {
+        guard orderStartTime > 0, status != .completed else { return }
         
-        let allCases = OrderStatus.allCases
-        if let currentIndex = allCases.firstIndex(of: status), currentIndex < allCases.count - 1 {
-            // Stop auto-advance at 'arrived' to let user verify code
-            if status == .arrived { return }
-            
-            let nextStatus = allCases[currentIndex + 1]
+        let elapsed = Date().timeIntervalSince1970 - orderStartTime
+        
+        let newStatus: OrderStatus
+        if elapsed < 5 { newStatus = .sent }
+        else if elapsed < 15 { newStatus = .confirmed }
+        else if elapsed < 30 { newStatus = .preparing }
+        else if elapsed < 45 { newStatus = .courierToRestaurant }
+        else if elapsed < 60 { newStatus = .pickup }
+        else if elapsed < 80 { newStatus = .courierToCustomer }
+        else { newStatus = .arrived }
+        
+        if newStatus != status {
             withAnimation(.spring()) {
-                status = nextStatus
+                status = newStatus
             }
-            sendNotification(for: nextStatus)
         }
     }
     
     func verifyDelivery() {
         withAnimation(.spring()) {
             status = .completed
-            // Confetti or haptic could go here
+            orderStartTime = 0 // Reset for next time if needed, or keep to show history
         }
-        sendNotification(for: .completed)
+        
+        // Cancelar notificaciones pendientes si se completa antes
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        
+        // Enviar notificación final inmediata
+        scheduleNotification(title: "Disfruta tu Comida", body: "Entrega completada. Gracias por confiar en nosotros.", delay: 1)
     }
     
     // MARK: - Logic

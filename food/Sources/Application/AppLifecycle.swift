@@ -7,6 +7,7 @@
 
 // Sources/Application/AppLifecycle.swift
 import FirebaseCore
+import UserNotifications
 
 /// Maneja el ciclo de vida de la aplicación
 public final class AppLifecycle {
@@ -28,6 +29,18 @@ public final class AppLifecycle {
         // Configurar dependencias
         AppDependencies.shared.configureServices()
         
+        // Configurar notificaciones
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        
         print("[AppLifecycle] ✅ Aplicación inicializada correctamente")
+    }
+}
+
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationDelegate()
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Mostrar notificación incluso si la app está abierta
+        completionHandler([.banner, .sound, .badge])
     }
 }
