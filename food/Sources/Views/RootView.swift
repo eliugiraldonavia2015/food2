@@ -8,6 +8,7 @@ struct RootView: View {
     @StateObject private var auth = AuthService.shared
     @State private var showOnboarding = false
     @State private var showRoleSelection = false
+    @State private var showStartupSplash = Auth.auth().currentUser != nil
     
     var body: some View {
         ZStack(alignment: .top) { // Alignment top para el overlay
@@ -45,20 +46,29 @@ struct RootView: View {
                             .transition(.opacity)
                     }
                 } else {
-                    // Estado de carga inicial o transición (Splash simulado)
-                    // Debe coincidir EXACTAMENTE con LaunchScreen.storyboard
-                    ZStack {
+                    if showStartupSplash {
                         Color(red: 244/255, green: 37/255, blue: 123/255)
-                            .ignoresSafeArea()
-                        Image("foodtook_isotipo_blanco")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 220, height: 220)
-                            .offset(x: -30) // Offset idéntico al LaunchScreen
+                    } else {
+                        // 🔐 Pantalla de login
+                        LoginView()
+                            .transition(.opacity)
                     }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
+            
+            // ⏳ Overlay de carga global (Login/Auth)
+            // ELIMINADO: Ya tenemos animación personalizada en LoginView
+            // if auth.isLoading {
+            //     ZStack {
+            //         Color.black.opacity(0.2)
+            //             .edgesIgnoringSafeArea(.all)
+            //         ProgressView()
+            //             .progressViewStyle(CircularProgressViewStyle(tint: .orange))
+            //             .scaleEffect(1.5)
+            //     }
+            //     .zIndex(999)
+            // }
             
             // 🚀 Overlay de Subida de Video (Zero-Wait)
             // NOTA: Usamos el componente público definido en Components/UploadStatusOverlay.swift
@@ -66,12 +76,23 @@ struct RootView: View {
             UploadStatusOverlay()
                 .padding(.top, 40) // Espacio para Dynamic Island / Notch
                 .zIndex(500)
+            
+            if showStartupSplash {
+                StartupSplashView()
+                    .transition(.opacity)
+                    .zIndex(1000)
+            }
         }
         .background(Color(red: 244/255, green: 37/255, blue: 123/255))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
-        .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
+        .onChange(of: auth.isAuthenticated, initial: true) { _, isAuthenticated in
             guard isAuthenticated else { return }
+            if showStartupSplash {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStartupSplash = false
+                }
+            }
             
             let completed = auth.user?.onboardingCompleted ?? false
             if !completed {
@@ -100,6 +121,29 @@ struct RootView: View {
     }
 }
 // Se eliminó la redeclaración de UploadStatusOverlay para usar la versión pública compartida
+
+private struct StartupSplashView: View {
+        var body: some View {
+            ZStack {
+                Color(red: 244/255, green: 37/255, blue: 123/255)
+                    .ignoresSafeArea()
+                if let uiImage = loadSplashImage() {
+                    Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
+                    .offset(x: -50) // Offset para coincidir con LaunchScreen.storyboard
+                }
+            }
+        }
+
+        private func loadSplashImage() -> UIImage? {
+            if let img = UIImage(named: "foodtook_isotipo_blanco") {
+                return img
+            }
+            return nil
+        }
+    }
 
 // MARK: - Preview
 struct RootView_Previews: PreviewProvider {
