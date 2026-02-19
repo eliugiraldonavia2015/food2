@@ -17,7 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     ) -> Bool {
         FirebaseApp.configure()
         print("[AppDelegate] ✅ Firebase configurado")
-        UIWindow.appearance().backgroundColor = UIColor(red: 49/255, green: 209/255, blue: 87/255, alpha: 1)
+        UIWindow.appearance().backgroundColor = UIColor(red: 244/255, green: 37/255, blue: 123/255, alpha: 1) // Set brandPink as default window background
 
         SDWebImageDownloader.shared.config.maxConcurrentDownloads = 4
         SDWebImagePrefetcher.shared.maxConcurrentPrefetchCount = 2
