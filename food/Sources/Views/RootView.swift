@@ -47,7 +47,7 @@ struct RootView: View {
                     }
                 } else {
                     if showStartupSplash {
-                        Color(red: 244/255, green: 37/255, blue: 123/255)
+                        Color.white
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
@@ -83,7 +83,7 @@ struct RootView: View {
                     .zIndex(1000)
             }
         }
-        .background(Color.white)
+        .background(Color.white) // Fondo general del contenedor raíz
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in

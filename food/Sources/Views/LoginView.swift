@@ -64,7 +64,7 @@ struct LoginView: View {
                 VStack(spacing: 0) {
                     brandPink
                         .ignoresSafeArea()
-                        .frame(height: 0) // Hide pink background
+                        .frame(height: UIScreen.main.bounds.height * 0.4) // Top 40% color
                     Spacer()
                 }
                 .background(Color.white) // Bottom part white fallback
