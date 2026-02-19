@@ -132,7 +132,7 @@ private struct StartupSplashView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 220, height: 220)
-                    .offset(x: -40) // Match LaunchScreen storyboard alignment
+                    .offset(x: -20, y: -10) // Match LaunchScreen storyboard alignment
                 }
             }
         }

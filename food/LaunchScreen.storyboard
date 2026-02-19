@@ -17,7 +17,7 @@
                             </imageView>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="splash-image" firstAttribute="centerX" secondItem="launch-screen-view" secondAttribute="centerX" constant="-40" id="centerX"/>
+                            <constraint firstItem="splash-image" firstAttribute="centerX" secondItem="launch-screen-view" secondAttribute="centerX" constant="-20" id="centerX"/>
                             <constraint firstItem="splash-image" firstAttribute="centerY" secondItem="launch-screen-view" secondAttribute="centerY" id="centerY"/>
                             <constraint firstItem="splash-image" firstAttribute="width" constant="220" id="width220"/>
                             <constraint firstItem="splash-image" firstAttribute="height" constant="220" id="height220"/>
