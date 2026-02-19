@@ -47,7 +47,7 @@ struct RootView: View {
                     }
                 } else {
                     if showStartupSplash {
-                        Color(red: 49/255, green: 209/255, blue: 87/255)
+                        Color(red: 244/255, green: 37/255, blue: 123/255)
                     } else {
                         // 🔐 Pantalla de login
                         LoginView()
@@ -83,7 +83,7 @@ struct RootView: View {
                     .zIndex(1000)
             }
         }
-        .background(showStartupSplash ? Color(red: 49/255, green: 209/255, blue: 87/255) : Color(.systemBackground))
+        .background(showStartupSplash ? Color(red: 244/255, green: 37/255, blue: 123/255) : Color(.systemBackground))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
         .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
@@ -123,41 +123,41 @@ struct RootView: View {
 // Se eliminó la redeclaración de UploadStatusOverlay para usar la versión pública compartida
 
 private struct StartupSplashView: View {
-    var body: some View {
-        ZStack {
-            Color(red: 49/255, green: 209/255, blue: 87/255)
-                .ignoresSafeArea()
-            if let uiImage = loadSplashImage() {
-                Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 220, height: 220)
+        var body: some View {
+            ZStack {
+                Color(red: 244/255, green: 37/255, blue: 123/255)
+                    .ignoresSafeArea()
+                if let uiImage = loadSplashImage() {
+                    Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
+                }
             }
         }
-    }
 
-    private func loadSplashImage() -> UIImage? {
-        if let img = UIImage(named: "faviconremovedbackground") {
-            return img
+        private func loadSplashImage() -> UIImage? {
+            if let img = UIImage(named: "faviconremovedbackground") {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "faviconremovedbackground", withExtension: "png"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            if let img = UIImage(named: "favfavicon") {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            return nil
         }
-        if let url = Bundle.main.url(forResource: "faviconremovedbackground", withExtension: "png"),
-           let img = UIImage(contentsOfFile: url.path) {
-            return img
-        }
-        if let img = UIImage(named: "favfavicon") {
-            return img
-        }
-        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
-           let img = UIImage(contentsOfFile: url.path) {
-            return img
-        }
-        if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
-           let img = UIImage(contentsOfFile: url.path) {
-            return img
-        }
-        return nil
     }
-}
 
 // MARK: - Preview
 struct RootView_Previews: PreviewProvider {
