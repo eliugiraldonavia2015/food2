@@ -64,7 +64,7 @@ struct LoginView: View {
                 VStack(spacing: 0) {
                     brandPink
                         .ignoresSafeArea()
-                        .frame(height: UIScreen.main.bounds.height * 0.4) // Top 40% color
+                        .frame(height: 0) // Hide pink background
                     Spacer()
                 }
                 .background(Color.white) // Bottom part white fallback
@@ -91,18 +91,19 @@ struct LoginView: View {
                     
                     if focusedField == nil {
                         VStack(spacing: 8) {
-                            Image(systemName: "fork.knife.circle.fill") // Placeholder Logo
-                                .font(.system(size: 60))
-                                .foregroundColor(.white)
+                            Image("foodtook_isotipo_magenta") // Use new magenta logo
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
                                 .padding(.bottom, 10)
                             
                             Text("FoodTook")
                                 .font(.system(size: 32, weight: .heavy, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(brandPink) // Change text to pink
                             
                             Text(isSignUp ? "Crea tu cuenta" : "Bienvenido de nuevo")
                                 .font(.headline)
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.gray) // Change text to gray
                         }
                         .padding(.top, 20)
                         .transition(.scale.combined(with: .opacity))

@@ -3,7 +3,7 @@ import SwiftUI
 struct SplashView: View {
     var body: some View {
         ZStack {
-            Color(.systemBackground)
+            Color.white
                 .ignoresSafeArea()
             VStack(spacing: 16) {
                 ProgressView()
