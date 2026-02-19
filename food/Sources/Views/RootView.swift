@@ -86,7 +86,7 @@ struct RootView: View {
         .background(Color(red: 244/255, green: 37/255, blue: 123/255))
         .animation(.easeInOut(duration: 0.3), value: auth.isLoading)
         
-        .onChange(of: auth.isAuthenticated, initial: true) { _, isAuthenticated in
+        .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
             guard isAuthenticated else { return }
             if showStartupSplash {
                 withAnimation(.easeInOut(duration: 0.5)) {
@@ -125,19 +125,43 @@ struct RootView: View {
 private struct StartupSplashView: View {
         var body: some View {
             ZStack {
-                // Background Color matching LaunchScreen
-                Color(red: 244/255, green: 37/255, blue: 123/255)
+                Color.white
                     .ignoresSafeArea()
-                
-                // Logo Image
-                if let uiImage = UIImage(named: "foodtook_isotipo_blanco") {
+                if let uiImage = loadSplashImage() {
                     Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 320, height: 320) // Matching storyboard constraints
-                        .offset(x: -50) // Matching storyboard centerX constant
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
                 }
             }
+        }
+
+        private func loadSplashImage() -> UIImage? {
+            if let img = UIImage(named: "foodtook_isotipo_magenta") {
+                return img
+            }
+            if let img = UIImage(named: "foodtook_isotipo_blanco") {
+                return img
+            }
+            if let img = UIImage(named: "faviconremovedbackground") {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "faviconremovedbackground", withExtension: "png"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            if let img = UIImage(named: "favfavicon") {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "png"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            if let url = Bundle.main.url(forResource: "favfavicon", withExtension: "jpg"),
+               let img = UIImage(contentsOfFile: url.path) {
+                return img
+            }
+            return nil
         }
     }
 
