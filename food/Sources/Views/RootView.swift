@@ -137,6 +137,9 @@ private struct StartupSplashView: View {
         }
 
         private func loadSplashImage() -> UIImage? {
+            if let img = UIImage(named: "foodtook_isotipo_blanco") {
+                return img
+            }
             if let img = UIImage(named: "faviconremovedbackground") {
                 return img
             }
