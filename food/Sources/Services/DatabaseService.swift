@@ -254,6 +254,12 @@ public final class DatabaseService {
         uid: String,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
+        // ✅ Guard clause para evitar crash con ID vacío
+        guard !uid.isEmpty else {
+            completion(.failure(NSError(domain: "Database", code: 400, userInfo: [NSLocalizedDescriptionKey: "UID cannot be empty"])))
+            return
+        }
+        
         db.collection(usersCollection).document(uid).getDocument { document, error in
             if let error = error {
                 completion(.failure(error))
@@ -273,7 +279,13 @@ public final class DatabaseService {
     public func observeUser(
         uid: String,
         handler: @escaping (Result<[String: Any], Error>) -> Void
-    ) -> ListenerRegistration {
+    ) -> ListenerRegistration? {
+        // ✅ Guard clause para evitar crash con ID vacío
+        guard !uid.isEmpty else {
+            handler(.failure(NSError(domain: "Database", code: 400, userInfo: [NSLocalizedDescriptionKey: "UID cannot be empty"])))
+            return nil
+        }
+        
         return db.collection(usersCollection).document(uid).addSnapshotListener { snapshot, error in
             if let error = error {
                 handler(.failure(error))
