@@ -30,6 +30,7 @@ struct FoodDiscoveryView: View {
     // Navigation States
     @State private var showFullMenu = false
     @State private var selectedDishId: String? = nil
+    @State private var showEmptyStories = false // ✅ Nuevo estado para Empty Stories
     
     // MARK: - Design Constants
     private let primaryColor = Color.green // Replaces Pink from image
@@ -310,6 +311,13 @@ struct FoodDiscoveryView: View {
             )
         }
         .ignoresSafeArea(edges: .top)
+        .overlay {
+            if showEmptyStories {
+                EmptyStoriesView(isPresented: $showEmptyStories)
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
+        }
         .onAppear {
             startAnimations()
         }
@@ -1045,8 +1053,9 @@ struct FoodDiscoveryView: View {
                 // Active Placeholder for Real Users
                 if !AuthService.shared.isMockUser && displayedUpdates.isEmpty {
                     Button(action: {
-                        // Acción futura: Abrir placeholder educativo
-                        // Por ahora, solo simula interacción
+                        withAnimation {
+                            showEmptyStories = true
+                        }
                     }) {
                         VStack(spacing: 6) {
                             ZStack {
