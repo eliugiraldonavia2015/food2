@@ -12,7 +12,7 @@ struct BrandLogoView: View {
                     .frame(width: 80, height: 80)
                     .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                 
-                Image("foodtookoficialicon")
+                Image("AppLogo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 80, height: 80) // Full width of container for max zoom
