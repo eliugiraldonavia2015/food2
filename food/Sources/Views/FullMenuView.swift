@@ -18,19 +18,24 @@ class FullMenuViewModel: ObservableObject {
     }
     
     func loadData() {
-        // SCALABILITY NOTE:
-        // This function is designed to fetch data from a database (e.g., Firebase, REST API).
-        // Currently simulating data, but 'restaurantId' would be used to query the specific restaurant's menu.
-        // Example:
-        // Task {
-        //     let menu = await Database.fetchMenu(for: restaurantId)
-        //     await MainActor.run {
-        //         self.dishes = menu.dishes
-        //         self.branches = menu.branches
-        //         self.updateCategories()
-        //     }
-        // }
+        self.isLoading = true
         
+        // Simular un pequeño delay para sentir la carga
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if AuthService.shared.isMockUser {
+                self.loadMockData()
+            } else {
+                // REAL USER LOGIC
+                // Por ahora retornamos vacío para mostrar el Empty State en la vista
+                self.dishes = []
+                self.branches = []
+                self.categories = []
+                self.isLoading = false
+            }
+        }
+    }
+    
+    private func loadMockData() {
         self.dishes = [
             .init(
                 id: "green-burger",
@@ -116,6 +121,7 @@ class FullMenuViewModel: ObservableObject {
         
         let cats = Array(Set(self.dishes.map { $0.category })).sorted()
         self.categories = ["Todo"] + cats
+        self.isLoading = false
     }
 }
 
@@ -320,6 +326,10 @@ struct FullMenuView: View {
     private var displayedDishes: [Dish] {
         if activeTab == "Todo" { return hardcodedDishes }
         return hardcodedDishes.filter { $0.category == activeTab }
+    }
+    
+    private var showEmptyState: Bool {
+        return !AuthService.shared.isMockUser && hardcodedDishes.isEmpty && !viewModel.isLoading
     }
     
     private var cartCount: Int {
@@ -528,10 +538,43 @@ struct FullMenuView: View {
     
     private var menuList: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if activeTab == "Todo" {
+            if showEmptyState {
+                VStack(spacing: 20) {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 60))
+                        .foregroundColor(.gray.opacity(0.5))
+                        .padding(.top, 40)
+                    
+                    Text("Menú en actualización")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Estamos trabajando con \(restaurantName) para traerte sus mejores platillos.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    
+                    Button(action: {
+                        // Acción simulada de notificar
+                    }) {
+                        Text("Avísame cuando esté listo")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(Color.fuchsia)
+                            .cornerRadius(20)
+                    }
+                    .padding(.top, 10)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 40)
+            } else if activeTab == "Todo" {
                 sectionHeader("Populares")
                 VStack(spacing: 12) {
-                    ForEach(displayedDishes.filter { $0.isPopular }) { dish in
+                    ForEach(hardcodedDishes.filter { $0.isPopular }) { dish in
                         FullMenuDishRow(
                             dish: dish,
                             quantity: cart[dish.id] ?? 0,

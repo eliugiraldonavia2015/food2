@@ -270,6 +270,21 @@ public final class AuthService: ObservableObject {
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var phoneAuthState: PhoneAuthState = .idle
     @Published public private(set) var hasResolvedAuth: Bool = false
+    
+    // MARK: - Mock Data Flag
+    
+    /// Habilita o deshabilita el modo demo para el usuario Eliu.
+    /// Cambiar a false cuando el desarrollo esté completo y se quiera ver data real incluso con este usuario.
+    /// Cuando se elimine el código mock, buscar todas las referencias a `isMockUser` y eliminar la rama true.
+    public static let enableMockModeForEliu = true
+    
+    /// Indica si el usuario actual es el usuario de demostración (Eliu) y el modo está activo.
+    /// Si es true, la app debe usar datos hardcoded. Si es false, debe intentar usar datos reales.
+    public var isMockUser: Bool {
+        guard AuthService.enableMockModeForEliu else { return false }
+        return user?.email?.lowercased() == "eliugiraldonavia2015@gmail.com"
+    }
+
     private let followingCache = FollowingCache(capacity: 1024)
     private let followingStore = FollowingStore()
     

@@ -131,6 +131,53 @@ struct FoodDiscoveryView: View {
         .init(name: "Domino's", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", hasUpdate: true)
     ]
     
+    // MARK: - Parallel Dev Data Logic
+    
+    private var displayedUpdates: [RestaurantUpdate] {
+        if AuthService.shared.isMockUser {
+            return updates
+        } else {
+            // Usuario Real: Retorna vacío por ahora (se manejará con placeholder en la vista)
+            return []
+        }
+    }
+    
+    private var shouldShowRealHeroPromo: Bool {
+        return AuthService.shared.isMockUser
+    }
+    
+    // MARK: - Computed Properties for Collections
+    
+    private var displayedCategories: [CategoryItem] {
+        // Las categorías suelen ser estáticas incluso en producción, pero preparamos el hook.
+        // Por ahora, todos ven las categorías.
+        return categoryItems
+    }
+    
+    private var displayedPopularItems: [PopularItem] {
+        if AuthService.shared.isMockUser {
+            return Self.popularItems
+        } else {
+            return [] // Retornará vacío para activar el placeholder en la UI
+        }
+    }
+    
+    private var displayedFeaturedRestaurants: [RestaurantItem] {
+        if AuthService.shared.isMockUser {
+            return Self.featuredRestaurants
+        } else {
+            return [] // Retornará vacío para activar el placeholder en la UI
+        }
+    }
+    
+    private var displayedTrendingItems: [TrendingItem] {
+        if AuthService.shared.isMockUser {
+            return Self.trendingItems
+        } else {
+            return [] // Retornará vacío para activar el placeholder en la UI
+        }
+    }
+    
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -417,58 +464,108 @@ struct FoodDiscoveryView: View {
     }
     
     private var heroPromo: some View {
-        Button(action: {
-            selectedDishId = "green-burger"
-            showFullMenu = true
-        }) {
-            ZStack(alignment: .bottomLeading) {
-                safeImage(url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", width: nil, height: 220, contentMode: .fill)
-                    .frame(maxWidth: .infinity)
+        Group {
+            if shouldShowRealHeroPromo {
+                // MOCK PROMO (Usuario Demo)
+                Button(action: {
+                    selectedDishId = "green-burger"
+                    showFullMenu = true
+                }) {
+                    ZStack(alignment: .bottomLeading) {
+                        safeImage(url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd", width: nil, height: 220, contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                            .overlay(
+                                LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .leading, endPoint: .trailing)
+                            )
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("EXCLUSIVO DE HOY")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(primaryColor)
+                                .tracking(1)
+                            
+                            Text("Sabor ")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white) +
+                            Text("Premium")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(primaryColor) +
+                            Text("\nen tu puerta.")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                            
+                            // Visual "Button" only
+                            Text("Pedir Ahora")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(primaryColor)
+                                .cornerRadius(20)
+                                .padding(.top, 8)
+                        }
+                        .padding(24)
+                    }
+                    .contentShape(Rectangle()) // Ensure tap area
+                    .cornerRadius(24)
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
                     .overlay(
-                        LinearGradient(gradient: Gradient(colors: [.black.opacity(0.8), .clear]), startPoint: .leading, endPoint: .trailing)
+                        // Pagination Dots
+                        HStack(spacing: 6) {
+                            Capsule().fill(primaryColor).frame(width: 20, height: 6)
+                            Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+                            Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
+                        }
+                        .padding(.bottom, 12)
+                        , alignment: .bottom
                     )
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("EXCLUSIVO DE HOY")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(primaryColor)
-                        .tracking(1)
-                    
-                    Text("Sabor ")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white) +
-                    Text("Premium")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(primaryColor) +
-                    Text("\nen tu puerta.")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    // Visual "Button" only
-                    Text("Pedir Ahora")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(primaryColor)
-                        .cornerRadius(20)
-                        .padding(.top, 8)
                 }
-                .padding(24)
+            } else {
+                // REAL USER PLACEHOLDER (Active State)
+                Button(action: {
+                    // Acción futura: Mostrar ofertas
+                }) {
+                    ZStack(alignment: .leading) {
+                        // Fondo elegante
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 0.1, green: 0.1, blue: 0.1),
+                                Color(red: 0.15, green: 0.15, blue: 0.15)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .frame(height: 220)
+                        .frame(maxWidth: .infinity)
+                        
+                        // Patrón sutil (opcional)
+                        Circle()
+                            .stroke(primaryColor.opacity(0.1), lineWidth: 40)
+                            .frame(width: 300, height: 300)
+                            .offset(x: 200, y: -50)
+                            .blur(radius: 20)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 30))
+                                .foregroundColor(primaryColor)
+                                .padding(.bottom, 4)
+                            
+                            Text("Descubre tu próximo\nplato favorito")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                            
+                            Text("Estamos preparando las mejores ofertas de tu zona.")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.gray)
+                                .lineLimit(2)
+                        }
+                        .padding(24)
+                    }
+                    .cornerRadius(24)
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                }
             }
-            .contentShape(Rectangle()) // Ensure tap area
-            .cornerRadius(24)
-            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-            .overlay(
-                // Pagination Dots
-                HStack(spacing: 6) {
-                    Capsule().fill(primaryColor).frame(width: 20, height: 6)
-                    Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
-                    Circle().fill(Color.gray.opacity(0.5)).frame(width: 6, height: 6)
-                }
-                .padding(.bottom, 12)
-                , alignment: .bottom
-            )
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -571,7 +668,36 @@ struct FoodDiscoveryView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(Array(Self.popularItems.enumerated()), id: \.element.id) { index, item in
+                    if !AuthService.shared.isMockUser && displayedPopularItems.isEmpty {
+                        // REAL USER PLACEHOLDER
+                        Button(action: {}) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ZStack {
+                                    Rectangle()
+                                        .fill(Color(uiColor: .systemGray6))
+                                        .frame(width: 160, height: 160)
+                                        .cornerRadius(20)
+                                    
+                                    Image(systemName: "star")
+                                        .font(.system(size: 30))
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                Text("Tus Favoritos")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(primaryTextColor)
+                                    .lineLimit(1)
+                                
+                                Text("Aprenderemos tus gustos")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(secondaryTextColor)
+                                    .lineLimit(2)
+                            }
+                            .frame(width: 160)
+                        }
+                    }
+                    
+                    ForEach(Array(displayedPopularItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             // Map to dummy dish IDs
                             if item.name.contains("Bowl") {
@@ -626,7 +752,33 @@ struct FoodDiscoveryView: View {
             .padding(.horizontal, 20)
             
             VStack(spacing: 24) {
-                ForEach(Array(Self.featuredRestaurants.enumerated()), id: \.element.id) { index, restaurant in
+                if !AuthService.shared.isMockUser && displayedFeaturedRestaurants.isEmpty {
+                    // REAL USER PLACEHOLDER
+                    Button(action: {}) {
+                        ZStack(alignment: .center) {
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color(uiColor: .systemGray6))
+                                .frame(height: 250)
+                            
+                            VStack(spacing: 12) {
+                                Image(systemName: "map")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                
+                                Text("Explorando la zona...")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.gray)
+                                
+                                Text("Buscando los mejores restaurantes cerca de ti")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray.opacity(0.8))
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                }
+                
+                ForEach(Array(displayedFeaturedRestaurants.enumerated()), id: \.element.id) { index, restaurant in
                     Button(action: {
                         // Navigate to restaurant details (Full Menu)
                         // Para restaurantes, abrimos el menú sin seleccionar un platillo específico automáticamente,
@@ -716,7 +868,34 @@ struct FoodDiscoveryView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(Array(Self.trendingItems.enumerated()), id: \.element.id) { index, item in
+                    if !AuthService.shared.isMockUser && displayedTrendingItems.isEmpty {
+                        // REAL USER PLACEHOLDER
+                        Button(action: {}) {
+                            ZStack(alignment: .center) {
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color(uiColor: .systemGray6))
+                                    .frame(width: 220, height: 280)
+                                
+                                VStack(spacing: 12) {
+                                    Image(systemName: "flame")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.orange)
+                                    
+                                    Text("Tendencias")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(.gray)
+                                    
+                                    Text("Los platos más virales aparecerán aquí")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.gray.opacity(0.8))
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                }
+                            }
+                        }
+                    }
+                    
+                    ForEach(Array(displayedTrendingItems.enumerated()), id: \.element.id) { index, item in
                         Button(action: {
                             // Play video or show details
                             // Map to dummy dish IDs
@@ -863,8 +1042,32 @@ struct FoodDiscoveryView: View {
                 }
                 .padding(.leading, 20)
                 
+                // Active Placeholder for Real Users
+                if !AuthService.shared.isMockUser && displayedUpdates.isEmpty {
+                    Button(action: {
+                        // Acción futura: Abrir placeholder educativo
+                        // Por ahora, solo simula interacción
+                    }) {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    .frame(width: 72, height: 72)
+                                
+                                Image(systemName: "storefront")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.gray)
+                            }
+                            Text("Próximamente")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .transition(.opacity)
+                }
+                
                 // Restaurant Circles
-                ForEach(updates) { update in
+                ForEach(displayedUpdates) { update in
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             selectedStory = update
