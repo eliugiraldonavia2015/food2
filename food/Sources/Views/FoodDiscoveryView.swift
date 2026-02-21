@@ -1462,92 +1462,101 @@ struct ViewOffsetKey: PreferenceKey {
 struct EmptyStoriesView: View {
     @Binding var isPresented: Bool
     @State private var animate = false
+    @State private var progress: CGFloat = 0.0
     
     var body: some View {
         ZStack {
-            // Fondo desenfocado
+            // 1. FONDO (Imagen de comida atractiva)
             Color.black.ignoresSafeArea()
             
-            // Imagen de fondo abstracta
-            WebImage(url: URL(string: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2"))
+            WebImage(url: URL(string: "https://images.unsplash.com/photo-1543353071-873f17a7a088"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
-                .opacity(0.4)
-                .blur(radius: 20)
+                .overlay(Color.black.opacity(0.4)) // Overlay para legibilidad
             
-            // Contenido
-            VStack(spacing: 24) {
-                Spacer()
+            VStack(spacing: 0) {
+                // 2. HEADER DE HISTORIA (Simulado)
                 
-                // Icono
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 120, height: 120)
-                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
-                    
-                    Image(systemName: "person.2.circle")
-                        .font(.system(size: 60))
+                // Barra de Progreso
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.3))
+                        Capsule().fill(Color.white)
+                            .frame(width: geo.size.width * progress)
+                            .animation(.linear(duration: 5), value: progress)
+                    }
+                }
+                .frame(height: 3)
+                .padding(.top, 8)
+                .padding(.horizontal, 10)
+                
+                // Info del "Usuario" (App)
+                HStack(spacing: 10) {
+                    Image(systemName: "star.circle.fill") // Icono de la App
+                        .font(.system(size: 32))
                         .foregroundColor(.white)
-                }
-                .scaleEffect(animate ? 1 : 0.8)
-                .opacity(animate ? 1 : 0)
-                
-                // Texto
-                VStack(spacing: 12) {
-                    Text("Aún no hay historias")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
+                        .background(Color.white.opacity(0.2))
+                        .clipShape(Circle())
                     
-                    Text("Sigue a tus restaurantes favoritos para ver sus actualizaciones diarias aquí.")
-                        .font(.system(size: 16))
-                        .foregroundColor(.white.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                        .lineSpacing(4)
-                }
-                .offset(y: animate ? 0 : 20)
-                .opacity(animate ? 1 : 0)
-                
-                Spacer()
-                
-                // Botón
-                Button(action: {
-                    withAnimation { isPresented = false }
-                }) {
-                    Text("Explorar Restaurantes")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color.white)
-                        .cornerRadius(28)
-                        .padding(.horizontal, 24)
-                }
-                .offset(y: animate ? 0 : 50)
-                .opacity(animate ? 1 : 0)
-                .padding(.bottom, 40)
-            }
-            
-            // Botón Cerrar
-            VStack {
-                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("FoodTook")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Hace un momento")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    
                     Spacer()
+                    
                     Button(action: {
                         withAnimation { isPresented = false }
                     }) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.black.opacity(0.3))
-                            .clipShape(Circle())
+                            .padding(8)
                     }
-                    .padding(.trailing, 16)
-                    .padding(.top, 50) // Ajuste seguro
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                
+                Spacer()
+                
+                // 3. CONTENIDO CENTRAL
+                VStack(spacing: 16) {
+                    Text("¡Bienvenido a las Historias!")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    
+                    Text("Aquí verás las novedades diarias, ofertas flash y platos del día de tus restaurantes favoritos cuando los sigas.")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    
+                    Button(action: {
+                        withAnimation { isPresented = false }
+                    }) {
+                        Text("Entendido")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 14)
+                            .background(Color.white)
+                            .cornerRadius(24)
+                    }
+                    .padding(.top, 20)
+                }
+                .offset(y: -60)
+                .scaleEffect(animate ? 1 : 0.9)
+                .opacity(animate ? 1 : 0)
+                
                 Spacer()
             }
         }
@@ -1555,6 +1564,22 @@ struct EmptyStoriesView: View {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
                 animate = true
             }
+            // Simular progreso de historia
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.linear(duration: 5)) {
+                    progress = 1.0
+                }
+            }
+            // Auto-cerrar después de 5 segundos (como una historia real)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                if isPresented {
+                    withAnimation { isPresented = false }
+                }
+            }
+        }
+        .onTapGesture {
+            // Tocar cierra la historia (como avanzar)
+            withAnimation { isPresented = false }
         }
     }
 }
