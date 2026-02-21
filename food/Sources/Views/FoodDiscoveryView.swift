@@ -1457,3 +1457,104 @@ struct ViewOffsetKey: PreferenceKey {
         value += nextValue()
     }
 }
+
+// MARK: - Empty Stories View
+struct EmptyStoriesView: View {
+    @Binding var isPresented: Bool
+    @State private var animate = false
+    
+    var body: some View {
+        ZStack {
+            // Fondo desenfocado
+            Color.black.ignoresSafeArea()
+            
+            // Imagen de fondo abstracta
+            WebImage(url: URL(string: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2"))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+                .opacity(0.4)
+                .blur(radius: 20)
+            
+            // Contenido
+            VStack(spacing: 24) {
+                Spacer()
+                
+                // Icono
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 120, height: 120)
+                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                    
+                    Image(systemName: "person.2.circle")
+                        .font(.system(size: 60))
+                        .foregroundColor(.white)
+                }
+                .scaleEffect(animate ? 1 : 0.8)
+                .opacity(animate ? 1 : 0)
+                
+                // Texto
+                VStack(spacing: 12) {
+                    Text("Aún no hay historias")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("Sigue a tus restaurantes favoritos para ver sus actualizaciones diarias aquí.")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                        .lineSpacing(4)
+                }
+                .offset(y: animate ? 0 : 20)
+                .opacity(animate ? 1 : 0)
+                
+                Spacer()
+                
+                // Botón
+                Button(action: {
+                    withAnimation { isPresented = false }
+                }) {
+                    Text("Explorar Restaurantes")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.white)
+                        .cornerRadius(28)
+                        .padding(.horizontal, 24)
+                }
+                .offset(y: animate ? 0 : 50)
+                .opacity(animate ? 1 : 0)
+                .padding(.bottom, 40)
+            }
+            
+            // Botón Cerrar
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        withAnimation { isPresented = false }
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.top, 50) // Ajuste seguro
+                }
+                Spacer()
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                animate = true
+            }
+        }
+    }
+}
