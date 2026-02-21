@@ -311,12 +311,8 @@ struct FoodDiscoveryView: View {
             )
         }
         .ignoresSafeArea(edges: .top)
-        .overlay {
-            if showEmptyStories {
-                EmptyStoriesView(isPresented: $showEmptyStories)
-                    .transition(.opacity)
-                    .zIndex(100)
-            }
+        .fullScreenCover(isPresented: $showEmptyStories) {
+            EmptyStoriesView(isPresented: $showEmptyStories)
         }
         .onAppear {
             startAnimations()
