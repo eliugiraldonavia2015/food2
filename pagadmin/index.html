@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodTook Admin - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="login-card card">
+        <div class="logo">FoodTook</div>
+        <h2>Bienvenido</h2>
+        <p>Ingresa a tu panel de administración</p>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <input type="email" id="email" class="form-input" placeholder="admin@foodtook.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%">Iniciar Sesión</button>
+        </form>
+        
+        <div class="login-footer">
+            <a href="#" style="color: var(--brand-pink); text-decoration: none;">¿Olvidaste tu contraseña?</a>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+            // Simulación de login exitoso
+            // Aquí podríamos validar credenciales falsas
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if(email && password) {
+                // Guardar sesión falsa
+                localStorage.setItem('foodtook_admin_user', JSON.stringify({ name: 'Admin User', email: email }));
+                // Redirigir al dashboard
+                window.location.href = 'dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>
