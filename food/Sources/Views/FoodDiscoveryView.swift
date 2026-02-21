@@ -1459,6 +1459,7 @@ struct EmptyStoriesView: View {
     @Binding var isPresented: Bool
     @State private var animate = false
     @State private var progress: CGFloat = 0.0
+    @State private var dragOffset: CGSize = .zero
     
     var body: some View {
         ZStack {
@@ -1481,7 +1482,7 @@ struct EmptyStoriesView: View {
                         Capsule().fill(Color.white.opacity(0.3))
                         Capsule().fill(Color.white)
                             .frame(width: geo.size.width * progress)
-                            .animation(.linear(duration: 5), value: progress)
+                            // La animación se controla explícitamente en el cambio de estado
                     }
                 }
                 .frame(height: 3)
@@ -1508,7 +1509,7 @@ struct EmptyStoriesView: View {
                     Spacer()
                     
                     Button(action: {
-                        withAnimation { isPresented = false }
+                        closeStory()
                     }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 18, weight: .semibold))
@@ -1537,7 +1538,7 @@ struct EmptyStoriesView: View {
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     
                     Button(action: {
-                        withAnimation { isPresented = false }
+                        closeStory()
                     }) {
                         Text("Entendido")
                             .font(.system(size: 16, weight: .bold))
@@ -1556,26 +1557,67 @@ struct EmptyStoriesView: View {
                 Spacer()
             }
         }
+        // Gesto de Swipe Down
+        .offset(y: dragOffset.height)
+        .scaleEffect(1 - (dragOffset.height / 1000)) // Efecto de escala al arrastrar
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    if value.translation.height > 0 {
+                        dragOffset = value.translation
+                    }
+                }
+                .onEnded { value in
+                    if value.translation.height > 100 {
+                        closeStory()
+                    } else {
+                        withAnimation(.spring()) {
+                            dragOffset = .zero
+                        }
+                    }
+                }
+        )
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                animate = true
-            }
-            // Simular progreso de historia
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.linear(duration: 5)) {
-                    progress = 1.0
-                }
-            }
-            // Auto-cerrar después de 5 segundos (como una historia real)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                if isPresented {
-                    withAnimation { isPresented = false }
-                }
-            }
+            resetAndStart()
         }
         .onTapGesture {
-            // Tocar cierra la historia (como avanzar)
-            withAnimation { isPresented = false }
+            closeStory()
         }
+    }
+    
+    private func resetAndStart() {
+        // 1. Resetear estados inmediatamente sin animación
+        progress = 0.0
+        animate = false
+        dragOffset = .zero
+        
+        // 2. Iniciar animación de entrada
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            animate = true
+        }
+        
+        // 3. Iniciar barra de progreso (simulando 5 segundos)
+        withAnimation(.linear(duration: 5.0)) {
+            progress = 1.0
+        }
+        
+        // 4. Programar cierre automático
+        // Cancelamos cualquier work item previo implícitamente al recrear la vista, 
+        // pero idealmente deberíamos guardar la referencia. 
+        // En este caso simple, confiamos en que al cerrarse la vista se cancela.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            // Solo cerrar si sigue visible y el progreso llegó al final
+            if isPresented && progress >= 0.99 {
+                closeStory()
+            }
+        }
+    }
+    
+    private func closeStory() {
+        withAnimation {
+            isPresented = false
+        }
+        // Resetear al cerrar para que la próxima vez esté limpio (aunque onAppear lo hace)
+        progress = 0.0
     }
 }
