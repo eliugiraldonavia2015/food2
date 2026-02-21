@@ -31,7 +31,7 @@ struct FoodDiscoveryView: View {
     // Navigation States
     @State private var showFullMenu = false
     @State private var selectedDishId: String? = nil
-    @State private var showEmptyStories = false // ✅ Nuevo estado para Empty Stories
+    @Binding var showEmptyStories: Bool // ✅ Nuevo estado para Empty Stories
     
     // MARK: - Design Constants
     private let primaryColor = Color.green // Replaces Pink from image
@@ -312,9 +312,6 @@ struct FoodDiscoveryView: View {
             )
         }
         .ignoresSafeArea(edges: .top)
-        .fullScreenCover(isPresented: $showEmptyStories) {
-            EmptyStoriesView(isPresented: $showEmptyStories)
-        }
         .onAppear {
             startAnimations()
         }

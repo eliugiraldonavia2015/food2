@@ -20,6 +20,7 @@ struct MainTabView: View {
     @State private var showFeedTrigger = false
     @State private var showSearchFromTab = false // ✅ Nuevo estado para búsqueda global desde el TabBar
     @State private var selectedStory: RestaurantUpdate? = nil // ✅ Estado para historia seleccionada
+    @State private var showEmptyStories = false // ✅ Estado para historias vacías
     @Namespace private var searchAnimation // ✅ Namespace para transición de búsqueda
 
     // 🚀 HOISTED STATE: Inicializamos el FeedViewModel aquí para que la carga comience
@@ -43,7 +44,8 @@ struct MainTabView: View {
                             // 🚀 ANIMACIÓN OPTIMIZADA: Más rápida (0.2s) para evitar sensación de lag
                             onSearch: { withAnimation(.easeOut(duration: 0.2)) { showSearchFromTab = true } },
                             animation: searchAnimation,
-                            selectedStory: $selectedStory
+                            selectedStory: $selectedStory,
+                            showEmptyStories: $showEmptyStories
                         )
                             .overlay(
                                 // Visual Feed Trigger (State isolated to view)
@@ -97,7 +99,8 @@ struct MainTabView: View {
                         }
                     },
                     animation: searchAnimation,
-                    selectedStory: $selectedStory
+                    selectedStory: $selectedStory,
+                    showEmptyStories: $showEmptyStories
                 )
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .zIndex(2)
@@ -169,6 +172,14 @@ struct MainTabView: View {
                 .transition(.move(edge: .bottom))
                 .zIndex(100)
                 .ignoresSafeArea()
+            }
+            
+            // Empty Story Overlay (Global to cover everything including TabBar)
+            if showEmptyStories {
+                EmptyStoriesView(isPresented: $showEmptyStories)
+                    .transition(.move(edge: .bottom))
+                    .zIndex(100)
+                    .ignoresSafeArea()
             }
         }
         
