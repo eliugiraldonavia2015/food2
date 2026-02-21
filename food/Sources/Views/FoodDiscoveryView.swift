@@ -1,5 +1,6 @@
 import SwiftUI
 import SDWebImageSwiftUI
+import Combine
 
 struct FoodDiscoveryView: View {
     @State private var selectedCategory: String? = nil
@@ -1059,11 +1060,11 @@ struct FoodDiscoveryView: View {
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                     .frame(width: 72, height: 72)
                                 
-                                Image(systemName: "storefront")
+                                Image(systemName: "bell.slash")
                                     .font(.system(size: 24))
                                     .foregroundColor(.gray)
                             }
-                            Text("Próximamente")
+                            Text("Sin historias")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.gray)
                         }
@@ -1457,167 +1458,178 @@ struct ViewOffsetKey: PreferenceKey {
 // MARK: - Empty Stories View
 struct EmptyStoriesView: View {
     @Binding var isPresented: Bool
-    @State private var animate = false
+    
+    // State
     @State private var progress: CGFloat = 0.0
-    @State private var dragOffset: CGSize = .zero
+    @State private var isPaused = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var isAnimating = false
+    
+    // Constants
+    private let storyDuration: TimeInterval = 5.0
+    private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+    
+    // Content
+    private let storyImage = "https://images.unsplash.com/photo-1543353071-873f17a7a088"
     
     var body: some View {
         ZStack {
-            // 1. FONDO (Imagen de comida atractiva)
-            Color.black.ignoresSafeArea()
-            
-            WebImage(url: URL(string: "https://images.unsplash.com/photo-1543353071-873f17a7a088"))
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-                .overlay(Color.black.opacity(0.4)) // Overlay para legibilidad
-            
-            VStack(spacing: 0) {
-                // 2. HEADER DE HISTORIA (Simulado)
-                
-                // Barra de Progreso
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.3))
-                        Capsule().fill(Color.white)
-                            .frame(width: geo.size.width * progress)
-                            // La animación se controla explícitamente en el cambio de estado
+            // Main Content Layer
+            GeometryReader { proxy in
+                ZStack(alignment: .bottom) {
+                    // Background (Dark)
+                    Color.black
+                    
+                    // Story Image
+                    WebImage(url: URL(string: storyImage))
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                        .overlay(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.black.opacity(0.6),
+                                    Color.black.opacity(0.4),
+                                    Color.black.opacity(0.6)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .scaleEffect(isAnimating ? 1.05 : 1.0)
+                        .animation(.linear(duration: storyDuration), value: isAnimating)
+                    
+                    // Controls & Overlays
+                    VStack(spacing: 0) {
+                        // Top Progress Bar
+                        HStack(spacing: 4) {
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(Color.white.opacity(0.3))
+                                    
+                                    Capsule()
+                                        .fill(Color.white)
+                                        .frame(width: geo.size.width * progress)
+                                }
+                            }
+                            .frame(height: 2)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 64)
+                        
+                        // Header
+                        HStack(spacing: 12) {
+                            // Avatar
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                                    .frame(width: 50, height: 50)
+                                Image(systemName: "storefront.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                            }
+                            .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                            
+                            // Text
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Historias")
+                                    .font(.system(size: 19, weight: .bold))
+                                    .foregroundColor(.white)
+                                
+                                Text("Novedades")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            
+                            Spacer()
+                            
+                            // Close Button
+                            Button(action: {
+                                withAnimation {
+                                    isPresented = false
+                                }
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.black.opacity(0.4))
+                                    .clipShape(Circle())
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        
+                        Spacer()
+                        
+                        // Center Message
+                        VStack(spacing: 16) {
+                            Image(systemName: "bell.slash.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.white.opacity(0.9))
+                                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                            
+                            Text("Aún no hay historias")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            
+                            Text("Sigue a tus restaurantes favoritos para ver sus ofertas y novedades aquí.")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 40)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        }
+                        .offset(y: -40)
+                        
+                        Spacer()
+                        
+                        // Bottom Area (Empty for now as there are no actions)
+                        Color.clear.frame(height: 100)
                     }
                 }
-                .frame(height: 3)
-                .padding(.top, 8)
-                .padding(.horizontal, 10)
-                
-                // Info del "Usuario" (App)
-                HStack(spacing: 10) {
-                    Image(systemName: "star.circle.fill") // Icono de la App
-                        .font(.system(size: 32))
-                        .foregroundColor(.white)
-                        .background(Color.white.opacity(0.2))
-                        .clipShape(Circle())
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("FoodTook")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Hace un momento")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        closeStory()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(8)
-                    }
+                .scaleEffect(1.0)
+                .rotation3DEffect(.degrees(0), axis: (x: 1, y: 0, z: 0))
+                .opacity(1.0)
+            }
+            .offset(y: dragOffset)
+        }
+        .onAppear {
+            isAnimating = true
+        }
+        .onReceive(timer) { _ in
+            guard !isPaused else { return }
+            if progress < 1.0 {
+                progress += 0.05 / storyDuration
+            } else {
+                withAnimation {
+                    isPresented = false
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                
-                Spacer()
-                
-                // 3. CONTENIDO CENTRAL
-                VStack(spacing: 16) {
-                    Text("¡Bienvenido a las Historias!")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-                    
-                    Text("Aquí verás las novedades diarias, ofertas flash y platos del día de tus restaurantes favoritos cuando los sigas.")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-                    
-                    Button(action: {
-                        closeStory()
-                    }) {
-                        Text("Entendido")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.black)
-                            .padding(.horizontal, 32)
-                            .padding(.vertical, 14)
-                            .background(Color.white)
-                            .cornerRadius(24)
-                    }
-                    .padding(.top, 20)
-                }
-                .offset(y: -60)
-                .scaleEffect(animate ? 1 : 0.9)
-                .opacity(animate ? 1 : 0)
-                
-                Spacer()
             }
         }
-        // Gesto de Swipe Down
-        .offset(y: dragOffset.height)
-        .scaleEffect(1 - (dragOffset.height / 1000)) // Efecto de escala al arrastrar
         .gesture(
-            DragGesture()
+            DragGesture(minimumDistance: 0)
                 .onChanged { value in
+                    isPaused = true
                     if value.translation.height > 0 {
-                        dragOffset = value.translation
+                        dragOffset = value.translation.height
                     }
                 }
                 .onEnded { value in
                     if value.translation.height > 100 {
-                        closeStory()
+                        withAnimation {
+                            isPresented = false
+                        }
                     } else {
                         withAnimation(.spring()) {
-                            dragOffset = .zero
+                            dragOffset = 0
+                            isPaused = false
                         }
                     }
                 }
         )
-        .onAppear {
-            resetAndStart()
-        }
-        .onTapGesture {
-            closeStory()
-        }
-    }
-    
-    private func resetAndStart() {
-        // 1. Resetear estados inmediatamente sin animación
-        progress = 0.0
-        animate = false
-        dragOffset = .zero
-        
-        // 2. Iniciar animación de entrada
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            animate = true
-        }
-        
-        // 3. Iniciar barra de progreso (simulando 5 segundos)
-        withAnimation(.linear(duration: 5.0)) {
-            progress = 1.0
-        }
-        
-        // 4. Programar cierre automático
-        // Cancelamos cualquier work item previo implícitamente al recrear la vista, 
-        // pero idealmente deberíamos guardar la referencia. 
-        // En este caso simple, confiamos en que al cerrarse la vista se cancela.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            // Solo cerrar si sigue visible y el progreso llegó al final
-            if isPresented && progress >= 0.99 {
-                closeStory()
-            }
-        }
-    }
-    
-    private func closeStory() {
-        withAnimation {
-            isPresented = false
-        }
-        // Resetear al cerrar para que la próxima vez esté limpio (aunque onAppear lo hace)
-        progress = 0.0
     }
 }
