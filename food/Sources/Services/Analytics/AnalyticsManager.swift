@@ -9,7 +9,7 @@ enum AnalyticsPriority: Int16 {
     case background = 2  // Solo enviar con WiFi/Cargando (ej. Swipes)
 }
 
-class AnalyticsManager: ObservableObject {
+class AnalyticsManager {
     
     // Singleton
     static let shared = AnalyticsManager()
