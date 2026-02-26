@@ -65,6 +65,12 @@ struct CartScreenView: View {
             }
         }
         .safeAreaInset(edge: .bottom) { bottomSummaryArea }
+        // ✅ ANALYTICS: Tracking de pantalla
+        .analyticsScreen(name: "cart_screen", properties: [
+            "restaurant": restaurantName,
+            "total_items": cartItems.count,
+            "total_value": total
+        ])
         .fullScreenCover(isPresented: $showCheckout) {
             CheckoutView(
                 restaurantName: restaurantName,

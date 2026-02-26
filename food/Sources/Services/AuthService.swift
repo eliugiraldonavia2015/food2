@@ -1058,6 +1058,10 @@ extension AuthService {
             resetPhoneAuth()
             user = nil
             isAuthenticated = false
+            
+            // ✅ ANALYTICS: Limpiar identidad
+            AnalyticsManager.shared.resetUser()
+            
         } catch {
             handleAuthError("Error al cerrar sesión: \(error.localizedDescription)")
         }
@@ -1066,6 +1070,9 @@ extension AuthService {
     private func updateAuthState(with firebaseUser: User?) {
         DispatchQueue.main.async {
             if let firebaseUser = firebaseUser {
+                // ✅ ANALYTICS: Identificar usuario al iniciar sesión
+                AnalyticsManager.shared.identifyUser(userId: firebaseUser.uid)
+                
                 // Verificar si existe documento de usuario
                 DatabaseService.shared.userDocumentExists(uid: firebaseUser.uid) { exists in
                     if !exists {

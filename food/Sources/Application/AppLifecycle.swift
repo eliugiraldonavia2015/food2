@@ -26,6 +26,9 @@ public final class AppLifecycle {
     public static func initializeApp() {
         configureFirebase()
         
+        // Iniciar el sistema de analítica
+        AnalyticsManager.shared.start()
+        
         // Configurar dependencias
         AppDependencies.shared.configureServices()
         

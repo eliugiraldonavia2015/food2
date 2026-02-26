@@ -135,6 +135,10 @@ struct FeedView: View {
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.15)
             }
             .background(Color.black.ignoresSafeArea())
+            // ✅ ANALYTICS: Tracking de pantalla
+            .analyticsScreen(name: "feed_home", properties: [
+                "active_tab": activeTab == .foryou ? "for_you" : "following"
+            ])
         }
         .ignoresSafeArea()
         .preferredColorScheme(.light)

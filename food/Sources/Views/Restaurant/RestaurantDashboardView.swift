@@ -121,7 +121,17 @@ struct RestaurantDashboardView: View {
                 animateGraph = false
                 startAnimations()
             }
+            
+            // ✅ ANALYTICS: Tracking de navegación en el dashboard
+            AnalyticsManager.shared.log(event: "screen_view", params: [
+                "screen_name": "restaurant_dashboard",
+                "section": newValue
+            ])
         }
+        // ✅ ANALYTICS: Tracking inicial
+        .analyticsScreen(name: "restaurant_dashboard", properties: [
+            "section": selectedMenu
+        ])
     }
     
     private func startAnimations() {
