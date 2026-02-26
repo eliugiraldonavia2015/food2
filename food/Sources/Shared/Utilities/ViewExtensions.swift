@@ -12,10 +12,11 @@ extension View {
     /// - Parameter name: Nombre de la pantalla (snake_case recomendado, ej: "home_feed")
     /// - Parameter properties: Propiedades adicionales opcionales
     public func analyticsScreen(name: String, properties: [String: Any]? = nil) -> some View {
-        onAppear {
+        self.onAppear {
             var params = properties ?? [:]
             params["screen_name"] = name
-            params["screen_class"] = String(describing: type(of: self))
+            // FIX: Usamos "SwiftUIView" o el nombre de pantalla para evitar nombres de clase internos de SwiftUI que son muy largos
+            params["screen_class"] = name 
             
             AnalyticsManager.shared.log(event: "screen_view", params: params, priority: .realTime)
         }

@@ -9,17 +9,53 @@ class AnalyticsPersistence {
     let container: NSPersistentContainer
 
     init() {
-        // Intentamos cargar el modelo desde el bundle
-        guard let modelURL = Bundle.main.url(forResource: "Analytics", withExtension: "momd"),
-              let model = NSManagedObjectModel(contentsOf: modelURL) else {
-            // Si falla al cargar el modelo compilado (.momd), intentamos cargar el .xcdatamodeld directo si estamos en desarrollo
-            // O fallback a crear un container con el nombre (que buscará automáticamente)
-            container = NSPersistentContainer(name: "Analytics")
-            setupContainer()
-            return
-        }
-
+        // 1. Construir el modelo programáticamente (sin depender de .momd compilado)
+        let model = NSManagedObjectModel()
+        
+        // Entidad AnalyticsEvent
+        let entity = NSEntityDescription()
+        entity.name = "AnalyticsEvent"
+        entity.managedObjectClassName = NSStringFromClass(AnalyticsEvent.self) // Clase real
+        
+        // Atributos
+        let idAttr = NSAttributeDescription()
+        idAttr.name = "id"
+        idAttr.attributeType = .stringAttributeType
+        idAttr.isOptional = true
+        
+        let nameAttr = NSAttributeDescription()
+        nameAttr.name = "name"
+        nameAttr.attributeType = .stringAttributeType
+        nameAttr.isOptional = true
+        
+        let paramsAttr = NSAttributeDescription()
+        paramsAttr.name = "parameters"
+        paramsAttr.attributeType = .binaryDataAttributeType
+        paramsAttr.isOptional = true
+        
+        let priorityAttr = NSAttributeDescription()
+        priorityAttr.name = "priority"
+        priorityAttr.attributeType = .integer16AttributeType
+        priorityAttr.defaultValue = 0
+        priorityAttr.isOptional = false // int16 no optional en CoreData
+        
+        let statusAttr = NSAttributeDescription()
+        statusAttr.name = "status"
+        statusAttr.attributeType = .stringAttributeType
+        statusAttr.isOptional = true
+        
+        let timestampAttr = NSAttributeDescription()
+        timestampAttr.name = "timestamp"
+        timestampAttr.attributeType = .dateAttributeType
+        timestampAttr.isOptional = true
+        
+        entity.properties = [idAttr, nameAttr, paramsAttr, priorityAttr, statusAttr, timestampAttr]
+        model.entities = [entity]
+        
+        // 2. Inicializar contenedor con este modelo en memoria
         container = NSPersistentContainer(name: "Analytics", managedObjectModel: model)
+        
+        // 3. Configurar stores
         setupContainer()
     }
 
