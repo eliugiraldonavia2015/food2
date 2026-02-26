@@ -10,9 +10,10 @@ Este documento refleja en tiempo real qué eventos y métricas están **ya imple
 | Componente | Estado | Descripción | Ubicación |
 | :--- | :---: | :--- | :--- |
 | **Firebase SDK** | ✅ | Activado en `GoogleService-Info.plist`. | `AppLifecycle.swift` |
-| **CoreData** | ✅ | Stack local `Analytics.xcdatamodeld` para modo offline. | `AnalyticsPersistence.swift` |
-| **Manager** | ✅ | Singleton `AnalyticsManager` que orquesta todo. | `AnalyticsManager.swift` |
+| **CoreData (Manual)** | ✅ | Modelo de datos creado programáticamente para evitar errores de compilación `.momd`. | `AnalyticsPersistence.swift` |
+| **Manager** | ✅ | Singleton `AnalyticsManager` que orquesta todo. Logs mejorados para ver `screen_name`. | `AnalyticsManager.swift` |
 | **Background Flush** | ✅ | Envío de datos pendientes al cerrar la app. | `SceneDelegate.swift` |
+| **Clean Tracking** | ✅ | Desactivado `FirebaseAutomaticScreenReporting` en `Info.plist` para evitar duplicados. | `Info.plist` |
 
 ---
 

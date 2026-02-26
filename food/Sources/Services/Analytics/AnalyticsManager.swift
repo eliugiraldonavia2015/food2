@@ -92,12 +92,24 @@ class AnalyticsManager {
         case .realTime:
             // Enviar directo a Firebase
             Analytics.logEvent(event, parameters: firebaseParams)
-            print("[Analytics] 🚀 Sent Real-Time: \(event)")
+            
+            // Log detallado
+            if let screenName = firebaseParams["screen_name"] as? String {
+                print("[Analytics] 🚀 Sent Real-Time: \(event) -> \(screenName)")
+            } else {
+                print("[Analytics] 🚀 Sent Real-Time: \(event)")
+            }
             
         case .batch, .background:
             // Guardar en CoreData para envío posterior
             saveEventLocally(name: event, params: finalParams, priority: priority)
-            print("[Analytics] 💾 Buffered: \(event)")
+            
+            // Log detallado
+            if let screenName = finalParams["screen_name"] as? String {
+                print("[Analytics] 💾 Buffered: \(event) -> \(screenName)")
+            } else {
+                print("[Analytics] 💾 Buffered: \(event)")
+            }
             
             // Check si debemos hacer flush por tamaño
             checkBufferLimit()

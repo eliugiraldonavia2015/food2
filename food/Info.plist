@@ -32,6 +32,8 @@
 	<string>Necesitamos acceso al micrófono para grabar el audio de tus videos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Necesitamos acceso a tu galería para subir videos o fotos existentes.</string>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
