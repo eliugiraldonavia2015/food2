@@ -516,6 +516,7 @@ struct FeedView: View {
         @State private var loopCancellable: AnyCancellable? = nil // 🔴 Fix Memory Leak
         @State private var readyCancellable: AnyCancellable? = nil
         @State private var activationTask: Task<Void, Never>? = nil // ⏳ Debounce Task
+        @State private var analyticsTask: Task<Void, Never>? = nil // ✅ ANALYTICS: Task para medir tiempo de vista
 
         // Quick Share
         struct QuickPerson: Identifiable { let id = UUID(); let name: String; let emoji: String }
@@ -796,7 +797,9 @@ struct FeedView: View {
                     
                     // Cancelar cualquier intento previo
                     activationTask?.cancel()
+                    analyticsTask?.cancel()
                     
+                    // 1. Task de Activación (Audio/Play)
                     activationTask = Task {
                         // Esperar 100ms (ajustable) - Optimizado para respuesta más rápida
                         try? await Task.sleep(nanoseconds: 100_000_000)
@@ -811,10 +814,27 @@ struct FeedView: View {
                             }
                         }
                     }
+                    
+                    // 2. Task de Analítica (Video View > 3s)
+                    analyticsTask = Task {
+                        // Esperar 3 segundos para contar como visto
+                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        
+                        if !Task.isCancelled {
+                            AnalyticsManager.shared.log(event: "video_view", params: [
+                                "video_id": item.id.uuidString,
+                                "author_id": item.authorId ?? "unknown",
+                                "duration": 0 // TODO: Obtener duración real
+                            ], priority: .batch) // Prioridad BATCH para no saturar
+                        }
+                    }
+                    
                 } else {
                     // Dejamos de ser activos -> Cancelar activación pendiente y pausar
                     activationTask?.cancel()
+                    analyticsTask?.cancel() // Cancelar tracking si se fue antes de 3s
                     activationTask = nil
+                    analyticsTask = nil
                     
                     if let p = player {
                         p.pause()

@@ -458,6 +458,11 @@ extension AuthService {
         )
         DatabaseService.shared.createUsernameIndex(username: tempUsername, uid: user.uid, email: nil)
         
+        // ✅ ANALYTICS: Nuevo registro (Phone)
+        AnalyticsManager.shared.log(event: "sign_up", params: [
+            "method": "phone"
+        ], priority: .realTime)
+        
         self.user = AppUser(
             uid: user.uid,
             email: nil,
@@ -671,6 +676,11 @@ extension AuthService {
                     role: role
                 )
                 DatabaseService.shared.createUsernameIndex(username: username, uid: user.uid, email: email)
+                
+                // ✅ ANALYTICS: Nuevo registro (Email)
+                AnalyticsManager.shared.log(event: "sign_up", params: [
+                    "method": "email"
+                ], priority: .realTime)
                 
                 // ✅ Actualizar intereses DESPUÉS usando función existente
                 if let interests = interests {

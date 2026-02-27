@@ -108,6 +108,12 @@ struct CheckoutView: View {
         .safeAreaInset(edge: .bottom) { bottomBar }
         .background(Color.white)
         .preferredColorScheme(.light)
+        // ✅ ANALYTICS: Tracking de pantalla checkout_flow
+        .analyticsScreen(name: "checkout_flow", properties: [
+            "restaurant": restaurantName,
+            "total_value": grandTotal,
+            "items_count": items.count
+        ])
         .fullScreenCover(isPresented: $showAddressSelection) {
             DeliveryAddressSelectionView(
                 addresses: [
@@ -382,10 +388,28 @@ struct CheckoutView: View {
 
     private func placeOrder() {
         guard !placingOrder else { return }
+        
+        // ✅ ANALYTICS: Intento de compra
+        AnalyticsManager.shared.log(event: "checkout_attempt", params: [
+            "restaurant": restaurantName,
+            "total_value": grandTotal,
+            "items_count": items.count,
+            "payment_method": paymentTitle
+        ])
+        
         placingOrder = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
             placingOrder = false
             showPlaced = true
+            
+            // ✅ ANALYTICS: Compra exitosa (Revenue)
+            AnalyticsManager.shared.log(event: "purchase", params: [
+                "transaction_id": UUID().uuidString,
+                "value": grandTotal,
+                "currency": "USD", // O MXN según corresponda
+                "items": items.map { $0.title },
+                "coupon": ""
+            ], priority: .realTime)
         }
     }
 
